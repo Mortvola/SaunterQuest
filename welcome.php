@@ -27,5 +27,15 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
         <a href="reset-password.php" class="btn btn-warning">Reset Your Password</a>
         <a href="logout.php" class="btn btn-danger">Sign Out of Your Account</a>
     </p>
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <ul class="nav navbar-nav">
+                <li><a href="#">Daily View</a></li>
+                <li><a href="#">Segment View</a></li>
+                <li><a href="/CreateFoodItem.php">Create Food Item</a></li>
+                <li><a href="/CreateDayTemplate.php">Create Day Template</a></li>
+            </ul>
+        </div>
+    </nav>
 </body>
 </html>

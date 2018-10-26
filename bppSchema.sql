@@ -33,3 +33,18 @@ create table foodItemEvent (
 	day INT NOT NULL,
 	portion FLOAT);
 
+create table dayTemplate (
+	dayTemplateId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	creationDate DATETIME NOT NULL,
+	modificationDate DATETIME NOT NULL,
+	name VARCHAR (255) NOT NULL,
+	userId int NOT NULL
+);
+
+create table foodItemDayTemplate (
+	foodItemDayTemplateId
+	creationDate DATETIME NOT NULL,
+	modificationDate DATETIME NOT NULL,
+	dayTemplateid INT NOT NULL,
+	foodItemId INT NOT NULL
+);
