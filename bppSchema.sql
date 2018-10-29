@@ -15,7 +15,7 @@ create table trip (
 	tripStartDate DATE);
 
 create table foodItem (
-	footItemId int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	foodItemId int NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
 	name VARCHAR (255),

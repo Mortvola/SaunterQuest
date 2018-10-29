@@ -13,7 +13,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Welcome</title>
+    <title>Daily Templates</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.css">
     <style type="text/css">
         body{ font: 14px sans-serif; text-align: center; }
@@ -21,22 +21,21 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 </head>
 <body>
     <div class="page-header">
-        <h1>Backpacker's Planners</h1>
+        <h1>Daily Templates</h1>
     </div>
-    <p>
-        <a href="reset-password.php" class="btn btn-warning">Reset Your Password</a>
-        <a href="logout.php" class="btn btn-danger">Sign Out of Your Account</a>
-    </p>
     <nav class="navbar navbar-default">
         <div class="container-fluid">
             <ul class="nav navbar-nav">
-                <li class="nav-item active"><a class="nav-link">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="/welcome.php">Home</a></li>
                 <li class="nav-item"><a class="nav-link" href="#">Daily View</a></li>
                 <li class="nav-item"><a class="nav-link" href="#">Segment View</a></li>
                 <li class="nav-item"><a class="nav-link" href="/CreateFoodItem.php">Create Food Item</a></li>
-                <li class="nav-item"><a class="nav-link" href="/DayTemplates.php">Day Templates</a></li>
+                <li class="nav-item active"><a class="nav-link">Day Templates</a></li>
             </ul>
         </div>
     </nav>
+    
+ 	<a class="btn" href="/addfoodtomeal.php">Create Template</a>
+ 	    
 </body>
 </html>

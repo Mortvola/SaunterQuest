@@ -14,56 +14,106 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 <head>
     <meta charset="UTF-8">
     <title>Add Food</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.css">
-    <style type="text/css">
-        body{ font: 14px sans-serif; text-align: center; }
-    </style>
 </head>
 <body>
-    <div class="page-header">
+    <div class="page-header" style="text-align:center;">
         <h1>Add Food</h1>
     </div>
-    <table>
-    <?php
-    class TableRows extends RecursiveIteratorIterator {
-        function __construct($it) {
-            parent::__construct($it, self::LEAVES_ONLY);
-        }
-        
-        function current() {
-            return "<td>".parent::current()."</td>";
-        }
-        
-        function beginChildren() {
-            echo "<tr><td><input type=checkbox></td>";
-        }
-        
-        function endChildren() {
-            echo "</tr>" . "\n";
-        }
-    } 
     
-    // Include config file
-    require_once "config.php";
-    
-    try {
-        $stmt = $pdo->prepare("select name, weight, calories, price from foodItem");
-        $stmt->execute ();
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-6">
+            <table class="table table-bordered" style="text-align:left;">
+                <thead>
+    	            <th>Name</th><th>Weight</th><th>Calories</th><th>Price</th>
+                </thead>
+                <tbody id="itemsToAdd">
+                <?php
+                    // Include config file
+                    require_once "config.php";
+                    
+                    try {
+                        $result = $pdo->query("select footItemId, name, weight, calories, price from foodItem");
+                        foreach($result as $row) {
+                            echo "<tr>";
+                            echo "<td value='", $row['footItemId'], "'><input type=checkbox />", $row['name'], "</td>";
+                            echo "<td>", $row['weight'], "</td>";
+                            echo "<td>", $row['calories'], "</td>";
+                            echo "<td>", $row['price'], "</td>";
+                            echo "</tr>\n";
+                        }
+                    }
+                    catch(PDOException $e)
+                    {
+                        echo $e->getMessage();
+                    }
+                    
+                    $pdo = null;
+                ?>
+            	</tbody>
+            </table>
+		
+		    <input type="button" value="Add Items" onclick="addItems()"/>
+		    
+        </div>
+        
+        <div class="col-md-6">
+            <table class="table table-bordered" style="text-align:left;">
+                <thead>
+    	            <th>Name</th><th>Weight</th><th>Calories</th><th>Price</th>
+                </thead>
+                <tbody id="addedItems">
+            	</tbody>
+            </table>
 
-        // set the resulting array to associative
-        $result = $stmt->setFetchMode(PDO::FETCH_ASSOC);
-       
-        foreach(new TableRows(new RecursiveArrayIterator($stmt->fetchAll())) as $k=>$v) {
-            echo $v;
-        }
-        
-        $pdo = null;
-    }
-    catch(PDOException $e)
-    {
-        echo $e->getMessage();
-    }
-    ?>
-    </table>
+		    <input type="button" value="Remove Items" onclick="removeItems()"/>
+		    
+        </div>
+      </div>
+    </div>
+
+    <form method="post">
+    <input type="hidden" value="" />
+    <input type="submit" value="Finish"/>
+	</form>
+	
+	<script>
+		function addItems() {
+			// Get last row of table of added items
+			let addedItems = document.getElementById("addedItems");
+
+			let itemsToAdd = document.getElementById("itemsToAdd");
+
+			let rows = itemsToAdd.getElementsByTagName ("TR");
+			let count = rows.length;
+			
+			for (let i = 0; i < count; i++)
+			{
+				row = document.createElement("TR");
+
+				// This should be the cell with the checkbox. Get the value.
+				let cell = rows[i].firstElementChild;
+				let id = cell.getAttribute("value");
+				let name = cell.innerHTML;
+				
+//				for (let j = 0; j < columns.count; j++)
+				{
+    				td = document.createElement("TD");
+    				txt = document.createTextNode(name + id);
+    
+    				td.appendChild(txt);
+    				row.appendChild(td);
+				}
+				
+				addedItems.appendChild(row);
+			}
+		}
+		
+		function removeItems() {
+			
+		}
+	</script>    
 </body>
 </html>
