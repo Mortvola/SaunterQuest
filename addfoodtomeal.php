@@ -30,33 +30,8 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     	            <th>Name</th><th>Weight</th><th>Calories</th><th>Price</th>
                 </thead>
                 <tbody id="itemsToAdd">
-                <?php
-                    // Include config file
-                    require_once "config.php";
-                    
-                    try {
-                        $result = $pdo->query("select footItemId, name, weight, calories, price from foodItem");
-                        foreach($result as $row) {
-                            echo "<tr>";
-                            echo "<td value='", $row['footItemId'], "'><input type=checkbox />", $row['name'], "</td>";
-                            echo "<td>", $row['weight'], "</td>";
-                            echo "<td>", $row['calories'], "</td>";
-                            echo "<td>", $row['price'], "</td>";
-                            echo "</tr>\n";
-                        }
-                    }
-                    catch(PDOException $e)
-                    {
-                        echo $e->getMessage();
-                    }
-                    
-                    $pdo = null;
-                ?>
             	</tbody>
             </table>
-		
-		    <input type="button" value="Add Items" onclick="addItems()"/>
-		    
         </div>
         
         <div class="col-md-6">
@@ -67,9 +42,6 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
                 <tbody id="addedItems">
             	</tbody>
             </table>
-
-		    <input type="button" value="Remove Items" onclick="removeItems()"/>
-		    
         </div>
       </div>
     </div>
@@ -80,40 +52,103 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 	</form>
 	
 	<script>
-		function addItems() {
-			// Get last row of table of added items
-			let addedItems = document.getElementById("addedItems");
-
-			let itemsToAdd = document.getElementById("itemsToAdd");
-
-			let rows = itemsToAdd.getElementsByTagName ("TR");
-			let count = rows.length;
-			
-			for (let i = 0; i < count; i++)
+		"use strict";
+		var tableData;
+		var addedData = [];
+		var addedCounter = 0;
+		
+		function loadTable ()
+		{
+			var xmlhttp = new XMLHttpRequest ();
+			xmlhttp.onreadystatechange = function ()
 			{
-				row = document.createElement("TR");
-
-				// This should be the cell with the checkbox. Get the value.
-				let cell = rows[i].firstElementChild;
-				let id = cell.getAttribute("value");
-				let name = cell.innerHTML;
-				
-//				for (let j = 0; j < columns.count; j++)
+				if (this.readyState == 4 && this.status == 200)
 				{
-    				td = document.createElement("TD");
-    				txt = document.createTextNode(name + id);
-    
-    				td.appendChild(txt);
-    				row.appendChild(td);
+					tableData = JSON.parse(this.responseText);
+
+					var txt = "";
+					
+					for (let x in tableData)
+					{
+						txt +=
+//							"<tr><td>" + "<input type='button' onclick='addItem(" + x + ")' value='Add' />" + tableData[x].name
+							"<tr><td>" + "<button type='button' class='btn' onclick='addItem(" + x + ")'><span class='glyphicon glyphicon-plus-sign'></span></button>" + tableData[x].name
+    						+ "</td><td>" + tableData[x].weight
+    						+ "</td><td>" + tableData[x].calories
+    						+ "</td><td>" + tableData[x].price
+							+ "</td></tr>";
+					}
+
+					document.getElementById ("itemsToAdd").innerHTML = txt;
 				}
-				
-				addedItems.appendChild(row);
+			}
+			
+			xmlhttp.open("GET", "GetTable.php", true);
+			//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			xmlhttp.send();
+		}
+
+		function addItem (index)
+		{
+			let row = document.createElement("TR");
+			
+			let span = document.createElement("SPAN");
+			span.setAttribute("class", "glyphicon glyphicon-minus-sign");
+			
+			let removeButton = document.createElement("BUTTON");
+			removeButton.setAttribute("type", "button");
+			removeButton.setAttribute("class", "btn");
+			removeButton.setAttribute("onclick", "removeItem(" + addedCounter + ")");
+			removeButton.appendChild(span);
+			
+			let td = document.createElement("TD");
+			td.appendChild(removeButton);
+			
+			let txt = document.createTextNode(tableData[index].name);
+			td.appendChild(txt);
+			row.appendChild(td);
+
+			td = document.createElement("TD");
+			txt = document.createTextNode(tableData[index].weight);
+			td.appendChild(txt);
+			row.appendChild(td);
+			
+			td = document.createElement("TD");
+			txt = document.createTextNode(tableData[index].calories);
+			td.appendChild(txt);
+			row.appendChild(td);
+
+			td = document.createElement("TD");
+			txt = document.createTextNode(tableData[index].price);
+			td.appendChild(txt);
+			row.appendChild(td);
+			
+			// Get the added items table and append new row
+			let addedItems = document.getElementById("addedItems");
+			addedItems.appendChild(row);
+
+			addedData.push({id: addedCounter, tableRow: row, foodItemId: tableData[index].footItemId});
+			addedCounter++;
+		}
+
+		function removeItem(addedId)
+		{
+			for (let x in addedData)
+			{
+				if (addedData[x].id == addedId)
+				{
+ 					let addedItems = document.getElementById("addedItems");
+ 					addedItems.removeChild(addedData[x].tableRow);
+
+					addedData.splice(x, 1);
+					
+					break;
+				}
 			}
 		}
+
+		loadTable ();
 		
-		function removeItems() {
-			
-		}
 	</script>    
 </body>
 </html>
