@@ -18,7 +18,7 @@ create table foodItem (
 	foodItemId int NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
-	name VARCHAR (255),
+	name VARCHAR (255) NOT NULL,
 	weight INT,
 	calories INT,
 	price DECIMAL (6,2));
