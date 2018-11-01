@@ -4,7 +4,7 @@
     
     try
     {
-        $statement = $pdo->prepare("select footItemId, name, weight, calories, price from foodItem");
+        $statement = $pdo->prepare("select foodItemId, name, weight, calories, price from foodItem");
         
         $statement->execute ();
         
