@@ -35,6 +35,8 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
         </div>
         
         <div class="col-md-6">
+        	<button type="button" class="btn" onclick="saveTable()">Save</button>
+        	<button type="button" class="btn">Cancel</button>
             <table class="table table-bordered" style="text-align:left;">
                 <thead>
     	            <th>Name</th><th>Weight</th><th>Calories</th><th>Price</th>
@@ -46,11 +48,6 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
       </div>
     </div>
 
-    <form method="post">
-    <input type="hidden" value="" />
-    <input type="submit" value="Finish"/>
-	</form>
-	
 	<script>
 		"use strict";
 		var tableData;
@@ -86,6 +83,33 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 			xmlhttp.open("GET", "GetTable.php", true);
 			//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 			xmlhttp.send();
+		}
+
+		function saveTable ()
+		{
+			let foodList = {name: "Day 1", items: []};
+			
+			// convert data to a JSON object
+			for (let x in addedData)
+			{
+				let item = {foodItemId: addedData[x].foodItemId};
+				
+				foodList.items.push(item);
+			}
+			
+			var xmlhttp = new XMLHttpRequest ();
+			xmlhttp.onreadystatechange = function ()
+			{
+				if (this.readyState == 4 && this.status == 200)
+				{
+				}
+			}
+			
+			let jsonData = JSON.stringify(foodList);
+			
+			xmlhttp.open("POST", "SaveDayTemplate.php", true);
+			xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			xmlhttp.send("x=" + jsonData);
 		}
 
 		function addItem (index)
@@ -127,7 +151,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 			let addedItems = document.getElementById("addedItems");
 			addedItems.appendChild(row);
 
-			addedData.push({id: addedCounter, tableRow: row, foodItemId: tableData[index].footItemId});
+			addedData.push({id: addedCounter, tableRow: row, foodItemId: tableData[index].foodItemId});
 			addedCounter++;
 		}
 
