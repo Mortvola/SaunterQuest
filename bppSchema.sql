@@ -41,10 +41,10 @@ create table dayTemplate (
 	userId int NOT NULL
 );
 
-create table foodItemDayTemplate (
-	foodItemDayTemplateId
+create table dayTemplateFoodItem (
+	foodItemDayTemplateId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
-	dayTemplateid INT NOT NULL,
+	dayTemplateId INT NOT NULL,
 	foodItemId INT NOT NULL
 );
