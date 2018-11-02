@@ -60,6 +60,28 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 	            unset($stmt);
 	 	        }
         	}
+        	
+        	if (property_exists($obj, "deletedItems"))
+        	{
+        		$sql = "DELETE FROM dayTemplateFoodItem WHERE dayTemplateFoodItemId = :id";
+
+        		if($stmt = $pdo->prepare($sql))
+        		{
+        			// Bind variables to the prepared statement as parameters
+        			$stmt->bindParam(":id", $paramId, PDO::PARAM_INT);
+        			
+        			foreach ($obj->deletedItems as $id)
+        			{
+        				// Set parameters
+        				$paramId = $id;
+        				
+        				$stmt->execute ();
+        			}
+        			
+        			// Close statement
+        			unset($stmt);
+        		}
+        	}
         }
         
         // Close connection

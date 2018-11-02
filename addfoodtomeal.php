@@ -54,6 +54,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 		var templateRows = [];
 		var templateRowsCounter = 0;
 		var dayTemplateId = "<?php echo $_GET["id"] ?>";
+		var deletedTemplateRows = [];
 		
 		function loadTable ()
 		{
@@ -112,7 +113,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 
 		function saveDayTemplate ()
 		{
-			let foodList = {addedItems: []};
+			let foodList = {addedItems: [], deletedItems: []};
 
 			if (dayTemplateId != "")
 			{
@@ -132,6 +133,11 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 					
 					foodList.addedItems.push(item);
 				}
+			}
+
+			for (let x in deletedTemplateRows)
+			{
+				foodList.deletedItems.push(deletedTemplateRows[x]);
 			}
 			
 			var xmlhttp = new XMLHttpRequest ();
@@ -202,8 +208,13 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
  					let templateItems = document.getElementById("templateItems");
  					templateItems.removeChild(templateRows[x].tableRow);
 
-					templateRows.splice(x, 1);
+					if (templateRows[x].dayTemplateFoodItemId != undefined)
+					{
+						deletedTemplateRows.push(templateRows[x].dayTemplateFoodItemId);
+					}
 					
+					templateRows.splice(x, 1);
+
 					break;
 				}
 			}
