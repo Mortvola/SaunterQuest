@@ -36,31 +36,34 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 
         if (property_exists($obj, "dayTemplateId"))
         {
-        	// Prepare a select statement
-	        $sql = "INSERT INTO dayTemplateFoodItem (creationDate, modificationDate, dayTemplateId, foodItemId) VALUES (now(), now(), :dayTemplateId, :itemId)";
-        
-	        if($stmt = $pdo->prepare($sql))
-	        {
-	            // Bind variables to the prepared statement as parameters
-	            $stmt->bindParam(":itemId", $paramItemId, PDO::PARAM_STR);
-	            $stmt->bindParam(":dayTemplateId", $paramDayTemplateId, PDO::PARAM_INT);
-	            
-	            foreach ($obj->items as $item)
-	            {
-	                // Set parameters
-	                $paramDayTemplateId = $obj->dayTemplateId;
-	                $paramItemId = $item->foodItemId;
-	                
-	                $stmt->execute ();
-	            }
-	            
-	            // Close statement
-	            unset($stmt);
-	        }
-	
-	        // Close connection
-	        unset($pdo);
+        	if (property_exists($obj, "addedItems"))
+        	{
+	        	// Prepare a select statement
+		        $sql = "INSERT INTO dayTemplateFoodItem (creationDate, modificationDate, dayTemplateId, foodItemId) VALUES (now(), now(), :dayTemplateId, :itemId)";
+	        
+	 	        if($stmt = $pdo->prepare($sql))
+	 	        {
+	 	            // Bind variables to the prepared statement as parameters
+	 	            $stmt->bindParam(":itemId", $paramItemId, PDO::PARAM_STR);
+	 	            $stmt->bindParam(":dayTemplateId", $paramDayTemplateId, PDO::PARAM_INT);
+		            
+	 	            foreach ($obj->addedItems as $item)
+	 	            {
+	 	                // Set parameters
+	 	                $paramDayTemplateId = $obj->dayTemplateId;
+	 	                $paramItemId = $item->foodItemId;
+		                
+	 	                $stmt->execute ();
+	 	            }
+		            
+	 	            // Close statement
+	 	            unset($stmt);
+	 	        }
+        	}
         }
+        
+        // Close connection
+        unset($pdo);
 	}
 }
 ?>

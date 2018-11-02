@@ -35,13 +35,13 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
         </div>
         
         <div class="col-md-6">
-        	<button type="button" class="btn" onclick="saveTable()">Save</button>
+        	<button type="button" class="btn" onclick="saveDayTemplate()">Save</button>
         	<button type="button" class="btn">Cancel</button>
             <table class="table table-bordered" style="text-align:left;">
                 <thead>
     	            <th>Name</th><th>Weight</th><th>Calories</th><th>Price</th>
                 </thead>
-                <tbody id="addedItems">
+                <tbody id="templateItems">
             	</tbody>
             </table>
         </div>
@@ -51,8 +51,9 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 	<script>
 		"use strict";
 		var tableData;
-		var addedData = [];
-		var addedCounter = 0;
+		var templateRows = [];
+		var templateRowsCounter = 0;
+		var dayTemplateId = "<?php echo $_GET["id"] ?>";
 		
 		function loadTable ()
 		{
@@ -69,7 +70,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 					{
 						txt +=
 //							"<tr><td>" + "<input type='button' onclick='addItem(" + x + ")' value='Add' />" + tableData[x].name
-							"<tr><td>" + "<button type='button' class='btn' onclick='addItem(" + x + ")'><span class='glyphicon glyphicon-plus-sign'></span></button>" + tableData[x].name
+							"<tr><td>" + "<button type='button' class='btn' onclick='addItem(tableData[" + x + "])'><span class='glyphicon glyphicon-plus-sign'></span></button>" + tableData[x].name
     						+ "</td><td>" + tableData[x].weight
     						+ "</td><td>" + tableData[x].calories
     						+ "</td><td>" + tableData[x].price
@@ -85,16 +86,52 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 			xmlhttp.send();
 		}
 
-		function saveTable ()
+		function loadDayTemplate ()
 		{
-			let foodList = {name: "Day 1", items: []};
+			if (dayTemplateId != "")
+			{
+				var xmlhttp = new XMLHttpRequest ();
+				xmlhttp.onreadystatechange = function ()
+				{
+					if (this.readyState == 4 && this.status == 200)
+					{
+	 					let data = JSON.parse(this.responseText);
+	
+	 					for (let x in data)
+	 					{
+	 	 					addItem(data[x]);
+	 					}
+	 				}
+				}
+	
+				xmlhttp.open("GET", "GetDayTemplate.php?id=" + dayTemplateId, true);
+				//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+				xmlhttp.send();
+			}
+		}
+
+		function saveDayTemplate ()
+		{
+			let foodList = {addedItems: []};
+
+			if (dayTemplateId != "")
+			{
+				foodList.dayTemplateId = dayTemplateId;
+			}
+			else
+			{
+				foodList.name = "Day 1";
+			}
 			
 			// convert data to a JSON object
-			for (let x in addedData)
+			for (let x in templateRows)
 			{
-				let item = {foodItemId: addedData[x].foodItemId};
-				
-				foodList.items.push(item);
+				if (templateRows[x].dayTemplateFoodItemId == undefined)
+				{
+					let item = {foodItemId: templateRows[x].foodItemId};
+					
+					foodList.addedItems.push(item);
+				}
 			}
 			
 			var xmlhttp = new XMLHttpRequest ();
@@ -105,6 +142,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 				}
 			}
 			
+			// convert data to a JSON object
 			let jsonData = JSON.stringify(foodList);
 			
 			xmlhttp.open("POST", "SaveDayTemplate.php", true);
@@ -112,7 +150,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 			xmlhttp.send("x=" + jsonData);
 		}
 
-		function addItem (index)
+		function addItem (data)
 		{
 			let row = document.createElement("TR");
 			
@@ -122,49 +160,49 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 			let removeButton = document.createElement("BUTTON");
 			removeButton.setAttribute("type", "button");
 			removeButton.setAttribute("class", "btn");
-			removeButton.setAttribute("onclick", "removeItem(" + addedCounter + ")");
+			removeButton.setAttribute("onclick", "removeItem(" + templateRowsCounter + ")");
 			removeButton.appendChild(span);
 			
 			let td = document.createElement("TD");
 			td.appendChild(removeButton);
 			
-			let txt = document.createTextNode(tableData[index].name);
+			let txt = document.createTextNode(data.name);
 			td.appendChild(txt);
 			row.appendChild(td);
 
 			td = document.createElement("TD");
-			txt = document.createTextNode(tableData[index].weight);
+			txt = document.createTextNode(data.weight);
 			td.appendChild(txt);
 			row.appendChild(td);
 			
 			td = document.createElement("TD");
-			txt = document.createTextNode(tableData[index].calories);
+			txt = document.createTextNode(data.calories);
 			td.appendChild(txt);
 			row.appendChild(td);
 
 			td = document.createElement("TD");
-			txt = document.createTextNode(tableData[index].price);
+			txt = document.createTextNode(data.price);
 			td.appendChild(txt);
 			row.appendChild(td);
 			
 			// Get the added items table and append new row
-			let addedItems = document.getElementById("addedItems");
-			addedItems.appendChild(row);
+			let templateItems = document.getElementById("templateItems");
+			templateItems.appendChild(row);
 
-			addedData.push({id: addedCounter, tableRow: row, foodItemId: tableData[index].foodItemId});
-			addedCounter++;
+			templateRows.push({id: templateRowsCounter, tableRow: row, foodItemId: data.foodItemId, dayTemplateFoodItemId: data.dayTemplateFoodItemId});
+			templateRowsCounter++;
 		}
 
-		function removeItem(addedId)
+		function removeItem(templateRowId)
 		{
-			for (let x in addedData)
+			for (let x in templateRows)
 			{
-				if (addedData[x].id == addedId)
+				if (templateRows[x].id == templateRowId)
 				{
- 					let addedItems = document.getElementById("addedItems");
- 					addedItems.removeChild(addedData[x].tableRow);
+ 					let templateItems = document.getElementById("templateItems");
+ 					templateItems.removeChild(templateRows[x].tableRow);
 
-					addedData.splice(x, 1);
+					templateRows.splice(x, 1);
 					
 					break;
 				}
@@ -172,6 +210,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 		}
 
 		loadTable ();
+		loadDayTemplate ();
 		
 	</script>    
 </body>

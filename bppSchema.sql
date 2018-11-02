@@ -42,7 +42,7 @@ create table dayTemplate (
 );
 
 create table dayTemplateFoodItem (
-	foodItemDayTemplateId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	dayTemplateFoodItemId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
 	dayTemplateId INT NOT NULL,

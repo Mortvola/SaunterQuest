@@ -3,7 +3,8 @@
 session_start();
  
 // Check if the user is logged in, if not then redirect him to login page
-if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
+if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true)
+{
     header("location: login.php");
     exit;
 }
@@ -37,6 +38,41 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     </nav>
     
  	<a class="btn" href="/addfoodtomeal.php">Create Template</a>
+ 	    
+ 	<?php
+	    // Include config file
+	    require_once "config.php";
+	    
+	    try
+	    {
+	    	$stmt = $pdo->prepare("select dayTemplateId, name from dayTemplate where userId = :userId");
+	        
+	    	if ($stmt)
+	        {
+	        	$stmt->bindParam(":userId", $paramUserId, PDO::PARAM_INT);
+	        	$paramUserId = $_SESSION["userId"];
+	        	
+	        	$stmt->execute ();
+		        
+		        $output = $stmt->fetchAll (PDO::FETCH_ASSOC);
+
+		        echo "<ul>";
+		        foreach ($output as $row)
+		        {
+		        	echo "<li><a href='/addfoodtomeal.php?id=", $row["dayTemplateId"], "'>", $row["name"], "</a></li>\n";
+		        }
+		        echo "</ul>";
+		        
+		        unset($stmt);
+	        }
+	    }
+	    catch(PDOException $e)
+	    {
+	        echo $e->getMessage();
+	    }
+	    
+	    unset($pdo);
+	?>
  	    
 </body>
 </html>
