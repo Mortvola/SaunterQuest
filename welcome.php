@@ -35,7 +35,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
                 <li class="nav-item"><a class="nav-link" href="#">Daily View</a></li>
                 <li class="nav-item"><a class="nav-link" href="#">Segment View</a></li>
                 <li class="nav-item"><a class="nav-link" href="/CreateFoodItem.php">Create Food Item</a></li>
-                <li class="nav-item"><a class="nav-link" href="/DayTemplates.php">Day Templates</a></li>
+                <li class="nav-item"><a class="nav-link" href="/DayTemplates.php">Daily Meal Plans</a></li>
             </ul>
         </div>
     </nav>

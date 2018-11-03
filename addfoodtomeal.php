@@ -25,23 +25,30 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     <div class="container-fluid">
       <div class="row">
         <div class="col-md-6">
-            <table class="table table-bordered" style="text-align:left;">
+	        <p>Name:</p>
+        </div>
+        <div class="col-md-6">
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-6">
+        	<button type="button" class="btn" onclick="saveDayTemplate()">Save</button>
+        	<button type="button" class="btn">Cancel</button>
+            <table class="table table-bordered table-condensed">
                 <thead>
     	            <th>Name</th><th>Weight</th><th>Calories</th><th>Price</th>
                 </thead>
-                <tbody id="itemsToAdd">
+                <tbody id="templateItems">
             	</tbody>
             </table>
         </div>
         
         <div class="col-md-6">
-        	<button type="button" class="btn" onclick="saveDayTemplate()">Save</button>
-        	<button type="button" class="btn">Cancel</button>
-            <table class="table table-bordered" style="text-align:left;">
+            <table class="table table-bordered table-condensed">
                 <thead>
     	            <th>Name</th><th>Weight</th><th>Calories</th><th>Price</th>
                 </thead>
-                <tbody id="templateItems">
+                <tbody id="itemsToAdd">
             	</tbody>
             </table>
         </div>
@@ -71,7 +78,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 					{
 						txt +=
 //							"<tr><td>" + "<input type='button' onclick='addItem(" + x + ")' value='Add' />" + tableData[x].name
-							"<tr><td>" + "<button type='button' class='btn' onclick='addItem(tableData[" + x + "])'><span class='glyphicon glyphicon-plus-sign'></span></button>" + tableData[x].name
+							"<tr><td>" + "<a class='btn btn-sm' onclick='addItem(tableData[" + x + "])'><span class='glyphicon glyphicon-plus-sign'></span></a>" + tableData[x].name
     						+ "</td><td>" + tableData[x].weight
     						+ "</td><td>" + tableData[x].calories
     						+ "</td><td>" + tableData[x].price
@@ -161,11 +168,12 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 			let row = document.createElement("TR");
 			
 			let span = document.createElement("SPAN");
-			span.setAttribute("class", "glyphicon glyphicon-minus-sign");
+			span.setAttribute("class", "glyphicon glyphicon-trash");
 			
-			let removeButton = document.createElement("BUTTON");
-			removeButton.setAttribute("type", "button");
-			removeButton.setAttribute("class", "btn");
+//			let removeButton = document.createElement("BUTTON");
+			let removeButton = document.createElement("A");
+//			removeButton.setAttribute("type", "button");
+			removeButton.setAttribute("class", "btn btn-sm");
 			removeButton.setAttribute("onclick", "removeItem(" + templateRowsCounter + ")");
 			removeButton.appendChild(span);
 			
