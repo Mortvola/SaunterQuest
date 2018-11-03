@@ -15,14 +15,49 @@ create table trip (
 	tripStartDate DATE);
 
 create table foodItem (
-	foodItemId int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	foodItemId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
+	manufacturer VARCHAR (255) NOT NULL,
 	name VARCHAR (255) NOT NULL,
-	weight INT,
+	gramsServingSize INT,
 	calories INT,
-	price DECIMAL (6,2));
+	totalFat INT,
+	saturatedFat DECIMAL (3,1),
+	transFat DECIMAL (3,1),
+	cholesterol INT,
+	sodium INT,
+	totalCarbohydrates INT,
+	dietaryFiber INT,
+	sugars INT,
+	protein INT);
 
+create table foodItemServingSize (
+	foodItemServingSizeId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	creationDate DATETIME NOT NULL,
+	modificationDate DATETIME NOT NULL,
+	foodItemId INT NOT NULL,
+	description VARCHAR(255) NOT NULL,
+	grams INT NOT NULL);
+
+create table foodItemSource (
+	foodItemSourceId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	creationDate DATETIME NOT NULL,
+	modificationDate DATETIME NOT NULL,
+	foodItemId INT NOT NULL,
+	description VARCHAR(255) NOT NULL,
+	price DECIMAL(6,2)
+);
+
+create table foodItemSourceContents (
+	foodItemSourceId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	creationDate DATETIME NOT NULL,
+	modificationDate DATETIME NOT NULL,
+	description VARCHAR(255) NOT NULL,
+	foodItemSourceId INT NOT NULL,
+	quantity INT NOT NULL
+}
+	
 create table foodItemEvent (
 	foodItemEventId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,
@@ -37,7 +72,7 @@ create table dayTemplate (
 	dayTemplateId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
-	name VARCHAR (255) NOT NULL,
+	name VARCHAR (255),
 	userId int NOT NULL
 );
 
@@ -46,5 +81,7 @@ create table dayTemplateFoodItem (
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
 	dayTemplateId INT NOT NULL,
-	foodItemId INT NOT NULL
+	foodItemId INT NOT NULL,
+	foodItemServingSizeId INT NOT NULL,
+	numberOfServings DECIMAL(7,3) NOT NULL
 );

@@ -20,10 +20,18 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
          	
          	if($stmt = $pdo->prepare($sql))
          	{
-         		$stmt->bindParam(":name", $paramName, PDO::PARAM_STR);
          		$stmt->bindParam(":userId", $paramUserId, PDO::PARAM_INT);
+
+         		if (!property_exists($obj, "name"))
+         		{
+         			$stmt->bindParam(":name", $paramName, PDO::PARAM_NULL);
+         		}
+         		else
+         		{
+         			$stmt->bindParam(":name", $paramName, PDO::PARAM_STR);
+         			$paramName = $obj->name;
+         		}
          		
-         		$paramName = $obj->name;
          		$paramUserId = $_SESSION["userId"];
          		
          		$stmt->execute ();
@@ -39,19 +47,23 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
         	if (property_exists($obj, "addedItems"))
         	{
 	        	// Prepare a select statement
-		        $sql = "INSERT INTO dayTemplateFoodItem (creationDate, modificationDate, dayTemplateId, foodItemId) VALUES (now(), now(), :dayTemplateId, :itemId)";
+		        $sql = "INSERT INTO dayTemplateFoodItem (creationDate, modificationDate, dayTemplateId, foodItemId, foodItemServingSizeId, numberOfServings) VALUES (now(), now(), :dayTemplateId, :itemId, :foodItemServingSizeId, :numberOfServings)";
 	        
 	 	        if($stmt = $pdo->prepare($sql))
 	 	        {
 	 	            // Bind variables to the prepared statement as parameters
-	 	            $stmt->bindParam(":itemId", $paramItemId, PDO::PARAM_STR);
-	 	            $stmt->bindParam(":dayTemplateId", $paramDayTemplateId, PDO::PARAM_INT);
+	 	        	$stmt->bindParam(":dayTemplateId", $paramDayTemplateId, PDO::PARAM_INT);
+	 	        	$stmt->bindParam(":itemId", $paramItemId, PDO::PARAM_INT);
+	 	        	$stmt->bindParam(":foodItemServingSizeId", $paramFoodItemServingSizeId, PDO::PARAM_INT);
+	 	        	$stmt->bindParam(":numberOfServings", $paramNumberOfServings, PDO::PARAM_STR); // PARAM_INT apparently works for decimal values
 		            
 	 	            foreach ($obj->addedItems as $item)
 	 	            {
 	 	                // Set parameters
 	 	                $paramDayTemplateId = $obj->dayTemplateId;
 	 	                $paramItemId = $item->foodItemId;
+	 	                $paramFoodItemServingSizeId = $item->foodItemServingSizeId;
+	 	                $paramNumberOfServings = $item->numberOfServings;
 		                
 	 	                $stmt->execute ();
 	 	            }

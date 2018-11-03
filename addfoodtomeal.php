@@ -32,11 +32,11 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
       </div>
       <div class="row">
         <div class="col-md-6">
-        	<button type="button" class="btn" onclick="saveDayTemplate()">Save</button>
+        	<button type="button" class="btn" onclick="saveMealPlan()">Save</button>
         	<button type="button" class="btn">Cancel</button>
             <table class="table table-bordered table-condensed">
                 <thead>
-    	            <th>Name</th><th>Weight</th><th>Calories</th><th>Price</th>
+    	            <th>Name</th><th>Serving Size</th><th>Number of Servings</th><th>Calories</th><th>Weight</th>
                 </thead>
                 <tbody id="templateItems">
             	</tbody>
@@ -46,7 +46,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
         <div class="col-md-6">
             <table class="table table-bordered table-condensed">
                 <thead>
-    	            <th>Name</th><th>Weight</th><th>Calories</th><th>Price</th>
+    	            <th>Name</th><th>Serving Size</th><th>Number of Servings</th><th>Calories</th><th>Weight</th>
                 </thead>
                 <tbody id="itemsToAdd">
             	</tbody>
@@ -58,10 +58,10 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 	<script>
 		"use strict";
 		var tableData;
-		var templateRows = [];
-		var templateRowsCounter = 0;
-		var dayTemplateId = "<?php echo $_GET["id"] ?>";
-		var deletedTemplateRows = [];
+		var mealPlan = {};
+		var nextMealPlanEntryId = 0;
+		var mealPlanId = "<?php echo $_GET["id"] ?>";
+		var deletedMealPlanRows = [];
 		
 		function loadTable ()
 		{
@@ -74,17 +74,40 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 
 					var txt = "";
 					
-					for (let x in tableData)
+					for (let x in tableData.foodItems)
 					{
+						let foodItem = tableData.foodItems[x];
+
+						foodItem.servingSizeIndex = 0;
+						foodItem.numberOfServings = 1;
+						
 						txt +=
 //							"<tr><td>" + "<input type='button' onclick='addItem(" + x + ")' value='Add' />" + tableData[x].name
-							"<tr><td>" + "<a class='btn btn-sm' onclick='addItem(tableData[" + x + "])'><span class='glyphicon glyphicon-plus-sign'></span></a>" + tableData[x].name
-    						+ "</td><td>" + tableData[x].weight
-    						+ "</td><td>" + tableData[x].calories
-    						+ "</td><td>" + tableData[x].price
-							+ "</td></tr>";
-					}
+							"<tr>"
+							+ "<td>" + "<a class='btn btn-sm' onclick='addItem(tableData.foodItems[" + x + "])'><span class='glyphicon glyphicon-plus-sign'></span></a>"
+							+ fullName(foodItem) + "</td>"
+							+ "<td style='padding:0px;vertical-align:middle'>";
 
+							txt += "<select class='form-control' onchange='servingSizeChanged(\"query_\", value,tableData.foodItems[" + x + "])'>";
+
+							let lookup = foodItem.lookup;
+							
+							for (let l in lookup)
+							{
+								txt += "<option value='" + l + "'>" + lookup[l].description + " (" + lookup[l].grams + "g)" + "</option>";
+ 							}
+							
+							txt += "</select>";
+							
+							txt += "</td>"
+							+ "<td style='padding:0px;vertical-align:middle'>" + "<input type='number' class='form-control' min='0.1' step='0.1' value='" + foodItem.numberOfServings
+							+ "' onchange='numberOfServingsChanged(\"query_\", value,tableData.foodItems[" + x + "])'/>" + "</td>"
+    						+ "<td id='query_calories_" + foodItem.foodItemId + "'>" + computeCalories(foodItem) + "</td>"
+	    					+ "<td id='query_weight_" + foodItem.foodItemId + "'>" + computeWeight(foodItem) + "</td>"
+    						//+ "</td><td>" + tableData.foodItems[x].price
+							+ "</tr>";
+					}
+					
 					document.getElementById ("itemsToAdd").innerHTML = txt;
 				}
 			}
@@ -94,9 +117,68 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 			xmlhttp.send();
 		}
 
-		function loadDayTemplate ()
+		function computeCalories (foodItem)
 		{
-			if (dayTemplateId != "")
+			if (foodItem.lookup.length == 0)
+			{
+				return 0;
+			}
+			else
+			{
+				return (foodItem.lookup[foodItem.servingSizeIndex].grams / foodItem.gramsServingSize) * foodItem.numberOfServings * foodItem.calories;
+			}
+		}
+
+		function computeWeight (foodItem)
+		{
+			if (foodItem.lookup.length == 0)
+			{
+				return 0;
+			}
+			else
+			{
+				return foodItem.lookup[foodItem.servingSizeIndex].grams * foodItem.numberOfServings;
+			}
+		}
+
+		function fullName (foodItem)
+		{
+			if (foodItem.manufacturer == undefined || foodItem.manufacturer == null || foodItem.manufacturer == "")
+			{
+					return foodItem.name;
+			}
+			else
+			{
+				return foodItem.manufacturer + ":" + foodItem.name;
+			}
+		}
+		
+		function computeCaloriesAndWeight (prefix, foodItem)
+		{
+			let calories = computeCalories(foodItem);
+			let weight = computeWeight(foodItem);
+			
+			document.getElementById(prefix + "calories_" + foodItem.foodItemId).innerHTML = calories;
+			document.getElementById(prefix + "weight_" + foodItem.foodItemId).innerHTML = weight;
+		}
+		
+		function servingSizeChanged (prefix, servingSizeIndex, foodItem)
+		{
+			foodItem.servingSizeIndex = selectIndex;
+
+			computeCaloriesAndWeight (prefix, foodItem);
+		}
+
+		function numberOfServingsChanged (prefix, numberOfServings, foodItem)
+		{
+			foodItem.numberOfServings = numberOfServings;
+
+			computeCaloriesAndWeight (prefix, foodItem);
+		}
+
+		function loadMealPlan ()
+		{
+			if (mealPlanId != "")
 			{
 				var xmlhttp = new XMLHttpRequest ();
 				xmlhttp.onreadystatechange = function ()
@@ -107,44 +189,51 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 	
 	 					for (let x in data)
 	 					{
+		 					data[x].servingSizeIndex = 0;
+		 					
 	 	 					addItem(data[x]);
 	 					}
 	 				}
 				}
 	
-				xmlhttp.open("GET", "GetDayTemplate.php?id=" + dayTemplateId, true);
+				xmlhttp.open("GET", "GetDayTemplate.php?id=" + mealPlanId, true);
 				//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 				xmlhttp.send();
 			}
 		}
 
-		function saveDayTemplate ()
+		function saveMealPlan ()
 		{
 			let foodList = {addedItems: [], deletedItems: []};
 
-			if (dayTemplateId != "")
+			if (mealPlanId != "")
 			{
-				foodList.dayTemplateId = dayTemplateId;
+				foodList.dayTemplateId = mealPlanId;
 			}
 			else
 			{
-				foodList.name = "Day 1";
+//				foodList.name = "Day 1";
 			}
 			
 			// convert data to a JSON object
-			for (let x in templateRows)
+			for (let x in mealPlan)
 			{
-				if (templateRows[x].dayTemplateFoodItemId == undefined)
+				if (mealPlan[x].dayTemplateFoodItemId == undefined)
 				{
-					let item = {foodItemId: templateRows[x].foodItemId};
+					let item =
+					{
+						foodItemId: mealPlan[x].foodItemId,
+						foodItemServingSizeId: mealPlan[x].lookup[mealPlan[x].servingSizeIndex].foodItemServingSizeId,
+						numberOfServings: mealPlan[x].numberOfServings
+					};
 					
 					foodList.addedItems.push(item);
 				}
 			}
 
-			for (let x in deletedTemplateRows)
+			for (let x in deletedMealPlanRows)
 			{
-				foodList.deletedItems.push(deletedTemplateRows[x]);
+				foodList.deletedItems.push(deletedMealPlanRows[x]);
 			}
 			
 			var xmlhttp = new XMLHttpRequest ();
@@ -163,39 +252,70 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 			xmlhttp.send("x=" + jsonData);
 		}
 
-		function addItem (data)
+		function addItem (foodItem)
 		{
 			let row = document.createElement("TR");
 			
 			let span = document.createElement("SPAN");
 			span.setAttribute("class", "glyphicon glyphicon-trash");
 			
-//			let removeButton = document.createElement("BUTTON");
 			let removeButton = document.createElement("A");
-//			removeButton.setAttribute("type", "button");
 			removeButton.setAttribute("class", "btn btn-sm");
-			removeButton.setAttribute("onclick", "removeItem(" + templateRowsCounter + ")");
+			removeButton.setAttribute("onclick", "removeItem(" + nextMealPlanEntryId + ")");
 			removeButton.appendChild(span);
 			
 			let td = document.createElement("TD");
 			td.appendChild(removeButton);
 			
-			let txt = document.createTextNode(data.name);
+			let txt = document.createTextNode(fullName(foodItem));
 			td.appendChild(txt);
 			row.appendChild(td);
 
-			td = document.createElement("TD");
-			txt = document.createTextNode(data.weight);
-			td.appendChild(txt);
-			row.appendChild(td);
+			// Create serviing size select
+			let select = document.createElement("SELECT");
+			select.setAttribute("class", "form-control");
+			select.setAttribute("onchange", "servingSizeChanged(\"plan_\", value,mealPlan[" + nextMealPlanEntryId + "])");
+
+			for (let l in foodItem.lookup)
+			{
+				let option = document.createElement("OPTION");
+				option.setAttribute("value", l);
+
+				let txt = document.createTextNode(foodItem.lookup[l].description + " (" + foodItem.lookup[l].grams + "g)");
+				option.appendChild(txt);
+
+				select.appendChild(option);
+			}
 			
 			td = document.createElement("TD");
-			txt = document.createTextNode(data.calories);
+			td.setAttribute("style", "padding:0px;vertical-align:middle");
+			td.appendChild(select);
+			row.appendChild(td);
+
+			// Create number of servings text input
+			let edit = document.createElement("INPUT");
+			edit.setAttribute("type", "number");
+			edit.setAttribute("class", "form-control");
+			edit.setAttribute("min", "0.1");
+			edit.setAttribute("step", "0.1");
+			edit.setAttribute("value", foodItem.numberOfServings);
+			edit.setAttribute("onchange", "numberOfServingsChanged(\"plan_\", value,mealPlan[" + nextMealPlanEntryId + "])");
+			td = document.createElement("TD");
+			td.setAttribute("style", "padding:0px;vertical-align:middle");
+			td.appendChild(edit);
+			row.appendChild(td);
+			
+			// Create calories
+			td = document.createElement("TD");
+			td.setAttribute("id", "plan_calories_" + foodItem.foodItemId);
+			txt = document.createTextNode(computeCalories(foodItem));
 			td.appendChild(txt);
 			row.appendChild(td);
 
+			// Create weight
 			td = document.createElement("TD");
-			txt = document.createTextNode(data.price);
+			td.setAttribute("id", "plan_weight_" + foodItem.foodItemId);
+			txt = document.createTextNode(computeWeight(foodItem));
 			td.appendChild(txt);
 			row.appendChild(td);
 			
@@ -203,33 +323,36 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 			let templateItems = document.getElementById("templateItems");
 			templateItems.appendChild(row);
 
-			templateRows.push({id: templateRowsCounter, tableRow: row, foodItemId: data.foodItemId, dayTemplateFoodItemId: data.dayTemplateFoodItemId});
-			templateRowsCounter++;
+			mealPlan[nextMealPlanEntryId] =
+			{
+				id: nextMealPlanEntryId,
+				tableRow: row,
+				foodItemId: foodItem.foodItemId,
+				calories: foodItem.calories,
+				gramsServingSize: foodItem.gramsServingSize,
+				lookup: foodItem.lookup,
+				servingSizeIndex: foodItem.servingSizeIndex,
+				numberOfServings: foodItem.numberOfServings,
+				dayTemplateFoodItemId: foodItem.dayTemplateFoodItemId
+			};
+			nextMealPlanEntryId++;
 		}
 
-		function removeItem(templateRowId)
+		function removeItem(mealPlanEntryId)
 		{
-			for (let x in templateRows)
+			let templateItems = document.getElementById("templateItems");
+			templateItems.removeChild(mealPlan[mealPlanEntryId].tableRow);
+
+			if (mealPlan[mealPlanEntryId].dayTemplateFoodItemId != undefined)
 			{
-				if (templateRows[x].id == templateRowId)
-				{
- 					let templateItems = document.getElementById("templateItems");
- 					templateItems.removeChild(templateRows[x].tableRow);
-
-					if (templateRows[x].dayTemplateFoodItemId != undefined)
-					{
-						deletedTemplateRows.push(templateRows[x].dayTemplateFoodItemId);
-					}
-					
-					templateRows.splice(x, 1);
-
-					break;
-				}
+				deletedMealPlanRows.push(mealPlan[mealPlanEntryId].dayTemplateFoodItemId);
 			}
+
+			delete mealPlan[mealPlanEntryId];
 		}
 
 		loadTable ();
-		loadDayTemplate ();
+		loadMealPlan ();
 		
 	</script>    
 </body>

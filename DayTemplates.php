@@ -53,8 +53,21 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true)
 	    
 	    try
 	    {
-	    	$stmt = $pdo->prepare("select dt.dayTemplateId AS dayTemplateId, dt.name AS name, sum(fi.calories)AS calories, sum(fi.weight) as weight, sum(fi.price) as price from dayTemplate dt join dayTemplateFoodItem dtfi on dtfi.dayTemplateId = dt.dayTemplateId join foodItem fi on fi.foodItemId = dtfi.foodItemId where userId = :userId group by dt.name, dt.dayTemplateId");
-	        
+	    	$stmt = $pdo->prepare("select dt.dayTemplateId AS dayTemplateId,
+		    	dt.name AS name,
+		    	sum(fi.calories * dtfi.numberOfServings * (fiss.grams / fi.gramsServingSize)) AS calories,
+		    	sum(fi.totalFat * dtfi.numberOfServings * (fiss.grams / fi.gramsServingSize)) AS fats,
+		    	sum(fi.totalCarbohydrates * dtfi.numberOfServings * (fiss.grams / fi.gramsServingSize)) AS carbs,
+		    	sum(fi.protein * dtfi.numberOfServings * (fiss.grams / fi.gramsServingSize)) AS protein,
+		    	suM(dtfi.numberOfServings * fiss.grams) as weight
+		    	from dayTemplate dt
+		    	join dayTemplateFoodItem dtfi on dtfi.dayTemplateId = dt.dayTemplateId
+		    	join foodItem fi on fi.foodItemId = dtfi.foodItemId
+		    	join foodItemServingSize fiss on fiss.foodItemId = fi.foodItemId and fiss.foodItemServingSizeId = dtfi.foodItemServingSizeId
+		    	where userId = :userId
+		    	group by dt.name, dt.dayTemplateId");
+	    	
+	    	
 	    	if ($stmt)
 	        {
 	        	$stmt->bindParam(":userId", $paramUserId, PDO::PARAM_INT);
@@ -70,14 +83,23 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true)
  		        	echo "<td>";
  		        	echo "<a class='btn btn-sm' href='/addfoodtomeal.php?id=", $row["dayTemplateId"], "'><span class='glyphicon glyphicon-pencil'></span></a>";
  		        	echo "<a class='btn btn-sm'><span class='glyphicon glyphicon-trash'></span></a>";
- 		        	echo $row["name"], "</td>";
+ 		        	
+ 		        	if ($row["name"] == "")
+ 		        	{
+ 		        		echo "Meal Plan #", $row["dayTemplateId"];
+ 		        	}
+ 		        	else
+ 		        	{
+	 		        	echo $row["name"];
+ 		        	}
+	 		        echo "</td>";
  		        	//echo "<td><a href='/addfoodtomeal.php?id=", $row["dayTemplateId"], "'>", $row["name"], "</a></td>";
  		        	echo "<td>", $row["calories"], "</td>";
- 		        	echo "<td>", $row["fat"], "</td>";
+ 		        	echo "<td>", $row["fats"], "</td>";
  		        	echo "<td>", $row["carbs"], "</td>";
  		        	echo "<td>", $row["protein"], "</td>";
  		        	echo "<td>", $row["weight"], "</td>";
- 		        	echo "<td>", $row["price"], "</td>";
+ 		        	//echo "<td>", $row["price"], "</td>";
  		        	echo "</tr>";
 		        }
 		        

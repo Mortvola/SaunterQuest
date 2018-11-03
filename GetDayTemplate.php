@@ -11,8 +11,11 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	
 	try
 	{
-		$stmt = $pdo->prepare("select dtfi.dayTemplateFoodItemId AS dayTemplateFoodItemId, name, weight, calories, price from dayTemplateFoodItem dtfi join foodItem on foodItem.foodItemId = dtfi.foodItemId where dayTemplateId = :dayTemplateId");
-		
+		$stmt = $pdo->prepare("select dayTemplateFoodItemId, fi.foodItemId AS foodItemId, manufacturer, name, gramsServingSize, calories, foodItemServingSizeId, numberOfServings
+				from dayTemplateFoodItem dtfi
+				join foodItem fi on fi.foodItemId = dtfi.foodItemId
+				where dayTemplateId = :dayTemplateId");
+				
 		$stmt->bindParam(":dayTemplateId", $paramDayTemplateId, PDO::PARAM_INT);
 		
 		$paramDayTemplateId = $_GET["id"];
@@ -20,6 +23,18 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 		$stmt->execute ();
 		
 		$output = $stmt->fetchAll (PDO::FETCH_ASSOC);
+		
+		foreach ($output as &$foodItem)
+		{
+			$stmt = $pdo->prepare("select foodItemServingSizeId, description, grams from foodItemServingSize where foodItemId = :foodItemId");
+			
+			$stmt->bindParam(":foodItemId", $paramFoodItemId, PDO::PARAM_INT);
+			$paramFoodItemId = $foodItem['foodItemId'];
+			
+			$stmt->execute ();
+			
+			$foodItem['lookup'] = $stmt->fetchAll (PDO::FETCH_ASSOC);
+		}
 		
 		echo json_encode($output);
 	}
