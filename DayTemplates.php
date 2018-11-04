@@ -79,10 +79,10 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true)
 
 		        foreach ($output as $row)
 		        {
- 		        	echo "<tr>";
+ 		        	echo "<tr id='mealPlan_", $row["dayTemplateId"], "'>";
  		        	echo "<td>";
  		        	echo "<a class='btn btn-sm' href='/addfoodtomeal.php?id=", $row["dayTemplateId"], "'><span class='glyphicon glyphicon-pencil'></span></a>";
- 		        	echo "<a class='btn btn-sm'><span class='glyphicon glyphicon-trash'></span></a>";
+ 		        	echo "<a class='btn btn-sm' onclick='deleteMealPlan(", $row["dayTemplateId"], ")'><span class='glyphicon glyphicon-trash'></span></a>";
  		        	
  		        	if ($row["name"] == "")
  		        	{
@@ -118,5 +118,24 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true)
 	</div>
 	</div>
 	</div>
+	
+	<script>
+		function deleteMealPlan (mealPlanId)
+		{
+			var xmlhttp = new XMLHttpRequest ();
+			xmlhttp.onreadystatechange = function ()
+			{
+				if (this.readyState == 4 && this.status == 200)
+				{
+		 			let mealPlanRow = document.getElementById("mealPlan_" + mealPlanId);
+		 			mealPlanRow.parentElement.removeChild(mealPlanRow);
+				}
+			}
+			
+			xmlhttp.open("POST", "DeleteMealPlan.php", true);
+			xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			xmlhttp.send("mealPlanId=" + mealPlanId);
+		}
+	</script>
 </body>
 </html>
