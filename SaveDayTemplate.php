@@ -77,7 +77,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
         	{
         		$sql = "DELETE FROM dayTemplateFoodItem WHERE dayTemplateFoodItemId = :id";
 
-        		if($stmt = $pdo->prepare($sql))
+        		if ($stmt = $pdo->prepare($sql))
         		{
         			// Bind variables to the prepared statement as parameters
         			$stmt->bindParam(":id", $paramId, PDO::PARAM_INT);
