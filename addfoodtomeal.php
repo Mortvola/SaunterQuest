@@ -164,7 +164,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 		
 		function servingSizeChanged (prefix, servingSizeIndex, foodItem)
 		{
-			foodItem.servingSizeIndex = selectIndex;
+			foodItem.servingSizeIndex = servingSizeIndex;
 
 			computeCaloriesAndWeight (prefix, foodItem);
 		}
