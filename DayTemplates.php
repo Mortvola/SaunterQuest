@@ -55,10 +55,10 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true)
 	    {
 	    	$stmt = $pdo->prepare("select dt.dayTemplateId AS dayTemplateId,
 		    	dt.name AS name,
-		    	sum(fi.calories * dtfi.numberOfServings * (fiss.grams / fi.gramsServingSize)) AS calories,
-		    	sum(fi.totalFat * dtfi.numberOfServings * (fiss.grams / fi.gramsServingSize)) AS fats,
-		    	sum(fi.totalCarbohydrates * dtfi.numberOfServings * (fiss.grams / fi.gramsServingSize)) AS carbs,
-		    	sum(fi.protein * dtfi.numberOfServings * (fiss.grams / fi.gramsServingSize)) AS protein,
+		    	floor(sum(fi.calories * dtfi.numberOfServings * (fiss.grams / fi.gramsServingSize)) + 0.5) AS calories,
+		    	floor(sum(fi.totalFat * dtfi.numberOfServings * (fiss.grams / fi.gramsServingSize)) + 0.5) AS fats,
+		    	floor(sum(fi.totalCarbohydrates * dtfi.numberOfServings * (fiss.grams / fi.gramsServingSize)) + 0.5) AS carbs,
+		    	floor(sum(fi.protein * dtfi.numberOfServings * (fiss.grams / fi.gramsServingSize)) + 0.5) AS protein,
 		    	suM(dtfi.numberOfServings * fiss.grams) as weight
 		    	from dayTemplate dt
 		    	join dayTemplateFoodItem dtfi on dtfi.dayTemplateId = dt.dayTemplateId
