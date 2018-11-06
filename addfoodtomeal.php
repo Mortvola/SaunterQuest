@@ -16,6 +16,11 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     <title>Add Food</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="/bootstrap.min.js"></script>
+    <style>
+    	.meal-plan-divider { background-color:CornflowerBlue; }
+    </style>
 </head>
 <body>
     <div class="page-header" style="text-align:center;">
@@ -35,10 +40,33 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
         	<button type="button" class="btn" onclick="saveMealPlan()">Save</button>
         	<button type="button" class="btn">Cancel</button>
             <table class="table table-bordered table-condensed">
+            	<thead>
+            		<th colspan="5" class="meal-plan-divider">Morning</th>
+            	</thead>
                 <thead>
     	            <th>Name</th><th>Serving Size</th><th>Number of Servings</th><th>Calories</th><th>Weight</th>
                 </thead>
-                <tbody id="templateItems">
+                <tbody id="mealPlanTime0">
+            	</tbody>
+            </table>
+            <table class="table table-bordered table-condensed">
+            	<thead>
+            		<th colspan="5" class="meal-plan-divider">Aftrnoon</th>
+            	</thead>
+                <thead>
+    	            <th>Name</th><th>Serving Size</th><th>Number of Servings</th><th>Calories</th><th>Weight</th>
+                </thead>
+                <tbody id="mealPlanTime1">
+            	</tbody>
+            </table>
+            <table class="table table-bordered table-condensed">
+            	<thead>
+            		<th colspan="5" class="meal-plan-divider">Evening</th>
+            	</thead>
+                <thead>
+    	            <th>Name</th><th>Serving Size</th><th>Number of Servings</th><th>Calories</th><th>Weight</th>
+                </thead>
+                <tbody id="mealPlanTime2">
             	</tbody>
             </table>
         </div>
@@ -82,12 +110,26 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 						foodItem.numberOfServings = 1;
 						
 						txt +=
-//							"<tr><td>" + "<input type='button' onclick='addItem(" + x + ")' value='Add' />" + tableData[x].name
 							"<tr>"
-							+ "<td>" + "<a class='btn btn-sm' onclick='addItem(tableData.foodItems[" + x + "])'><span class='glyphicon glyphicon-plus-sign'></span></a>"
-							+ fullName(foodItem) + "</td>"
+							
+							// Name column
+							+ "<td>"
+							+ "<div class='btn-group'>"
+							+ 	"<button type='button' class='btn btn-sm dropdown-toggle' data-toggle='dropdown'>"
+							+ 		"<span class='caret'></span>"
+							+ 	"</button>"
+							+ 	"<ul class='dropdown-menu'>"
+							+		"<li><a onclick='addItem(tableData.foodItems[" + x + "],0)'>Add to morning</a></li>"
+							+		"<li><a onclick='addItem(tableData.foodItems[" + x + "],1)'>Add to afternoon</a></li>"
+							+		"<li><a onclick='addItem(tableData.foodItems[" + x + "],2)'>Add to evening</a></li>"
+							+	"</ul>"
+							+ "</div>"
+							+ fullName(foodItem)
+							+ "</td>"
+
 							+ "<td style='padding:0px;vertical-align:middle'>";
 
+							// Serving Size column
 							txt += "<select class='form-control' onchange='servingSizeChanged(\"query_\", value,tableData.foodItems[" + x + "])'>";
 
 							let lookup = foodItem.lookup;
@@ -98,12 +140,17 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
  							}
 							
 							txt += "</select>";
-							
+
+							// Number of servings column
 							txt += "</td>"
 							+ "<td style='padding:0px;vertical-align:middle'>" + "<input type='number' class='form-control' min='0.1' step='0.1' value='" + foodItem.numberOfServings
 							+ "' onchange='numberOfServingsChanged(\"query_\", value,tableData.foodItems[" + x + "])'/>" + "</td>"
-    						+ "<td id='query_calories_" + foodItem.foodItemId + "'>" + computeCalories(foodItem) + "</td>"
-	    					+ "<td id='query_weight_" + foodItem.foodItemId + "'>" + computeWeight(foodItem) + "</td>"
+
+							// Calories column
+							+ "<td id='query_calories_" + foodItem.foodItemId + "'>" + computeCalories(foodItem) + "</td>"
+
+							// Weight column
+							+ "<td id='query_weight_" + foodItem.foodItemId + "'>" + computeWeight(foodItem) + "</td>"
     						//+ "</td><td>" + tableData.foodItems[x].price
 							+ "</tr>";
 					}
@@ -149,7 +196,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 			}
 			else
 			{
-				return foodItem.manufacturer + ":" + foodItem.name;
+				return foodItem.manufacturer + ": " + foodItem.name;
 			}
 		}
 		
@@ -202,7 +249,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 			 					}
 		 					}
 		 					
-	 	 					addItem(data[x]);
+	 	 					addItem(data[x], data[x].mealTimeId);
 	 					}
 	 				}
 				}
@@ -233,6 +280,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 				{
 					let item =
 					{
+						mealTimeId: mealPlan[x].mealTimeId,
 						foodItemId: mealPlan[x].foodItemId,
 						foodItemServingSizeId: mealPlan[x].lookup[mealPlan[x].servingSizeIndex].foodItemServingSizeId,
 						numberOfServings: mealPlan[x].numberOfServings
@@ -274,7 +322,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 			xmlhttp.send("x=" + jsonData);
 		}
 
-		function addItem (foodItem)
+		function addItem (foodItem, mealTimeId)
 		{
 			let row = document.createElement("TR");
 			
@@ -283,7 +331,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 			
 			let removeButton = document.createElement("A");
 			removeButton.setAttribute("class", "btn btn-sm");
-			removeButton.setAttribute("onclick", "removeItem(" + nextMealPlanEntryId + ")");
+			removeButton.setAttribute("onclick", "removeItem(" + nextMealPlanEntryId + "," + mealTimeId + ")");
 			removeButton.appendChild(span);
 			
 			let td = document.createElement("TD");
@@ -343,13 +391,14 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 			row.appendChild(td);
 			
 			// Get the added items table and append new row
-			let templateItems = document.getElementById("templateItems");
+			let templateItems = document.getElementById("mealPlanTime" + mealTimeId);
 			templateItems.appendChild(row);
 
 			mealPlan[nextMealPlanEntryId] =
 			{
 				id: nextMealPlanEntryId,
 				tableRow: row,
+				mealTimeId: mealTimeId,
 				foodItemId: foodItem.foodItemId,
 				calories: foodItem.calories,
 				gramsServingSize: foodItem.gramsServingSize,
@@ -361,9 +410,9 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 			nextMealPlanEntryId++;
 		}
 
-		function removeItem(mealPlanEntryId)
+		function removeItem(mealPlanEntryId, mealTimeId)
 		{
-			let templateItems = document.getElementById("templateItems");
+			let templateItems = document.getElementById("mealPlanTime" + mealTimeId);
 			templateItems.removeChild(mealPlan[mealPlanEntryId].tableRow);
 
 			if (mealPlan[mealPlanEntryId].dayTemplateFoodItemId != undefined)

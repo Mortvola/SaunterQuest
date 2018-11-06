@@ -49,12 +49,16 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	        	if (property_exists($obj, "addedItems"))
 	        	{
 		        	// Prepare a select statement
-			        $sql = "INSERT INTO dayTemplateFoodItem (creationDate, modificationDate, dayTemplateId, foodItemId, foodItemServingSizeId, numberOfServings) VALUES (now(), now(), :dayTemplateId, :itemId, :foodItemServingSizeId, :numberOfServings)";
+			        $sql = "INSERT INTO dayTemplateFoodItem
+								(creationDate, modificationDate, dayTemplateId, mealTimeId, foodItemId,
+								 foodItemServingSizeId, numberOfServings)
+							VALUES (now(), now(), :dayTemplateId, :mealTimeId, :itemId, :foodItemServingSizeId, :numberOfServings)";
 		        
 		 	        if($stmt = $pdo->prepare($sql))
 		 	        {
 		 	            // Bind variables to the prepared statement as parameters
 		 	        	$stmt->bindParam(":dayTemplateId", $paramDayTemplateId, PDO::PARAM_INT);
+		 	        	$stmt->bindParam(":mealTimeId", $paramMealTimeId, PDO::PARAM_INT);
 		 	        	$stmt->bindParam(":itemId", $paramItemId, PDO::PARAM_INT);
 		 	        	$stmt->bindParam(":foodItemServingSizeId", $paramFoodItemServingSizeId, PDO::PARAM_INT);
 		 	        	$stmt->bindParam(":numberOfServings", $paramNumberOfServings, PDO::PARAM_STR);
@@ -63,6 +67,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 		 	            {
 		 	                // Set parameters
 		 	                $paramDayTemplateId = $obj->dayTemplateId;
+		 	                $paramMealTimeId = $item->mealTimeId;
 		 	                $paramItemId = $item->foodItemId;
 		 	                $paramFoodItemServingSizeId = $item->foodItemServingSizeId;
 		 	                $paramNumberOfServings = $item->numberOfServings;

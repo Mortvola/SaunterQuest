@@ -11,7 +11,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	
 	try
 	{
-		$stmt = $pdo->prepare("select dayTemplateFoodItemId, fi.foodItemId AS foodItemId, manufacturer, name, gramsServingSize, calories, foodItemServingSizeId, numberOfServings
+		$stmt = $pdo->prepare("select dayTemplateFoodItemId, mealTimeId, fi.foodItemId AS foodItemId, manufacturer, name, gramsServingSize, calories, foodItemServingSizeId, numberOfServings
 				from dayTemplateFoodItem dtfi
 				join foodItem fi on fi.foodItemId = dtfi.foodItemId
 				where dayTemplateId = :dayTemplateId");

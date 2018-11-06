@@ -81,6 +81,7 @@ create table dayTemplateFoodItem (
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
 	dayTemplateId INT NOT NULL,
+	mealTimeId INT NOT NULL,
 	foodItemId INT NOT NULL,
 	foodItemServingSizeId INT NOT NULL,
 	numberOfServings DECIMAL(7,3) NOT NULL
