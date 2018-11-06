@@ -22,7 +22,7 @@ create table foodItem (
 	name VARCHAR (255) NOT NULL,
 	gramsServingSize INT,
 	calories INT,
-	totalFat INT,
+	totalFat DECIMAL (3,1),
 	saturatedFat DECIMAL (3,1),
 	transFat DECIMAL (3,1),
 	cholesterol INT,

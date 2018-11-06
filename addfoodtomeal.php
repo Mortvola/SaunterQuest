@@ -165,6 +165,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 		function servingSizeChanged (prefix, servingSizeIndex, foodItem)
 		{
 			foodItem.servingSizeIndex = servingSizeIndex;
+			foodItem.modified = true;
 
 			computeCaloriesAndWeight (prefix, foodItem);
 		}
@@ -172,6 +173,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 		function numberOfServingsChanged (prefix, numberOfServings, foodItem)
 		{
 			foodItem.numberOfServings = numberOfServings;
+			foodItem.modified = true;
 
 			computeCaloriesAndWeight (prefix, foodItem);
 		}
@@ -189,7 +191,16 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 	
 	 					for (let x in data)
 	 					{
+		 					// Determine the selected serving size index
 		 					data[x].servingSizeIndex = 0;
+		 					for (let y in data[x].lookup)
+		 					{
+			 					if (data[x].foodItemServingSizeId == data[x].lookup[y].foodItemServingSizeId)
+			 					{
+				 					data[x].servingSizeIndex = y;
+				 					break;
+			 					}
+		 					}
 		 					
 	 	 					addItem(data[x]);
 	 					}
@@ -204,7 +215,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 
 		function saveMealPlan ()
 		{
-			let foodList = {addedItems: [], deletedItems: []};
+			let foodList = {addedItems: [], deletedItems: [], modifiedItems: []};
 
 			if (mealPlanId != "")
 			{
@@ -228,6 +239,17 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 					};
 					
 					foodList.addedItems.push(item);
+				}
+				else if (mealPlan[x].modified == true)
+				{
+					let item =
+					{
+						dayTemplateFoodItemId: mealPlan[x].dayTemplateFoodItemId,
+						foodItemServingSizeId: mealPlan[x].lookup[mealPlan[x].servingSizeIndex].foodItemServingSizeId,
+						numberOfServings: mealPlan[x].numberOfServings
+					};
+					
+					foodList.modifiedItems.push(item);
 				}
 			}
 
@@ -271,7 +293,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 			td.appendChild(txt);
 			row.appendChild(td);
 
-			// Create serviing size select
+			// Create serving size select
 			let select = document.createElement("SELECT");
 			select.setAttribute("class", "form-control");
 			select.setAttribute("onchange", "servingSizeChanged(\"plan_\", value,mealPlan[" + nextMealPlanEntryId + "])");
@@ -286,6 +308,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 
 				select.appendChild(option);
 			}
+			select.value = foodItem.servingSizeIndex;
 			
 			td = document.createElement("TD");
 			td.setAttribute("style", "padding:0px;vertical-align:middle");

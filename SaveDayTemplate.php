@@ -44,55 +44,106 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 
         if (property_exists($obj, "dayTemplateId"))
         {
-        	if (property_exists($obj, "addedItems"))
+        	try
         	{
-	        	// Prepare a select statement
-		        $sql = "INSERT INTO dayTemplateFoodItem (creationDate, modificationDate, dayTemplateId, foodItemId, foodItemServingSizeId, numberOfServings) VALUES (now(), now(), :dayTemplateId, :itemId, :foodItemServingSizeId, :numberOfServings)";
-	        
-	 	        if($stmt = $pdo->prepare($sql))
-	 	        {
-	 	            // Bind variables to the prepared statement as parameters
-	 	        	$stmt->bindParam(":dayTemplateId", $paramDayTemplateId, PDO::PARAM_INT);
-	 	        	$stmt->bindParam(":itemId", $paramItemId, PDO::PARAM_INT);
-	 	        	$stmt->bindParam(":foodItemServingSizeId", $paramFoodItemServingSizeId, PDO::PARAM_INT);
-	 	        	$stmt->bindParam(":numberOfServings", $paramNumberOfServings, PDO::PARAM_STR); // PARAM_INT apparently works for decimal values
-		            
-	 	            foreach ($obj->addedItems as $item)
-	 	            {
-	 	                // Set parameters
-	 	                $paramDayTemplateId = $obj->dayTemplateId;
-	 	                $paramItemId = $item->foodItemId;
-	 	                $paramFoodItemServingSizeId = $item->foodItemServingSizeId;
-	 	                $paramNumberOfServings = $item->numberOfServings;
-		                
-	 	                $stmt->execute ();
-	 	            }
-		            
-	 	            // Close statement
-	 	            unset($stmt);
-	 	        }
+	        	if (property_exists($obj, "addedItems"))
+	        	{
+		        	// Prepare a select statement
+			        $sql = "INSERT INTO dayTemplateFoodItem (creationDate, modificationDate, dayTemplateId, foodItemId, foodItemServingSizeId, numberOfServings) VALUES (now(), now(), :dayTemplateId, :itemId, :foodItemServingSizeId, :numberOfServings)";
+		        
+		 	        if($stmt = $pdo->prepare($sql))
+		 	        {
+		 	            // Bind variables to the prepared statement as parameters
+		 	        	$stmt->bindParam(":dayTemplateId", $paramDayTemplateId, PDO::PARAM_INT);
+		 	        	$stmt->bindParam(":itemId", $paramItemId, PDO::PARAM_INT);
+		 	        	$stmt->bindParam(":foodItemServingSizeId", $paramFoodItemServingSizeId, PDO::PARAM_INT);
+		 	        	$stmt->bindParam(":numberOfServings", $paramNumberOfServings, PDO::PARAM_STR);
+			            
+		 	            foreach ($obj->addedItems as $item)
+		 	            {
+		 	                // Set parameters
+		 	                $paramDayTemplateId = $obj->dayTemplateId;
+		 	                $paramItemId = $item->foodItemId;
+		 	                $paramFoodItemServingSizeId = $item->foodItemServingSizeId;
+		 	                $paramNumberOfServings = $item->numberOfServings;
+			                
+		 	                $stmt->execute ();
+		 	            }
+			            
+		 	            // Close statement
+		 	            unset($stmt);
+		 	        }
+	        	}
+        	}
+        	catch(PDOException $e)
+        	{
+        		echo $e->getMessage();
+        	}
+	        	
+        	try
+        	{
+        		if (property_exists($obj, "deletedItems"))
+	        	{
+	        		$sql = "DELETE FROM dayTemplateFoodItem WHERE dayTemplateFoodItemId = :id";
+	
+	        		if ($stmt = $pdo->prepare($sql))
+	        		{
+	        			// Bind variables to the prepared statement as parameters
+	        			$stmt->bindParam(":id", $paramId, PDO::PARAM_INT);
+	        			
+	        			foreach ($obj->deletedItems as $id)
+	        			{
+	        				// Set parameters
+	        				$paramId = $id;
+	        				
+	        				$stmt->execute ();
+	        			}
+	        			
+	        			// Close statement
+	        			unset($stmt);
+	        		}
+	        	}
+        	}
+        	catch(PDOException $e)
+        	{
+        		echo $e->getMessage();
         	}
         	
-        	if (property_exists($obj, "deletedItems"))
+        	try
         	{
-        		$sql = "DELETE FROM dayTemplateFoodItem WHERE dayTemplateFoodItemId = :id";
-
-        		if ($stmt = $pdo->prepare($sql))
-        		{
-        			// Bind variables to the prepared statement as parameters
-        			$stmt->bindParam(":id", $paramId, PDO::PARAM_INT);
-        			
-        			foreach ($obj->deletedItems as $id)
-        			{
-        				// Set parameters
-        				$paramId = $id;
-        				
-        				$stmt->execute ();
-        			}
-        			
-        			// Close statement
-        			unset($stmt);
-        		}
+        		if (property_exists($obj, "modifiedItems"))
+	        	{
+	        		$sql = "UPDATE dayTemplateFoodItem
+							SET modificationDate = now(),
+								foodItemServingSizeId = :foodItemServingSizeId,
+								numberOfServings = :numberOfServings
+							WHERE dayTemplateFoodItemId = :dayTemplateFoodItemId";
+	        		
+	        		if ($stmt = $pdo->prepare($sql))
+	        		{
+	        			// Bind variables to the prepared statement as parameters
+	        			$stmt->bindParam(":foodItemServingSizeId", $paramFoodItemServingSizeId, PDO::PARAM_INT);
+	        			$stmt->bindParam(":numberOfServings", $paramNumberOfServings, PDO::PARAM_STR);
+	        			$stmt->bindParam(":dayTemplateFoodItemId", $paramDayTemplateFoodItemId, PDO::PARAM_INT);
+	        			
+	        			foreach ($obj->modifiedItems as $item)
+	        			{
+	        				// Set parameters
+	        				$paramDayTemplateFoodItemId = $item->dayTemplateFoodItemId;
+	        				$paramFoodItemServingSizeId = $item->foodItemServingSizeId;
+	        				$paramNumberOfServings = $item->numberOfServings;
+	        				
+	        				$stmt->execute ();
+	        			}
+	        			
+	        			// Close statement
+	        			unset($stmt);
+	        		}
+	        	}
+        	}
+        	catch(PDOException $e)
+        	{
+        		echo $e->getMessage();
         	}
         }
         
