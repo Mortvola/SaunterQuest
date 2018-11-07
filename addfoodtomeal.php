@@ -41,7 +41,9 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
         	<button type="button" class="btn">Cancel</button>
             <table class="table table-bordered table-condensed">
             	<thead>
-            		<th colspan="5" class="meal-plan-divider">Morning</th>
+            		<th colspan="3" class="meal-plan-divider">Morning</th>
+            		<th class="meal-plan-divider" id="mealPlanTimeCalories0" style="text-align:right"></th>
+            		<th class="meal-plan-divider" id="mealPlanTimeWeight0" style="text-align:right"></th>
             	</thead>
                 <thead>
     	            <th>Name</th><th>Serving Size</th><th>Number of Servings</th><th>Calories</th><th>Weight</th>
@@ -51,7 +53,9 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
             </table>
             <table class="table table-bordered table-condensed">
             	<thead>
-            		<th colspan="5" class="meal-plan-divider">Aftrnoon</th>
+            		<th colspan="3" class="meal-plan-divider">Afternoon</th>
+            		<th class="meal-plan-divider" id="mealPlanTimeCalories1" style="text-align:right"></th>
+            		<th class="meal-plan-divider" id="mealPlanTimeWeight1" style="text-align:right"></th>
             	</thead>
                 <thead>
     	            <th>Name</th><th>Serving Size</th><th>Number of Servings</th><th>Calories</th><th>Weight</th>
@@ -61,7 +65,9 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
             </table>
             <table class="table table-bordered table-condensed">
             	<thead>
-            		<th colspan="5" class="meal-plan-divider">Evening</th>
+            		<th colspan="3" class="meal-plan-divider">Evening</th>
+            		<th class="meal-plan-divider" id="mealPlanTimeCalories2" style="text-align:right"></th>
+            		<th class="meal-plan-divider" id="mealPlanTimeWeight2" style="text-align:right"></th>
             	</thead>
                 <thead>
     	            <th>Name</th><th>Serving Size</th><th>Number of Servings</th><th>Calories</th><th>Weight</th>
@@ -147,10 +153,10 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 							+ "' onchange='numberOfServingsChanged(\"query_\", value,tableData.foodItems[" + x + "])'/>" + "</td>"
 
 							// Calories column
-							+ "<td id='query_calories_" + foodItem.foodItemId + "'>" + computeCalories(foodItem) + "</td>"
+							+ "<td style='text-align:right' id='query_calories_" + foodItem.foodItemId + "'>" + computeCalories(foodItem) + "</td>"
 
 							// Weight column
-							+ "<td id='query_weight_" + foodItem.foodItemId + "'>" + computeWeight(foodItem) + "</td>"
+							+ "<td style='text-align:right' id='query_weight_" + foodItem.foodItemId + "'>" + computeWeight(foodItem) + "</td>"
     						//+ "</td><td>" + tableData.foodItems[x].price
 							+ "</tr>";
 					}
@@ -172,7 +178,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 			}
 			else
 			{
-				return (foodItem.lookup[foodItem.servingSizeIndex].grams / foodItem.gramsServingSize) * foodItem.numberOfServings * foodItem.calories;
+				return Math.round((foodItem.lookup[foodItem.servingSizeIndex].grams / foodItem.gramsServingSize) * foodItem.numberOfServings * foodItem.calories);
 			}
 		}
 
@@ -184,7 +190,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 			}
 			else
 			{
-				return foodItem.lookup[foodItem.servingSizeIndex].grams * foodItem.numberOfServings;
+				return Math.round(foodItem.lookup[foodItem.servingSizeIndex].grams * foodItem.numberOfServings);
 			}
 		}
 
@@ -207,6 +213,11 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 			
 			document.getElementById(prefix + "calories_" + foodItem.foodItemId).innerHTML = calories;
 			document.getElementById(prefix + "weight_" + foodItem.foodItemId).innerHTML = weight;
+
+			if (prefix == "plan_")
+			{
+				computeCaloriesAndWeightTotals(foodItem.mealTimeId);
+			}
 		}
 		
 		function servingSizeChanged (prefix, servingSizeIndex, foodItem)
@@ -225,6 +236,24 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 			computeCaloriesAndWeight (prefix, foodItem);
 		}
 
+		function computeCaloriesAndWeightTotals(mealTimeId)
+		{
+			let calories = 0;
+			let weight = 0;
+			
+			for (let x in mealPlan)
+			{
+				if (mealPlan[x].mealTimeId == mealTimeId)
+				{
+					calories += computeCalories(mealPlan[x]);
+					weight += computeWeight(mealPlan[x]);
+				}
+			}
+			
+			document.getElementById("mealPlanTimeCalories" + mealTimeId).innerHTML = calories;
+			document.getElementById("mealPlanTimeWeight" + mealTimeId).innerHTML = weight;
+		}
+		
 		function loadMealPlan ()
 		{
 			if (mealPlanId != "")
@@ -251,6 +280,10 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 		 					
 	 	 					addItem(data[x], data[x].mealTimeId);
 	 					}
+
+	 					computeCaloriesAndWeightTotals (0);
+	 					computeCaloriesAndWeightTotals (1);
+	 					computeCaloriesAndWeightTotals (2);
 	 				}
 				}
 	
@@ -379,6 +412,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 			// Create calories
 			td = document.createElement("TD");
 			td.setAttribute("id", "plan_calories_" + foodItem.foodItemId);
+			td.setAttribute("style", "text-align:right");
 			txt = document.createTextNode(computeCalories(foodItem));
 			td.appendChild(txt);
 			row.appendChild(td);
@@ -386,6 +420,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 			// Create weight
 			td = document.createElement("TD");
 			td.setAttribute("id", "plan_weight_" + foodItem.foodItemId);
+			td.setAttribute("style", "text-align:right");
 			txt = document.createTextNode(computeWeight(foodItem));
 			td.appendChild(txt);
 			row.appendChild(td);
@@ -421,6 +456,8 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 			}
 
 			delete mealPlan[mealPlanEntryId];
+
+			computeCaloriesAndWeightTotals (mealTimeId);
 		}
 
 		loadTable ();
