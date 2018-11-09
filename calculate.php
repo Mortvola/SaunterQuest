@@ -23,11 +23,12 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	$totalDays = $totalMiles / $milesPerDay;
 	
 	$segments = array(
-			array("start", 0),
-			array("muststop", 5.0),
-			array("resupply", 60.8),
-			array("resupply", 110),
-			array("stop", $totalMiles));
+			array(0, array("start")),
+			array(5.0, array("muststop")),
+			array(60.8, array("resupply", "muststop")),
+			array(110, array("resupply")),
+			array(210, array("linger")),
+			array($totalMiles, array("stop")));
 	
 	try
 	{
@@ -60,23 +61,15 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	
 	for ($k = 0; $k < count($segments) - 1; $k++)
 	{
-// 		$segmentMiles = $segments[$k + 1][1] - $segments[$k][1];
-// 		$segmentDays = $segmentMiles / $milesPerDay;
+		$segmentMiles = $segments[$k][0];
 		
-// 		echo "segment miles: ", $segmentMiles, "\n";
-// 		echo "segment days: ", $segmentDays, "\n";
-		
-		$segmentDays = 0;
-		$segmentMiles = $segments[$k][1];
-		
-		for ($i = 0; /*$i < $segmentDays*/; $i++)
+		for ($i = 0;; $i++)
 	 	{
-	 		$segmentDays++;
-	 		$day[$d]["foodWeight"] = $output[0]["weight"];
+	 		$day[$d]["foodWeight"] = $output[0]["weight"]; //todo: randomly select meal plan
 	 		
-	 		if ($segmentMiles + $milesPerDay > $segments[$k + 1][1])
+	 		if ($segmentMiles + $milesPerDay > $segments[$k + 1][0])
 	 		{
-	 			$delta = $segments[$k + 1][1] - $segmentMiles;
+	 			$delta = $segments[$k + 1][0] - $segmentMiles;
 	 			
 	 			//echo "Short day: $delta\n";
 	 			
@@ -94,14 +87,13 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 			//echo "i = $i, d = $d, mile = $mile\n";
 	 			$d++;
 	 		}
-	 		
 		}
 		
 		//echo "type at $k + 1:", $segment[$k + 1][0], "\n";
 		
 		// If this is the last segment or if this is a resupply point then
 		// compute the weight of the food for each day since the last resupply.
-		if ($k == count($segments) - 2 || $segments[$k + 1][0] == "resupply")
+		if ($k == count($segments) - 2 || in_array("resupply", $segments[$k + 1][1]))
 		{
 			$accum = 0;
 			for ($i = $d - 1; $i >= $foodStart; $i--)
