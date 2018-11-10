@@ -46,7 +46,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 	        </div>
 	        <div class="col-md-8">
 			    <table class="table table-condensed">
-				    <thead><th>Day</th><th>Mile</th><th>Food Weight</th></thead>
+				    <thead><th>Day</th><th>Mile</th><th>Start Time</th><th>End Time</th><th>Food Weight</th><th>Notes</th></thead>
 				    <tbody id="schedule"></tbody>
 			    </table>
 		    </div>
@@ -75,7 +75,14 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
   	  					let pounds = Math.floor (ounces / 16.0);
   	  					ounces = Math.round(ounces % 16.0);
   	  	  					
-  	  					txt += "<tr><td>" + day + "</td><td>" + data[d].mile + "</td><td>" + pounds + " lb " + ounces  + "oz</td></tr>\n";
+  	  					txt += "<tr>"
+  	  	  					+ "<td>" + day + "</td>"
+  	  	  					+ "<td>" + data[d].mile + "</td>"
+  	  	  					+ "<td>" + data[d].startTime + "</td>"
+  	  	  					+ "<td>" + data[d].endTime + "</td>"
+  	  	  					+ "<td>" + pounds + " lb " + ounces  + "oz</td>"
+  	  	  					+ "<td>" + data[d].notes  + "</td>"
+  	  	  					+ "</tr>\n";
 
   	  					day++;
   					}
