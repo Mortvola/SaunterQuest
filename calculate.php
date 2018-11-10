@@ -58,6 +58,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	$mile = 0;
 	$d = 0;
 	$foodStart = $d;
+	$lingerHours = 0;
 	
 	for ($k = 0; $k < count($segments) - 1; $k++)
 	{
@@ -67,19 +68,45 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 	{
 	 		$day[$d]["foodWeight"] = $output[0]["weight"]; //todo: randomly select meal plan
 	 		
+	 		//echo "linger hours: $lingerHours\n";
+	 		
+	 		$hoursPerDay = (($endTime - $startTime) - $midDayBreakDuration) / 100;
+	 		$hoursPerDay -= $lingerHours;
+	 		$lingerHours = 0;
+	 		$milesPerDay = $hoursPerDay * $milesPerHour;
+	 		
+	 		//echo "Miles/day = $milesPerDay\n";
+	 		
 	 		if ($segmentMiles + $milesPerDay > $segments[$k + 1][0])
 	 		{
+	 			$deltaMiles = $segments[$k + 1][0] - $segmentMiles;
+	 			
 	 			if (in_array("muststop", $segments[$k + 1][1])
 				 || in_array("stop", $segments[$k + 1][1]))
 	 			{
-		 			$delta = $segments[$k + 1][0] - $segmentMiles;
-		 			
 		 			//echo "Short day: $delta\n";
 		 			
-		 			$mile += $delta;
+	 				$mile += $deltaMiles;
 		 			$day[$d]["mile"] = $mile;
 		 			//echo "i = $i, d = $d, mile = $mile\n";
 		 			$d++;
+	 			}
+	 			else if (in_array("linger", $segments[$k + 1][1]))
+	 			{
+	 				$lingerHours = 2; // todo: Linger hours need to come from the linger event.
+	 				
+	 				$hoursHiked = $deltaMiles / $milesPerHour;
+	 				$remainingHours = $hoursPerDay - $hoursHiked - $lingerHours;
+	 				
+	 				if ($remainingHours <= 0)
+	 				{
+	 					$mile += $deltaMiles;
+	 					$day[$d]["mile"] = $mile;
+	 					//echo "i = $i, d = $d, mile = $mile\n";
+	 					$d++;
+	 					
+	 					$lingerHours += $remainingHours;
+	 				}
 	 			}
 	 			
 	 			break;
@@ -92,6 +119,8 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 			//echo "i = $i, d = $d, mile = $mile\n";
 	 			$d++;
 	 		}
+	 		
+	 		//echo "Miles = $mile\n";
 		}
 		
 		//echo "type at $k + 1:", $segment[$k + 1][0], "\n";
