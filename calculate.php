@@ -73,9 +73,11 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 		$lingerHours = 0;
 	 		$milesPerDay = $hoursPerDay * $milesPerHour;
 	 		
-	 		//echo "Miles/day = $milesPerDay\n";
+// 	 		echo "mile: $mile\n";
+// 	 		echo "segment mile: $segmentMiles\n";
+// 	 		echo "Miles/day = $milesPerDay\n";
 	 		
-	 		if ($segmentMiles + $milesPerDay > $segments[$k + 1][0])
+	 		if ($segmentMiles + $milesPerDay >= $segments[$k + 1][0])
 	 		{
 	 			$deltaMiles = $segments[$k + 1][0] - $segmentMiles;
 	 			
@@ -84,7 +86,6 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 			{
 		 			//echo "Short day: $delta\n";
 		 			
-	 				$mile += $deltaMiles;
 		 			$day[$d]["mile"] = $mile;
 		 			$day[$d]["foodWeight"] = $output[0]["weight"]; //todo: randomly select meal plan
 		 			//echo "i = $i, d = $d, mile = $mile\n";
@@ -97,28 +98,36 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 				$hoursHiked = $deltaMiles / $milesPerHour;
 	 				$remainingHours = $hoursPerDay - $hoursHiked - $lingerHours;
 	 				
+//  	 				echo "linger: hours hiked: $hoursHiked\n";
+//  	 				echo "linger: delta miles: $deltaMiles\n";
+//  	 				echo "linger: miles: $mile\n";
+//  	 				echo "linger: segment miles: $segmentMiles\n";
+//  	 				echo "linger: next segment miles: ", $segments[$k + 1][0], "\n";
+//  	 				echo "linger: remaining hours: $remainingHours\n";
+	 				
 	 				if ($remainingHours <= 0)
 	 				{
-	 					$mile += $deltaMiles;
 	 					$day[$d]["mile"] = $mile;
 	 					$day[$d]["foodWeight"] = $output[0]["weight"]; //todo: randomly select meal plan
 	 					//echo "i = $i, d = $d, mile = $mile\n";
 	 					$d++;
 	 					
-	 					$lingerHours += $remainingHours;
+	 					$lingerHours =  -$remainingHours;
 	 				}
 	 			}
 	 			
+	 			$mile += $deltaMiles;
+	 		
 	 			break;
 	 		}
 	 		else 
 	 		{
-	 			$mile += $milesPerDay;
-	 			$segmentMiles += $milesPerDay;
 	 			$day[$d]["mile"] = $mile;
 	 			$day[$d]["foodWeight"] = $output[0]["weight"]; //todo: randomly select meal plan
 	 			//echo "i = $i, d = $d, mile = $mile\n";
 	 			$d++;
+	 			$mile += $milesPerDay;
+	 			$segmentMiles += $milesPerDay;
 	 		}
 	 		
 	 		//echo "Miles = $mile\n";
