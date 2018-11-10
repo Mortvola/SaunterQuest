@@ -85,15 +85,22 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	
 	for ($k = 0; $k < count($segments) - 1; $k++)
 	{
-		$segmentMiles = $segments[$k][0];
-	
+		if (!$restart)
+		{
+			$segmentMiles = $segments[$k][0];
+		}
+		else
+		{
+			$restart = false;
+		}
+		
 		if ($k == 0)
 		{
 			$day[$d]["segment"] = $k;
 			$day[$d]["segmentMiles"] = $segmentMiles;
 		}
 		
-		for ($i = 0;; $i++)
+		for (;;)
 	 	{
 	 		//echo "linger hours: $lingerHours\n";
 	 		
@@ -118,6 +125,8 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 				$arriveBeforeTime = 12; //todo: this needs to come from the arriveBefore event
 	 				$currentTime = $startTime + $dayHours;
 	 				
+	 				//echo "arrival restriction on day $d, currentTime = $currentTime\n";
+	 				
 	 				if ($currentTime > $arriveBeforeTime)
 	 				{
 	 					$hoursNeeded = $currentTime - $arriveBeforeTime;
@@ -130,7 +139,36 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 					// prior day until the extra time needed is found or it could evenly divide the needed time
 	 					// across all days since the start, or a mix of the two.
 	 					
+	 					for ($d--; $d > 0; $d--)
+	 					{
+	 						if ($hoursNeeded > 1)
+	 						{
+		 						$day[$d]["endTime"] += 1;
+		 						$day[$d]["notes"] = "increased end time by 1 hour;";
+		 						$hoursNeeded -= 1;
+		 						
+		 						//echo "Day $d, end time ", $day[$d]["endTime"], "\n";
+	 						}
+	 						else
+	 						{
+	 							$day[$d]["endTime"] += $hoursNeeded;
+	 							$day[$d]["notes"] = "increased end time by " . $hoursNeeded . " hours;";
+	 							
+	 							break;
+	 						}
+	 					}
 	 					
+	 					$k = $day[$d]["segment"] - 1; // decrease by one since the for loop will increase it by one
+	 					$segmentMiles = $day[$d]["segmentMiles"];
+	 					$dayMiles = 0;
+	 					//echo "segment miles: $segmentMiles\n";
+	 					$restart = true;
+	 					
+	 					break;
+	 				}
+	 				else
+	 				{
+	 					$day[$d]["notes"] .= "Arrive Before: " . $arriveBeforeTime . ", arrived at " . $currentTime . ";";
 	 				}
 	 			}
 	 			
@@ -152,13 +190,18 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 				{
 		 				$day[$d]["mile"] = $day[$d - 1]["mile"] + $dayMiles;
 			 			$day[$d]["foodWeight"] = $output[0]["weight"]; //todo: randomly select meal plan
-			 			$day[$d]["notes"] = "";
+			 			if (!array_key_exists("notes", $day[$d]))
+			 			{
+			 				$day[$d]["notes"] = "";
+			 			}
 			 			$day[$d]["startTime"] = $startTime;
-			 			$day[$d]["endTime"] = $endTime;
+			 			if (!array_key_exists ("endTime", $day[$d]))
+			 			{
+			 				$day[$d]["endTime"] = $endTime;
+			 			}
 			 			$day[$d]["segment"] = $k;
 			 			$day[$d]["segmentMiles"] = $segmentMiles;
 			 			
-			 			//echo "i = $i, d = $d, mile = $mile\n";
 			 			$dayMiles = 0;
 			 			$dayHours = 0;
 
@@ -169,7 +212,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 			{
 	 				$lingerHours = 2; // todo: Linger hours need to come from the linger event.
 	 				
-	 				$remainingHours = $hoursPerDay - $hoursHiked - $lingerHours;
+	 				$remainingHours = ($hoursPerDay - $hoursHiked) - $lingerHours;
 	 				
 //  	 				echo "linger: hours hiked: $hoursHiked\n";
 //  	 				echo "linger: delta miles: $deltaMiles\n";
@@ -177,21 +220,31 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 //  	 				echo "linger: segment miles: $segmentMiles\n";
 //  	 				echo "linger: next segment miles: ", $segments[$k + 1][0], "\n";
 //  	 				echo "linger: remaining hours: $remainingHours\n";
-	 				$day[$d]["notes"] .= "linger " . round ($lingerHours + $remainingHours, 1) . ";";
 	 				
-	 				if ($remainingHours <= 0)
+	 				if ($remainingHours > 0)
 	 				{
+	 					$day[$d]["notes"] .= "linger " . $lingerHours . ";";
+	 				}
+	 				else
+	 				{
+	 					$day[$d]["notes"] .= "linger " . round ($lingerHours + $remainingHours, 1) . ";";
+	 					
 	 					$d++;
 	 					if ($k < count($segments) - 2)
 	 					{
 		 					$day[$d]["mile"] = $day[$d - 1]["mile"] + $dayMiles;
 		 					$day[$d]["foodWeight"] = $output[0]["weight"]; //todo: randomly select meal plan
-		 					$day[$d]["notes"] = "";
+		 					if (!array_key_exists ("notes", $day[$d]))
+		 					{
+		 						$day[$d]["notes"] = "";
+		 					}
 		 					$day[$d]["startTime"] = $startTime;
-		 					$day[$d]["endTime"] = $endTime;
+		 					if (!array_key_exists ("endTime", $day[$d]))
+		 					{
+		 						$day[$d]["endTime"] = $endTime;
+		 					}
 		 					$day[$d]["segment"] = $k;
 		 					$day[$d]["segmentMiles"] = $segmentMiles;
-		 					//echo "i = $i, d = $d, mile = $mile\n";
 		 					$dayMiles = 0;
 		 					$dayHours = 0;
 //		 					echo "*** Start of day $d: mile: ", $day[$d]["mile"], "\n";
@@ -216,17 +269,21 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 			$d++;
 	 			$day[$d]["mile"] = $day[$d - 1]["mile"] + $dayMiles;
 	 			$day[$d]["foodWeight"] = $output[0]["weight"]; //todo: randomly select meal plan
-	 			$day[$d]["notes"] = "";
+	 			if (!array_key_exists ("notes", $day[$d]))
+	 			{
+	 				$day[$d]["notes"] = "";
+	 			}
 	 			$day[$d]["startTime"] = $startTime;
-	 			$day[$d]["endTime"] = $endTime;
+	 			if (!array_key_exists ("endTime", $day[$d]))
+	 			{
+	 				$day[$d]["endTime"] = $endTime;
+	 			}
 	 			$day[$d]["segment"] = $k;
 	 			$day[$d]["segmentMiles"] = $segmentMiles;
 	 			$dayMiles = 0;
 	 			$dayHours = 0;
 	 			
 //	 			echo "*** Start of day $d: mile: ", $day[$d]["mile"], "\n";
-	 			
-	 			//echo "i = $i, d = $d, mile = $mile\n";
 	 		}
 	 		
 	 		//echo "Miles = $mile\n";
