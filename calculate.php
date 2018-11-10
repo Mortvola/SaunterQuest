@@ -66,8 +66,6 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 		
 		for ($i = 0;; $i++)
 	 	{
-	 		$day[$d]["foodWeight"] = $output[0]["weight"]; //todo: randomly select meal plan
-	 		
 	 		//echo "linger hours: $lingerHours\n";
 	 		
 	 		$hoursPerDay = (($endTime - $startTime) - $midDayBreakDuration) / 100;
@@ -88,6 +86,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 		 			
 	 				$mile += $deltaMiles;
 		 			$day[$d]["mile"] = $mile;
+		 			$day[$d]["foodWeight"] = $output[0]["weight"]; //todo: randomly select meal plan
 		 			//echo "i = $i, d = $d, mile = $mile\n";
 		 			$d++;
 	 			}
@@ -102,6 +101,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 				{
 	 					$mile += $deltaMiles;
 	 					$day[$d]["mile"] = $mile;
+	 					$day[$d]["foodWeight"] = $output[0]["weight"]; //todo: randomly select meal plan
 	 					//echo "i = $i, d = $d, mile = $mile\n";
 	 					$d++;
 	 					
@@ -116,6 +116,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 			$mile += $milesPerDay;
 	 			$segmentMiles += $milesPerDay;
 	 			$day[$d]["mile"] = $mile;
+	 			$day[$d]["foodWeight"] = $output[0]["weight"]; //todo: randomly select meal plan
 	 			//echo "i = $i, d = $d, mile = $mile\n";
 	 			$d++;
 	 		}
