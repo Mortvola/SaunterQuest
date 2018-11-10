@@ -69,14 +69,19 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 		
 	 		if ($segmentMiles + $milesPerDay > $segments[$k + 1][0])
 	 		{
-	 			$delta = $segments[$k + 1][0] - $segmentMiles;
+	 			if (in_array("muststop", $segments[$k + 1][1])
+				 || in_array("stop", $segments[$k + 1][1]))
+	 			{
+		 			$delta = $segments[$k + 1][0] - $segmentMiles;
+		 			
+		 			//echo "Short day: $delta\n";
+		 			
+		 			$mile += $delta;
+		 			$day[$d]["mile"] = $mile;
+		 			//echo "i = $i, d = $d, mile = $mile\n";
+		 			$d++;
+	 			}
 	 			
-	 			//echo "Short day: $delta\n";
-	 			
-	 			$mile += $delta;
-	 			$day[$d]["mile"] = $mile;
-	 			//echo "i = $i, d = $d, mile = $mile\n";
-	 			$d++;
 	 			break;
 	 		}
 	 		else 

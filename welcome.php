@@ -40,11 +40,19 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
         </div>
     </nav>
     <div>
-    <button type="button" onclick="calculate()">Calculate</button>
-    <table>
-    <thead><th>Day</th><th>Mile</th><th>Food Weight</th></thead>
-    <tbody id="schedule"></tbody>
-    </table>
+	    <button type="button" onclick="calculate()">Calculate</button>
+	    <div class="container-fluid">
+	        <div class="col-md-2">
+	        </div>
+	        <div class="col-md-8">
+			    <table class="table table-condensed">
+				    <thead><th>Day</th><th>Mile</th><th>Food Weight</th></thead>
+				    <tbody id="schedule"></tbody>
+			    </table>
+		    </div>
+	        <div class="col-md-2">
+	        </div>
+	    </div>
     </div>
     <script>
     "use strict";
