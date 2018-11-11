@@ -175,14 +175,14 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	$totalMiles = 235;
 	
 	$segments = array(
-			array("mile" => 0, "events" => array((object)[type => "start", enabled => true])),
-			array("mile" => 5.0, "events" => array((object)[type => "stop", enabled => true])),
-			array("mile" => 36.6, "events" => array((object)[type => "arriveBefore", enabled => true])),
-			array("mile" => 60.8, "events" => array((object)[type => "resupply", enabled => true], (object)[type => "stop", enabled => true])),
-			array("mile" => 110, "events" => array((object)[type => "resupply", enabled => true])),
-			array("mile" => 178.3, "events" => array((object)[type => "arriveBefore", enabled => true])),
-			array("mile" => 210, "events" => array((object)[type => "linger", enabled => true])),
-			array("mile" => $totalMiles, "events" => array((object)[type => "stop", enabled => true]))
+		(object)[mile => 0, events => array((object)[type => "start", enabled => true])],
+		(object)[mile => 5.0, events => array((object)[type => "stop", enabled => true])],
+		(object)[mile => 36.6, events => array((object)[type => "arriveBefore", enabled => true])],
+		(object)[mile => 60.8, events => array((object)[type => "resupply", enabled => true], (object)[type => "stop", enabled => true])],
+		(object)[mile => 110, events => array((object)[type => "resupply", enabled => true])],
+		(object)[mile => 178.3, events => array((object)[type => "arriveBefore", enabled => true])],
+		(object)[mile => 210, events => array((object)[type => "linger", enabled => true])],
+		(object)[mile => $totalMiles, events => array((object)[type => "stop", enabled => true])]
 	);
 	
 	$noCamping = array(
@@ -226,7 +226,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	{
 		if (!$restart)
 		{
-			$segmentMiles = $segments[$k]["mile"];
+			$segmentMiles = $segments[$k]->mile;
 
 			if ($k == 0)
 			{
@@ -269,20 +269,19 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 //  	 		echo "day miles: $dayMiles\n";
 //  	 		echo "Miles/day = $dayMilesRemaining\n";
 	 		
-	 		if ($segmentMiles + $dayMilesRemaining >= $segments[$k + 1]["mile"])
+	 		if ($segmentMiles + $dayMilesRemaining >= $segments[$k + 1]->mile)
 	 		{
-	 			//echo "Day $d, segment miles: $segmentMiles, next segment: " . $segments[$k + 1]["mile"] . "\n";
+	 			//echo "Day $d, segment miles: $segmentMiles, next segment: " . $segments[$k + 1]->mile . "\n";
 	 			
-	 			$deltaMiles = $segments[$k + 1]["mile"] - $segmentMiles;
+	 			$deltaMiles = $segments[$k + 1]->mile - $segmentMiles;
 	 			$dayMiles += $deltaMiles;
 	 			$hoursHiked = $deltaMiles / $milesPerHour;
 	 			$dayHours += $hoursHiked;
 	 			$currentTime = $day[$d]["startTime"] + $dayHours;
 	 			$segmentMiles += $deltaMiles;
 	 			
-	 			$event = findEvent("arriveBefore", $segments[$k + 1]["events"]);
+	 			$event = findEvent("arriveBefore", $segments[$k + 1]->events);
 	 			
-	 			//if (in_array("arriveBefore", $segments[$k + 1]["events"]))
 	 			if ($event && $event->enabled)
 	 			{
 	 				$arriveBeforeTime = 12; //todo: this needs to come from the arriveBefore event
@@ -336,7 +335,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 				}
 	 			}
 	 			
-	 			$event = findEvent("resupply", $segments[$k + 1]["events"]);
+	 			$event = findEvent("resupply", $segments[$k + 1]->events);
 	 			
 	 			if ($k == count($segments) - 2 || $event)
 	 			{
@@ -348,7 +347,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 				}
 	 			}
 	 			
-	 			$event = findEvent("stop", $segments[$k + 1]["events"]);
+	 			$event = findEvent("stop", $segments[$k + 1]->events);
 	 			
 	 			if ($event && $event->enabled)
 	 			{
@@ -362,7 +361,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 				}
 	 			}
 	 				
-	 			$event = findEvent("linger", $segments[$k + 1]["events"]);
+	 			$event = findEvent("linger", $segments[$k + 1]->events);
 	 			
 	 			if ($event && $event->enabled)
 	 			{
@@ -376,7 +375,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 //  	 				echo "linger: delta miles: $deltaMiles\n";
 //  	 				echo "linger: miles: $mile\n";
 //  	 				echo "linger: segment miles: $segmentMiles\n";
-//  	 				echo "linger: next segment miles: ", $segments[$k + 1]["mile"], "\n";
+//  	 				echo "linger: next segment miles: ", $segments[$k + 1]->mile, "\n";
 //  	 				echo "linger: remaining hours: $remainingHours\n";
 	 				
 	 				if ($remainingHours > 0)
@@ -482,7 +481,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 			dayInitialize ($day, $d, $dayMiles, $dayHours, $k, $segmentMiles);
 	 			
 	 			//echo "Day $d, segment miles: " . $day[$d]["segmentMiles"] . "\n";
-//	 			echo "day $d start miles = " . $day[$d]["mile"] . "\n";
+	 			//	 			echo "day $d start miles = " . $day[$d]["mile"] . "\n";
 	 		}
 	 		
 	 		//echo "Miles = $mile\n";
