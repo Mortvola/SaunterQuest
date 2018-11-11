@@ -84,6 +84,18 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
   	  	  					+ "<td>" + data[d].notes  + "</td>"
   	  	  					+ "</tr>\n";
 
+  	  	  				if (data[d].events.length != 0)
+  	  	  				{
+  	  	  	  				txt += "<tr>"
+  	  	  	  	  				+ "<td></td>"
+  	  	  	  	  				+ "<td>" + data[d].events[0].mile + "</td>"
+  	  	  	  	  				+ "<td>" + data[d].events[0].time + "</td>"
+  	  	  	  	  				+ "<td>" + data[d].events[0].type + "</td>"
+  	  	  	  	  				+ "<td></td>"
+  	  	  	  	  				+ "<td>" + data[d].events[0].notes + "</td>"
+  	  	  	  	  				+ "</tr>\n";
+  	  	  				}
+  	  	  				
   	  					day++;
   					}
 
