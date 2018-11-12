@@ -74,6 +74,9 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 			$this->segment = $k;
 			$this->segmentMiles = $segmentMiles;
 			
+			//unset($this->events);
+			$this->events = [];
+			
 			if ($debug)
 			{
 				echo "Initializing Day $d, mile: $this->mile, segment: $k, segment miles: $segmentMiles\n";
@@ -238,11 +241,12 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	$segments = array(
 		(object)[mile => 0, events => array((object)[type => "start", enabled => true])],
 		(object)[mile => 5.0, events => array((object)[type => "stop", enabled => true])],
-		(object)[mile => 36.6, events => array((object)[type => "arriveBefore", enabled => true])],
+		(object)[mile => 36.6, events => array((object)[type => "arriveBefore", time => 12, enabled => true])],
 		(object)[mile => 60.8, events => array((object)[type => "resupply", enabled => true], (object)[type => "stop", enabled => true])],
 		(object)[mile => 110, events => array((object)[type => "resupply", enabled => true])],
-		(object)[mile => 178.3, events => array((object)[type => "arriveBefore", enabled => true])],
-		(object)[mile => 210, events => array((object)[type => "linger", enabled => true])],
+		(object)[mile => 178.3, events => array((object)[type => "arriveBefore", time => 12, enabled => true])],
+		(object)[mile => 188.7, events => array((object)[type => "arriveBefore", time => 12, enabled => true])],
+		(object)[mile => 210, events => array((object)[type => "arriveBefore", time => 10, enabled => true], (object)[type => "linger", time => 2, enabled => true])],
 		(object)[mile => $totalMiles, events => array((object)[type => "stop", enabled => true])]
 	);
 	
@@ -353,7 +357,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 			
 	 			if ($event)
 	 			{
-	 				$arriveBeforeTime = 12; //todo: this needs to come from the arriveBefore event
+	 				$arriveBeforeTime = $event->time;
 	 				
 	 				if ($event->enabled)
 	 				{
@@ -437,9 +441,9 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 			
 	 			if ($event && $event->enabled)
 	 			{
-	 				// todo: determien what it means to linger when already stopped.
+	 				// todo: determine what it means to linger when already stopped.
 	 				
-	 				$lingerHours = 2; // todo: Linger hours need to come from the linger event.
+	 				$lingerHours = $event->time;
 	 				
 	 				$remainingHours = ($hoursPerDay - $hoursHiked) - $lingerHours;
 	 				

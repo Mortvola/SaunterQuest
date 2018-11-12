@@ -84,16 +84,21 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
   	  	  					+ "<td>" + data[d].notes  + "</td>"
   	  	  					+ "</tr>\n";
 
-  	  	  				if (data[d].events.length != 0)
+  	  	  				if (data[d].events.length > 0)
   	  	  				{
-  	  	  	  				txt += "<tr>"
-  	  	  	  	  				+ "<td></td>"
-  	  	  	  	  				+ "<td>" + data[d].events[0].mile + "</td>"
-  	  	  	  	  				+ "<td>" + data[d].events[0].time + "</td>"
-  	  	  	  	  				+ "<td>" + data[d].events[0].type + "</td>"
-  	  	  	  	  				+ "<td></td>"
-  	  	  	  	  				+ "<td>" + data[d].events[0].notes + "</td>"
-  	  	  	  	  				+ "</tr>\n";
+  	  				    	txt += "<thead><th></th><th>Mile</th><th>Time</th><th>Type</th><th></th><th></th></thead>";
+	  	  	  				
+	   	  	  				for (let e in data[d].events)
+	  	  	  				{
+	  	  	  	  				txt += "<tr>"
+	  	  	  	  	  				+ "<td></td>"
+	  	  	  	  	  				+ "<td>" + data[d].events[e].mile + "</td>"
+	  	  	  	  	  				+ "<td>" + data[d].events[e].time + "</td>"
+	  	  	  	  	  				+ "<td>" + data[d].events[e].type + "</td>"
+	  	  	  	  	  				+ "<td></td>"
+	  	  	  	  	  				+ "<td>" + data[d].events[e].notes + "</td>"
+	  	  	  	  	  				+ "</tr>\n";
+	  	  	  				}
   	  	  				}
   	  	  				
   	  					day++;
