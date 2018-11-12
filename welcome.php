@@ -45,6 +45,9 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 	        <div class="col-md-2">
 	        </div>
 	        <div class="col-md-8">
+
+				<div id="googleMap" style="width:100%;height:400px"></div>
+
 			    <table class="table table-condensed">
 				    <thead><th>Day</th><th>Mile</th><th>Start Time</th><th>End Time</th><th>Food Weight</th><th>Notes</th></thead>
 				    <tbody id="schedule"></tbody>
@@ -54,9 +57,21 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 	        </div>
 	    </div>
     </div>
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB16_kVJjm2plHSOkrxZDC4etbpp6vW8kU&callback=myMap"></script>
     <script>
     "use strict";
-    
+
+    	function myMap()
+    	{
+	    	var mapProp =
+		    {
+	    	    center:new google.maps.LatLng(51.508742,-0.120850),
+	    	    zoom:5,
+	    	};
+	    	
+	    	var map=new google.maps.Map(document.getElementById("googleMap"), mapProp);
+    	} 
+	
 		function calculate ()
 		{
 			var xmlhttp = new XMLHttpRequest ();
@@ -112,7 +127,9 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 			//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 			xmlhttp.send();
 		}
-		
-    </script>
+
+		myMap ();
+
+	</script>
 </body>
 </html>
