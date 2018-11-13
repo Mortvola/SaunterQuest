@@ -92,7 +92,11 @@ create table userHike (
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
 	userId INT NOT NULL,
-	name VARCHAR (255) NOT NULL
+	name VARCHAR (255) NOT NULL,
+	milesPerHour DECIMAL(2,1),
+	startTime INT,
+	endTime INT,
+	midDayBreakDuration INT
 );
 
 create table pointOfInterest (

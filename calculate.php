@@ -43,7 +43,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 		//
 		function dayInitialize ($d, &$dayMiles, &$dayHours, $k, $segmentMiles)
 		{
-			global $food, $startTime, $endTime, $debug, $day;
+			global $food, $hikerProfile, $debug, $day;
 			
 			if ($d > 0)
 			{
@@ -63,12 +63,12 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 			
 			if ($this->startTime == null)
 			{
-				$this->startTime = $startTime;
+				$this->startTime = $hikerProfile["startTime"];
 			}
 			
 			if ($this->endTime == null)
 			{
-				$this->endTime = $endTime;
+				$this->endTime = $hikerProfile["endTime"];
 			}
 			
 			$this->segment = $k;
@@ -108,14 +108,14 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	
 	function StrategyEndLater ($timeShift, &$day, $d, &$hoursNeeded)
 	{
-		global $endTime;
+		global $hikerProfile;
 		
 		$earliestChangedDay = -1;
 		
 		// Try extending the end hours for the past days
 		for (; $d > 0; $d--)
 		{
-			$amountToShift = $endTime + $timeShift - $day[$d]->endTime;
+			$amountToShift = $hikerProfile["endTime"] + $timeShift - $day[$d]->endTime;
 			
 			if ($amountToShift > 0)
 			{
@@ -152,7 +152,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	
 	function StrategyStartEarlier ($timeShift, &$day, $d, &$hoursNeeded)
 	{
-		global $startTime;
+		global $hikerProfile;
 		
 		$earliestChangedDay = -1;
 		
@@ -161,7 +161,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 		//
 		for (; $d > 0; $d--)
 		{
-			$amountToShift = $day[$d]->startTime - ($startTime - $timeShift);
+			$amountToShift = $day[$d]->startTime - ($hikerProfile["startTime"] - $timeShift);
 			
 			if ($amountToShift > 0)
 			{
@@ -230,29 +230,31 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 		return $day[$d];
 	}
 	
-	// Hiking profile
-	$milesPerHour = 1; //1.5;
-	$startTime = 8;
-	$endTime = 19;
-	$midDayBreakDuration = 1;
-	
-	$segments = array(
-// 		(object)[mile => 0, events => array((object)[type => "start", enabled => true])],
-// 		(object)[mile => 5.0, events => array((object)[type => "stop", enabled => true])],
-// 		(object)[mile => 36.6, events => array((object)[type => "arriveBefore", time => 12, enabled => true])],
-// 		(object)[mile => 60.8, events => array((object)[type => "resupply", enabled => true], (object)[type => "stop", enabled => true])],
-// 		(object)[mile => 110, events => array((object)[type => "resupply", enabled => true])],
-// 		(object)[mile => 178.3, events => array((object)[type => "arriveBefore", time => 12, enabled => true])],
-// 		(object)[mile => 188.7, events => array((object)[type => "arriveBefore", time => 12, enabled => true])],
-// 		(object)[mile => 210, events => array((object)[type => "arriveBefore", time => 10, enabled => true], (object)[type => "linger", time => 2, enabled => true])],
-// 		(object)[mile => 235, events => array((object)[type => "stop", enabled => true])]
-	);
+	$segments = [];
 	
 	$noCamping = array(
 					array (18.1, 28.9));
 	
 	try
 	{
+		$sql = "select milesPerHour, startTime, endTime, midDayBreakDuration
+				from userHike
+				where userId = :userId";
+		
+		if ($stmt = $pdo->prepare($sql))
+		{
+			$stmt->bindParam(":userId", $paramUserId, PDO::PARAM_INT);
+			$paramUserId = $_SESSION["userId"];
+		
+			$stmt->execute ();
+			
+			$output = $stmt->fetchAll (PDO::FETCH_ASSOC);
+			
+			$hikerProfile = $output[0];
+			
+			unset ($stmt);
+		}
+		
 		$sql = "select dt.dayTemplateId, dt.name, sum(fiss.grams * dtfi.numberOfServings) as weight
 				from dayTemplateFoodItem dtfi
 				join foodItemServingSize fiss on fiss.foodItemId = dtfi.foodItemId
@@ -365,10 +367,10 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 		//echo "Day $d, segment miles: " . $segmentMiles . "\n";
 	 		//echo "Day $d, segment miles: " . DayGet ($d)->segmentMiles . "\n";
 	 		
-	 		$hoursPerDay = ((DayGet ($d)->endTime - DayGet ($d)->startTime) - $midDayBreakDuration);
+	 		$hoursPerDay = ((DayGet ($d)->endTime - DayGet ($d)->startTime) - $hikerProfile["midDayBreakDuration"]);
 	 		$hoursPerDay -= $lingerHours;
 	 		$lingerHours = 0;
-	 		$dayMilesRemaining = $hoursPerDay * $milesPerHour - $dayMiles;
+	 		$dayMilesRemaining = $hoursPerDay * $hikerProfile["milesPerHour"] - $dayMiles;
 	 		
 	 		//echo "Day $d, hours per day: $hoursPerDay\n";
 //  	 		echo "mile: $mile\n";
@@ -381,7 +383,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 			
 	 			$deltaMiles = $segments[$k + 1]->mile - $segmentMiles;
 	 			$dayMiles += $deltaMiles;
-	 			$hoursHiked = $deltaMiles / $milesPerHour;
+	 			$hoursHiked = $deltaMiles / $hikerProfile["milesPerHour"];
 	 			$dayHours += $hoursHiked;
 	 			$currentTime = DayGet ($d)->startTime + $dayHours;
 	 			$segmentMiles += $deltaMiles;
@@ -527,7 +529,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 					// We are in a no camping area... need to move.
 	 					//
 	 					$remainingMiles = $noCamping[$i][1] - ($segmentMiles + $dayMilesRemaining);
-	 					$hoursNeeded = $remainingMiles / $milesPerHour;
+	 					$hoursNeeded = $remainingMiles / $hikerProfile["milesPerHour"];
 	 					
 	 					//echo "needed hours: $hoursNeeded\n";
 
