@@ -42,19 +42,16 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     <div>
 	    <button type="button" onclick="calculate()">Calculate</button>
 	    <div class="container-fluid">
-	        <div class="col-md-2">
+	        <div class="col-md-4">
+				<div id="googleMap" style="width:100%;height:600px"></div>
 	        </div>
 	        <div class="col-md-8">
-
-				<div id="googleMap" style="width:100%;height:400px"></div>
 
 			    <table class="table table-condensed">
 				    <thead><th>Day</th><th>Mile</th><th>Start Time</th><th>End Time</th><th>Food Weight</th><th>Notes</th></thead>
 				    <tbody id="schedule"></tbody>
 			    </table>
 		    </div>
-	        <div class="col-md-2">
-	        </div>
 	    </div>
     </div>
 	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB16_kVJjm2plHSOkrxZDC4etbpp6vW8kU&callback=myMap"></script>
