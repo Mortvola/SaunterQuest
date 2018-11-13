@@ -43,7 +43,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 		//
 		function dayInitialize ($d, &$dayMiles, &$dayHours, $k, $segmentMiles)
 		{
-			global $output, $startTime, $endTime, $debug, $day;
+			global $food, $startTime, $endTime, $debug, $day;
 			
 			if ($d > 0)
 			{
@@ -54,7 +54,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 				$this->mile = $dayMiles;
 			}
 			
-			$this->foodWeight = $output[0]["weight"]; //todo: randomly select meal plan
+			$this->foodWeight = $food[0]["weight"]; //todo: randomly select meal plan
 			
 			if ($this->notes == null)
 			{
@@ -236,18 +236,16 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	$endTime = 19;
 	$midDayBreakDuration = 1;
 	
-	$totalMiles = 235;
-	
 	$segments = array(
-		(object)[mile => 0, events => array((object)[type => "start", enabled => true])],
-		(object)[mile => 5.0, events => array((object)[type => "stop", enabled => true])],
-		(object)[mile => 36.6, events => array((object)[type => "arriveBefore", time => 12, enabled => true])],
-		(object)[mile => 60.8, events => array((object)[type => "resupply", enabled => true], (object)[type => "stop", enabled => true])],
-		(object)[mile => 110, events => array((object)[type => "resupply", enabled => true])],
-		(object)[mile => 178.3, events => array((object)[type => "arriveBefore", time => 12, enabled => true])],
-		(object)[mile => 188.7, events => array((object)[type => "arriveBefore", time => 12, enabled => true])],
-		(object)[mile => 210, events => array((object)[type => "arriveBefore", time => 10, enabled => true], (object)[type => "linger", time => 2, enabled => true])],
-		(object)[mile => $totalMiles, events => array((object)[type => "stop", enabled => true])]
+// 		(object)[mile => 0, events => array((object)[type => "start", enabled => true])],
+// 		(object)[mile => 5.0, events => array((object)[type => "stop", enabled => true])],
+// 		(object)[mile => 36.6, events => array((object)[type => "arriveBefore", time => 12, enabled => true])],
+// 		(object)[mile => 60.8, events => array((object)[type => "resupply", enabled => true], (object)[type => "stop", enabled => true])],
+// 		(object)[mile => 110, events => array((object)[type => "resupply", enabled => true])],
+// 		(object)[mile => 178.3, events => array((object)[type => "arriveBefore", time => 12, enabled => true])],
+// 		(object)[mile => 188.7, events => array((object)[type => "arriveBefore", time => 12, enabled => true])],
+// 		(object)[mile => 210, events => array((object)[type => "arriveBefore", time => 10, enabled => true], (object)[type => "linger", time => 2, enabled => true])],
+// 		(object)[mile => 235, events => array((object)[type => "stop", enabled => true])]
 	);
 	
 	$noCamping = array(
@@ -268,8 +266,43 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 
 			$stmt->execute ();
 				
-			$output = $stmt->fetchAll (PDO::FETCH_ASSOC);
+			$food = $stmt->fetchAll (PDO::FETCH_ASSOC);
 		
+			unset($stmt);
+		}
+		
+		$sql = "select poi.mile, poic.type, poic.time
+				from pointOfInterest poi
+				join pointOfInterestConstraint poic on poic.pointOfInterestId = poi.pointOfInterestId
+				join userHike uh on uh.userHikeId = poi.hikeId and uh.userId = :userId
+				order by mile asc";
+				
+		if ($stmt = $pdo->prepare($sql))
+		{
+			$stmt->bindParam(":userId", $paramUserId, PDO::PARAM_INT);
+			$paramUserId = $_SESSION["userId"];
+			
+			$stmt->execute ();
+			
+			$output = $stmt->fetchAll (PDO::FETCH_ASSOC);
+			
+			$k = -1;
+			
+			foreach ($output as $poi)
+			{
+				//var_dump ($poi);
+				
+				if ($k == -1 || $segments[$k]->mile != $poi["mile"])
+				{
+					$k++;
+					$segments[$k] = (object)[mile => $poi["mile"]];
+				}
+			
+				$segments[$k]->events[] = (object)[type => $poi["type"], time => $poi["time"], enabled => true];
+			}
+			
+			//var_dump ($segments);
+			
 			unset($stmt);
 		}
 	}

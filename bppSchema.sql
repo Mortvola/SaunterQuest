@@ -86,3 +86,29 @@ create table dayTemplateFoodItem (
 	foodItemServingSizeId INT NOT NULL,
 	numberOfServings DECIMAL(7,3) NOT NULL
 );
+
+create table userHike (
+	userHikeId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	creationDate DATETIME NOT NULL,
+	modificationDate DATETIME NOT NULL,
+	userId INT NOT NULL,
+	name VARCHAR (255) NOT NULL
+);
+
+create table pointOfInterest (
+	pointOfInterestId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	creationDate DATETIME NOT NULL,
+	modificationDate DATETIME NOT NULL,
+	hikeId INT NOT NULL,
+	mile DECIMAL(5,1) NOT NULL,	-- this may be temporary until we determine whether or not to use GPS coordinates
+	name VARCHAR (255),
+	description VARCHAR (255));
+
+create table pointOfInterestConstraint (
+	pointOfInterestConstraintId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	creationDate DATETIME NOT NULL,
+	modificationDate DATETIME NOT NULL,
+	pointOfInterestId INT NOT NULL,
+	type VARCHAR (255),
+	time INT);
+	
