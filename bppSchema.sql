@@ -87,6 +87,12 @@ create table dayTemplateFoodItem (
 	numberOfServings DECIMAL(7,3) NOT NULL
 );
 
+create table hike (
+	hikeId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	creationDate DATETIME NOT NULL,
+	modificationDate DATETIME NOT NULL,
+	name VARCHAR (255) NOT NULL);
+	
 create table userHike (
 	userHikeId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,

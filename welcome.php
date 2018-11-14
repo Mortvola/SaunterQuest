@@ -16,6 +16,8 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     <title>Welcome</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="/bootstrap.min.js"></script>
     <style type="text/css">
         body{ font: 14px sans-serif; }
     </style>
@@ -40,95 +42,81 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
         </div>
     </nav>
     <div>
-	    <button type="button" onclick="calculate()">Calculate</button>
 	    <div class="container-fluid">
+	        <?php
+		        // Include config file
+		        require_once "config.php";
+		    ?>
 	        <div class="col-md-4">
-				<div id="googleMap" style="width:100%;height:600px"></div>
-	        </div>
-	        <div class="col-md-8">
+	        <h4>Available Hikes</h4>
+	        <table class="table table-condensed">
+	        <thead><tr><th>Name</th><th>Length</th></tr></thead>
+	        <tbody>
+	        <?php
+	        	$sql = "select name, hikeId
+					from hike";
+		        
+		        if ($stmt = $pdo->prepare($sql))
+		        {
+		        	$stmt->execute ();
+		        	
+		        	$output = $stmt->fetchAll (PDO::FETCH_ASSOC);
 
-			    <table class="table table-condensed">
-				    <thead><th>Day</th><th>Mile</th><th>Start Time</th><th>End Time</th><th>Food Weight</th><th>Notes</th></thead>
-				    <tbody id="schedule"></tbody>
-			    </table>
+		        	foreach ($output as $hike)
+		        	{
+		        		echo "<tr>";
+		        		echo "<td>", $hike["name"], "</td>";
+		        		echo "<td>", "</td>";
+		        		echo "</tr>";
+		        	}
+		        	
+		        	unset ($stmt);
+		        }
+	        ?>
+	        </tbody>
+	        </table>
+	        </div>
+	        <div class="col-md-1">
+	        </div>
+	        <div class="col-md-7">
+	        <h4>Your Hikes</h4>
+	        <table class="table table-condensed">
+	        <thead><tr><th>Name</th><th>Length</th><th>Duration</th><th>Start Date</th></tr></thead>
+	        <tbody>
+	        <?php
+	        	$sql = "select name, userHikeId
+					from userHike
+					where userId = :userId";
+		        
+		        if ($stmt = $pdo->prepare($sql))
+		        {
+		        	$stmt->bindParam(":userId", $paramUserId, PDO::PARAM_INT);
+		        	$paramUserId = $_SESSION["userId"];
+		        	
+		        	$stmt->execute ();
+		        	
+		        	$output = $stmt->fetchAll (PDO::FETCH_ASSOC);
+
+		        	foreach ($output as $hike)
+		        	{
+		        		echo "<tr>";
+		        		echo "<td>", "<a href='/editHike.php?id=", $hike["userHikeId"], "'>", $hike["name"], "</a></td>";
+		        		echo "<td>", "</td>";
+		        		echo "<td>", "</td>";
+		        		echo "<td>", "None", "</td>";
+		        		echo "</tr>";
+		        	}
+		        	
+		        	unset ($stmt);
+		        }
+	        ?>
+	        </tbody>
+	        </table>
 		    </div>
 	    </div>
     </div>
-	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB16_kVJjm2plHSOkrxZDC4etbpp6vW8kU&callback=myMap"></script>
     <script>
     "use strict";
 
-    	function myMap()
-    	{
-	    	var mapProp =
-		    {
-	    	    center:new google.maps.LatLng(51.508742,-0.120850),
-	    	    zoom:5,
-	    	    streetViewControl:false,
-	    	    fullscreenControl:false,
-	    	};
-	    	
-	    	var map=new google.maps.Map(document.getElementById("googleMap"), mapProp);
-    	} 
-	
-		function calculate ()
-		{
-			var xmlhttp = new XMLHttpRequest ();
-			xmlhttp.onreadystatechange = function ()
-			{
-				if (this.readyState == 4 && this.status == 200)
-				{
-  					let data = JSON.parse(this.responseText);
-
-  					let txt = "";
-  					let day = 0;
-  					
-  					for (let d in data)
-  					{
-  	  					let ounces = data[d].accumWeight * 0.035274;
-  	  					let pounds = Math.floor (ounces / 16.0);
-  	  					ounces = Math.round(ounces % 16.0);
-  	  	  					
-  	  					txt += "<tr>"
-  	  	  					+ "<td>" + day + "</td>"
-  	  	  					+ "<td>" + data[d].mile + "</td>"
-  	  	  					+ "<td>" + data[d].startTime + "</td>"
-  	  	  					+ "<td>" + data[d].endTime + "</td>"
-  	  	  					+ "<td>" + pounds + " lb " + ounces  + "oz</td>"
-  	  	  					+ "<td>" + data[d].notes  + "</td>"
-  	  	  					+ "</tr>\n";
-
-  	  	  				if (data[d].events.length > 0)
-  	  	  				{
-  	  				    	txt += "<thead><th></th><th>Mile</th><th>Time</th><th>Type</th><th></th><th></th></thead>";
-	  	  	  				
-	   	  	  				for (let e in data[d].events)
-	  	  	  				{
-	  	  	  	  				txt += "<tr>"
-	  	  	  	  	  				+ "<td></td>"
-	  	  	  	  	  				+ "<td>" + data[d].events[e].mile + "</td>"
-	  	  	  	  	  				+ "<td>" + data[d].events[e].time + "</td>"
-	  	  	  	  	  				+ "<td>" + data[d].events[e].type + "</td>"
-	  	  	  	  	  				+ "<td></td>"
-	  	  	  	  	  				+ "<td>" + data[d].events[e].notes + "</td>"
-	  	  	  	  	  				+ "</tr>\n";
-	  	  	  				}
-  	  	  				}
-  	  	  				
-  	  					day++;
-  					}
-
-					document.getElementById ("schedule").innerHTML = txt;
- 				}
-			}
-
-			xmlhttp.open("GET", "calculate.php?id=" + <?php echo $_SESSION["userId"]?>, true);
-			//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-			xmlhttp.send();
-		}
-
-		myMap ();
-
-	</script>
 </body>
 </html>
