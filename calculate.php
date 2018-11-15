@@ -237,15 +237,22 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	
 	try
 	{
-		$sql = "select milesPerHour, startTime, endTime, midDayBreakDuration
+		$sql = "select coalesce(milesPerHour, 1.0) AS milesPerHour,
+					   coalesce(startTime, 8) AS startTime,
+					   coalesce(endTime, 19) AS endTime,
+					   coalesce(midDayBreakDuration, 1) AS midDayBreakDuration
 				from userHike
-				where userId = :userId";
+				where userId = :userId
+				and userHikeId = :userHikeId";
 		
 		if ($stmt = $pdo->prepare($sql))
 		{
 			$stmt->bindParam(":userId", $paramUserId, PDO::PARAM_INT);
+			$stmt->bindParam(":userHikeId", $paramUserHikeId, PDO::PARAM_INT);
+			
 			$paramUserId = $_SESSION["userId"];
-		
+			$paramUserHikeId = $_GET["id"];
+			
 			$stmt->execute ();
 			
 			$output = $stmt->fetchAll (PDO::FETCH_ASSOC);
@@ -254,6 +261,11 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 			
 			unset ($stmt);
 		}
+		
+// 		echo "milesPerHour = ", $hikerProfile["milesPerHour"], "\n";
+// 		echo "milesPerHour = ", $hikerProfile["startTime"], "\n";
+// 		echo "milesPerHour = ", $hikerProfile["endTime"], "\n";
+// 		echo "milesPerHour = ", $hikerProfile["midDayBreakDuration"], "\n";
 		
 		$sql = "select dt.dayTemplateId, dt.name, sum(fiss.grams * dtfi.numberOfServings) as weight
 				from dayTemplateFoodItem dtfi
@@ -276,13 +288,16 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 		$sql = "select poi.mile, poic.type, poic.time
 				from pointOfInterest poi
 				join pointOfInterestConstraint poic on poic.pointOfInterestId = poi.pointOfInterestId
-				join userHike uh on uh.userHikeId = poi.hikeId and uh.userId = :userId
+				join userHike uh on uh.hikeId = poi.hikeId and uh.userId = :userId and uh.userHikeId = :userHikeId
 				order by mile asc";
 				
 		if ($stmt = $pdo->prepare($sql))
 		{
 			$stmt->bindParam(":userId", $paramUserId, PDO::PARAM_INT);
+			$stmt->bindParam(":userHikeId", $paramUserHikeId, PDO::PARAM_INT);
+			
 			$paramUserId = $_SESSION["userId"];
+			$paramUserHikeId = $_GET["id"];
 			
 			$stmt->execute ();
 			
@@ -312,7 +327,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	{
 		echo $e->getMessage();
 	}
-
+	
 	$debug = false;
 	$mile = 0;
 	$d = 0;

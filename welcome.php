@@ -99,8 +99,11 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 
 		        	foreach ($output as $hike)
 		        	{
-		        		echo "<tr>";
-		        		echo "<td>", "<a href='/editHike.php?id=", $hike["userHikeId"], "'>", $hike["name"], "</a></td>";
+		        		echo "<tr id='userHike_", $hike["userHikeId"], "'>";
+		        		echo "<td>";
+		        		echo "<a class='btn btn-sm' href='/editHike.php?id=", $hike["userHikeId"], "'><span class='glyphicon glyphicon-pencil'></span></a>";
+		        		echo "<a class='btn btn-sm' onclick='deleteHike(", $hike["userHikeId"], ")'><span class='glyphicon glyphicon-trash'></span></a>";
+		        		echo "<a href='/editHike.php?id=", $hike["userHikeId"], "'>", $hike["name"], "</a></td>";
 		        		echo "<td>", "</td>";
 		        		echo "<td>", "</td>";
 		        		echo "<td>", "None", "</td>";
@@ -118,5 +121,22 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     <script>
     "use strict";
 
+	function deleteHike (userHikeId)
+	{
+		var xmlhttp = new XMLHttpRequest ();
+		xmlhttp.onreadystatechange = function ()
+		{
+			if (this.readyState == 4 && this.status == 200)
+			{
+ 	 			let userHike = document.getElementById("userHike_" + userHikeId);
+ 	 			userHike.parentElement.removeChild(userHike);
+			}
+		}
+		
+		xmlhttp.open("POST", "DeleteUserHike.php", true);
+		xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+		xmlhttp.send("id=" + userHikeId);
+	}
+    </script>
 </body>
 </html>

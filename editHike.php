@@ -11,19 +11,20 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 // Include config file
 require_once "config.php";
 
- $origId = $_GET["orig"];
+$hikeId = $_GET["orig"];
+$userHikeId = $_GET["id"];
 
- if  ($origId)
- {
- 	$sql = "select name
+if ($hikeId)
+{
+	$sql = "select name
  			from hike
  			where hikeId = :hikeId";
 	
- 	if ($stmt = $pdo->prepare($sql))
- 	{
+	if ($stmt = $pdo->prepare($sql))
+	{
  		$stmt->bindParam(":hikeId", $paramHikeId, PDO::PARAM_INT);
  		
- 		$paramHikeId = $origId;
+ 		$paramHikeId = $hikeId;
  		
  		$stmt->execute ();
 		
@@ -31,14 +32,16 @@ require_once "config.php";
 		
  		unset ($stmt);
 		
- 		$sql = "insert into userHike (creationDate, modificationDate, userId, name)
- 				values (now(), now(), :userId, :name)";
+ 		$sql = "insert into userHike (creationDate, modificationDate, hikeId, userId, name)
+ 				values (now(), now(), :hikeId, :userId, :name)";
 		
  		if ($stmt = $pdo->prepare($sql))
  		{
+ 			$stmt->bindParam(":hikeId", $paramHikeId, PDO::PARAM_INT);
  			$stmt->bindParam(":userId", $paramUserId, PDO::PARAM_INT);
  			$stmt->bindParam(":name", $paramName, PDO::PARAM_STR);
 			
+ 			$paramHikeId = $hikeId;
  			$paramUserId = $_SESSION["userId"];
  			$paramName = $hike[0]["name"]." Test Hike";
 			
@@ -47,63 +50,6 @@ require_once "config.php";
  			$userHikeId = $pdo->lastInsertId ("userHikeId");
  			
  			unset ($stmt);
- 			
-			$sql = "select poi.pointOfInterestId, poi.mile, poi.name, poi.description
-					from pointOfInterest poi
-					where poi.hikeId = :hikeId";
- 			
- 			if ($stmt = $pdo->prepare($sql))
- 			{
- 				$stmt->bindParam(":hikeId", $paramHikeId, PDO::PARAM_INT);
- 				$paramHikeId = $origId;
- 				
- 				$stmt->execute ();
-
- 				$pointsOfInterest = $stmt->fetchAll (PDO::FETCH_ASSOC);
- 				
-  				$sql = "insert into pointOfInterest (creationDate, modificationDate, mile, name, description, hikeId)
-						values (now(), now(), :mile, :name, :description, :userHikeId)";
- 			
-  				if ($stmt = $pdo->prepare($sql))
-  				{
-  					$stmt->bindParam(":mile", $paramMile, PDO::PARAM_INT);
-  					$stmt->bindParam(":name", $paramName, PDO::PARAM_STR);
-  					$stmt->bindParam(":description", $paramDescription, PDO::PARAM_STR);
-  					$stmt->bindParam(":userHikeId", $paramUserHikeId, PDO::PARAM_INT);
- 					
- 					foreach ($pointsOfInterest as $poi)
-	 				{
-	 					$paramMile = $poi["mile"];
-	 					$paramName = $poi["name"];
-	 					$paramDescription = $poi["description"];
-	 					$paramUserHikeId = $userHikeId;
-	 					
-	 					$stmt->execute ();
-	 					
-	 					$pointOfInterestId = $pdo->lastInsertId ("pointOfInterestId");
-
-	 					$sql = "insert into pointOfInterestConstraint (creationDate, modificationDate, pointOfInterestId, type, time)
-								select now(), now(), :newPointOfInterestId, type, time
-								from pointOfInterestConstraint
-								where pointOfInterestId = :oldPointOfInterestId";
-	 					
-	 					if ($stmt2 = $pdo->prepare($sql))
-	 					{
-	 						$stmt2->bindParam(":newPointOfInterestId", $paramNewPointOfInterestId, PDO::PARAM_INT);
-	 						$stmt2->bindParam(":oldPointOfInterestId", $paramOldPointOfInterestId, PDO::PARAM_INT);
-
-	 						$paramNewPointOfInterestId = $pointOfInterestId;
-	 						$paramOldPointOfInterestId = $poi["pointOfInterestId"];
-	 						
-	 						$stmt2->execute ();
-	 						
-	 						unset ($stmt2);
-	 					}
-	 				}
- 				}
- 				
- 				unset ($stmt);
- 			}
  		}
  	}
 }
@@ -228,7 +174,7 @@ require_once "config.php";
  				}
 			}
 
-			xmlhttp.open("GET", "calculate.php?id=" + <?php echo $_SESSION["userId"]?>, true);
+			xmlhttp.open("GET", "calculate.php?id=" + <?php echo $userHikeId?>, true);
 			//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 			xmlhttp.send();
 		}
