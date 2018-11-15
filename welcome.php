@@ -65,7 +65,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 		        	foreach ($output as $hike)
 		        	{
 		        		echo "<tr>";
-		        		echo "<td>", $hike["name"], "</td>";
+		        		echo "<td>", "<a href='/editHike.php?orig=", $hike["hikeId"], "'>", $hike["name"], "</a></td>";
 		        		echo "<td>", "</td>";
 		        		echo "</tr>";
 		        	}

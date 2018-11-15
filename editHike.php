@@ -7,6 +7,106 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     header("location: login.php");
     exit;
 }
+
+// Include config file
+require_once "config.php";
+
+ $origId = $_GET["orig"];
+
+ if  ($origId)
+ {
+ 	$sql = "select name
+ 			from hike
+ 			where hikeId = :hikeId";
+	
+ 	if ($stmt = $pdo->prepare($sql))
+ 	{
+ 		$stmt->bindParam(":hikeId", $paramHikeId, PDO::PARAM_INT);
+ 		
+ 		$paramHikeId = $origId;
+ 		
+ 		$stmt->execute ();
+		
+ 		$hike = $stmt->fetchAll (PDO::FETCH_ASSOC);
+		
+ 		unset ($stmt);
+		
+ 		$sql = "insert into userHike (creationDate, modificationDate, userId, name)
+ 				values (now(), now(), :userId, :name)";
+		
+ 		if ($stmt = $pdo->prepare($sql))
+ 		{
+ 			$stmt->bindParam(":userId", $paramUserId, PDO::PARAM_INT);
+ 			$stmt->bindParam(":name", $paramName, PDO::PARAM_STR);
+			
+ 			$paramUserId = $_SESSION["userId"];
+ 			$paramName = $hike[0]["name"]." Test Hike";
+			
+ 			$stmt->execute ();
+			
+ 			$userHikeId = $pdo->lastInsertId ("userHikeId");
+ 			
+ 			unset ($stmt);
+ 			
+			$sql = "select poi.pointOfInterestId, poi.mile, poi.name, poi.description
+					from pointOfInterest poi
+					where poi.hikeId = :hikeId";
+ 			
+ 			if ($stmt = $pdo->prepare($sql))
+ 			{
+ 				$stmt->bindParam(":hikeId", $paramHikeId, PDO::PARAM_INT);
+ 				$paramHikeId = $origId;
+ 				
+ 				$stmt->execute ();
+
+ 				$pointsOfInterest = $stmt->fetchAll (PDO::FETCH_ASSOC);
+ 				
+  				$sql = "insert into pointOfInterest (creationDate, modificationDate, mile, name, description, hikeId)
+						values (now(), now(), :mile, :name, :description, :userHikeId)";
+ 			
+  				if ($stmt = $pdo->prepare($sql))
+  				{
+  					$stmt->bindParam(":mile", $paramMile, PDO::PARAM_INT);
+  					$stmt->bindParam(":name", $paramName, PDO::PARAM_STR);
+  					$stmt->bindParam(":description", $paramDescription, PDO::PARAM_STR);
+  					$stmt->bindParam(":userHikeId", $paramUserHikeId, PDO::PARAM_INT);
+ 					
+ 					foreach ($pointsOfInterest as $poi)
+	 				{
+	 					$paramMile = $poi["mile"];
+	 					$paramName = $poi["name"];
+	 					$paramDescription = $poi["description"];
+	 					$paramUserHikeId = $userHikeId;
+	 					
+	 					$stmt->execute ();
+	 					
+	 					$pointOfInterestId = $pdo->lastInsertId ("pointOfInterestId");
+
+	 					$sql = "insert into pointOfInterestConstraint (creationDate, modificationDate, pointOfInterestId, type, time)
+								select now(), now(), :newPointOfInterestId, type, time
+								from pointOfInterestConstraint
+								where pointOfInterestId = :oldPointOfInterestId";
+	 					
+	 					if ($stmt2 = $pdo->prepare($sql))
+	 					{
+	 						$stmt2->bindParam(":newPointOfInterestId", $paramNewPointOfInterestId, PDO::PARAM_INT);
+	 						$stmt2->bindParam(":oldPointOfInterestId", $paramOldPointOfInterestId, PDO::PARAM_INT);
+
+	 						$paramNewPointOfInterestId = $pointOfInterestId;
+	 						$paramOldPointOfInterestId = $poi["pointOfInterestId"];
+	 						
+	 						$stmt2->execute ();
+	 						
+	 						unset ($stmt2);
+	 					}
+	 				}
+ 				}
+ 				
+ 				unset ($stmt);
+ 			}
+ 		}
+ 	}
+}
 ?>
  
 <!DOCTYPE html>
@@ -42,7 +142,6 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
         </div>
     </nav>
     <div>
-	    <button type="button" onclick="calculate()">Calculate</button>
 	    <div class="container-fluid">
 	        <div class="col-md-4">
 				<div id="googleMap" style="width:100%;height:600px"></div>
@@ -135,7 +234,8 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 		}
 
 		myMap ();
-
+		calculate ();
+		
 	</script>
 </body>
 </html>
