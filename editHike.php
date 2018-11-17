@@ -106,21 +106,56 @@ if ($hikeId)
 		    </div>
 	    </div>
     </div>
-	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB16_kVJjm2plHSOkrxZDC4etbpp6vW8kU&callback=myMap"></script>
     <script>
     "use strict";
 
+    	var markers = [];
+    	var routeCoords = [];
+    	var map;
+    	
+    	function setPointsOfInterest()
+    	{
+        	if (map && markers.length > 0)
+        	{
+	        	for (let poi in markers)
+	        	{
+			    	var marker = new google.maps.Marker({position: markers[poi], map: map});
+	        	}
+        	}
+    	}
+
+    	function drawRoute ()
+    	{
+        	if (map && routeCoords.length > 0)
+        	{
+			    var route = new google.maps.Polyline({
+				    path: routeCoords,
+				    geodesic: true,
+				    strokeColor: '#FF0000',
+				    strokeOpacity: 1.0,
+				    strokeWeight: 2});
+	
+			    route.setMap(map);
+        	}
+    	}
+    	
     	function myMap()
     	{
+			console.log ("map response");
+        	
 	    	var mapProp =
 		    {
-	    	    center:new google.maps.LatLng(51.508742,-0.120850),
+	    	    center:new google.maps.LatLng(31.4971635304391,-108.210319317877),
 	    	    zoom:5,
 	    	    streetViewControl:false,
 	    	    fullscreenControl:false,
 	    	};
 	    	
-	    	var map=new google.maps.Map(document.getElementById("googleMap"), mapProp);
+	    	map = new google.maps.Map(document.getElementById("googleMap"), mapProp);
+
+		    drawRoute ();
+		    
+	    	setPointsOfInterest ();
     	} 
 	
 		function calculate ()
@@ -130,6 +165,8 @@ if ($hikeId)
 			{
 				if (this.readyState == 4 && this.status == 200)
 				{
+					console.log ("data response");
+					
   					let data = JSON.parse(this.responseText);
 
   					let txt = "";
@@ -143,7 +180,7 @@ if ($hikeId)
   	  	  					
   	  					txt += "<tr>"
   	  	  					+ "<td>" + day + "</td>"
-  	  	  					+ "<td>" + data[d].mile + "</td>"
+  	  	  					+ "<td>" + (parseFloat(data[d].mile) / 1609.34) + "</td>"
   	  	  					+ "<td>" + data[d].startTime + "</td>"
   	  	  					+ "<td>" + data[d].endTime + "</td>"
   	  	  					+ "<td>" + pounds + " lb " + ounces  + "oz</td>"
@@ -158,7 +195,7 @@ if ($hikeId)
 	  	  	  				{
 	  	  	  	  				txt += "<tr>"
 	  	  	  	  	  				+ "<td></td>"
-	  	  	  	  	  				+ "<td>" + data[d].events[e].mile + "</td>"
+	  	  	  	  	  				+ "<td>" + (parseFloat(data[d].events[e].mile) / 1609.34) + "</td>"
 	  	  	  	  	  				+ "<td>" + data[d].events[e].time + "</td>"
 	  	  	  	  	  				+ "<td>" + data[d].events[e].type + "</td>"
 	  	  	  	  	  				+ "<td></td>"
@@ -166,11 +203,18 @@ if ($hikeId)
 	  	  	  	  	  				+ "</tr>\n";
 	  	  	  				}
   	  	  				}
+
+  	  	  				markers.push({lat: parseFloat(data[d].lat), lng: parseFloat(data[d].lng)});
   	  	  				
   	  					day++;
   					}
 
 					document.getElementById ("schedule").innerHTML = txt;
+
+				    if (map)
+				    {
+				    	setPointsOfInterest ();
+				    }
  				}
 			}
 
@@ -179,9 +223,33 @@ if ($hikeId)
 			xmlhttp.send();
 		}
 
-		myMap ();
+		function retrieveRoute ()
+		{
+			var xmlhttp = new XMLHttpRequest ();
+			xmlhttp.onreadystatechange = function ()
+			{
+				if (this.readyState == 4 && this.status == 200)
+				{
+					routeCoords = JSON.parse(this.responseText);
+  					
+					if (map)
+					{
+						drawRoute ();
+					}
+				}
+			}
+			
+			xmlhttp.open("GET", "getRoute.php?id=0", true);
+			//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			xmlhttp.send();
+		}
+
+		retrieveRoute ();
 		calculate ();
 		
+	</script>
+	<script async defer
+	 src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB16_kVJjm2plHSOkrxZDC4etbpp6vW8kU&callback=myMap&libraries=geometry">
 	</script>
 </body>
 </html>
