@@ -66,6 +66,10 @@ if ($hikeId)
 	<script src="/bootstrap.min.js"></script>
     <style type="text/css">
         body{ font: 14px sans-serif; }
+		.grid-container {
+		  display: grid;
+		  grid-template-columns: auto auto;
+		}
     </style>
 </head>
 <body>
@@ -89,20 +93,20 @@ if ($hikeId)
     </nav>
     <div>
 	    <div class="container-fluid">
-	        <div class="col-md-4">
+	        <div class="col-md-8">
 				<div id="googleMap" style="width:100%;height:600px"></div>
 	        </div>
-	        <div class="col-md-8">
+	        <div class="col-md-4">
 	        	<nav>
 					<ul class="nav nav-tabs" role="tablist">
 						<li role="presentation" class="active"><a href="#">Itinerary</a></li>
 						<li role="presentation"><a href="#">Hiker Profiles</a></li>
+						<li role="presentation"><a href="#">Equipment</a></li>
+						<li role="presentation"><a href="#">Trail Conditions</a></li>
 					</ul>
 				</nav>
-			    <table class="table table-condensed">
-				    <thead><th>Day</th><th>Mile</th><th>Start Time</th><th>End Time</th><th>Food Weight</th><th>Notes</th></thead>
-				    <tbody id="schedule"></tbody>
-			    </table>
+			    <div id="schedule">
+			    </div>
 		    </div>
 	    </div>
     </div>
@@ -213,7 +217,12 @@ if ($hikeId)
 		    
 	    	setPointsOfInterest ();
     	} 
-	
+
+    	function meterToMiles (meters)
+    	{
+    		return Math.round(parseFloat(meters) / 1609.34 * 10) / 10;
+    	}
+    	
 		function calculate ()
 		{
 			var xmlhttp = new XMLHttpRequest ();
@@ -226,42 +235,47 @@ if ($hikeId)
   					let data = JSON.parse(this.responseText);
 
   					let txt = "";
-  					let day = 0;
+  					let day = 1;
   					
   					for (let d in data)
   					{
   	  					let ounces = data[d].accumWeight * 0.035274;
   	  					let pounds = Math.floor (ounces / 16.0);
   	  					ounces = Math.round(ounces % 16.0);
-  	  	  					
-  	  					txt += "<tr>"
-  	  	  					+ "<td>" + day + "</td>"
-  	  	  					+ "<td>" + Math.round(parseFloat(data[d].mile) / 1609.34 * 10) / 10 + "</td>"
-  	  	  					+ "<td>" + timeFormat(data[d].startTime) + "</td>"
-  	  	  					+ "<td>" + timeFormat(data[d].endTime) + "</td>"
-  	  	  					+ "<td>" + pounds + " lb " + ounces  + " oz</td>"
-  	  	  					+ "<td>" + data[d].notes  + "</td>"
-  	  	  					+ "</tr>\n";
 
+  	  					txt += "<div class='panel panel-default'>";
+	  	  				txt += "<div class='panel-heading'>";
+	  	  				txt += "<div class='grid-container'>";
+	  	  				txt += "<div class='row'>";
+	  	  				txt += "<div class='col'>" + "Day " + day + "</div>";
+	  	  				txt += "<div class='col'>" + "Food Weight: " + pounds + " lb " + ounces  + " oz" + "</div>";
+	  	  				txt += "</div>";
+	  	  				txt += "<div class='row'>";
+	  	  				txt += "<div class='col'>" + "Gain: " + "</div>";
+	  	  				txt += "<div class='col'>" + "Loss: " + "</div>";
+	  	  				txt += "</div>";
+	  	  				txt += "</div>";
+						txt += "</div>";
+							
+	  	  				txt += "<div>" + "Start: " + timeFormat(data[d].startTime) + ", " + "mile " + meterToMiles (data[d].mile) + "</div>";
+	  	  				
   	  	  				if (data[d].events.length > 0)
   	  	  				{
-  	  				    	txt += "<thead><th></th><th>Mile</th><th>Time</th><th>Type</th><th></th><th></th></thead>";
-	  	  	  				
 	   	  	  				for (let e in data[d].events)
 	  	  	  				{
-	  	  	  	  				txt += "<tr>"
-	  	  	  	  	  				+ "<td></td>"
-	  	  	  	  	  				+ "<td>" + Math.round(parseFloat(data[d].events[e].mile) / 1609.34 * 10) / 10 + "</td>"
-	  	  	  	  	  				+ "<td>" + timeFormat(data[d].events[e].time) + "</td>"
-	  	  	  	  	  				+ "<td>" + data[d].events[e].type + "</td>"
-	  	  	  	  	  				+ "<td></td>"
-	  	  	  	  	  				+ "<td>" + data[d].events[e].notes + "</td>"
-	  	  	  	  	  				+ "</tr>\n";
+	   		  	  				txt += "<div>" + data[d].events[e].type + ": " + timeFormat(data[d].events[e].time) + ", " + "mile " + meterToMiles (data[d].events[e].mile) + "</div>";
 
 	  	  	  	  	  			markers.push({lat: parseFloat(data[d].events[e].lat), lng: parseFloat(data[d].events[e].lng), label:"R"});
 	  	  	  				}
   	  	  				}
 
+  	  	  				if (d < data.length - 1)
+  	  	  				{
+  		  	  				txt += "<div>" + "Stop: " + timeFormat(data[d].endTime) + ", " + "mile " + meterToMiles (data[parseInt(d) + 1].mile) + "</div>";
+  	  	  				}
+
+  	  	  				txt += "</div>";
+  	  	  				
   	  	  				markers.push({lat: parseFloat(data[d].lat), lng: parseFloat(data[d].lng), label:"C", day:day});
   	  	  				
   	  					day++;
