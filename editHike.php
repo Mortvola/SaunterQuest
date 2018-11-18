@@ -133,6 +133,13 @@ if ($hikeId)
         	
         	return formattedTime;
     	}
+
+    	function attachMessage (marker, message)
+    	{
+	    	var infoWindow = new google.maps.InfoWindow({content: message});
+	    	
+		    marker.addListener ("click", function () {infoWindow.open(map, marker);});
+    	}
     	
     	function setPointsOfInterest()
     	{
@@ -141,6 +148,15 @@ if ($hikeId)
 	        	for (let poi in markers)
 	        	{
 			    	var marker = new google.maps.Marker({position: markers[poi], map: map, label:markers[poi].label});
+
+			    	if (markers[poi].label == "R")
+			    	{
+			    		attachMessage(marker, "Resupply");
+			    	}
+			    	else if (markers[poi].day)
+			    	{
+			    		attachMessage(marker, "Day " + markers[poi].day);
+			    	}
 	        	}
         	}
     	}
@@ -158,8 +174,8 @@ if ($hikeId)
 			}
 			
 			xmlhttp.open("POST", "addPOI.php", true);
-			xmlhttp.setRequestHeader("Content-type", "application/json");
-			xmlhttp.send(JSON.stringify(event.latLng.toJSON()));
+			xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			xmlhttp.send("location=" + JSON.stringify(event.latLng.toJSON()));
     	}
     	
     	function drawRoute ()
@@ -246,7 +262,7 @@ if ($hikeId)
 	  	  	  				}
   	  	  				}
 
-  	  	  				markers.push({lat: parseFloat(data[d].lat), lng: parseFloat(data[d].lng), label:"C"});
+  	  	  				markers.push({lat: parseFloat(data[d].lat), lng: parseFloat(data[d].lng), label:"C", day:day});
   	  	  				
   	  					day++;
   					}
