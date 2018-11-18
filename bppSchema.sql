@@ -112,6 +112,8 @@ create table pointOfInterest (
 	modificationDate DATETIME NOT NULL,
 	hikeId INT NOT NULL,
 	mile DECIMAL(5,1) NOT NULL,	-- this may be temporary until we determine whether or not to use GPS coordinates
+	lat DECIMAL(17,14) NOT NULL,
+	lng DECIMAL(17,14) NOT NULL,
 	name VARCHAR (255),
 	description VARCHAR (255));
 

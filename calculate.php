@@ -8,12 +8,15 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 {
 	// Include config file
 	require_once "config.php";
+	require_once "coordinates.php";
 	
 	class Event
 	{
-		function __construct ($type, $mile, $time, $notes)
+		function __construct ($type, $lat, $lng, $mile, $time, $notes)
 		{
 			$this->type = $type;
+			$this->lat = $lat;
+			$this->lng = $lng;
 			$this->mile = $mile;
 			$this->time = $time;
 			$this->notes = $notes;
@@ -21,6 +24,8 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 		
 		public $type;
 		public $mile;
+		public $lat;
+		public $lng;
 		public $time;
 		public $notes;
 	}
@@ -234,12 +239,61 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 		
 		return $day[$d];
 	}
+
+	function pointsOfInterestGet ()
+	{
+		global $pdo, $segments;
+		
+		$sql = "select poi.lat, poi.lng, poic.type, poic.time
+				from pointOfInterest poi
+				join pointOfInterestConstraint poic on poic.pointOfInterestId = poi.pointOfInterestId
+				join userHike uh on uh.hikeId = poi.hikeId and uh.userId = :userId and uh.userHikeId = :userHikeId
+				order by poi.lat, poi.lng asc";
+		
+		if ($stmt = $pdo->prepare($sql))
+		{
+			$stmt->bindParam(":userId", $paramUserId, PDO::PARAM_INT);
+			$stmt->bindParam(":userHikeId", $paramUserHikeId, PDO::PARAM_INT);
+			
+			$paramUserId = $_SESSION["userId"];
+			$paramUserHikeId = $_GET["id"];
+			
+			$stmt->execute ();
+			
+			$output = $stmt->fetchAll (PDO::FETCH_ASSOC);
+
+			$s = -1;
+
+			foreach ($output as $poi)
+			{
+				//var_dump ($poi);
+				
+				if ($s == -1 || ($segments[$s]->lat != $poi["lat"] && $segments[$s]->lng != $poi["lng"]))
+				{
+					$s = nearestSegmentFind ($poi["lat"], $poi["lng"], $segments);
+				}
+
+				if ($s != -1)
+				{
+//					echo "Found segment $s\n";
+					$segments[$s]->events[] = (object)[type => $poi["type"], lat => $poi["lat"], lng => $poi["lng"], time => $poi["time"], enabled => true];
+				}
+			}
+
+			//var_dump ($segments);
+			
+			unset($stmt);
+		}
+	}
 	
 	$segments = [];
 	
 // 	$noCamping = array(
 // 					array (18.1, 28.9));
 	
+	
+	$segments = json_decode(file_get_contents("CDT.json"));
+		
 	try
 	{
 		$sql = "select coalesce(milesPerHour, 1.0) AS milesPerHour,
@@ -290,43 +344,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 			unset($stmt);
 		}
 		
-		$sql = "select poi.mile, poic.type, poic.time
-				from pointOfInterest poi
-				join pointOfInterestConstraint poic on poic.pointOfInterestId = poi.pointOfInterestId
-				join userHike uh on uh.hikeId = poi.hikeId and uh.userId = :userId and uh.userHikeId = :userHikeId
-				order by mile asc";
-				
-		if ($stmt = $pdo->prepare($sql))
-		{
-			$stmt->bindParam(":userId", $paramUserId, PDO::PARAM_INT);
-			$stmt->bindParam(":userHikeId", $paramUserHikeId, PDO::PARAM_INT);
-			
-			$paramUserId = $_SESSION["userId"];
-			$paramUserHikeId = $_GET["id"];
-			
-			$stmt->execute ();
-			
-			$output = $stmt->fetchAll (PDO::FETCH_ASSOC);
-			
-			$k = -1;
-			
-			foreach ($output as $poi)
-			{
-				//var_dump ($poi);
-				
-				if ($k == -1 || $segments[$k]->dist != $poi["mile"])
-				{
-					$k++;
-					$segments[$k] = (object)[dist => $poi["mile"]];
-				}
-			
-				$segments[$k]->events[] = (object)[type => $poi["type"], time => $poi["time"], enabled => true];
-			}
-			
-			//var_dump ($segments);
-			
-			unset($stmt);
-		}
+		pointsOfInterestGet ();
 	}
 	catch(PDOException $e)
 	{
@@ -343,8 +361,6 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	$dayHours = 0;
 	
 	$day = [];
-	
-	$segments = json_decode(file_get_contents("CDT.json"));
 	
 	DayGet ($d)->dayInitialize ($d, $segments[0]->lat, $segments[0]->lng, $dayMiles, $dayHours, 0, 0);
 	
@@ -396,7 +412,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 		$hoursPerDay = ((DayGet ($d)->endTime - DayGet ($d)->startTime) - $hikerProfile["midDayBreakDuration"]);
 	 		$hoursPerDay -= $lingerHours;
 	 		$lingerHours = 0;
-	 		$dayMilesRemaining = $hoursPerDay * $hikerProfile["milesPerHour"] * 1609.34 - $dayMiles;
+	 		$dayMilesRemaining = $hoursPerDay * ($hikerProfile["milesPerHour"] * 1609.34) - $dayMiles;
 	 		
 	 		//echo "Day $d, hours per day: $hoursPerDay\n";
 //  	 		echo "mile: $mile\n";
@@ -412,133 +428,139 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 			
 	 			$deltaMiles = $segments[$k + 1]->dist - $segmentMiles;
 	 			$dayMiles += $deltaMiles;
-	 			$hoursHiked = $deltaMiles / $hikerProfile["milesPerHour"] * 1609.34;
+	 			$hoursHiked = $deltaMiles / ($hikerProfile["milesPerHour"] * 1609.34);
 	 			$dayHours += $hoursHiked;
 	 			$currentTime = DayGet ($d)->startTime + $dayHours;
 	 			$segmentMiles += $deltaMiles;
 	 			
-	 			$event = findEvent("arriveBefore", $segments[$k + 1]->events);
-	 			
-	 			if ($event)
+	 			if (count($segments[$k + 1]->events) > 0)
 	 			{
-	 				$arriveBeforeTime = $event->time;
+// 	 				echo "events available at segment ", $k + 1, "\n";
+// 	 				var_dump($segments[$k + 1]->events);
 	 				
-	 				if ($event->enabled)
-	 				{
-		 				//echo "arrival restriction on day $d, currentTime = $currentTime, requiredTime = $arriveBeforeTime\n";
+		 			$event = findEvent("arriveBefore", $segments[$k + 1]->events);
+		 			
+		 			if ($event)
+		 			{
+		 				$arriveBeforeTime = $event->time;
 		 				
-		 				if ($currentTime > $arriveBeforeTime)
+		 				if ($event->enabled)
 		 				{
-		 					$hoursNeeded = $currentTime - $arriveBeforeTime;
-		 					
-		 					// extend the end time of each prior day an hour until the needed time is found and recompute mileage.
-		 					// todo: this needs to be a preference. The algorithm could add an hour to each
-		 					// prior day until the extra time needed is found or it could evenly divide the needed time
-		 					// across all days since the start, or a mix of the two.
-		 					
-	 	 					$startDay1 = StrategyEndLater (1, $day, $d - 1, $hoursNeeded);
-	 	 					
-	 	 					if ($startDay1 == -1)
-	 	 					{
-	 	 						$startDay1 = $d;
-	 	 					}
-	 	 					
-	 	 					if ($hoursNeeded > 0)
-	 	 					{
-	 	 						$startDay2 = StrategyStartEarlier (1, $day, $d, $hoursNeeded);
-	 	 						
-	 	 						if ($startDay2 == -1)
-	 	 						{
-	 	 							$startDay2 = $d;
-	 	 						}
-	 	 						
-	 	 						$startDay1 = min($startDay1, $startDay2);
-	 	 					}
-	
-	 	 					if ($hoursNeeded > 0)
-	 	 					{
-	 	 						$event->enabled = false;
-	 	 					}
-	 	 					
-	 	 					$d = $startDay1;
-	 	 					
-	 	 					$k = DayGet ($d)->segment - 1; // decrease by one since the for loop will increase it by one
-		 					//echo "segment miles: $segmentMiles\n";
-		 					$restart = true;
-		 					
-		 					break;
+			 				//echo "arrival restriction on day $d, currentTime = $currentTime, requiredTime = $arriveBeforeTime\n";
+			 				
+			 				if ($currentTime > $arriveBeforeTime)
+			 				{
+			 					$hoursNeeded = $currentTime - $arriveBeforeTime;
+			 					
+			 					// extend the end time of each prior day an hour until the needed time is found and recompute mileage.
+			 					// todo: this needs to be a preference. The algorithm could add an hour to each
+			 					// prior day until the extra time needed is found or it could evenly divide the needed time
+			 					// across all days since the start, or a mix of the two.
+			 					
+		 	 					$startDay1 = StrategyEndLater (1, $day, $d - 1, $hoursNeeded);
+		 	 					
+		 	 					if ($startDay1 == -1)
+		 	 					{
+		 	 						$startDay1 = $d;
+		 	 					}
+		 	 					
+		 	 					if ($hoursNeeded > 0)
+		 	 					{
+		 	 						$startDay2 = StrategyStartEarlier (1, $day, $d, $hoursNeeded);
+		 	 						
+		 	 						if ($startDay2 == -1)
+		 	 						{
+		 	 							$startDay2 = $d;
+		 	 						}
+		 	 						
+		 	 						$startDay1 = min($startDay1, $startDay2);
+		 	 					}
+		
+		 	 					if ($hoursNeeded > 0)
+		 	 					{
+		 	 						$event->enabled = false;
+		 	 					}
+		 	 					
+		 	 					$d = $startDay1;
+		 	 					
+		 	 					$k = DayGet ($d)->segment - 1; // decrease by one since the for loop will increase it by one
+			 					//echo "segment miles: $segmentMiles\n";
+			 					$restart = true;
+			 					
+			 					break;
+			 				}
 		 				}
-	 				}
-	 				
-	 				DayGet ($d)->events[] = new Event("arriveBefore", $segmentMiles, $currentTime, "Arrive Before: " . $arriveBeforeTime . ", arrived at " . $currentTime . ";");
-	 			}
-	 			
-	 			$event = findEvent("resupply", $segments[$k + 1]->events);
-	 			
-	 			if ($k == count($segments) - 2 || $event)
-	 			{
-	 				computeFoodWeight ($day, $d, $foodStart);
-	 				
-	 				if ($event)
-	 				{
-	 					DayGet ($d)->events[] = new Event("resupply", $segmentMiles, $currentTime, "");
-	 				}
-	 			}
-	 			
-	 			$event = findEvent("stop", $segments[$k + 1]->events);
-	 			
-	 			if ($event && $event->enabled)
-	 			{
-	 				// todo: error out if a mustStop is in a noCamping area?
-	 				
-	 				DayGet ($d)->events[] = new Event("stop", $segmentMiles, $currentTime, "");
-	 				
-	 				if ($k < count($segments) - 2)
-	 				{
-	 					$d++;
-	 					DayGet ($d)->dayInitialize ($d, $segments[$k + 1]->lat, $segments[$k + 1]->lng, $dayMiles, $dayHours, $k + 1, $segmentMiles);
-	 					DayGet ($d)->cantMoveStartMiles = true;
-	 				}
-	 			}
-	 				
-	 			$event = findEvent("linger", $segments[$k + 1]->events);
-	 			
-	 			if ($event && $event->enabled)
-	 			{
-	 				// todo: determine what it means to linger when already stopped.
-	 				
-	 				$lingerHours = $event->time;
-	 				
-	 				$remainingHours = ($hoursPerDay - $hoursHiked) - $lingerHours;
-	 				
-//  	 				echo "linger: hours hiked: $hoursHiked\n";
-//  	 				echo "linger: delta miles: $deltaMiles\n";
-//  	 				echo "linger: miles: $mile\n";
-//  	 				echo "linger: segment miles: $segmentMiles\n";
-//  	 				echo "linger: next segment miles: ", $segments[$k + 1]->dist, "\n";
-//  	 				echo "linger: remaining hours: $remainingHours\n";
-	 				
-	 				if ($remainingHours > 0)
-	 				{
-	 					DayGet ($d)->events[] = new Event("linger", $segmentMiles, $currentTime, "linger for " . $lingerHours . " hour(s);");
-	 				}
-	 				else
-	 				{
-	 					DayGet ($d)->events[] = new Event("linger", $segmentMiles, $currentTime, "linger for " . round ($lingerHours + $remainingHours, 1) . " hour(s);");
-	 					
-	 					if ($k < count($segments) - 2)
-	 					{
-	 						$d++;
-	 						DayGet ($d)->dayInitialize ($d, $segments[$k + 1]->lat, $segments[$k + 1]->lng, $dayMiles, $dayHours, $k + 1, $segmentMiles);
-	 						
-		 					$lingerHours =  -$remainingHours;
+		 				
+		 				DayGet ($d)->events[] = new Event("arriveBefore", $event->lat, $event->lng, $segmentMiles, $currentTime, "Arrive Before: " . $arriveBeforeTime . ", arrived at " . $currentTime . ";");
+		 			}
+		 			
+		 			$event = findEvent("resupply", $segments[$k + 1]->events);
+
+		 			if ($k == count($segments) - 2 || $event)
+		 			{
+		 				computeFoodWeight ($day, $d, $foodStart);
+		 				
+		 				if ($event)
+		 				{
+		 					DayGet ($d)->events[] = new Event("resupply", $event->lat, $event->lng, $segmentMiles, $currentTime, "");
+		 				}
+		 			}
+		 			
+		 			$event = findEvent("stop", $segments[$k + 1]->events);
+		 			
+		 			if ($event && $event->enabled)
+		 			{
+		 				// todo: error out if a mustStop is in a noCamping area?
+		 				
+		 				DayGet ($d)->events[] = new Event("stop", $event->lat, $event->lng, $segmentMiles, $currentTime, "");
+		 				
+		 				if ($k < count($segments) - 2)
+		 				{
+		 					$d++;
+		 					DayGet ($d)->dayInitialize ($d, $segments[$k + 1]->lat, $segments[$k + 1]->lng, $dayMiles, $dayHours, $k + 1, $segmentMiles);
+		 					DayGet ($d)->cantMoveStartMiles = true;
+		 				}
+		 			}
+		 				
+		 			$event = findEvent("linger", $segments[$k + 1]->events);
+		 			
+		 			if ($event && $event->enabled)
+		 			{
+		 				// todo: determine what it means to linger when already stopped.
+		 				
+		 				$lingerHours = $event->time;
+		 				
+		 				$remainingHours = ($hoursPerDay - $hoursHiked) - $lingerHours;
+		 				
+	//  	 				echo "linger: hours hiked: $hoursHiked\n";
+	//  	 				echo "linger: delta miles: $deltaMiles\n";
+	//  	 				echo "linger: miles: $mile\n";
+	//  	 				echo "linger: segment miles: $segmentMiles\n";
+	//  	 				echo "linger: next segment miles: ", $segments[$k + 1]->dist, "\n";
+	//  	 				echo "linger: remaining hours: $remainingHours\n";
+		 				
+		 				if ($remainingHours > 0)
+		 				{
+		 					DayGet ($d)->events[] = new Event("linger", $event->lat, $event->lng, $segmentMiles, $currentTime, "linger for " . $lingerHours . " hour(s);");
+		 				}
+		 				else
+		 				{
+		 					DayGet ($d)->events[] = new Event("linger", $event->lat, $event->lng, $segmentMiles, $currentTime, "linger for " . round ($lingerHours + $remainingHours, 1) . " hour(s);");
 		 					
-		 					if ($lingerHours)
+		 					if ($k < count($segments) - 2)
 		 					{
-		 						DayGet ($d)->events[] = new Event("linger", $segmentMiles, $currentTime, "linger for " . round($lingerHours, 1) . " hour(s);");
+		 						$d++;
+		 						DayGet ($d)->dayInitialize ($d, $segments[$k + 1]->lat, $segments[$k + 1]->lng, $dayMiles, $dayHours, $k + 1, $segmentMiles);
+		 						
+			 					$lingerHours =  -$remainingHours;
+			 					
+			 					if ($lingerHours)
+			 					{
+			 						DayGet ($d)->events[] = new Event("linger", $event->lat, $event->lng, $segmentMiles, $currentTime, "linger for " . round($lingerHours, 1) . " hour(s);");
+			 					}
 		 					}
-	 					}
-	 				}
+		 				}
+		 			}
 	 			}
 	 		
 	 			break;
@@ -558,7 +580,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	 					// We are in a no camping area... need to move.
 	 					//
 	 					$remainingMiles = $noCamping[$i][1] - ($segmentMiles + $dayMilesRemaining);
-	 					$hoursNeeded = $remainingMiles / $hikerProfile["milesPerHour"] * 1609.34;
+	 					$hoursNeeded = $remainingMiles / ($hikerProfile["milesPerHour"] * 1609.34);
 	 					
 	 					//echo "needed hours: $hoursNeeded\n";
 
@@ -640,6 +662,8 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 			break;
 		}
 	}
+	
+	computeFoodWeight ($day, $d, $foodStart);
 	
 	echo json_encode($day);
 }

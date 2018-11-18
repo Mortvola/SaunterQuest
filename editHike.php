@@ -112,6 +112,27 @@ if ($hikeId)
     	var markers = [];
     	var routeCoords = [];
     	var map;
+
+    	function timeFormat (t)
+    	{
+        	let h = Math.floor(t);
+        	let m = Math.floor(((t * 60) % 60));
+
+        	let formattedTime = "";
+        	
+        	formattedTime += h;
+
+        	if (m < 10)
+        	{
+            	formattedTime += ":0" + m;
+        	}
+        	else
+        	{
+            	formattedTime += ":" + m;
+        	}
+        	
+        	return formattedTime;
+    	}
     	
     	function setPointsOfInterest()
     	{
@@ -119,11 +140,28 @@ if ($hikeId)
         	{
 	        	for (let poi in markers)
 	        	{
-			    	var marker = new google.maps.Marker({position: markers[poi], map: map});
+			    	var marker = new google.maps.Marker({position: markers[poi], map: map, label:markers[poi].label});
 	        	}
         	}
     	}
 
+    	function routeClicked (event)
+    	{
+			console.log ("routeClicked edge: ", event.edge, " path: ", event.path, " vertex: ", event.vertex, " latLng: ", event.latLng.toString());
+
+			var xmlhttp = new XMLHttpRequest ();
+			xmlhttp.onreadystatechange = function ()
+			{
+				if (this.readyState == 4 && this.status == 200)
+				{
+				}
+			}
+			
+			xmlhttp.open("POST", "addPOI.php", true);
+			xmlhttp.setRequestHeader("Content-type", "application/json");
+			xmlhttp.send(JSON.stringify(event.latLng.toJSON()));
+    	}
+    	
     	function drawRoute ()
     	{
         	if (map && routeCoords.length > 0)
@@ -133,9 +171,11 @@ if ($hikeId)
 				    geodesic: true,
 				    strokeColor: '#FF0000',
 				    strokeOpacity: 1.0,
-				    strokeWeight: 2});
+				    strokeWeight: 4});
 	
 			    route.setMap(map);
+
+			    route.addListener ("click", routeClicked);
         	}
     	}
     	
@@ -180,10 +220,10 @@ if ($hikeId)
   	  	  					
   	  					txt += "<tr>"
   	  	  					+ "<td>" + day + "</td>"
-  	  	  					+ "<td>" + (parseFloat(data[d].mile) / 1609.34) + "</td>"
-  	  	  					+ "<td>" + data[d].startTime + "</td>"
-  	  	  					+ "<td>" + data[d].endTime + "</td>"
-  	  	  					+ "<td>" + pounds + " lb " + ounces  + "oz</td>"
+  	  	  					+ "<td>" + Math.round(parseFloat(data[d].mile) / 1609.34 * 10) / 10 + "</td>"
+  	  	  					+ "<td>" + timeFormat(data[d].startTime) + "</td>"
+  	  	  					+ "<td>" + timeFormat(data[d].endTime) + "</td>"
+  	  	  					+ "<td>" + pounds + " lb " + ounces  + " oz</td>"
   	  	  					+ "<td>" + data[d].notes  + "</td>"
   	  	  					+ "</tr>\n";
 
@@ -195,16 +235,18 @@ if ($hikeId)
 	  	  	  				{
 	  	  	  	  				txt += "<tr>"
 	  	  	  	  	  				+ "<td></td>"
-	  	  	  	  	  				+ "<td>" + (parseFloat(data[d].events[e].mile) / 1609.34) + "</td>"
-	  	  	  	  	  				+ "<td>" + data[d].events[e].time + "</td>"
+	  	  	  	  	  				+ "<td>" + Math.round(parseFloat(data[d].events[e].mile) / 1609.34 * 10) / 10 + "</td>"
+	  	  	  	  	  				+ "<td>" + timeFormat(data[d].events[e].time) + "</td>"
 	  	  	  	  	  				+ "<td>" + data[d].events[e].type + "</td>"
 	  	  	  	  	  				+ "<td></td>"
 	  	  	  	  	  				+ "<td>" + data[d].events[e].notes + "</td>"
 	  	  	  	  	  				+ "</tr>\n";
+
+	  	  	  	  	  			markers.push({lat: parseFloat(data[d].events[e].lat), lng: parseFloat(data[d].events[e].lng), label:"R"});
 	  	  	  				}
   	  	  				}
 
-  	  	  				markers.push({lat: parseFloat(data[d].lat), lng: parseFloat(data[d].lng)});
+  	  	  				markers.push({lat: parseFloat(data[d].lat), lng: parseFloat(data[d].lng), label:"C"});
   	  	  				
   	  					day++;
   					}
