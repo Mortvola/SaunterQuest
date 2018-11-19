@@ -66,10 +66,30 @@ if ($hikeId)
 	<script src="/bootstrap.min.js"></script>
     <style type="text/css">
         body{ font: 14px sans-serif; }
-		.grid-container {
+		.grid-container
+		{
 		  display: grid;
 		  grid-template-columns: auto auto;
 		}
+	    .context-menu
+	    {
+	        position: absolute;
+	        background: white;
+	        padding: 3px;
+	        color: #666;
+	        font-weight: bold;
+	        border: 1px solid #999;
+	        font-family: sans-serif;
+	        font-size: 12px;
+	        box-shadow: 1px 3px 3px rgba(0, 0, 0, .3);
+	        margin-top: -10px;
+	        margin-left: 10px;
+	        cursor: pointer;
+	    }
+	    .context-menu:hover
+	    {
+	        background: #eee;
+	    }
     </style>
 </head>
 <body>
@@ -116,7 +136,7 @@ if ($hikeId)
     	var markers = [];
     	var routeCoords = [];
     	var map;
-
+    	
     	function timeFormat (t)
     	{
         	let h = Math.floor(t);
@@ -165,10 +185,8 @@ if ($hikeId)
         	}
     	}
 
-    	function routeClicked (event)
+    	function addResupply (position)
     	{
-			console.log ("routeClicked edge: ", event.edge, " path: ", event.path, " vertex: ", event.vertex, " latLng: ", event.latLng.toString());
-
 			var xmlhttp = new XMLHttpRequest ();
 			xmlhttp.onreadystatechange = function ()
 			{
@@ -179,7 +197,87 @@ if ($hikeId)
 			
 			xmlhttp.open("POST", "addPOI.php", true);
 			xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-			xmlhttp.send("location=" + JSON.stringify(event.latLng.toJSON()));
+			xmlhttp.send("location=" + JSON.stringify(position.toJSON()));
+    	}
+
+    	function initializeContextMenu ()
+    	{
+	    	ContextMenu.prototype = new google.maps.OverlayView ();
+
+	    	ContextMenu.prototype.open = function (map, event)
+	    	{
+	    		this.set('position', event.latLng);
+	    		
+	    		this.setMap(map);
+	        	this.draw ();
+	    	};
+
+	    	ContextMenu.prototype.draw = function()
+	    	{
+	            var position = this.get('position');
+	            var projection = this.getProjection();
+
+	            if (position && projection)
+		        {
+		            var point = projection.fromLatLngToDivPixel(position);
+		            this.div_.style.top = point.y + 'px';
+		            this.div_.style.left = point.x + 'px';
+		        }
+	        };
+
+	    	ContextMenu.prototype.onAdd = function ()
+	    	{
+				var contextMenu = this;
+				var map = this.getMap ();
+				
+				this.getPanes().floatPane.appendChild(this.div_);
+				
+		        // mousedown anywhere on the map except on the menu div will close the
+		        // menu.
+		        this.divListener_ = google.maps.event.addDomListener(map.getDiv(), 'mousedown', function(event)
+				{
+		        	if (event.target != contextMenu.div_)
+			      	{
+		          		contextMenu.close();
+		          	}
+		        }, true);
+		    };
+			    	
+	    	ContextMenu.prototype.onRemove = function ()
+	    	{
+				google.maps.event.removeListener(this.divListener_);
+				this.div_.parentNode.removeChild(this.div_);
+				
+				// clean up
+				this.set('position');
+	    	};
+
+	    	ContextMenu.prototype.close = function ()
+	    	{
+		    	this.setMap(null);
+	    	};
+
+	    	ContextMenu.prototype.addResupply = function ()
+	    	{
+	            var position = this.get('position');
+
+	            addResupply(position);
+
+	            this.close ();
+	    	};
+    	}
+
+    	function ContextMenu ()
+    	{
+        	this.div_ = document.createElement ('div');
+            this.div_.className = 'context-menu';
+        	this.div_.innerHTML = 'Add Resupply';
+        	
+            var menu = this;
+            google.maps.event.addDomListener(this.div_, 'click', function()
+            {
+            	menu.addResupply ();
+            });
     	}
     	
     	function drawRoute ()
@@ -194,15 +292,17 @@ if ($hikeId)
 				    strokeWeight: 4});
 	
 			    route.setMap(map);
-
-			    route.addListener ("click", routeClicked);
+				    	
+		    	initializeContextMenu ();
+		    	
+			    var contextMenu = new ContextMenu ();
+			    
+			    route.addListener ("rightclick", function (event) {contextMenu.open (map, event); });
         	}
     	}
-    	
+
     	function myMap()
     	{
-			console.log ("map response");
-        	
 	    	var mapProp =
 		    {
 	    	    center:new google.maps.LatLng(31.4971635304391,-108.210319317877),
@@ -230,8 +330,6 @@ if ($hikeId)
 			{
 				if (this.readyState == 4 && this.status == 200)
 				{
-					console.log ("data response");
-					
   					let data = JSON.parse(this.responseText);
 
   					let txt = "";
@@ -318,7 +416,7 @@ if ($hikeId)
 
 		retrieveRoute ();
 		calculate ();
-		
+
 	</script>
 	<script async defer
 	 src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB16_kVJjm2plHSOkrxZDC4etbpp6vW8kU&callback=myMap&libraries=geometry">
