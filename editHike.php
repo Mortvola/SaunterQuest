@@ -93,31 +93,13 @@ if ($hikeId)
 	</style>
 </head>
 <body>
-	<div class="page-header" style=" text-align: center;">
-		<h1>Backpacker's Planner</h1>
-	</div>
-	<p  style="text-align: center;">
-		<a href="reset-password.php" class="btn btn-warning">Reset Your Password</a>
-		<a href="logout.php" class="btn btn-danger">Sign Out of Your Account</a>
-	</p>
-	<nav class="navbar navbar-default">
-		<div class="container-fluid">
-			<ul class="nav navbar-nav">
-				<li class="nav-item active"><a class="nav-link">Home</a></li>
-				<li class="nav-item"><a class="nav-link" href="#">Daily View</a></li>
-				<li class="nav-item"><a class="nav-link" href="#">Segment View</a></li>
-				<li class="nav-item"><a class="nav-link" href="/CreateFoodItem.php">Create Food Item</a></li>
-				<li class="nav-item"><a class="nav-link" href="/DayTemplates.php">Daily Meal Plans</a></li>
-			</ul>
+	<div class="container-fluid" style="position:absolute;top:0;left:0;bottom:0;right:0;padding:0">
+		<div class="col-md-8" style="padding:0;height:100%">
+			<div id="googleMap" style="width:100%;height:100%"></div>
 		</div>
-	</nav>
-	<div>
-		<div class="container-fluid">
-			<div class="col-md-8">
-				<div id="googleMap" style="width:100%;height:600px"></div>
-			</div>
-			<div class="col-md-4">
-			<nav>
+		<div class="col-md-4" style="height:100%;padding:0px 5px 0px 5px">
+			<div style="display:grid;height:100%">
+				<nav>
 					<ul class="nav nav-tabs" role="tablist">
 						<li role="presentation" class="active"><a href="#">Itinerary</a></li>
 						<li role="presentation"><a href="#">Hiker Profiles</a></li>
@@ -125,7 +107,7 @@ if ($hikeId)
 						<li role="presentation"><a href="#">Trail Conditions</a></li>
 					</ul>
 				</nav>
-				<div id="schedule">
+				<div id="schedule" style="overflow:scroll;width:100%;height:100%;">
 				</div>
 			</div>
 		</div>
