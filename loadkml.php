@@ -29,7 +29,7 @@ foreach ($coords as $coord)
 	{
 		$d = haversineGreatCircleDistance ($lat1, $lng1, $lat2, $lng2);
 		
-		$totalDist += $d * 1.1298120976;
+		$totalDist += $d * 1.128547862;
 	}
 
 	array_push($points, (object)["lat" => floatval($lat2), "lng" => floatval($lng2), "ele" => floatval($ele2), "dist" => $totalDist]);

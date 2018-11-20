@@ -1,7 +1,7 @@
 <?php
 
 function haversineGreatCircleDistance(
-		$latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo, $earthRadius = 6371000)
+		$latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo, $earthRadius = 6378137)
 {
 	// convert from degrees to radians
 	$latFrom = deg2rad($latitudeFrom);
