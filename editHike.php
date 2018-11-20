@@ -133,195 +133,195 @@ if ($hikeId)
 	<script>
 	"use strict";
 
-	var markers = [];
-	var routeCoords = [];
-	var map;
+		var markers = [];
+		var routeCoords = [];
+		var map;
+		
+		function timeFormat (t)
+		{
+			let h = Math.floor(t);
+			let m = Math.floor(((t * 60) % 60));
 	
-	function timeFormat (t)
-	{
-		let h = Math.floor(t);
-		let m = Math.floor(((t * 60) % 60));
-
-		let formattedTime = "";
-		
-		formattedTime += h;
-
-		if (m < 10)
-		{
-			formattedTime += ":0" + m;
-		}
-		else
-		{
-			formattedTime += ":" + m;
-		}
-		
-		return formattedTime;
-	}
-
-	function attachMessage (marker, message)
-	{
-		var infoWindow = new google.maps.InfoWindow({content: message});
-		
-			marker.addListener ("click", function () {infoWindow.open(map, marker);});
-	}
+			let formattedTime = "";
+			
+			formattedTime += h;
 	
-	function setPointsOfInterest()
-	{
-		if (map && markers.length > 0)
-		{
-			for (let poi in markers)
+			if (m < 10)
 			{
-				var marker = new google.maps.Marker({position: markers[poi], map: map, label:markers[poi].label});
-
-				if (markers[poi].label == "R")
+				formattedTime += ":0" + m;
+			}
+			else
+			{
+				formattedTime += ":" + m;
+			}
+			
+			return formattedTime;
+		}
+	
+		function attachMessage (marker, message)
+		{
+			var infoWindow = new google.maps.InfoWindow({content: message});
+			
+				marker.addListener ("click", function () {infoWindow.open(map, marker);});
+		}
+		
+		function setPointsOfInterest()
+		{
+			if (map && markers.length > 0)
+			{
+				for (let poi in markers)
 				{
-					attachMessage(marker, "Resupply");
-				}
-				else if (markers[poi].day)
-				{
-					attachMessage(marker, "Day " + markers[poi].day);
+					var marker = new google.maps.Marker({position: markers[poi], map: map, label:markers[poi].label});
+	
+					if (markers[poi].label == "R")
+					{
+						attachMessage(marker, "Resupply");
+					}
+					else if (markers[poi].day)
+					{
+						attachMessage(marker, "Day " + markers[poi].day);
+					}
 				}
 			}
 		}
-	}
-
-	function addResupply (position)
-	{
-			var xmlhttp = new XMLHttpRequest ();
-			xmlhttp.onreadystatechange = function ()
-			{
-				if (this.readyState == 4 && this.status == 200)
-				{
-				}
-			}
-			
-			xmlhttp.open("POST", "addPOI.php", true);
-			xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-			xmlhttp.send("location=" + JSON.stringify(position.toJSON()));
-	}
-
-	function initializeContextMenu ()
-	{
-		ContextMenu.prototype = new google.maps.OverlayView ();
-
-		ContextMenu.prototype.open = function (map, event)
-		{
-			this.set('position', event.latLng);
-			
-			this.setMap(map);
-			this.draw ();
-		};
-
-		ContextMenu.prototype.draw = function()
-		{
-				var position = this.get('position');
-				var projection = this.getProjection();
-
-				if (position && projection)
-				{
-					var point = projection.fromLatLngToDivPixel(position);
-					this.div_.style.top = point.y + 'px';
-					this.div_.style.left = point.x + 'px';
-				}
-			};
-
-		ContextMenu.prototype.onAdd = function ()
-		{
-				var contextMenu = this;
-				var map = this.getMap ();
-				
-				this.getPanes().floatPane.appendChild(this.div_);
-				
-				// mousedown anywhere on the map except on the menu div will close the
-				// menu.
-				this.divListener_ = google.maps.event.addDomListener(map.getDiv(), 'mousedown', function(event)
-				{
-				if (event.target != contextMenu.div_)
-				{
-					contextMenu.close();
-				}
-				}, true);
-			};
-				
-		ContextMenu.prototype.onRemove = function ()
-		{
-				google.maps.event.removeListener(this.divListener_);
-				this.div_.parentNode.removeChild(this.div_);
-				
-				// clean up
-				this.set('position');
-		};
-
-		ContextMenu.prototype.close = function ()
-		{
-			this.setMap(null);
-		};
-
-		ContextMenu.prototype.addResupply = function ()
-		{
-				var position = this.get('position');
-
-				addResupply(position);
-
-				this.close ();
-		};
-	}
-
-	function ContextMenu ()
-	{
-		this.div_ = document.createElement ('div');
-			this.div_.className = 'context-menu';
-		this.div_.innerHTML = 'Add Resupply';
-		
-			var menu = this;
-			google.maps.event.addDomListener(this.div_, 'click', function()
-			{
-			menu.addResupply ();
-			});
-	}
 	
-	function drawRoute ()
-	{
-		if (map && routeCoords.length > 0)
+		function addResupply (position)
 		{
-				var route = new google.maps.Polyline({
-					path: routeCoords,
-					geodesic: true,
-					strokeColor: '#FF0000',
-					strokeOpacity: 1.0,
-					strokeWeight: 4});
+				var xmlhttp = new XMLHttpRequest ();
+				xmlhttp.onreadystatechange = function ()
+				{
+					if (this.readyState == 4 && this.status == 200)
+					{
+					}
+				}
+				
+				xmlhttp.open("POST", "addPOI.php", true);
+				xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+				xmlhttp.send("location=" + JSON.stringify(position.toJSON()));
+		}
 	
-				route.setMap(map);
+		function initializeContextMenu ()
+		{
+			ContextMenu.prototype = new google.maps.OverlayView ();
+	
+			ContextMenu.prototype.open = function (map, event)
+			{
+				this.set('position', event.latLng);
+				
+				this.setMap(map);
+				this.draw ();
+			};
+	
+			ContextMenu.prototype.draw = function()
+			{
+					var position = this.get('position');
+					var projection = this.getProjection();
+	
+					if (position && projection)
+					{
+						var point = projection.fromLatLngToDivPixel(position);
+						this.div_.style.top = point.y + 'px';
+						this.div_.style.left = point.x + 'px';
+					}
+				};
+	
+			ContextMenu.prototype.onAdd = function ()
+			{
+					var contextMenu = this;
+					var map = this.getMap ();
 					
-			initializeContextMenu ();
-			
-				var contextMenu = new ContextMenu ();
-				
-				route.addListener ("rightclick", function (event) {contextMenu.open (map, event); });
-		}
-	}
-
-	function myMap()
-	{
-		var mapProp =
+					this.getPanes().floatPane.appendChild(this.div_);
+					
+					// mousedown anywhere on the map except on the menu div will close the
+					// menu.
+					this.divListener_ = google.maps.event.addDomListener(map.getDiv(), 'mousedown', function(event)
+					{
+					if (event.target != contextMenu.div_)
+					{
+						contextMenu.close();
+					}
+					}, true);
+				};
+					
+			ContextMenu.prototype.onRemove = function ()
 			{
-			center:new google.maps.LatLng(31.4971635304391,-108.210319317877),
-			zoom:5,
-			streetViewControl:false,
-			fullscreenControl:false,
-		};
-		
-		map = new google.maps.Map(document.getElementById("googleMap"), mapProp);
-
-			drawRoute ();
+					google.maps.event.removeListener(this.divListener_);
+					this.div_.parentNode.removeChild(this.div_);
+					
+					// clean up
+					this.set('position');
+			};
+	
+			ContextMenu.prototype.close = function ()
+			{
+				this.setMap(null);
+			};
+	
+			ContextMenu.prototype.addResupply = function ()
+			{
+					var position = this.get('position');
+	
+					addResupply(position);
+	
+					this.close ();
+			};
+		}
+	
+		function ContextMenu ()
+		{
+			this.div_ = document.createElement ('div');
+				this.div_.className = 'context-menu';
+			this.div_.innerHTML = 'Add Resupply';
 			
-		setPointsOfInterest ();
-	} 
-
-	function meterToMiles (meters)
-	{
-		return Math.round(parseFloat(meters) / 1609.34 * 10) / 10;
-	}
+				var menu = this;
+				google.maps.event.addDomListener(this.div_, 'click', function()
+				{
+				menu.addResupply ();
+				});
+		}
+		
+		function drawRoute ()
+		{
+			if (map && routeCoords.length > 0)
+			{
+					var route = new google.maps.Polyline({
+						path: routeCoords,
+						geodesic: true,
+						strokeColor: '#FF0000',
+						strokeOpacity: 1.0,
+						strokeWeight: 4});
+		
+					route.setMap(map);
+						
+				initializeContextMenu ();
+				
+					var contextMenu = new ContextMenu ();
+					
+					route.addListener ("rightclick", function (event) {contextMenu.open (map, event); });
+			}
+		}
+	
+		function myMap()
+		{
+			var mapProp =
+				{
+				center:new google.maps.LatLng(31.4971635304391,-108.210319317877),
+				zoom:5,
+				streetViewControl:false,
+				fullscreenControl:false,
+			};
+			
+			map = new google.maps.Map(document.getElementById("googleMap"), mapProp);
+	
+				drawRoute ();
+				
+			setPointsOfInterest ();
+		} 
+	
+		function meterToMiles (meters)
+		{
+			return Math.round(parseFloat(meters) / 1609.34 * 10) / 10;
+		}
 	
 		function calculate ()
 		{
@@ -349,8 +349,8 @@ if ($hikeId)
 						txt += "<div class='col'>" + "Food Weight: " + pounds + " lb " + ounces  + " oz" + "</div>";
 						txt += "</div>";
 						txt += "<div class='row'>";
-						txt += "<div class='col'>" + "Gain: " + "</div>";
-						txt += "<div class='col'>" + "Loss: " + "</div>";
+						txt += "<div class='col'>" + "Gain: " + data[d].gain + "</div>";
+						txt += "<div class='col'>" + "Loss: " + data[d].loss + "</div>";
 						txt += "</div>";
 						txt += "</div>";
 						txt += "</div>";
