@@ -69,7 +69,8 @@ if ($hikeId)
 		.grid-container
 		{
 		  display: grid;
-		  grid-template-columns: auto auto;
+		  grid-template-columns: auto auto auto;
+		  justify-content: space-between;
 		}
 		.context-menu
 		{
@@ -300,7 +301,7 @@ if ($hikeId)
 			setPointsOfInterest ();
 		} 
 	
-		function meterToMiles (meters)
+		function metersToMiles (meters)
 		{
 			return Math.round(parseFloat(meters) / 1609.34 * 10) / 10;
 		}
@@ -326,24 +327,21 @@ if ($hikeId)
 						txt += "<div class='panel panel-default'>";
 						txt += "<div class='panel-heading'>";
 						txt += "<div class='grid-container'>";
-						txt += "<div class='row'>";
-						txt += "<div class='col'>" + "Day " + day + "</div>";
-						txt += "<div class='col'>" + "Food Weight: " + pounds + " lb " + ounces  + " oz" + "</div>";
-						txt += "</div>";
-						txt += "<div class='row'>";
-						txt += "<div class='col'>" + "Gain: " + data[d].gain + "</div>";
-						txt += "<div class='col'>" + "Loss: " + data[d].loss + "</div>";
-						txt += "</div>";
+						txt += "<div>" + "Day " + day + "</div>";
+						txt += "<div>" + "Gain/Loss: " + Math.round(data[d].gain) + "/" + Math.round(data[d].loss) + "</div>";
+						txt += "<div>" + "Food: " + pounds + " lb " + ounces  + " oz" + "</div>";
+						txt += "<div>" + "" + "</div>";
+						txt += "<div>" + "Miles: " + metersToMiles (data[d].distance) + "</div>";
 						txt += "</div>";
 						txt += "</div>";
 							
-						txt += "<div>" + "Start: " + timeFormat(data[d].startTime) + ", " + "mile " + meterToMiles (data[d].mile) + "</div>";
+						txt += "<div>" + timeFormat(data[d].startTime) + ", " + "mile " + metersToMiles (data[d].mile) + ": start" + "</div>";
 						
 						if (data[d].events.length > 0)
 						{
 							for (let e in data[d].events)
 							{
-								txt += "<div>" + data[d].events[e].type + ": " + timeFormat(data[d].events[e].time) + ", " + "mile " + meterToMiles (data[d].events[e].mile) + "</div>";
+								txt += "<div>" + timeFormat(data[d].events[e].time) + ", " + "mile " + metersToMiles (data[d].events[e].mile) + ": " + data[d].events[e].type + "</div>";
 
 								markers.push({lat: parseFloat(data[d].events[e].lat), lng: parseFloat(data[d].events[e].lng), label:"R"});
 							}
@@ -351,7 +349,7 @@ if ($hikeId)
 
 						if (d < data.length - 1)
 						{
-							txt += "<div>" + "Stop: " + timeFormat(data[d].endTime) + ", " + "mile " + meterToMiles (data[parseInt(d) + 1].mile) + "</div>";
+							txt += "<div>" + timeFormat(data[d].endTime) + ", " + "mile " + metersToMiles (data[parseInt(d) + 1].mile) + ": stop " + "</div>";
 						}
 
 						txt += "</div>";

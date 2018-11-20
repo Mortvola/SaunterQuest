@@ -107,6 +107,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 		
 		DayGet ($d)->gain = $dayGain;
 		DayGet ($d)->loss = $dayLoss;
+		DayGet ($d)->distance = $dayMiles;
 		
 		$d++;
 		DayGet ($d)->dayInitialize ($d, $segments[$k]->lat, $segments[$k]->lng, $dayMiles, $k, $segmentMiles);
