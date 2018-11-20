@@ -365,6 +365,11 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 		}
 	}
 	
+	function metersPerHourGet ($dh, $dx)
+	{
+		return 6 * pow(2.71828, -3.5 * abs($dh / $dx + 0.05)) * 1000;
+	}
+	
 	
 //	$noCamping = array(
 //					array (18.1, 28.9));
@@ -386,7 +391,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	}
 	
 //	$debug = true;
-//	$maxZ = 200;
+//	$maxZ = 30000;
 	$mile = 0;
 	$d = 0;
 	$foodStart = $d;
@@ -421,6 +426,8 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 		{
 			$segmentMiles = $segments[$k]->dist;
 			
+			$metersPerHour = metersPerHourGet ($segments[$k + 1]->ele - $segments[$k]->ele, $segments[$k + 1]->dist - $segments[$k]->dist);
+			
 			if ($k == 0)
 			{
 				DayGet ($d)->segment = $k;
@@ -449,7 +456,8 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 			$hoursPerDay = ((DayGet ($d)->endTime - DayGet ($d)->startTime) - $hikerProfile["midDayBreakDuration"]);
 			$hoursPerDay -= $lingerHours;
 			$lingerHours = 0;
-			$dayMilesRemaining = $hoursPerDay * ($hikerProfile["milesPerHour"] * 1609.34) - $dayMiles;
+			
+			$dayMilesRemaining = $hoursPerDay * $metersPerHour - $dayMiles;
 			
 			//echo "Day $d, hours per day: $hoursPerDay\n";
 //			echo "mile: $mile\n";
@@ -465,7 +473,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 				
 				$deltaMiles = $segments[$k + 1]->dist - $segmentMiles;
 				$dayMiles += $deltaMiles;
-				$hoursHiked = $deltaMiles / ($hikerProfile["milesPerHour"] * 1609.34);
+				$hoursHiked = $deltaMiles / $metersPerHour;
 				$dayHours += $hoursHiked;
 				$currentTime = DayGet ($d)->startTime + $dayHours;
 				$segmentMiles += $deltaMiles;
@@ -627,7 +635,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 						// We are in a no camping area... need to move.
 						//
 						$remainingMiles = $noCamping[$i][1] - ($segmentMiles + $dayMilesRemaining);
-						$hoursNeeded = $remainingMiles / ($hikerProfile["milesPerHour"] * 1609.34);
+						$hoursNeeded = $remainingMiles / $metersPerHour;
 						
 						//echo "needed hours: $hoursNeeded\n";
 
