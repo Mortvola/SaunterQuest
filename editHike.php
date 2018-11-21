@@ -185,7 +185,7 @@ if ($hikeId)
 				xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 				xmlhttp.send("location=" + JSON.stringify(position.toJSON()));
 		}
-	
+
 		function initializeContextMenu ()
 		{
 			ContextMenu.prototype = new google.maps.OverlayView ();
@@ -222,10 +222,10 @@ if ($hikeId)
 					// menu.
 					this.divListener_ = google.maps.event.addDomListener(map.getDiv(), 'mousedown', function(event)
 					{
-					if (event.target != contextMenu.div_)
-					{
-						contextMenu.close();
-					}
+						if (event.target != contextMenu.div_)
+						{
+							contextMenu.close();
+						}
 					}, true);
 				};
 					
@@ -252,38 +252,72 @@ if ($hikeId)
 					this.close ();
 			};
 		}
-	
+
+		//
+		// Position the map so that the two endpoints (today's and tomorrow's) are visible.
+		// todo: take into account the area the whole path uses. Some paths go out of window 
+		// even though the two endpoints are within the window.
+		//
+		function positionMapToDay (d)
+		{
+			var bounds = {};
+
+			if (data[d].lng < data[d + 1].lng)
+			{
+				bounds.east = data[d + 1].lng;
+				bounds.west = data[d].lng;
+			}
+			else
+			{
+				bounds.east = data[d].lng;
+				bounds.west = data[d + 1].lng;
+			}
+
+			if (data[d].lat < data[d + 1].lat)
+			{
+				bounds.north = data[d + 1].lat;
+				bounds.south = data[d].lat;
+			}
+			else
+			{
+				bounds.north = data[d].lat;
+				bounds.south = data[d + 1].lat;
+			}
+
+			map.fitBounds(bounds);
+		}
+
 		function ContextMenu ()
 		{
 			this.div_ = document.createElement ('div');
-				this.div_.className = 'context-menu';
+			this.div_.className = 'context-menu';
 			this.div_.innerHTML = 'Add Resupply';
 			
 				var menu = this;
-				google.maps.event.addDomListener(this.div_, 'click', function()
-				{
+ 			google.maps.event.addDomListener(this.div_, 'click', function()
+ 			{
 				menu.addResupply ();
-				});
+ 			});
 		}
 		
 		function drawRoute ()
 		{
 			if (map && routeCoords.length > 0)
 			{
-					var route = new google.maps.Polyline({
-						path: routeCoords,
-						geodesic: true,
-						strokeColor: '#FF0000',
-						strokeOpacity: 1.0,
-						strokeWeight: 4});
-		
-					route.setMap(map);
+				var route = new google.maps.Polyline({
+					path: routeCoords,
+					geodesic: true,
+					strokeColor: '#FF0000',
+					strokeOpacity: 1.0,
+					strokeWeight: 4});
+	
+				route.setMap(map);
 						
 				initializeContextMenu ();
 				
-					var contextMenu = new ContextMenu ();
-					
-					route.addListener ("rightclick", function (event) {contextMenu.open (map, event); });
+				var contextMenu = new ContextMenu ();
+				
+				route.addListener ("rightclick", function (event) {contextMenu.open (map, event); });
 			}
 		}
 	
@@ -334,7 +368,7 @@ if ($hikeId)
 						ounces = Math.round(ounces % 16.0);
 
 						txt += "<div class='panel panel-default'>";
-						txt += "<div class='panel-heading'>";
+						txt += "<div class='panel-heading' onclick='positionMapToDay(" + d + ")'>";
 						txt += "<div class='grid-container'>";
 						txt += "<div>" + "Day " + day + "</div>";
 						txt += "<div>" + "Gain/Loss (feet): " + metersToFeet(data[d].gain) + "/" + metersToFeet(data[d].loss) + "</div>";
