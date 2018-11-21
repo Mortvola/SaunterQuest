@@ -17,18 +17,18 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	
 	class Event
 	{
-		function __construct ($type, $lat, $lng, $mile, $time, $notes)
+		function __construct ($type, $lat, $lng, $meters, $time, $notes)
 		{
 			$this->type = $type;
 			$this->lat = $lat;
 			$this->lng = $lng;
-			$this->mile = $mile;
+			$this->meters = $meters;
 			$this->time = $time;
 			$this->notes = $notes;
 		}
 		
 		public $type;
-		public $mile;
+		public $meters;
 		public $lat;
 		public $lng;
 		public $time;
@@ -37,7 +37,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	
 	class Day
 	{
-		public $mile = 0;
+		public $meters = 0;
 		public $lat;
 		public $lng;
 		public $ele;
@@ -49,24 +49,24 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 		public $endTime;
 		public $notes;
 		public $segment = 0;
-		public $segmentMiles = 0;
-		public $cantMoveStartMiles = false;
+		public $segmentMeters = 0;
+		public $cantMoveStartMeters = false;
 		public $events = [];
 		
 		//
 		// Initialize the day
 		//
-		function dayInitialize ($d, $lat, $lng, $ele, &$dayMiles, $k, $segmentMiles)
+		function dayInitialize ($d, $lat, $lng, $ele, &$dayMeters, $k, $segmentMeters)
 		{
 			global $food, $hikerProfile, $debug, $day;
 			
 			if ($d > 0)
 			{
-				$this->mile = $day[$d - 1]->mile + $dayMiles;
+				$this->meters = $day[$d - 1]->meters + $dayMeters;
 			}
 			else
 			{
-				$this->mile = $dayMiles;
+				$this->meters = $dayMeters;
 			}
 			
 			$this->foodWeight = $food[0]["weight"]; //todo: randomly select meal plan
@@ -91,30 +91,30 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 			$this->ele = $ele;
 			
 			$this->segment = $k;
-			$this->segmentMiles = $segmentMiles;
+			$this->segmentMeters = $segmentMeters;
 			
 			//unset($this->events);
 			$this->events = [];
 			
 			if (isset($debug))
 			{
-				echo "Initializing Day $d, mile: $this->mile, segment: $k, segment miles: $segmentMiles\n";
+				echo "Initializing Day $d, meters: $this->meters, segment: $k, segment meters: $segmentMeters\n";
 			}
 		}
 	}
 	
-	function newDayStart (&$d, &$dayMiles, &$dayHours, $lat, $lng, $ele, &$dayGain, &$dayLoss, $k, $segmentMiles)
+	function newDayStart (&$d, &$dayMeters, &$dayHours, $lat, $lng, $ele, &$dayGain, &$dayLoss, $k, $segmentMeters)
 	{
 		global $segments;
 		
 		DayGet ($d)->gain = $dayGain;
 		DayGet ($d)->loss = $dayLoss;
-		DayGet ($d)->distance = $dayMiles;
+		DayGet ($d)->distance = $dayMeters;
 		
 		$d++;
-		DayGet ($d)->dayInitialize ($d, $lat, $lng, $ele, $dayMiles, $k, $segmentMiles);
+		DayGet ($d)->dayInitialize ($d, $lat, $lng, $ele, $dayMeters, $k, $segmentMeters);
 		
-		$dayMiles = 0;
+		$dayMeters = 0;
 		$dayHours = 0;
 		$dayGain = 0;
 		$dayLoss = 0;
@@ -174,7 +174,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 			//
 			// If the start of this day can't be moved then look no earlier
 			//
-			if ($day[$d]->cantMoveStartMiles)
+			if ($day[$d]->cantMoveStartMeters)
 			{
 				break;
 			}
@@ -220,7 +220,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 			//
 			// If the start of this day can't be moved then look no earlier
 			//
-			if ($day[$d]->cantMoveStartMiles)
+			if ($day[$d]->cantMoveStartMeters)
 			{
 				break;
 			}
@@ -314,7 +314,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	{
 		global $pdo, $hikerProfile;
 		
-		$sql = "select coalesce(milesPerHour, 1.0) AS milesPerHour,
+		$sql = "select coalesce(milesPerHour, 1.0) AS metersPerHour,
 					   coalesce(startTime, 8) AS startTime,
 					   coalesce(endTime, 19) AS endTime,
 					   coalesce(midDayBreakDuration, 1) AS midDayBreakDuration
@@ -339,10 +339,10 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 			unset ($stmt);
 		}
 		
-		// 		echo "milesPerHour = ", $hikerProfile["milesPerHour"], "\n";
-		// 		echo "milesPerHour = ", $hikerProfile["startTime"], "\n";
-		// 		echo "milesPerHour = ", $hikerProfile["endTime"], "\n";
-		// 		echo "milesPerHour = ", $hikerProfile["midDayBreakDuration"], "\n";
+		// 		echo "metersPerHour = ", $hikerProfile["metersPerHour"], "\n";
+		// 		echo "metersPerHour = ", $hikerProfile["startTime"], "\n";
+		// 		echo "metersPerHour = ", $hikerProfile["endTime"], "\n";
+		// 		echo "metersPerHour = ", $hikerProfile["midDayBreakDuration"], "\n";
 	}
 	
 	function foodPlansGet ($userId)
@@ -395,11 +395,11 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	
 //	$debug = true;
 //	$maxZ = 500;
-	$mile = 0;
+	$meters = 0;
 	$d = 0;
 	$foodStart = $d;
 	$lingerHours = 0;
-	$dayMiles = 0;
+	$dayMeters = 0;
 	$dayHours = 0;
 	$dayGain = 0;
 	$dayLoss = 0;
@@ -407,7 +407,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	
 	$day = [];
 	
-	DayGet ($d)->dayInitialize ($d, $segments[0]->lat, $segments[0]->lng, $segments[0]->ele, $dayMiles, $dayHours, 0, 0);
+	DayGet ($d)->dayInitialize ($d, $segments[0]->lat, $segments[0]->lng, $segments[0]->ele, $dayMeters, $dayHours, 0, 0);
 	
 	$z = 0;
 	
@@ -420,9 +420,9 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 				echo "Restarting at day $d\n";
 			}
 			
-			$segmentMiles = DayGet ($d)->segmentMiles;
+			$segmentMeters = DayGet ($d)->segmentMeters;
 			$lastEle = DayGet ($d)->ele;
-			$dayMiles = 0;
+			$dayMeters = 0;
 			$dayHours = 0;
 			$restart = false;
 		}
@@ -431,10 +431,10 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 			if ($k == 0)
 			{
 				DayGet ($d)->segment = $k;
-				DayGet ($d)->segmentMiles = $segments[$k]->dist;
+				DayGet ($d)->segmentMeters = $segments[$k]->dist;
 			}
 			
-			$segmentMiles = $segments[$k]->dist;
+			$segmentMeters = $segments[$k]->dist;
 			$lastEle = $segments[$k]->ele;
 		}
 		
@@ -455,33 +455,33 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 			
 			//echo "linger hours: $lingerHours\n";
 			
-			//echo "Day $d, segment miles: " . $segmentMiles . "\n";
-			//echo "Day $d, segment miles: " . DayGet ($d)->segmentMiles . "\n";
+			//echo "Day $d, segment meters: " . $segmentMeters . "\n";
+			//echo "Day $d, segment meters: " . DayGet ($d)->segmentMeters . "\n";
 			
 			$hoursPerDay = ((DayGet ($d)->endTime - DayGet ($d)->startTime) - $hikerProfile["midDayBreakDuration"]);
 			$hoursPerDay -= $lingerHours;
 			$lingerHours = 0;
 			
 			$hoursRemaining = $hoursPerDay - $dayHours;
-			$dayMilesRemaining = $hoursRemaining * $metersPerHour;
+			$dayMetersRemaining = $hoursRemaining * $metersPerHour;
 			
 			//echo "Day $d, hours per day: $hoursPerDay\n";
-//			echo "mile: $mile\n";
-//			echo "day miles: $dayMiles\n";
-//			echo "Miles/day = $dayMilesRemaining\n";
+//			echo "meters: $meters\n";
+//			echo "day meters: $dayMeters\n";
+//			echo "Meters/day = $dayMetersRemaining\n";
 			
-			if ($segmentMiles + $dayMilesRemaining >= $segments[$k + 1]->dist)
+			if ($segmentMeters + $dayMetersRemaining >= $segments[$k + 1]->dist)
 			{
 				if (isset($debug))
 				{
-					echo "Day $d, segment miles: $segmentMiles, hours remaining: $hoursRemaining, miles remaining: $dayMilesRemaining, meters/hour = $metersPerHour\n";
+					echo "Day $d, segment meters: $segmentMeters, hours remaining: $hoursRemaining, meters remaining: $dayMetersRemaining, meters/hour = $metersPerHour\n";
 				}
 				
-				$remainingSegmentMiles = $segments[$k + 1]->dist - $segmentMiles;
-				$segmentMiles = $segments[$k + 1]->dist;
+				$remainingSegmentMeters = $segments[$k + 1]->dist - $segmentMeters;
+				$segmentMeters = $segments[$k + 1]->dist;
 				
-				$dayMiles += $remainingSegmentMiles;
-				$hoursHiked = $remainingSegmentMiles / $metersPerHour;
+				$dayMeters += $remainingSegmentMeters;
+				$hoursHiked = $remainingSegmentMeters / $metersPerHour;
 				$dayHours += $hoursHiked;
 				$currentTime = DayGet ($d)->startTime + $dayHours;
 				
@@ -515,7 +515,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 							{
 								$hoursNeeded = $currentTime - $arriveBeforeTime;
 								
-								// extend the end time of each prior day an hour until the needed time is found and recompute mileage.
+								// extend the end time of each prior day an hour until the needed time is found and recompute distance.
 								// todo: this needs to be a preference. The algorithm could add an hour to each
 								// prior day until the extra time needed is found or it could evenly divide the needed time
 								// across all days since the start, or a mix of the two.
@@ -547,14 +547,14 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 								$d = $startDay1;
 								
 								$k = DayGet ($d)->segment - 1; // decrease by one since the for loop will increase it by one
-								//echo "segment miles: $segmentMiles\n";
+								//echo "segment meters: $segmentMeters\n";
 								$restart = true;
 								
 								break;
 							}
 						}
 						
-						DayGet ($d)->events[] = new Event("arriveBefore", $event->lat, $event->lng, $segmentMiles, $currentTime, "Arrive Before: " . $arriveBeforeTime . ", arrived at " . $currentTime . ";");
+						DayGet ($d)->events[] = new Event("arriveBefore", $event->lat, $event->lng, $segmentMeters, $currentTime, "Arrive Before: " . $arriveBeforeTime . ", arrived at " . $currentTime . ";");
 					}
 					
 					$event = findEvent("resupply", $segments[$k + 1]->events);
@@ -565,7 +565,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 						
 						if ($event)
 						{
-							DayGet ($d)->events[] = new Event("resupply", $event->lat, $event->lng, $segmentMiles, $currentTime, "");
+							DayGet ($d)->events[] = new Event("resupply", $event->lat, $event->lng, $segmentMeters, $currentTime, "");
 						}
 					}
 					
@@ -575,13 +575,13 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 					{
 						// todo: error out if a mustStop is in a noCamping area?
 						
-						DayGet ($d)->events[] = new Event("stop", $event->lat, $event->lng, $segmentMiles, $currentTime, "");
+						DayGet ($d)->events[] = new Event("stop", $event->lat, $event->lng, $segmentMeters, $currentTime, "");
 						
 						if ($k < count($segments) - 2)
 						{
-							newDayStart ($d, $dayMiles, $dayHours, $segments[$k + 1]->lat, $segments[$k + 1]->lng, $segments[$k + 1]->ele, $dayGain, $dayLoss, $k + 1, $segmentMiles);
+							newDayStart ($d, $dayMeters, $dayHours, $segments[$k + 1]->lat, $segments[$k + 1]->lng, $segments[$k + 1]->ele, $dayGain, $dayLoss, $k + 1, $segmentMeters);
 							
-							DayGet ($d)->cantMoveStartMiles = true;
+							DayGet ($d)->cantMoveStartMeters = true;
 						}
 					}
 						
@@ -596,29 +596,29 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 						$remainingHours = ($hoursPerDay - $hoursHiked) - $lingerHours;
 						
 	//					echo "linger: hours hiked: $hoursHiked\n";
-	//					echo "linger: delta miles: $remainingSegmentMiles\n";
-	//					echo "linger: miles: $mile\n";
-	//					echo "linger: segment miles: $segmentMiles\n";
-	//					echo "linger: next segment miles: ", $segments[$k + 1]->dist, "\n";
+	//					echo "linger: delta meters: $remainingSegmentMeters\n";
+	//					echo "linger: meters: $meters\n";
+	//					echo "linger: segment meters: $segmentMeters\n";
+	//					echo "linger: next segment meters: ", $segments[$k + 1]->dist, "\n";
 	//					echo "linger: remaining hours: $remainingHours\n";
 						
 						if ($remainingHours > 0)
 						{
-							DayGet ($d)->events[] = new Event("linger", $event->lat, $event->lng, $segmentMiles, $currentTime, "linger for " . $lingerHours . " hour(s);");
+							DayGet ($d)->events[] = new Event("linger", $event->lat, $event->lng, $segmentMeters, $currentTime, "linger for " . $lingerHours . " hour(s);");
 						}
 						else
 						{
-							DayGet ($d)->events[] = new Event("linger", $event->lat, $event->lng, $segmentMiles, $currentTime, "linger for " . round ($lingerHours + $remainingHours, 1) . " hour(s);");
+							DayGet ($d)->events[] = new Event("linger", $event->lat, $event->lng, $segmentMeters, $currentTime, "linger for " . round ($lingerHours + $remainingHours, 1) . " hour(s);");
 							
 							if ($k < count($segments) - 2)
 							{
-								newDayStart ($d, $dayMiles, $dayHours, $segments[$k + 1]->lat, $segments[$k + 1]->lng, $segments[$k + 1]->ele, $dayGain, $dayLoss, $k + 1, $segmentMiles);
+								newDayStart ($d, $dayMeters, $dayHours, $segments[$k + 1]->lat, $segments[$k + 1]->lng, $segments[$k + 1]->ele, $dayGain, $dayLoss, $k + 1, $segmentMeters);
 								
 								$lingerHours =  -$remainingHours;
 								
 								if ($lingerHours)
 								{
-									DayGet ($d)->events[] = new Event("linger", $event->lat, $event->lng, $segmentMiles, $currentTime, "linger for " . round($lingerHours, 1) . " hour(s);");
+									DayGet ($d)->events[] = new Event("linger", $event->lat, $event->lng, $segmentMeters, $currentTime, "linger for " . round($lingerHours, 1) . " hour(s);");
 								}
 							}
 						}
@@ -634,15 +634,15 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 				for ($i = 0; isset($noCamping) && $i < count($noCamping); $i++)
 				{
 					//echo "no camping start " . $noCamping[i][0] . " stop ". $noCamping
-					if (($segmentMiles + $dayMilesRemaining) > $noCamping[$i][0] && ($segmentMiles + $dayMilesRemaining) < $noCamping[$i][1])
+					if (($segmentMeters + $dayMetersRemaining) > $noCamping[$i][0] && ($segmentMeters + $dayMetersRemaining) < $noCamping[$i][1])
 					{
-						//echo "Day $d inside no camping area: " . ($segmentMiles + $dayMilesRemaining) . ": " . $noCamping[$i][0] . ", " . $noCamping[$i][1] . "\n";
+						//echo "Day $d inside no camping area: " . ($segmentMeters + $dayMetersRemaining) . ": " . $noCamping[$i][0] . ", " . $noCamping[$i][1] . "\n";
 						
 						//
 						// We are in a no camping area... need to move.
 						//
-						$remainingMiles = $noCamping[$i][1] - ($segmentMiles + $dayMilesRemaining);
-						$hoursNeeded = $remainingMiles / $metersPerHour;
+						$remainingMeters = $noCamping[$i][1] - ($segmentMeters + $dayMetersRemaining);
+						$hoursNeeded = $remainingMeters / $metersPerHour;
 						
 						//echo "needed hours: $hoursNeeded\n";
 
@@ -668,18 +668,18 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 						$d = $startDay1;
 						
 						$k = DayGet ($d)->segment - 1; // decrease by one since the for loop will increase it by one
-						//echo "segment miles: $segmentMiles\n";
+						//echo "segment meters: $segmentMeters\n";
 						$restart = true;
 						
 						break;
 						
-//						$dayMiles += $remainingMiles;
-//						$segmentMiles += $remainingMiles;
+//						$dayMeters += $remainingMeters;
+//						$segmentMeters += $remainingMeters;
 //						DayGet ($d)->endTime += $remainingHours;
 						
 //						echo "Changed end time for $d to ", DayGet ($d)->endTime, "\n";
 						
-//						echo "Changed to $dayMiles, $segmentMiles\n";
+//						echo "Changed to $dayMeters, $segmentMeters\n";
 						
 //						$found = true;
 						
@@ -701,21 +701,21 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 					break;
 				}
 
-// 				echo "day miles remaining = $dayMilesRemaining\n";
-				$dayMiles += $dayMilesRemaining;
-				$segmentMiles += $dayMilesRemaining;
+// 				echo "day meters remaining = $dayMetersRemaining\n";
+				$dayMeters += $dayMetersRemaining;
+				$segmentMeters += $dayMetersRemaining;
 				
 				// We ended the day between the start and end of the current segment.
 				// Determine where in the segment we ended and compute current elevation and
 				// lat/lng.
 				
-				$segmentPercent = ($segmentMiles - $segments[$k]->dist) / ($segments[$k + 1]->dist - $segments[$k]->dist);
+				$segmentPercent = ($segmentMeters - $segments[$k]->dist) / ($segments[$k + 1]->dist - $segments[$k]->dist);
 				
 // 				echo "segmentPercent = $segmentPercent\n";
-// 				echo "segmentMiles = $segmentMiles\n";
+// 				echo "segmentMeters = $segmentMeters\n";
 // 				echo "segment start = ", $segments[$k]->dist, "\n";
 // 				echo "segment end = ", $segments[$k + 1]->dist, "\n";
-// 				echo "numerator = ", ($segmentMiles - $segments[$k]->dist), "\n";
+// 				echo "numerator = ", ($segmentMeters - $segments[$k]->dist), "\n";
 // 				echo "denominator = ", ($segments[$k + 1]->dist - $segments[$k]->dist), "\n";
 				
 				$currentEle = ($segments[$k + 1]->ele - $segments[$k]->ele) * $segmentPercent + $segments[$k]->ele;
@@ -736,15 +736,15 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 				$lat = ($segments[$k + 1]->lat - $segments[$k]->lat) * $segmentPercent + $segments[$k]->lat;
 				$lng = ($segments[$k + 1]->lng - $segments[$k]->lng) * $segmentPercent + $segments[$k]->lng;
 				
-				newDayStart ($d, $dayMiles, $dayHours, $lat, $lng, $currentEle, $dayGain, $dayLoss, $k, $segmentMiles);
+				newDayStart ($d, $dayMeters, $dayHours, $lat, $lng, $currentEle, $dayGain, $dayLoss, $k, $segmentMeters);
 				
 				$lastEle = $currentEle;
 				
-				//echo "Day $d, segment miles: " . DayGet ($d)->segmentMiles . "\n";
-				//				echo "day $d start miles = " . DayGet ($d)->mile . "\n";
+				//echo "Day $d, segment meters: " . DayGet ($d)->segmentMeters . "\n";
+				//				echo "day $d start meters = " . DayGet ($d)->meters . "\n";
 			}
 			
-			//echo "Miles = $mile\n";
+			//echo "Meters = $meters\n";
 		}
 		
 		if (isset($maxZ) && $z > $maxZ)

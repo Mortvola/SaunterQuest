@@ -119,6 +119,7 @@ if ($hikeId)
 		var markers = [];
 		var routeCoords = [];
 		var map;
+		var data;
 		
 		function timeFormat (t)
 		{
@@ -145,7 +146,7 @@ if ($hikeId)
 		{
 			var infoWindow = new google.maps.InfoWindow({content: message});
 			
-				marker.addListener ("click", function () {infoWindow.open(map, marker);});
+			marker.addListener ("click", function () {infoWindow.open(map, marker);});
 		}
 		
 		function setPointsOfInterest()
@@ -160,9 +161,11 @@ if ($hikeId)
 					{
 						attachMessage(marker, "Resupply");
 					}
-					else if (markers[poi].day)
+					else if (markers[poi].label == "C")
 					{
-						attachMessage(marker, "Day " + markers[poi].day);
+						attachMessage(marker, "<div>Day " + markers[poi].day
+								+ "</div><div>Mile: " + metersToMiles(data[markers[poi].day].meters)
+								+ "</div><div>Elevation: " + metersToFeet(data[markers[poi].day].ele) + "\'</div>");
 					}
 				}
 			}
@@ -287,16 +290,17 @@ if ($hikeId)
 		function myMap()
 		{
 			var mapProp =
-				{
+			{
 				center:new google.maps.LatLng(31.4971635304391,-108.210319317877),
 				zoom:5,
 				streetViewControl:false,
 				fullscreenControl:false,
+				mapTypeId:"terrain",
 			};
 			
 			map = new google.maps.Map(document.getElementById("googleMap"), mapProp);
 	
-				drawRoute ();
+			drawRoute ();
 				
 			setPointsOfInterest ();
 		} 
@@ -304,6 +308,11 @@ if ($hikeId)
 		function metersToMiles (meters)
 		{
 			return Math.round(parseFloat(meters) / 1609.34 * 10) / 10;
+		}
+
+		function metersToFeet (meters)
+		{
+			return Math.round(parseFloat(meters) * 3.281);
 		}
 	
 		function calculate ()
@@ -313,7 +322,7 @@ if ($hikeId)
 			{
 				if (this.readyState == 4 && this.status == 200)
 				{
-					let data = JSON.parse(this.responseText);
+					data = JSON.parse(this.responseText);
 
 					let txt = "";
 					let day = 1;
@@ -328,20 +337,20 @@ if ($hikeId)
 						txt += "<div class='panel-heading'>";
 						txt += "<div class='grid-container'>";
 						txt += "<div>" + "Day " + day + "</div>";
-						txt += "<div>" + "Gain/Loss: " + Math.round(data[d].gain) + "/" + Math.round(data[d].loss) + "</div>";
+						txt += "<div>" + "Gain/Loss (feet): " + metersToFeet(data[d].gain) + "/" + metersToFeet(data[d].loss) + "</div>";
 						txt += "<div>" + "Food: " + pounds + " lb " + ounces  + " oz" + "</div>";
 						txt += "<div>" + "" + "</div>";
 						txt += "<div>" + "Miles: " + metersToMiles (data[d].distance) + "</div>";
 						txt += "</div>";
 						txt += "</div>";
 							
-						txt += "<div>" + timeFormat(data[d].startTime) + ", " + "mile " + metersToMiles (data[d].mile) + ": start" + "</div>";
+						txt += "<div>" + timeFormat(data[d].startTime) + ", " + "mile " + metersToMiles (data[d].meters) + ": start" + "</div>";
 						
 						if (data[d].events.length > 0)
 						{
 							for (let e in data[d].events)
 							{
-								txt += "<div>" + timeFormat(data[d].events[e].time) + ", " + "mile " + metersToMiles (data[d].events[e].mile) + ": " + data[d].events[e].type + "</div>";
+								txt += "<div>" + timeFormat(data[d].events[e].time) + ", " + "mile " + metersToMiles (data[d].events[e].meters) + ": " + data[d].events[e].type + "</div>";
 
 								markers.push({lat: parseFloat(data[d].events[e].lat), lng: parseFloat(data[d].events[e].lng), label:"R"});
 							}
@@ -349,12 +358,12 @@ if ($hikeId)
 
 						if (d < data.length - 1)
 						{
-							txt += "<div>" + timeFormat(data[d].endTime) + ", " + "mile " + metersToMiles (data[parseInt(d) + 1].mile) + ": stop " + "</div>";
+							txt += "<div>" + timeFormat(data[d].endTime) + ", " + "mile " + metersToMiles (data[parseInt(d) + 1].meters) + ": stop " + "</div>";
 						}
 
 						txt += "</div>";
 						
-						markers.push({lat: parseFloat(data[d].lat), lng: parseFloat(data[d].lng), label:"C", day:day});
+						markers.push({lat: parseFloat(data[d].lat), lng: parseFloat(data[d].lng), label:"C", day:(day - 1)});
 						
 						day++;
 					}
@@ -363,7 +372,7 @@ if ($hikeId)
 
 					if (map)
 					{
-					setPointsOfInterest ();
+						setPointsOfInterest ();
 					}
 				}
 			}
