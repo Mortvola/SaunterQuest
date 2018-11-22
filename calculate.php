@@ -272,7 +272,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 		$sql = "select poi.pointOfInterestId, poi.lat, poi.lng, poic.type, poic.time
 				from pointOfInterest poi
 				join pointOfInterestConstraint poic on poic.pointOfInterestId = poi.pointOfInterestId
-				join userHike uh on uh.hikeId = poi.hikeId and uh.userId = :userId and uh.userHikeId = :userHikeId
+				join userHike uh on uh.userHikeId = poi.userHikeId and uh.userId = :userId and uh.userHikeId = :userHikeId
 				order by poi.lat, poi.lng asc";
 		
 		if ($stmt = $pdo->prepare($sql))

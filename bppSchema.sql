@@ -110,8 +110,8 @@ create table pointOfInterest (
 	pointOfInterestId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
-	hikeId INT NOT NULL,
-	mile DECIMAL(5,1) NOT NULL,	-- this may be temporary until we determine whether or not to use GPS coordinates
+	hikeId INT,		-- Either hikeId or userHikeId must be set but not both
+	userHikeId INT,
 	lat DECIMAL(17,14) NOT NULL,
 	lng DECIMAL(17,14) NOT NULL,
 	name VARCHAR (255),
@@ -124,4 +124,3 @@ create table pointOfInterestConstraint (
 	pointOfInterestId INT NOT NULL,
 	type VARCHAR (255),
 	time INT);
-	

@@ -220,10 +220,10 @@ if ($hikeId)
 				{
 				}
 			}
-			
+
 			xmlhttp.open("POST", "addPOI.php", true);
 			xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-			xmlhttp.send("location=" + JSON.stringify(position.toJSON()));
+			xmlhttp.send("userHikeId=" + <?php echo $userHikeId ?> + "\&location=" + JSON.stringify(position.toJSON()));
 		}
 
 		function initializeContextMenu ()
@@ -295,14 +295,12 @@ if ($hikeId)
 
 				if (marker)
 				{
-					console.log ("marker test item");
 					itemFunction(marker);
 				}
 				else
 				{
 					var position = this.get('position');
 	
-					console.log ("route test item");
 					itemFunction(position);
 				}
 
@@ -425,7 +423,7 @@ if ($hikeId)
 
 				initializeContextMenu ();
 
-				var routeContextMenu = new ContextMenu ([{title:"Add Point of Interest", func:addPointOfInterest}, {title:"Stuff and junk"}]);
+				var routeContextMenu = new ContextMenu ([{title:"Add Point of Interest", func:addPointOfInterest}, {title:"Add Note"}]);
 				
 				route.addListener ("rightclick", function (event) {routeContextMenu.open (map, event); });
 			}

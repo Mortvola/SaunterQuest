@@ -11,24 +11,25 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	{
 		require_once "config.php";
 
-		$obj = json_decode($_POST["location"], false);
+		$userHikeId = $_POST["userHikeId"];
+		$location = json_decode($_POST["location"], false);
 		
 		try
 		{
-			$sql = "insert into pointOfInterest (creationDate, modificationDate, hikeId, lat, lng)
-		 				values (now(), now(), :hikeId, :lat, :lng)";
+			$sql = "insert into pointOfInterest (creationDate, modificationDate, userHikeId, lat, lng)
+		 				values (now(), now(), :userHikeId, :lat, :lng)";
 			
 			if ($stmt = $pdo->prepare($sql))
 			{
-				$stmt->bindParam(":hikeId", $paramHikeId, PDO::PARAM_INT);
+				$stmt->bindParam(":userHikeId", $paramUserHikeId, PDO::PARAM_INT);
 		//		$stmt->bindParam(":userId", $paramUserId, PDO::PARAM_INT);
 				$stmt->bindParam(":lat", $paramLat, PDO::PARAM_STR);
 				$stmt->bindParam(":lng", $paramLng, PDO::PARAM_STR);
 				
-				$paramHikeId = 2; //$hikeId;
+				$paramUserHikeId = $userHikeId;
 		//		$paramUserId = $_SESSION["userId"];
-				$paramLat = $obj->lat;
-				$paramLng = $obj->lng;
+				$paramLat = $location->lat;
+				$paramLng = $location->lng;
 		
 				$stmt->execute ();
 				
