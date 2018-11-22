@@ -374,6 +374,46 @@ if ($hikeId)
 		{
 			if (map && routeCoords.length > 0)
 			{
+				var bounds = {};
+				
+				//
+				// Traverse route coords and find the bounds
+				// todo: this should be part of the file retrieved
+				for (let r in routeCoords)
+				{
+					if (r == 0)
+					{
+						bounds.east = routeCoords[r].lng;
+						bounds.west = routeCoords[r].lng;
+						bounds.north = routeCoords[r].lat;
+						bounds.south = routeCoords[r].lat;
+					}
+					else
+					{
+						if (routeCoords[r].lng > bounds.east)
+						{
+							bounds.east = routeCoords[r].lng;
+						}
+
+						if (routeCoords[r].lng < bounds.west)
+						{
+							bounds.west = routeCoords[r].lng;
+						}
+						
+						if (routeCoords[r].lat > bounds.north)
+						{
+							bounds.north = routeCoords[r].lat;
+						}
+
+						if (routeCoords[r].lat < bounds.south)
+						{
+							bounds.south = routeCoords[r].lat;
+						}
+					}
+				}
+
+				map.fitBounds(bounds);
+				
 				var route = new google.maps.Polyline({
 					path: routeCoords,
 					geodesic: true,
@@ -382,7 +422,7 @@ if ($hikeId)
 					strokeWeight: 4});
 	
 				route.setMap(map);
-						
+
 				initializeContextMenu ();
 
 				var routeContextMenu = new ContextMenu ([{title:"Add Point of Interest", func:addPointOfInterest}, {title:"Stuff and junk"}]);
