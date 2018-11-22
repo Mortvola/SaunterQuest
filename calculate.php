@@ -17,9 +17,10 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	
 	class Event
 	{
-		function __construct ($type, $lat, $lng, $meters, $time, $notes)
+		function __construct ($type, $poiId, $lat, $lng, $meters, $time, $notes)
 		{
 			$this->type = $type;
+			$this->poiId = $poiId;
 			$this->lat = $lat;
 			$this->lng = $lng;
 			$this->meters = $meters;
@@ -268,7 +269,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	{
 		global $pdo, $segments;
 		
-		$sql = "select poi.lat, poi.lng, poic.type, poic.time
+		$sql = "select poi.pointOfInterestId, poi.lat, poi.lng, poic.type, poic.time
 				from pointOfInterest poi
 				join pointOfInterestConstraint poic on poic.pointOfInterestId = poi.pointOfInterestId
 				join userHike uh on uh.hikeId = poi.hikeId and uh.userId = :userId and uh.userHikeId = :userHikeId
@@ -288,6 +289,9 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 
 			$s = -1;
 
+			//
+			// Find the segment that is nearest to this POI.
+			//  
 			foreach ($output as $poi)
 			{
 				//var_dump ($poi);
@@ -300,7 +304,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 				if ($s != -1)
 				{
 //					echo "Found segment $s\n";
-					$segments[$s]->events[] = (object)["type" => $poi["type"], "lat" => $poi["lat"], "lng" => $poi["lng"], "time" => $poi["time"], "enabled" => true];
+					$segments[$s]->events[] = (object)["poiId" => $poi["pointOfInterestId"], "type" => $poi["type"], "lat" => $poi["lat"], "lng" => $poi["lng"], "time" => $poi["time"], "enabled" => true];
 				}
 			}
 
@@ -554,7 +558,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 							}
 						}
 						
-						DayGet ($d)->events[] = new Event("arriveBefore", $event->lat, $event->lng, $segmentMeters, $currentTime, "Arrive Before: " . $arriveBeforeTime . ", arrived at " . $currentTime . ";");
+						DayGet ($d)->events[] = new Event("arriveBefore", $event->poiId, $event->lat, $event->lng, $segmentMeters, $currentTime, "Arrive Before: " . $arriveBeforeTime . ", arrived at " . $currentTime . ";");
 					}
 					
 					$event = findEvent("resupply", $segments[$k + 1]->events);
@@ -565,7 +569,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 						
 						if ($event)
 						{
-							DayGet ($d)->events[] = new Event("resupply", $event->lat, $event->lng, $segmentMeters, $currentTime, "");
+							DayGet ($d)->events[] = new Event("resupply", $event->poiId, $event->lat, $event->lng, $segmentMeters, $currentTime, "");
 						}
 					}
 					
@@ -575,7 +579,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 					{
 						// todo: error out if a mustStop is in a noCamping area?
 						
-						DayGet ($d)->events[] = new Event("stop", $event->lat, $event->lng, $segmentMeters, $currentTime, "");
+						DayGet ($d)->events[] = new Event("stop", $event->poiId, $event->lat, $event->lng, $segmentMeters, $currentTime, "");
 						
 						if ($k < count($segments) - 2)
 						{
@@ -604,11 +608,11 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 						
 						if ($remainingHours > 0)
 						{
-							DayGet ($d)->events[] = new Event("linger", $event->lat, $event->lng, $segmentMeters, $currentTime, "linger for " . $lingerHours . " hour(s);");
+							DayGet ($d)->events[] = new Event("linger", $event->poiId, $event->lat, $event->lng, $segmentMeters, $currentTime, "linger for " . $lingerHours . " hour(s);");
 						}
 						else
 						{
-							DayGet ($d)->events[] = new Event("linger", $event->lat, $event->lng, $segmentMeters, $currentTime, "linger for " . round ($lingerHours + $remainingHours, 1) . " hour(s);");
+							DayGet ($d)->events[] = new Event("linger", $event->poiId, $event->lat, $event->lng, $segmentMeters, $currentTime, "linger for " . round ($lingerHours + $remainingHours, 1) . " hour(s);");
 							
 							if ($k < count($segments) - 2)
 							{
@@ -618,7 +622,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 								
 								if ($lingerHours)
 								{
-									DayGet ($d)->events[] = new Event("linger", $event->lat, $event->lng, $segmentMeters, $currentTime, "linger for " . round($lingerHours, 1) . " hour(s);");
+									DayGet ($d)->events[] = new Event("linger", $event->poiId, $event->lat, $event->lng, $segmentMeters, $currentTime, "linger for " . round($lingerHours, 1) . " hour(s);");
 								}
 							}
 						}

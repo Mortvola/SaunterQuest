@@ -75,19 +75,22 @@ if ($hikeId)
 		.context-menu
 		{
 			position: absolute;
-			background: white;
-			padding: 3px;
-			color: #666;
-			font-weight: bold;
 			border: 1px solid #999;
-			font-family: sans-serif;
-			font-size: 12px;
 			box-shadow: 1px 3px 3px rgba(0, 0, 0, .3);
 			margin-top: -10px;
 			margin-left: 10px;
+		}
+		.context-menu-item
+		{
+			padding: 3px;
+			background: white;
+			color: #666;
+			font-weight: bold;
+			font-family: sans-serif;
+			font-size: 12px;
 			cursor: pointer;
 		}
-		.context-menu:hover
+		.context-menu-item:hover
 		{
 			background: #eee;
 		}
@@ -148,51 +151,73 @@ if ($hikeId)
 			
 			marker.addListener ("click", function () {infoWindow.open(map, marker);});
 		}
-		
+
+		//
+		// Iterate across the array of points of interest and drop markers on the map.
+		//
 		function setPointsOfInterest()
 		{
 			if (map && markers.length > 0)
 			{
-				for (let poi in markers)
+				var markerContextMenu = new ContextMenu ([{title:"Remove Point of Interest", func:removePointOfInterest}, {title:"Edit Point of Interest"}]);
+				
+				for (let m in markers)
 				{
-					var marker = new google.maps.Marker({position: markers[poi], map: map, label:markers[poi].label});
+					markers[m].marker = new google.maps.Marker({position: markers[m], map: map, label:markers[m].label});
 	
-					if (markers[poi].label == "R")
+					if (markers[m].label == "R")
 					{
-						attachMessage(marker, "Resupply");
+						markers[m].marker.addListener ("rightclick", function (event) {markerContextMenu.open (map, event, m); });
+						attachMessage(markers[m].marker, "Resupply");
 					}
-					else if (markers[poi].label == "C")
+					else if (markers[m].label == "C")
 					{
-						attachMessage(marker, "<div>Day " + markers[poi].day
-								+ "</div><div>Mile: " + metersToMiles(data[markers[poi].day].meters)
-								+ "</div><div>Elevation: " + metersToFeet(data[markers[poi].day].ele) + "\'</div>");
+						attachMessage(markers[m].marker, "<div>Day " + markers[m].day
+								+ "</div><div>Mile: " + metersToMiles(data[markers[m].day].meters)
+								+ "</div><div>Elevation: " + metersToFeet(data[markers[m].day].ele) + "\'</div>");
 					}
 				}
 			}
 		}
-	
-		function addResupply (position)
+
+		function removePointOfInterest (marker)
 		{
-				var xmlhttp = new XMLHttpRequest ();
-				xmlhttp.onreadystatechange = function ()
+			var xmlhttp = new XMLHttpRequest ();
+			xmlhttp.onreadystatechange = function ()
+			{
+				if (this.readyState == 4 && this.status == 200)
 				{
-					if (this.readyState == 4 && this.status == 200)
-					{
-					}
 				}
-				
-				xmlhttp.open("POST", "addPOI.php", true);
-				xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-				xmlhttp.send("location=" + JSON.stringify(position.toJSON()));
+			}
+			
+			xmlhttp.open("POST", "removePOI.php", true);
+			xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			xmlhttp.send("poiId=" + markers[marker].poiId);
+		}
+		
+		function addPointOfInterest (position)
+		{
+			var xmlhttp = new XMLHttpRequest ();
+			xmlhttp.onreadystatechange = function ()
+			{
+				if (this.readyState == 4 && this.status == 200)
+				{
+				}
+			}
+			
+			xmlhttp.open("POST", "addPOI.php", true);
+			xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			xmlhttp.send("location=" + JSON.stringify(position.toJSON()));
 		}
 
 		function initializeContextMenu ()
 		{
 			ContextMenu.prototype = new google.maps.OverlayView ();
 	
-			ContextMenu.prototype.open = function (map, event)
+			ContextMenu.prototype.open = function (map, event, marker)
 			{
 				this.set('position', event.latLng);
+				this.set('marker', marker);
 				
 				this.setMap(map);
 				this.draw ();
@@ -200,42 +225,44 @@ if ($hikeId)
 	
 			ContextMenu.prototype.draw = function()
 			{
-					var position = this.get('position');
-					var projection = this.getProjection();
-	
-					if (position && projection)
-					{
-						var point = projection.fromLatLngToDivPixel(position);
-						this.div_.style.top = point.y + 'px';
-						this.div_.style.left = point.x + 'px';
-					}
-				};
+				var position = this.get('position');
+				var projection = this.getProjection();
+
+				if (position && projection)
+				{
+					var point = projection.fromLatLngToDivPixel(position);
+					this.div_.style.top = point.y + 'px';
+					this.div_.style.left = point.x + 'px';
+				}
+			};
 	
 			ContextMenu.prototype.onAdd = function ()
 			{
-					var contextMenu = this;
-					var map = this.getMap ();
-					
-					this.getPanes().floatPane.appendChild(this.div_);
-					
-					// mousedown anywhere on the map except on the menu div will close the
-					// menu.
-					this.divListener_ = google.maps.event.addDomListener(map.getDiv(), 'mousedown', function(event)
+				var contextMenu = this;
+				var map = this.getMap ();
+				
+				this.getPanes().floatPane.appendChild(this.div_);
+				
+				// mousedown anywhere on the map except on the menu div will close the
+				// menu.
+				this.divListener_ = google.maps.event.addDomListener(map.getDiv(), 'mousedown', function(event)
+				{
+					// If the thing that was clicked was not a child of the context menu div
+					// then close the context menu.
+					if (event.target.parentElement != contextMenu.div_)
 					{
-						if (event.target != contextMenu.div_)
-						{
-							contextMenu.close();
-						}
-					}, true);
-				};
+						contextMenu.close();
+					}
+				}, true);
+			};
 					
 			ContextMenu.prototype.onRemove = function ()
 			{
-					google.maps.event.removeListener(this.divListener_);
-					this.div_.parentNode.removeChild(this.div_);
-					
-					// clean up
-					this.set('position');
+				google.maps.event.removeListener(this.divListener_);
+				this.div_.parentNode.removeChild(this.div_);
+				
+				// clean up
+				this.set('position');
 			};
 	
 			ContextMenu.prototype.close = function ()
@@ -243,16 +270,56 @@ if ($hikeId)
 				this.setMap(null);
 			};
 	
-			ContextMenu.prototype.addResupply = function ()
+			ContextMenu.prototype.itemClicked = function (itemFunction)
 			{
+				// If the context menu was for a marker then execute the method
+				// using the marker index as the parameter. Otherwise, use the
+				// location information as the parameter
+				var marker = this.get('marker');
+
+				if (marker)
+				{
+					console.log ("marker test item");
+					itemFunction(marker);
+				}
+				else
+				{
 					var position = this.get('position');
 	
-					addResupply(position);
-	
-					this.close ();
+					console.log ("route test item");
+					itemFunction(position);
+				}
+
+				this.close ();
 			};
 		}
 
+		//
+		// Create the context menu using the array of items to create sub-divs
+		// as children of the context menu div.
+		//
+		function ContextMenu (items)
+		{
+			this.div_ = document.createElement ('div');
+			this.div_.className = 'context-menu';
+
+			var menu = this;
+			
+			for (let i in items)
+			{
+				var menuItem = document.createElement('div');
+				menuItem.innerHTML = items[i].title;
+				menuItem.className = 'context-menu-item';
+				this.div_.appendChild(menuItem);
+
+	 			google.maps.event.addDomListener(menuItem, 'click', function()
+	 			{
+					menu.itemClicked (items[i].func);
+	 			});
+			}
+		}
+
+		
 		//
 		// Position the map so that the two endpoints (today's and tomorrow's) are visible.
 		// todo: take into account the area the whole path uses. Some paths go out of window 
@@ -287,19 +354,6 @@ if ($hikeId)
 			map.fitBounds(bounds);
 		}
 
-		function ContextMenu ()
-		{
-			this.div_ = document.createElement ('div');
-			this.div_.className = 'context-menu';
-			this.div_.innerHTML = 'Add Resupply';
-			
-				var menu = this;
- 			google.maps.event.addDomListener(this.div_, 'click', function()
- 			{
-				menu.addResupply ();
- 			});
-		}
-		
 		function drawRoute ()
 		{
 			if (map && routeCoords.length > 0)
@@ -314,10 +368,10 @@ if ($hikeId)
 				route.setMap(map);
 						
 				initializeContextMenu ();
+
+				var routeContextMenu = new ContextMenu ([{title:"Add Point of Interest", func:addPointOfInterest}, {title:"Stuff and junk"}]);
 				
-				var contextMenu = new ContextMenu ();
-				
-				route.addListener ("rightclick", function (event) {contextMenu.open (map, event); });
+				route.addListener ("rightclick", function (event) {routeContextMenu.open (map, event); });
 			}
 		}
 	
@@ -386,7 +440,8 @@ if ($hikeId)
 							{
 								txt += "<div>" + timeFormat(data[d].events[e].time) + ", " + "mile " + metersToMiles (data[d].events[e].meters) + ": " + data[d].events[e].type + "</div>";
 
-								markers.push({lat: parseFloat(data[d].events[e].lat), lng: parseFloat(data[d].events[e].lng), label:"R"});
+								// todo: should the marker just have the index to this day and event instead of the POI ID?
+								markers.push({poiId: data[d].events[e].poiId, lat: parseFloat(data[d].events[e].lat), lng: parseFloat(data[d].events[e].lng), label:"R"});
 							}
 						}
 
