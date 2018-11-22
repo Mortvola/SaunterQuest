@@ -163,15 +163,31 @@ if ($hikeId)
 				
 				for (let m in markers)
 				{
-					markers[m].marker = new google.maps.Marker({position: markers[m], map: map, label:markers[m].label});
-	
 					if (markers[m].label == "R")
 					{
+						markers[m].marker = new google.maps.Marker({
+							position: markers[m],
+							map: map,
+							//label:markers[m].label,
+							icon: {
+								url: "http://maps.google.com/mapfiles/ms/micons/blue.png"
+							},
+						});
+						
 						markers[m].marker.addListener ("rightclick", function (event) {markerContextMenu.open (map, event, m); });
 						attachMessage(markers[m].marker, "Resupply");
 					}
 					else if (markers[m].label == "C")
 					{
+						markers[m].marker = new google.maps.Marker({
+							position: markers[m],
+							map: map,
+							//label:markers[m].label,
+							icon: {
+								url: "http://maps.google.com/mapfiles/ms/micons/campground.png"
+							},
+						});
+						
 						attachMessage(markers[m].marker, "<div>Day " + markers[m].day
 								+ "</div><div>Mile: " + metersToMiles(data[markers[m].day].meters)
 								+ "</div><div>Elevation: " + metersToFeet(data[markers[m].day].ele) + "\'</div>");
