@@ -83,6 +83,27 @@ if ($hikeId)
 		</div>
 	</div> <!--  Modal -->
 
+	<!-- Modal -->
+	<div class="modal fade" id="locationModal" role="dialog">
+		<div class="modal-dialog">
+		
+			<!-- Modal content-->
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Location</h4>
+				</div>
+				<div class="modal-body">
+					<p id=locationInfo></p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+			
+		</div>
+	</div> <!--  Modal -->
+
 	<div class="container-fluid" style="position:absolute;top:0;left:0;bottom:0;right:0;padding:0">
 		<div class="col-md-8" style="padding:0;height:100%">
 			<div id="googleMap" style="width:100%;height:100%"></div>

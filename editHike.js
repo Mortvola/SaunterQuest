@@ -115,6 +115,13 @@ function addPointOfInterest (position)
 	xmlhttp.send("userHikeId=" + userHikeId + "\&location=" + JSON.stringify(position.toJSON()));
 }
 
+function displayLocation (position)
+{
+	$("#locationInfo").html("Lat: " + position.lat() + " Lng: " + position.lng());
+	$("#locationModal").modal ('show');
+}
+
+
 function initializeContextMenu ()
 {
 	ContextMenu.prototype = new google.maps.OverlayView ();
@@ -310,8 +317,6 @@ function drawRoute ()
 
 		route.setMap(map);
 
-		initializeContextMenu ();
-
 		var routeContextMenu = new ContextMenu ([{title:"Add Point of Interest", func:addPointOfInterest}, {title:"Add Note"}]);
 		
 		route.addListener ("rightclick", function (event) {routeContextMenu.open (map, event); });
@@ -331,6 +336,12 @@ function myMap()
 	
 	map = new google.maps.Map(document.getElementById("googleMap"), mapProp);
 
+	initializeContextMenu ();
+
+	var mapContextMenu = new ContextMenu ([{title:"Display Location", func:displayLocation}]);
+
+	map.addListener ("rightclick", function(event) {mapContextMenu.open (map, event);});
+	
 	drawRoute ();
 		
 	setPointsOfInterest ();
