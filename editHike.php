@@ -110,15 +110,23 @@ if ($hikeId)
 		</div>
 		<div class="col-md-4" style="height:100%;padding:0px 5px 0px 5px">
 			<div style="display:grid;height:100%">
-				<nav>
 					<ul class="nav nav-tabs" role="tablist">
-						<li role="presentation" class="active"><a href="#">Itinerary</a></li>
-						<li role="presentation"><a href="#">Hiker Profiles</a></li>
-						<li role="presentation"><a href="#">Equipment</a></li>
-						<li role="presentation"><a href="#">Trail Conditions</a></li>
+						<li role="presentation" class="active"><a data-toggle="tab" href="#schedule">Itinerary</a></li>
+						<li role="presentation"><a data-toggle="tab" href="#hikerProfiles">Hiker Profiles</a></li>
+						<li role="presentation"><a data-toggle="tab" href="#equipment">Equipment</a></li>
+						<li role="presentation"><a data-toggle="tab" href="#trailConditions">Trail Conditions</a></li>
 					</ul>
-				</nav>
-				<div id="schedule" style="overflow:scroll;width:100%;height:100%;">
+				<div style="overflow:scroll;width:100%;height:100%;">
+					<div class="tab-content">
+						<div id="schedule" class="tab-pane fade in active">
+						</div>
+						<div id="hikerProfiles" class="tab-pane fade">
+						</div>
+						<div id="equipment" class="tab-pane fade">
+						</div>
+						<div id="trailConditions" class="tab-pane fade">
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
