@@ -124,3 +124,18 @@ create table pointOfInterestConstraint (
 	pointOfInterestId INT NOT NULL,
 	type VARCHAR (255),
 	time INT);
+	
+create table shippingLocation (
+	shippingLocationId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	creationDate DATETIME NOT NULL,
+	modificationDate DATETIME NOT NULL,
+	hikeId INT,		-- Either hikeId or userHikeId must be set but not both
+	userHikeId INT,
+	lat DECIMAL(17,14),
+	lng DECIMAL(17,14),
+	name VARCHAR(255) NOT NULL,
+	address1 VARCHAR(255) NOT NULL,
+	address2 VARcHAR(255),
+	city VARCHAR(255) NOT NULL,
+	state VARCHAR(255) NOT NULL,
+	zip VARCHAR(255) NOT NULL);
