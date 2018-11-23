@@ -62,7 +62,7 @@ if ($hikeId)
 	<title>Welcome</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.css">
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="/jquery-3.3.1.min.js"></script>
 	<script src="/bootstrap.min.js"></script>
 	<style type="text/css">
 		body{ font: 14px sans-serif; }
@@ -97,6 +97,27 @@ if ($hikeId)
 	</style>
 </head>
 <body>
+	<!-- Modal -->
+	<div class="modal fade" id="myModal" role="dialog">
+		<div class="modal-dialog">
+		
+			<!-- Modal content-->
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Modal Header</h4>
+				</div>
+				<div class="modal-body">
+					<p>Some text in the modal.</p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+			
+		</div>
+	</div> <!--  Modal -->
+
 	<div class="container-fluid" style="position:absolute;top:0;left:0;bottom:0;right:0;padding:0">
 		<div class="col-md-8" style="padding:0;height:100%">
 			<div id="googleMap" style="width:100%;height:100%"></div>
@@ -116,6 +137,7 @@ if ($hikeId)
 			</div>
 		</div>
 	</div>
+	
 	<script>
 	"use strict";
 
@@ -159,7 +181,10 @@ if ($hikeId)
 		{
 			if (map && markers.length > 0)
 			{
-				var markerContextMenu = new ContextMenu ([{title:"Remove Point of Interest", func:removePointOfInterest}, {title:"Edit Point of Interest"}]);
+				var markerContextMenu = new ContextMenu ([
+					{title:"Remove Point of Interest", func:removePointOfInterest},
+					{title:"Edit Point of Interest", func:editPointOfInterest},
+				]);
 				
 				for (let m in markers)
 				{
@@ -209,6 +234,11 @@ if ($hikeId)
 			xmlhttp.open("POST", "removePOI.php", true);
 			xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 			xmlhttp.send("poiId=" + markers[marker].poiId);
+		}
+
+		function editPointOfInterest (marker)
+		{
+			$("#myModal").modal ('show');
 		}
 		
 		function addPointOfInterest (position)
