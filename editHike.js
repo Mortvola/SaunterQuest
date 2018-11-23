@@ -4,6 +4,8 @@ var markers = [];
 var routeCoords = [];
 var map;
 var data;
+var startPosition;
+var routeMeasuringEnabled = false;
 
 function timeFormat (t)
 {
@@ -115,10 +117,154 @@ function addPointOfInterest (position)
 	xmlhttp.send("userHikeId=" + userHikeId + "\&location=" + JSON.stringify(position.toJSON()));
 }
 
+
+function startRouteMeasurement (position)
+{
+	startPosition = position;
+	routeMeasuringEnabled = true;
+}
+
+function routeRightClick (position)
+{
+	if (routeMeasuringEnabled)
+	{
+		routeMeasuringEnabled = false;
+		measureRouteDistance (startPosition, position);
+	}
+}
+
+function measureRouteDistance (startPosition, endPosition)
+{
+	let startSegment = findNearestSegment(startPosition);
+	
+	let endSegment = findNearestSegment(endPosition);
+	
+	let distance = 0;
+	
+	if (startSegment == endSegment)
+	{
+		distance = google.maps.geometry.spherical.computeDistanceBetween(startPosition, endPosition);
+	}
+	else
+	{
+		//
+		// Swap the values if needed.
+		//
+		if (startSegment > endSegment)
+		{
+			endSegment = [startSegment, startSegment=endSegment][0];
+		}
+		
+		let startDistance = google.maps.geometry.spherical.computeDistanceBetween(
+				startPosition,
+				new google.maps.LatLng(routeCoords[startSegment + 1].lat, routeCoords[startSegment + 1].lng));		
+
+		for (let r = startSegment + 1; r < endSegment; r++)
+		{
+			distance += google.maps.geometry.spherical.computeDistanceBetween(
+				new google.maps.LatLng(routeCoords[r].lat, routeCoords[r].lng),
+				new google.maps.LatLng(routeCoords[r + 1].lat, routeCoords[r + 1].lng));		
+		}
+
+		let endDistance = google.maps.geometry.spherical.computeDistanceBetween(
+				new google.maps.LatLng(routeCoords[endSegment].lat, routeCoords[endSegment].lng),
+				endPosition);
+		
+		distance += startDistance + endDistance;
+	}
+	
+	let miles = metersToMiles(distance);
+	if (miles > 0)
+	{
+		$("#modalBody").html("Distance: " + miles + " miles");
+	}
+	else
+	{
+		let feet = metersToFeet(distance);
+		$("#modalBody").html("Distance: " + feet + " feet");
+	}
+	$("#modalTitle").html("Distance");
+	$("#modalDialog").modal ('show');
+}
+
+function sqr(x)
+{
+	return x * x;
+}
+
+function distSquared(v, w)
+{
+	return sqr(v.x - w.x) + sqr(v.y - w.y)
+}
+
+function distToSegmentSquared(p, v, w)
+{
+	// Check to see if the line segment is really just a point. If so, return the distance between
+	// the point and one of the points of the line segment.
+	var l2 = distSquared(v, w);
+	if (l2 == 0)
+	{
+		return distSquared(p, v);
+	}
+
+	var t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+	t = Math.max(0, Math.min(1, t));
+
+	return distSquared(p, { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) });
+}
+
+function distToSegment(p, v, w)
+{
+	return Math.sqrt(distToSegmentSquared(p, v, w));
+}
+
+
+function findNearestSegment (position)
+{
+	let closestEdge = -1;
+
+	//
+	// There has to be at least two points in the array. Otherwise, we wouldn't have any edges.
+	//
+	if (routeCoords.length > 1)
+	{
+		let shortestDistance;
+		
+		for (let r = 0; r < routeCoords.length - 1; r++)
+		{
+			if (r == 0)
+			{
+				shortestDistance = distToSegmentSquared(
+					{x: position.lng(), y: position.lat()},
+					{x: routeCoords[r].lng, y: routeCoords[r].lat},
+					{x: routeCoords[r + 1].lng, y: routeCoords[r + 1].lat})
+				closestEdge = r;
+			}
+			else
+			{
+				let distance = distToSegmentSquared(
+						{x: position.lng(), y: position.lat()},
+						{x: routeCoords[r].lng, y: routeCoords[r].lat},
+						{x: routeCoords[r + 1].lng, y: routeCoords[r + 1].lat})
+
+				if (distance < shortestDistance)
+				{
+					shortestDistance = distance;
+					closestEdge = r;
+				}
+			}
+		}
+	}
+	
+	return closestEdge;
+}
+
+
 function displayLocation (position)
 {
-	$("#locationInfo").html("Lat: " + position.lat() + " Lng: " + position.lng());
-	$("#locationModal").modal ('show');
+	$("#modalTitle").html("Distance");
+	$("#modalBody").html("Lat: " + position.lat() + " Lng: " + position.lng());
+	$("#modalDialog").modal ('show');
 }
 
 
@@ -266,7 +412,7 @@ function positionMapToDay (d)
 
 function drawRoute ()
 {
-	if (map && routeCoords.length > 0)
+	if (map && routeCoords.length > 1)
 	{
 		var bounds = {};
 		
@@ -317,8 +463,12 @@ function drawRoute ()
 
 		route.setMap(map);
 
-		var routeContextMenu = new ContextMenu ([{title:"Add Point of Interest", func:addPointOfInterest}, {title:"Add Note"}]);
+		var routeContextMenu = new ContextMenu ([
+			{title:"Add Point of Interest", func:addPointOfInterest},
+			{title:"Measure route distance", func:startRouteMeasurement},
+			{title:"Add Note"}]);
 		
+		route.addListener ("click", function (event) { routeRightClick (event.latLng); });
 		route.addListener ("rightclick", function (event) {routeContextMenu.open (map, event); });
 	}
 }
