@@ -1,11 +1,13 @@
 "use strict";
 
 var markers = [];
+var dayMarkers = [];
 var routeCoords = [];
 var map;
 var data;
 var startPosition;
 var routeMeasuringEnabled = false;
+var markerContextMenu = {};
 
 function timeFormat (t)
 {
@@ -32,54 +34,7 @@ function attachMessage (marker, message)
 {
 	var infoWindow = new google.maps.InfoWindow({content: message});
 	
-	marker.addListener ("click", function () {infoWindow.open(map, marker);});
-}
-
-//
-// Iterate across the array of points of interest and drop markers on the map.
-//
-function setPointsOfInterest()
-{
-	if (map && markers.length > 0)
-	{
-		var markerContextMenu = new ContextMenu ([
-			{title:"Remove Point of Interest", func:removePointOfInterest},
-			{title:"Edit Point of Interest", func:editPointOfInterest},
-		]);
-		
-		for (let m in markers)
-		{
-			if (markers[m].label == "R")
-			{
-				markers[m].marker = new google.maps.Marker({
-					position: markers[m],
-					map: map,
-					//label:markers[m].label,
-					icon: {
-						url: "http://maps.google.com/mapfiles/ms/micons/blue.png"
-					},
-				});
-				
-				markers[m].marker.addListener ("rightclick", function (event) {markerContextMenu.open (map, event, m); });
-				attachMessage(markers[m].marker, "Resupply");
-			}
-			else if (markers[m].label == "C")
-			{
-				markers[m].marker = new google.maps.Marker({
-					position: markers[m],
-					map: map,
-					//label:markers[m].label,
-					icon: {
-						url: "http://maps.google.com/mapfiles/ms/micons/campground.png"
-					},
-				});
-				
-				attachMessage(markers[m].marker, "<div>Day " + markers[m].day
-						+ "</div><div>Mile: " + metersToMiles(data[markers[m].day].meters)
-						+ "</div><div>Elevation: " + metersToFeet(data[markers[m].day].ele) + "\'</div>");
-			}
-		}
-	}
+	return marker.addListener ("click", function () {infoWindow.open(map, marker);});
 }
 
 function removePointOfInterest (marker)
@@ -89,6 +44,7 @@ function removePointOfInterest (marker)
 	{
 		if (this.readyState == 4 && this.status == 200)
 		{
+			calculate ();
 		}
 	}
 	
@@ -109,6 +65,7 @@ function addPointOfInterest (position)
 	{
 		if (this.readyState == 4 && this.status == 200)
 		{
+			calculate();
 		}
 	}
 
@@ -335,7 +292,7 @@ function initializeContextMenu ()
 		// location information as the parameter
 		var marker = this.get('marker');
 
-		if (marker)
+		if (marker != undefined)
 		{
 			itemFunction(marker);
 		}
@@ -490,11 +447,15 @@ function myMap()
 
 	var mapContextMenu = new ContextMenu ([{title:"Display Location", func:displayLocation}]);
 
+	markerContextMenu = new ContextMenu ([
+		{title:"Remove Point of Interest", func:removePointOfInterest},
+		{title:"Edit Point of Interest", func:editPointOfInterest},
+	]);
+
 	map.addListener ("rightclick", function(event) {mapContextMenu.open (map, event);});
 	
-	drawRoute ();
-		
-	setPointsOfInterest ();
+	retrieveRoute ();
+	calculate ();
 } 
 
 function metersToMiles (meters)
@@ -507,6 +468,11 @@ function metersToFeet (meters)
 	return Math.round(parseFloat(meters) * 3.281);
 }
 
+function gramsToOunces (grams)
+{
+	return grams * 0.035274;
+}
+
 function calculate ()
 {
 	var xmlhttp = new XMLHttpRequest ();
@@ -517,18 +483,19 @@ function calculate ()
 			data = JSON.parse(this.responseText);
 
 			let txt = "";
-			let day = 1;
+			let m = 0;
+			let d = 0;
 			
-			for (let d in data)
+			for (d in data)
 			{
-				let ounces = data[d].accumWeight * 0.035274;
+				let ounces = gramsToOunces (data[d].accumWeight);
 				let pounds = Math.floor (ounces / 16.0);
 				ounces = Math.round(ounces % 16.0);
 
 				txt += "<div class='panel panel-default'>";
 				txt += "<div class='panel-heading' onclick='positionMapToDay(" + d + ")'>";
 				txt += "<div class='grid-container'>";
-				txt += "<div>" + "Day " + day + "</div>";
+				txt += "<div>" + "Day " + (parseInt(d) + 1) + "</div>";
 				txt += "<div>" + "Gain/Loss (feet): " + metersToFeet(data[d].gain) + "/" + metersToFeet(data[d].loss) + "</div>";
 				txt += "<div>" + "Food: " + pounds + " lb " + ounces  + " oz" + "</div>";
 				txt += "<div>" + "" + "</div>";
@@ -544,8 +511,35 @@ function calculate ()
 					{
 						txt += "<div>" + timeFormat(data[d].events[e].time) + ", " + "mile " + metersToMiles (data[d].events[e].meters) + ": " + data[d].events[e].type + "</div>";
 
-						// todo: should the marker just have the index to this day and event instead of the POI ID?
-						markers.push({poiId: data[d].events[e].poiId, lat: parseFloat(data[d].events[e].lat), lng: parseFloat(data[d].events[e].lng), label:"R"});
+						if (m >= markers.length)
+						{
+							// todo: should the marker just have the index to this day and event instead of the POI ID?
+							markers.push({poiId: data[d].events[e].poiId, lat: parseFloat(data[d].events[e].lat), lng: parseFloat(data[d].events[e].lng)});
+							
+							markers[m].marker = new google.maps.Marker({
+								position: markers[m],
+								map: map,
+								icon: {
+									url: "http://maps.google.com/mapfiles/ms/micons/blue.png"
+								},
+							});
+							
+							let markerIndex = m;
+							markers[m].marker.addListener ("rightclick", function (event) { markerContextMenu.open (map, event, markerIndex); });
+							markers[m].listener = attachMessage(markers[m].marker, "Resupply");
+						}
+						else
+						{
+							markers[m].poiId = data[d].events[e].poiId;
+							markers[m].lat = parseFloat(data[d].events[e].lat);
+							markers[m].lng = parseFloat(data[d].events[e].lng);
+							
+							markers[m].marker.setPosition(markers[m]);
+							
+							//attachMessage(markers[m].marker, "Resupply");
+						}
+
+						m++;
 					}
 				}
 
@@ -556,16 +550,65 @@ function calculate ()
 
 				txt += "</div>";
 				
-				markers.push({lat: parseFloat(data[d].lat), lng: parseFloat(data[d].lng), label:"C", day:(day - 1)});
-				
-				day++;
+				if (parseInt(d) >= dayMarkers.length)
+				{
+					dayMarkers.push({lat: parseFloat(data[d].lat), lng: parseFloat(data[d].lng), day:parseInt(d)});
+
+					dayMarkers[d].marker = new google.maps.Marker({
+						position: dayMarkers[d],
+						map: map,
+						icon: {
+							url: "http://maps.google.com/mapfiles/ms/micons/campground.png"
+						},
+					});
+					
+					dayMarkers[d].listener = attachMessage(dayMarkers[d].marker, "<div>Day " + dayMarkers[d].day
+							+ "</div><div>Mile: " + metersToMiles(data[d].meters)
+							+ "</div><div>Elevation: " + metersToFeet(data[d].ele) + "\'</div>");
+				}
+				else
+				{
+					dayMarkers[d].lat = parseFloat(data[d].lat);
+					dayMarkers[d].lng = parseFloat(data[d].lng);
+					dayMarkers[d].day = parseFloat(d);
+					
+					dayMarkers[d].marker.setPosition(dayMarkers[d]);
+
+					google.maps.event.removeListener (dayMarkers[d].listener);
+					dayMarkers[d].listener = attachMessage(dayMarkers[d].marker, "<div>Day " + dayMarkers[d].day
+							+ "</div><div>Mile: " + metersToMiles(data[d].meters)
+							+ "</div><div>Elevation: " + metersToFeet(data[d].ele) + "\'</div>");
+				}
 			}
 
 			document.getElementById ("schedule").innerHTML = txt;
 
-			if (map)
+			//
+			// Remove any remaining markers at the end of the array that are in
+			// excess.
+			//
+			if (m < markers.length)
 			{
-				setPointsOfInterest ();
+				for (let i = m; i < markers.length; i++)
+				{
+					markers[i].marker.setMap(null);
+					markers[i].marker = null;
+					google.maps.event.removeListener (markers[i].listener);
+				}
+				
+				markers.splice(m, markers.length - m);
+			}
+			
+			if (d < dayMarkers.length)
+			{
+				for (let i = d; i < dayMarkers.length; i++)
+				{
+					dayMarkers[i].marker.setMap(null);
+					dayMarkers[i].marker = null;
+					google.maps.event.removeListener (dayMarkers[i].listener);
+				}
+				
+				dayMarkers.splice(m, dayMarkers.length - m);
 			}
 		}
 	}
@@ -595,6 +638,3 @@ function retrieveRoute ()
 	//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xmlhttp.send();
 }
-
-retrieveRoute ();
-calculate ();
