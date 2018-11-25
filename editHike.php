@@ -3,7 +3,8 @@
 session_start();
  
 // Check if the user is logged in, if not then redirect him to login page
-if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
+if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true)
+{
 	header("location: login.php");
 	exit;
 }
@@ -84,6 +85,52 @@ if ($hikeId)
 	</div> <!--  Modal -->
 
 	<!-- Modal -->
+	<div class="modal fade" id="addHikerProfile" role="dialog">
+		<div class="modal-dialog">
+		
+			<!-- Modal content-->
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Hiker Profile</h4>
+				</div>
+				<div class="modal-body">
+				<form id='hikerProfileForm'>
+			        <label>Start Day:</label>
+			        <input type="number" class='form-control' name='startDay'/>
+			    	<br/>
+
+			        <label>End Day:</label>
+			        <input type="number" class='form-control' name='endDay'/>
+			    	<br/>
+
+			        <label>Percentage:</label>
+			        <input type="number" class='form-control' name='percentage'/>
+			    	<br/>
+			    	
+			        <label>Start Time:</label>
+			        <input type="number" class='form-control' name='startTime'/>
+			    	<br/>
+
+			        <label>End Time:</label>
+			        <input type="number" class='form-control' name='endTime'/>
+			    	<br/>
+			    	
+			        <label>Break Duration:</label>
+			        <input type="number" class='form-control' name='breakDuration'/>
+			    	<br/>
+				</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn" data-dismiss="modal">Cancel</button>
+					<button id='hikerProfileSaveButton' type="button" class="btn btn-default" data-dismiss="modal">Save</button>
+				</div>
+			</div>
+			
+		</div>
+	</div> <!--  Modal -->
+
+	<!-- Modal -->
 	<div class="modal fade" id="modalDialog" role="dialog">
 		<div class="modal-dialog">
 		
@@ -115,16 +162,38 @@ if ($hikeId)
 						<li role="presentation"><a data-toggle="tab" href="#hikerProfiles">Hiker Profiles</a></li>
 						<li role="presentation"><a data-toggle="tab" href="#equipment">Equipment</a></li>
 						<li role="presentation"><a data-toggle="tab" href="#trailConditions">Trail Conditions</a></li>
+						<li role="presentation"><a data-toggle="tab" href="#todoList">To-do</a></li>
+						<li role="presentation"><a data-toggle="tab" href="#notes">Notes</a></li>
 					</ul>
 				<div style="overflow:scroll;width:100%;height:100%;">
 					<div class="tab-content">
 						<div id="schedule" class="tab-pane fade in active">
 						</div>
 						<div id="hikerProfiles" class="tab-pane fade">
+							<table class="table table-condensed">
+							<thead>
+							<tr>
+							<th>Start Day</th>
+							<th>End Day</th>
+							<th>Percentage</th>
+							<th>Start Time</th>
+							<th>End Time</th>
+							<th>Break Duration</th>
+							</tr>
+							</thead>
+							<tbody id="hikerProfilesTable">
+								<tr id="hikerProfileLastRow">
+									<td><a class='btn btn-sm' onclick='addHikerProfile()'><span class='glyphicon glyphicon-plus'></span></a></td>
+								</tr>
+							</table>
 						</div>
 						<div id="equipment" class="tab-pane fade">
 						</div>
-						<div id="trailConditions" class="tab-pane fade">
+						<div id="trailConditions" class="tab-pane fade"> <!-- snow, relaxing hike, no camping, no stealth camping, etc -->
+						</div>
+						<div id="todoList" class="tab-pane fade">
+						</div>
+						<div id="notes" class="tab-pane fade">
 						</div>
 					</div>
 				</div>
@@ -135,6 +204,7 @@ if ($hikeId)
 	<script>
 		var userHikeId = <?php echo $userHikeId ?>;
 	</script>
+	
 	<script	src="/editHike.js"></script>
 	
 	<script async defer

@@ -139,3 +139,16 @@ create table shippingLocation (
 	city VARCHAR(255) NOT NULL,
 	state VARCHAR(255) NOT NULL,
 	zip VARCHAR(255) NOT NULL);
+	
+create table hikerProfile (
+	hikerProfileId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	creationDate DATETIME NOT NULL,
+	modificationDate DATETIME NOT NULL,
+	userId INT NOT NULL,
+	userHikeId INT,
+	startDay INT,
+	endDay INT,
+	percentage INT,
+	startTime DECIMAL(2,4),
+	endTime DECIMAL(2,4),
+	breakDuration DECIMAL(2,4));

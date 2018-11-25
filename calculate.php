@@ -6,8 +6,8 @@ session_start();
 // Processing form data when form is submitted
 if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 {
-	$userId = $_SESSION["userId"];
-	$userHikeId = $_GET["id"];
+ 	$userId = $_SESSION["userId"];
+ 	$userHikeId = $_GET["id"];
 //	$userId = 1;
 //	$userHikeId = 100027;
 	
@@ -119,6 +119,8 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 		$dayHours = 0;
 		$dayGain = 0;
 		$dayLoss = 0;
+		
+		activeHikerProfileGet ($d);
 	}
 	
 	
@@ -316,13 +318,12 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	
 	function hikerProfilesGet ($userId, $userHikeId)
 	{
-		global $pdo, $hikerProfile;
+		global $pdo, $hikerProfiles;
 		
-		$sql = "select coalesce(milesPerHour, 1.0) AS metersPerHour,
-					   coalesce(startTime, 8) AS startTime,
-					   coalesce(endTime, 19) AS endTime,
-					   coalesce(midDayBreakDuration, 1) AS midDayBreakDuration
-				from userHike
+		$sql = "select percentage,
+					startDay, endDay,
+					startTime, endTime, breakDuration
+				from hikerProfile
 				where userId = :userId
 				and userHikeId = :userHikeId";
 		
@@ -336,17 +337,49 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 			
 			$stmt->execute ();
 			
-			$output = $stmt->fetchAll (PDO::FETCH_ASSOC);
-			
-			$hikerProfile = $output[0];
+			$hikerProfiles = $stmt->fetchAll (PDO::FETCH_ASSOC);
 			
 			unset ($stmt);
 		}
+	}
+	
+	function activeHikerProfileGet ($d)
+	{
+		global $hikerProfile, $hikerProfiles;
 		
-		// 		echo "metersPerHour = ", $hikerProfile["metersPerHour"], "\n";
-		// 		echo "metersPerHour = ", $hikerProfile["startTime"], "\n";
-		// 		echo "metersPerHour = ", $hikerProfile["endTime"], "\n";
-		// 		echo "metersPerHour = ", $hikerProfile["midDayBreakDuration"], "\n";
+		$hikerProfile["percentage"] = 100;
+		$hikerProfile["startTime"] = 8;
+		$hikerProfile["endTime"] = 19;
+		$hikerProfile["breakDuration"] = 1;
+		
+		foreach ($hikerProfiles as $profile)
+		{
+			if ((!isset($profile["startDay"]) || $d >= $profile["startDay"])
+			 && (!isset($profile["endDay"]) || $d <= $profile["endDay"]))
+			{
+				if (isset($profile["percentage"]))
+				{
+					$hikerProfile["percentage"] = $profile["percentage"];
+				}
+				
+				if (isset($profile["startTime"]))
+				{
+					$hikerProfile["startTime"] = $profile["startTime"];
+				}
+				
+				if (isset($profile["endTime"]))
+				{
+					$hikerProfile["endTime"] = $profile["endTime"];
+				}
+				
+				if (isset($profile["breakDuration"]))
+				{
+					$hikerProfile["breakDuration"] = $profile["breakDuration"];
+				}
+			}
+		}
+		
+		//echo "hikerProfile['percentage'] = ", $hikerProfile['percentage'], "\n";
 	}
 	
 	function foodPlansGet ($userId)
@@ -398,7 +431,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	}
 	
 //	$debug = true;
-//	$maxZ = 500;
+//	$maxZ = 2000;
 	$meters = 0;
 	$d = 0;
 	$foodStart = $d;
@@ -410,6 +443,8 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	$restart = false;
 	
 	$day = [];
+	
+	activeHikerProfileGet ($d);
 	
 	DayGet ($d)->dayInitialize ($d, $segments[0]->lat, $segments[0]->lng, $segments[0]->ele, $dayMeters, $dayHours, 0, 0);
 	
@@ -462,17 +497,18 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 			//echo "Day $d, segment meters: " . $segmentMeters . "\n";
 			//echo "Day $d, segment meters: " . DayGet ($d)->segmentMeters . "\n";
 			
-			$hoursPerDay = ((DayGet ($d)->endTime - DayGet ($d)->startTime) - $hikerProfile["midDayBreakDuration"]);
+			$hoursPerDay = ((DayGet ($d)->endTime - DayGet ($d)->startTime) - $hikerProfile["breakDuration"]);
 			$hoursPerDay -= $lingerHours;
 			$lingerHours = 0;
 			
 			$hoursRemaining = $hoursPerDay - $dayHours;
-			$dayMetersRemaining = $hoursRemaining * $metersPerHour;
+			$dayMetersRemaining = $hoursRemaining * ($metersPerHour * ($hikerProfile["percentage"] / 100.0));
 			
-			//echo "Day $d, hours per day: $hoursPerDay\n";
-//			echo "meters: $meters\n";
-//			echo "day meters: $dayMeters\n";
-//			echo "Meters/day = $dayMetersRemaining\n";
+// 			echo "Hours/Day = $hoursPerDay\n";
+// 			echo "Day Hours = $dayHours\n";
+// 			echo "Meters/hour = $metersPerHour\n";
+// 			echo "Adjusted Meters/hour = ", ($metersPerHour * $hikerProfile["percentage"]), "\n";
+// 			echo "Meters/day = $dayMetersRemaining\n";
 			
 			if ($segmentMeters + $dayMetersRemaining >= $segments[$k + 1]->dist)
 			{
@@ -485,7 +521,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 				$segmentMeters = $segments[$k + 1]->dist;
 				
 				$dayMeters += $remainingSegmentMeters;
-				$hoursHiked = $remainingSegmentMeters / $metersPerHour;
+				$hoursHiked = $remainingSegmentMeters / ($metersPerHour * ($hikerProfile["percentage"] / 100.0));
 				$dayHours += $hoursHiked;
 				$currentTime = DayGet ($d)->startTime + $dayHours;
 				
@@ -646,7 +682,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 						// We are in a no camping area... need to move.
 						//
 						$remainingMeters = $noCamping[$i][1] - ($segmentMeters + $dayMetersRemaining);
-						$hoursNeeded = $remainingMeters / $metersPerHour;
+						$hoursNeeded = $remainingMeters / ($metersPerHour * ($hikerProfile["percentage"] / 100.0));
 						
 						//echo "needed hours: $hoursNeeded\n";
 
