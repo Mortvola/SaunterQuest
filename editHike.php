@@ -145,7 +145,13 @@ if ($hikeId)
 	</div> <!--  Modal -->
 
 	<div class="container-fluid" style="position:absolute;top:0;left:0;bottom:0;right:0;padding:0">
-		<div class="col-md-8" style="padding:0;height:100%">
+		<nav id='sideBar' class='col-md-1' style="background-color:SlateGray;height:100%">
+		<ul class='list-unstyled'>
+		<li><a class="nav-link" href="/welcome.php" style="color:white">Home</a></li>
+		<li><a class="nav-link" href="/DayTemplates.php" style="color:white">Food Plans</a></li>
+		</ul>
+		</nav>
+		<div class="col-md-7" style="padding:0;height:100%">
 			<div id="googleMap" style="width:100%;height:100%"></div>
 		</div>
 		<div class="col-md-4" style="height:100%;padding:0px 5px 0px 5px">
