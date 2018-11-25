@@ -1,14 +1,9 @@
 <?php
 
-// Initialize the session
-session_start();
+require_once "checkLogin.php";
 
-// Processing form data when form is submitted
-if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
-{
-	$segments = file_get_contents("CDT.json");
+$segments = file_get_contents("CDT.json");
 	
-	echo $segments;
-}
+echo $segments;
 
 ?>

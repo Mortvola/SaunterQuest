@@ -1,13 +1,9 @@
 <?php 
 
-// Initialize the session
-session_start();
+require_once "checkLogin.php";
 
-// Processing form data when form is submitted
-if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
-{
- 	$userId = $_SESSION["userId"];
- 	$userHikeId = $_GET["id"];
+$userId = $_SESSION["userId"];
+$userHikeId = $_GET["id"];
 //	$userId = 1;
 //	$userHikeId = 100027;
 	
@@ -293,7 +289,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 
 			//
 			// Find the segment that is nearest to this POI.
-			//  
+			//
 			foreach ($output as $poi)
 			{
 				//var_dump ($poi);
@@ -654,7 +650,7 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 							{
 								newDayStart ($d, $dayMeters, $dayHours, $segments[$k + 1]->lat, $segments[$k + 1]->lng, $segments[$k + 1]->ele, $dayGain, $dayLoss, $k + 1, $segmentMeters);
 								
-								$lingerHours =  -$remainingHours;
+								$lingerHours = -$remainingHours;
 								
 								if ($lingerHours)
 								{
@@ -801,6 +797,5 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true)
 	computeFoodWeight ($day, $d, $foodStart);
 	
 	echo json_encode($day);
-}
 
 ?>
