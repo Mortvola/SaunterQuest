@@ -149,15 +149,15 @@ if ($hikeId)
 			<div id="googleMap" style="width:100%;height:100%"></div>
 		</div>
 		<div class="col-md-4" style="height:100%;padding:0px 5px 0px 5px">
-			<div style="display:grid;height:100%">
-					<ul class="nav nav-tabs" role="tablist">
-						<li role="presentation" class="active"><a data-toggle="tab" href="#schedule">Itinerary</a></li>
-						<li role="presentation"><a data-toggle="tab" href="#hikerProfiles">Hiker Profiles</a></li>
-						<li role="presentation"><a data-toggle="tab" href="#equipment">Equipment</a></li>
-						<li role="presentation"><a data-toggle="tab" href="#trailConditions">Trail Conditions</a></li>
-						<li role="presentation"><a data-toggle="tab" href="#todoList">To-do</a></li>
-						<li role="presentation"><a data-toggle="tab" href="#notes">Notes</a></li>
-					</ul>
+			<div style="display:grid;align-content:start;grid-template-rows: auto auto;height:100%">
+				<ul class="nav nav-tabs" role="tablist">
+					<li role="presentation" class="active"><a data-toggle="tab" href="#schedule">Itinerary</a></li>
+					<li role="presentation"><a data-toggle="tab" href="#hikerProfiles">Hiker Profiles</a></li>
+					<li role="presentation"><a data-toggle="tab" href="#equipment">Equipment</a></li>
+					<li role="presentation"><a data-toggle="tab" href="#trailConditions">Trail Conditions</a></li>
+					<li role="presentation"><a data-toggle="tab" href="#todoList">To-do</a></li>
+					<li role="presentation"><a data-toggle="tab" href="#notes">Notes</a></li>
+				</ul>
 				<div style="overflow:scroll;width:100%;height:100%;">
 					<div class="tab-content">
 						<div id="schedule" class="tab-pane fade in active">
