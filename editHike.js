@@ -49,9 +49,9 @@ function removePointOfInterest (marker)
 		}
 	}
 	
-	xmlhttp.open("POST", "removePOI.php", true);
-	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	xmlhttp.send("poiId=" + markers[marker].poiId);
+	xmlhttp.open("DELETE", "pointOfInterest.php", true);
+	xmlhttp.setRequestHeader("Content-type", "application/json");
+	xmlhttp.send(JSON.stringify(markers[marker].poiId));
 }
 
 function editPointOfInterest (marker)
@@ -70,7 +70,7 @@ function addPointOfInterest (position)
 		}
 	}
 
-	xmlhttp.open("POST", "addPOI.php", true);
+	xmlhttp.open("POST", "pointOfInterest.php", true);
 	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xmlhttp.send("userHikeId=" + userHikeId + "\&location=" + JSON.stringify(position.toJSON()));
 }

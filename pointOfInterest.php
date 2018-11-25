@@ -57,5 +57,53 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 		echo $e->getMessage();
 	}
 }
+else if($_SERVER["REQUEST_METHOD"] == "DELETE")
+{
+	require_once "config.php";
+	
+	$pointOfInterestId = json_decode(file_get_contents("php://input"));
+	
+	try
+	{
+		//
+		// Delete the point of interest
+		//
+		$sql = "delete from pointOfInterest
+				where pointOfInterestId = :pointOfInterestId";
+		
+		if ($stmt = $pdo->prepare($sql))
+		{
+			$stmt->bindParam(":pointOfInterestId", $paramPointOfInterestId, PDO::PARAM_INT);
+			
+			$paramPointOfInterestId = $pointOfInterestId;
+			
+			$stmt->execute ();
+			
+			unset ($stmt);
+		}
+		
+		//
+		// Delete any constraints associated with the point of interest
+		//
+		$sql = "delete from pointOfInterestConstraint
+				where pointOfInterestId = :pointOfInterestId";
+		
+		if ($stmt = $pdo->prepare($sql))
+		{
+			$stmt->bindParam(":pointOfInterestId", $paramPointOfInterestId, PDO::PARAM_INT);
+			
+			$paramPointOfInterestId = $pointOfInterestId;
+			
+			$stmt->execute ();
+			
+			unset ($stmt);
+		}
+	}
+	catch(PDOException $e)
+	{
+		echo $e->getMessage();
+	}
+}
+
 
 ?>
