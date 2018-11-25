@@ -151,10 +151,10 @@ if ($hikeId)
 		<div class="col-md-4" style="height:100%;padding:0px 5px 0px 5px">
 			<div style="display:grid;align-content:start;grid-template-rows: auto auto;height:100%">
 				<ul class="nav nav-tabs" role="tablist">
-					<li role="presentation" class="active"><a data-toggle="tab" href="#schedule">Itinerary</a></li>
+					<li role="presentation" class="active"><a data-toggle="tab" href="#schedule">Schedule</a></li>
 					<li role="presentation"><a data-toggle="tab" href="#hikerProfiles">Hiker Profiles</a></li>
-					<li role="presentation"><a data-toggle="tab" href="#equipment">Equipment</a></li>
 					<li role="presentation"><a data-toggle="tab" href="#trailConditions">Trail Conditions</a></li>
+					<li role="presentation"><a data-toggle="tab" href="#equipment">Gear</a></li>
 					<li role="presentation"><a data-toggle="tab" href="#todoList">To-do</a></li>
 					<li role="presentation"><a data-toggle="tab" href="#notes">Notes</a></li>
 				</ul>
@@ -181,10 +181,51 @@ if ($hikeId)
 							</table>
 						</div>
 						<div id="equipment" class="tab-pane fade">
+							<table class="table table-condensed">
+							<thead>
+							<tr>
+							<th>Type</th>
+							<th>Brand & Model</th>
+							<th>Max Distance</th>
+							<th>Current Distance</th>
+							</tr>
+							</thead>
+							<tbody">
+								<tr id="gearLastRow">
+									<td><a class='btn btn-sm' onclick='addGear()'><span class='glyphicon glyphicon-plus'></span></a></td>
+								</tr>
+							</table>
 						</div>
 						<div id="trailConditions" class="tab-pane fade"> <!-- snow, relaxing hike, no camping, no stealth camping, etc -->
+							<table class="table table-condensed">
+							<thead>
+							<tr>
+							<th>Description</th>
+							<th>Start Mile</th>
+							<th>End Mile</th>
+							<th>Condition</th>
+							<th>Percentage</th>
+							</tr>
+							</thead>
+							<tbody">
+								<tr id="conditionsLastRow">
+									<td><a class='btn btn-sm' onclick='addTrailCondition()'><span class='glyphicon glyphicon-plus'></span></a></td>
+								</tr>
+							</table>
 						</div>
 						<div id="todoList" class="tab-pane fade">
+							<table class="table table-condensed">
+							<thead>
+							<tr>
+							<th>Task</th>
+							<th>Due Date</th>
+							</tr>
+							</thead>
+							<tbody">
+								<tr id="todoLastRow">
+									<td><a class='btn btn-sm' onclick='addTodo()'><span class='glyphicon glyphicon-plus'></span></a></td>
+								</tr>
+							</table>
 						</div>
 						<div id="notes" class="tab-pane fade">
 						</div>
