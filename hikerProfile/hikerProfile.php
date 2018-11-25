@@ -1,8 +1,8 @@
 <?php
 
-require_once "checkLogin.php";
+require_once "../checkLogin.php";
 
-require_once "config.php";
+require_once "../config.php";
 
 if($_SERVER["REQUEST_METHOD"] == "GET")
 {

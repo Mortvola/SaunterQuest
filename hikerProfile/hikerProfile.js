@@ -57,7 +57,7 @@ function retrieveHikerProfiles ()
 		}
 	}
 	
-	xmlhttp.open("GET", "hikerProfile.php?id=" + userHikeId, true);
+	xmlhttp.open("GET", "hikerProfile/hikerProfile.php?id=" + userHikeId, true);
 	//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xmlhttp.send();
 }
@@ -143,7 +143,7 @@ function updateHikerProfile (hikerProfileId)
 		}
 	}
 	
-	xmlhttp.open("PUT", "hikerProfile.php", true);
+	xmlhttp.open("PUT", "hikerProfile/hikerProfile.php", true);
 	xmlhttp.setRequestHeader("Content-type", "application/json");
 	xmlhttp.send(JSON.stringify(profile));
 }
@@ -166,7 +166,7 @@ function insertHikerProfile ()
 		}
 	}
 	
-	xmlhttp.open("POST", "hikerProfile.php", true);
+	xmlhttp.open("POST", "hikerProfile/hikerProfile.php", true);
 	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xmlhttp.send("userHikeId=" + userHikeId + "\&profile=" + JSON.stringify(profile));
 }
@@ -184,7 +184,7 @@ function removeHikerProfile (hikerProfileId)
 		}
 	}
 	
-	xmlhttp.open("DELETE", "hikerProfile.php", true);
+	xmlhttp.open("DELETE", "hikerProfile/hikerProfile.php", true);
 	xmlhttp.setRequestHeader("Content-type", "application/json");
 	xmlhttp.send(JSON.stringify(hikerProfileId));
 }
