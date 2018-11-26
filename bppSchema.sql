@@ -100,10 +100,7 @@ create table userHike (
 	userId INT NOT NULL,
 	hikeId INT NOT NULL,
 	name VARCHAR (255) NOT NULL,
-	milesPerHour DECIMAL(2,1),
-	startTime INT,
-	endTime INT,
-	midDayBreakDuration INT
+	data TEXT
 );
 
 create table pointOfInterest (
@@ -145,10 +142,10 @@ create table hikerProfile (
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
 	userId INT NOT NULL,
-	userHikeId INT,
-	startDay INT,
-	endDay INT,
+	userHikeId INT, 		-- if this is null then this applies to all trails (there should only be one in this state)
+	startDay INT, 			-- if this is null then the start is the beinning of the trail
+	endDay INT, 			-- if this is null then the end is at the end of the trail
 	percentage INT,
-	startTime DECIMAL(2,4),
-	endTime DECIMAL(2,4),
-	breakDuration DECIMAL(2,4));
+	startTime DECIMAL(4,2),
+	endTime DECIMAL(4,2),
+	breakDuration DECIMAL(4,2));

@@ -40,6 +40,7 @@ $userHikeId = $_GET["id"];
 		public $ele;
 		public $gain = 0;
 		public $loss = 0;
+		public $foodPlanId;
 		public $foodWeight = 0;
 		public $accumWeight = 0;
 		public $startTime;
@@ -66,6 +67,7 @@ $userHikeId = $_GET["id"];
 				$this->meters = $dayMeters;
 			}
 			
+			$this->foodPlanId = $food[0]["dayTemplateId"];
 			$this->foodWeight = $food[0]["weight"]; //todo: randomly select meal plan
 			
 			if ($this->notes == null)
@@ -796,6 +798,30 @@ $userHikeId = $_GET["id"];
 	
 	computeFoodWeight ($day, $d, $foodStart);
 	
-	echo json_encode($day);
+	$jsonHikeData = json_encode($day);
+	
+	try
+	{
+		$sql = "update userHike set data = :data where userHikeId = :userHikeId";
+		
+		if ($stmt = $pdo->prepare($sql))
+		{
+			$stmt->bindParam(":userHikeId", $paramUserHikeId, PDO::PARAM_INT);
+			$stmt->bindParam(":data", $paramData, PDO::PARAM_STR);
+			
+			$paramUserHikeId = $userHikeId;
+			$paramData = $jsonHikeData;
+			
+			$stmt->execute ();
+			
+			unset($stmt);
+		}
+	}
+	catch(PDOException $e)
+	{
+		echo $e->getMessage();
+	}
+	
+	echo $jsonHikeData;
 
 ?>

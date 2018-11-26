@@ -22,9 +22,11 @@ function hikerProfileRowGet (profile)
 	
 	txt += "<tr id='hikerProfile_" + profile.hikerProfileId + "'>";
 
-	txt += "<td>";
-	txt += "<a class='btn btn-sm' onclick='editHikerProfile(" + profile.hikerProfileId + ")'><span class='glyphicon glyphicon-pencil'></span></a>";
-	txt += "<a class='btn btn-sm' onclick='removeHikerProfile(" + profile.hikerProfileId + ")'><span class='glyphicon glyphicon-trash'></span></a>";
+	txt += "<td style='display:flex;justify-content:space-between;'>";
+	txt += "<span>";
+	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='editHikerProfile(" + profile.hikerProfileId + ")'><span class='glyphicon glyphicon-pencil'></span></a>";
+	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='removeHikerProfile(" + profile.hikerProfileId + ")'><span class='glyphicon glyphicon-trash'></span></a>";
+	txt += "</span>"
 	txt += nvl(profile.startDay, "") + "</td>";
 	txt += "<td align='right'>" + nvl(profile.endDay, "") + "</td>";
 	txt += "<td align='right'>" + nvl(profile.percentage, "") + "</td>";

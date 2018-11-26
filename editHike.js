@@ -496,7 +496,7 @@ function calculate ()
 				ounces = Math.round(ounces % 16.0);
 
 				txt += "<div class='panel panel-default'>";
-				txt += "<div class='panel-heading' onclick='positionMapToDay(" + d + ")'>";
+				txt += "<div class='panel-heading' style='padding:5px 5px 5px 5px' onclick='positionMapToDay(" + d + ")'>";
 				txt += "<div class='grid-container'>";
 				txt += "<div>" + "Day " + (parseInt(d) + 1) + "</div>";
 				txt += "<div>" + "Gain/Loss (feet): " + metersToFeet(data[d].gain) + "/" + metersToFeet(data[d].loss) + "</div>";
@@ -506,13 +506,13 @@ function calculate ()
 				txt += "</div>";
 				txt += "</div>";
 					
-				txt += "<div>" + timeFormat(data[d].startTime) + ", " + "mile " + metersToMiles (data[d].meters) + ": start" + "</div>";
+				txt += "<div style='padding:2px 2px 2px 2px'>" + timeFormat(data[d].startTime) + ", " + "mile " + metersToMiles (data[d].meters) + ": start" + "</div>";
 				
 				if (data[d].events.length > 0)
 				{
 					for (let e in data[d].events)
 					{
-						txt += "<div>" + timeFormat(data[d].events[e].time) + ", " + "mile " + metersToMiles (data[d].events[e].meters) + ": " + data[d].events[e].type + "</div>";
+						txt += "<div style='padding:2px 2px 2px 2px'>" + timeFormat(data[d].events[e].time) + ", " + "mile " + metersToMiles (data[d].events[e].meters) + ": " + data[d].events[e].type + "</div>";
 
 						if (m >= markers.length)
 						{
@@ -548,7 +548,7 @@ function calculate ()
 
 				if (d < data.length - 1)
 				{
-					txt += "<div>" + timeFormat(data[d].endTime) + ", " + "mile " + metersToMiles (data[parseInt(d) + 1].meters) + ": stop " + "</div>";
+					txt += "<div style='padding:2px 2px 2px 2px'>" + timeFormat(data[d].endTime) + ", " + "mile " + metersToMiles (data[parseInt(d) + 1].meters) + ": stop " + "</div>";
 				}
 
 				txt += "</div>";

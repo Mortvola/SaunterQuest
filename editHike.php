@@ -31,6 +31,18 @@ if ($hikeId)
 		  grid-template-columns: auto auto auto;
 		  justify-content: space-between;
 		}
+		.resupply-grid
+		{
+			display: grid;
+			grid-template-columns: auto auto;
+			justify-content: space-between;
+		}
+		.resupply-grid-item
+		{
+			overflow:hidden;
+			white-space:nowrap;
+			text-overflow:ellipsis;
+		}
 		.context-menu
 		{
 			position: absolute;
@@ -161,6 +173,7 @@ if ($hikeId)
 					<li role="presentation"><a data-toggle="tab" href="#hikerProfiles">Hiker Profiles</a></li>
 					<li role="presentation"><a data-toggle="tab" href="#trailConditions">Trail Conditions</a></li>
 					<li role="presentation"><a data-toggle="tab" href="#equipment">Gear</a></li>
+					<li role="presentation"><a data-toggle="tab" href="#resupply" onclick="loadResupply()">Resupply</a></li>
 					<li role="presentation"><a data-toggle="tab" href="#todoList">To-do</a></li>
 					<li role="presentation"><a data-toggle="tab" href="#notes">Notes</a></li>
 				</ul>
@@ -201,6 +214,8 @@ if ($hikeId)
 									<td><a class='btn btn-sm' onclick='addGear()'><span class='glyphicon glyphicon-plus'></span></a></td>
 								</tr>
 							</table>
+						</div>
+						<div id="resupply" class="tab-pane fade">
 						</div>
 						<div id="trailConditions" class="tab-pane fade"> <!-- snow, relaxing hike, no camping, no stealth camping, etc -->
 							<table class="table table-condensed">
@@ -247,6 +262,7 @@ if ($hikeId)
 	
 	<script	src="/editHike.js"></script>
 	<script	src="/hikerProfile/hikerProfile.js"></script>
+	<script src="/resupplyPlan.js"></script>
 	
 	<script async defer
 	 src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB16_kVJjm2plHSOkrxZDC4etbpp6vW8kU&callback=myMap&libraries=geometry">
