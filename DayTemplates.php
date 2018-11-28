@@ -102,7 +102,8 @@ require_once "checkLogin.php";
 	    }
 	    catch(PDOException $e)
 	    {
-	        echo $e->getMessage();
+	    	http_response_code (500);
+	    	echo $e->getMessage();
 	    }
 	    
 	    unset($pdo);

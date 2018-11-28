@@ -128,15 +128,23 @@ create table shippingLocation (
 	modificationDate DATETIME NOT NULL,
 	hikeId INT,		-- Either hikeId or userHikeId must be set but not both
 	userHikeId INT,
-	lat DECIMAL(17,14),
-	lng DECIMAL(17,14),
+	lat DECIMAL(17,14) NOT NULL,
+	lng DECIMAL(17,14) NOT NULL,
 	name VARCHAR(255) NOT NULL,
+	inCareOf VARCHAR(255),
 	address1 VARCHAR(255) NOT NULL,
-	address2 VARcHAR(255),
+	address2 VARCHAR(255),
 	city VARCHAR(255) NOT NULL,
 	state VARCHAR(255) NOT NULL,
 	zip VARCHAR(255) NOT NULL);
 	
+create table resupplyEvent (
+	resupplyEventId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	creationDate DATETIME NOT NULL,
+	modificationDate DATETIME NOT NULL,
+	userHikeId INT NOT NULL,
+	shippingLocationId INT NOT NULL);
+
 create table hikerProfile (
 	hikerProfileId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,

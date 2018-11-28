@@ -425,6 +425,7 @@ $userHikeId = $_GET["id"];
 	}
 	catch(PDOException $e)
 	{
+		http_response_code (500);
 		echo $e->getMessage();
 	}
 	
@@ -819,6 +820,7 @@ $userHikeId = $_GET["id"];
 	}
 	catch(PDOException $e)
 	{
+		http_response_code (500);
 		echo $e->getMessage();
 	}
 	

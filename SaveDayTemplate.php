@@ -78,6 +78,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 		}
 		catch(PDOException $e)
 		{
+			http_response_code (500);
 			echo $e->getMessage();
 		}
 			
@@ -107,6 +108,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 		}
 		catch(PDOException $e)
 		{
+			http_response_code (500);
 			echo $e->getMessage();
 		}
 		
@@ -144,6 +146,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 		}
 		catch(PDOException $e)
 		{
+			http_response_code (500);
 			echo $e->getMessage();
 		}
 	}

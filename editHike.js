@@ -2,12 +2,14 @@
 
 var markers = [];
 var dayMarkers = [];
+var resupplyLocations = [];
 var routeCoords = [];
 var map;
 var data;
 var startPosition;
 var routeMeasuringEnabled = false;
 var markerContextMenu = {};
+var resupplyLocationCM = {};
 
 
 function timeFormat (t)
@@ -226,111 +228,46 @@ function displayLocation (position)
 }
 
 
-function initializeContextMenu ()
+function addResupplyLocation (position)
 {
-	ContextMenu.prototype = new google.maps.OverlayView ();
+	$("#resupplyLocationSaveButton").off('click');
+	$("#resupplyLocationSaveButton").click(function () { insertResupplyLocation(position); });
 
-	ContextMenu.prototype.open = function (map, event, marker)
-	{
-		this.set('position', event.latLng);
-		this.set('marker', marker);
-		
-		this.setMap(map);
-		this.draw ();
-	};
-
-	ContextMenu.prototype.draw = function()
-	{
-		var position = this.get('position');
-		var projection = this.getProjection();
-
-		if (position && projection)
-		{
-			var point = projection.fromLatLngToDivPixel(position);
-			this.div_.style.top = point.y + 'px';
-			this.div_.style.left = point.x + 'px';
-		}
-	};
-
-	ContextMenu.prototype.onAdd = function ()
-	{
-		var contextMenu = this;
-		var map = this.getMap ();
-		
-		this.getPanes().floatPane.appendChild(this.div_);
-		
-		// mousedown anywhere on the map except on the menu div will close the
-		// menu.
-		this.divListener_ = google.maps.event.addDomListener(map.getDiv(), 'mousedown', function(event)
-		{
-			// If the thing that was clicked was not a child of the context menu div
-			// then close the context menu.
-			if (event.target.parentElement != contextMenu.div_)
-			{
-				contextMenu.close();
-			}
-		}, true);
-	};
-			
-	ContextMenu.prototype.onRemove = function ()
-	{
-		google.maps.event.removeListener(this.divListener_);
-		this.div_.parentNode.removeChild(this.div_);
-		
-		// clean up
-		this.set('position');
-	};
-
-	ContextMenu.prototype.close = function ()
-	{
-		this.setMap(null);
-	};
-
-	ContextMenu.prototype.itemClicked = function (itemFunction)
-	{
-		// If the context menu was for a marker then execute the method
-		// using the marker index as the parameter. Otherwise, use the
-		// location information as the parameter
-		var marker = this.get('marker');
-
-		if (marker != undefined)
-		{
-			itemFunction(marker);
-		}
-		else
-		{
-			var position = this.get('position');
-
-			itemFunction(position);
-		}
-
-		this.close ();
-	};
+	$("#addResupplyLocation").modal ('show');
 }
 
-//
-// Create the context menu using the array of items to create sub-divs
-// as children of the context menu div.
-//
-function ContextMenu (items)
+function insertResupplyLocation (position)
 {
-	this.div_ = document.createElement ('div');
-	this.div_.className = 'context-menu';
-
-	var menu = this;
+	var resupplyLocation = objectifyForm($("#resupplyLocationForm").serializeArray());
 	
-	for (let i in items)
+	resupplyLocation.lat = position.lat ();
+	resupplyLocation.lng = position.lng ();
+	
+	var xmlhttp = new XMLHttpRequest ();
+	xmlhttp.onreadystatechange = function ()
 	{
-		var menuItem = document.createElement('div');
-		menuItem.innerHTML = items[i].title;
-		menuItem.className = 'context-menu-item';
-		this.div_.appendChild(menuItem);
-
-		google.maps.event.addDomListener(menuItem, 'click', function()
+		if (this.readyState == 4 && this.status == 200)
 		{
-			menu.itemClicked (items[i].func);
-		});
+			resupplyLocation.shippingLocationId = JSON.parse(this.responseText);
+
+			resupplyLocation.marker = new google.maps.Marker({
+				position: {lat: parseFloat(resupplyLocation.lat), lng: parseFloat(resupplyLocation.lng)},
+				map: map,
+				icon: {
+					url: "http://maps.google.com/mapfiles/ms/micons/postoffice-us.png"
+				}
+			});
+			
+			let markerIndex = 0; //todo: fix this, it shouldn't be zero.
+			resupplyLocation.marker.addListener ("rightclick", function (event) { resupplyLocationCM.open (map, event, markerIndex); });
+			
+			resupplyLocations.push(resupplyLocation);
+		}
 	}
+	
+	xmlhttp.open("POST", "/resupplyLocation.php", true);
+	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	xmlhttp.send("userHikeId=" + userHikeId + "\&resupplyLocation=" + JSON.stringify(resupplyLocation));
 }
 
 
@@ -446,17 +383,23 @@ function myMap()
 
 	initializeContextMenu ();
 
-	var mapContextMenu = new ContextMenu ([{title:"Display Location", func:displayLocation}]);
+	var mapContextMenu = new ContextMenu ([{title:"Create Resupply Location", func:addResupplyLocation},{title:"Display Location", func:displayLocation}]);
 
 	markerContextMenu = new ContextMenu ([
 		{title:"Remove Point of Interest", func:removePointOfInterest},
 		{title:"Edit Point of Interest", func:editPointOfInterest},
 	]);
 
+	resupplyLocationCM = new ContextMenu ([
+		{title:"Resupply from this location", func:resupplyFromLocation},
+		{title:"Edit Resupply Location", func:editResupplyLocation},
+		{title:"Delete Resupply Location", func:deleteResupplyLocation}]);
+
 	map.addListener ("rightclick", function(event) {mapContextMenu.open (map, event);});
 	
 	retrieveRoute ();
-	retrieveHikerProfiles ();
+	retrieveResupplyLocations ();
+	retrieveHikerProfiles (); //todo: only do this when visiting the tab of hiker profiles
 	calculate ();
 } 
 
@@ -643,4 +586,112 @@ function retrieveRoute ()
 	xmlhttp.open("GET", "getRoute.php?id=0", true);
 	//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xmlhttp.send();
+}
+
+function retrieveResupplyLocations ()
+{
+	var xmlhttp = new XMLHttpRequest ();
+	xmlhttp.onreadystatechange = function ()
+	{
+		if (this.readyState == 4 && this.status == 200)
+		{
+			resupplyLocations = JSON.parse(this.responseText);
+			
+			if (map)
+			{
+				for (let r in resupplyLocations)
+				{
+					resupplyLocations[r].marker = new google.maps.Marker({
+						position: {lat: parseFloat(resupplyLocations[r].lat), lng: parseFloat(resupplyLocations[r].lng)},
+						map: map,
+						icon: {
+							url: "http://maps.google.com/mapfiles/ms/micons/postoffice-us.png"
+						}
+					});
+					
+					let shippingLocationId = resupplyLocations[r].shippingLocationId;
+					resupplyLocations[r].marker.addListener ("rightclick", function (event) { resupplyLocationCM.open (map, event, shippingLocationId); });
+					//resupplyLocations[r].listener = attachMessage(markers[m].marker, "Resupply");
+				}
+			}
+		}
+	}
+	
+	xmlhttp.open("GET", "resupplyLocation.php?id=" + userHikeId, true);
+	//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	xmlhttp.send();
+}
+
+
+function resupplyFromLocation ()
+{
+}
+
+
+function findResupplyLocationIndex (shippingLocationId)
+{
+	for (let h in resupplyLocations)
+	{
+		if (resupplyLocations[h].shippingLocationId == shippingLocationId)
+		{
+			return h;
+		}
+	}
+	
+	return -1;
+}
+
+
+function editResupplyLocation (shippingLocationId)
+{
+	//
+	// Find the resupply location using the shippingLocationId.
+	//
+	let h = findResupplyLocationIndex (shippingLocationId);
+	
+	if (h > -1)
+	{
+		$("input[name='name']").val(resupplyLocations[h].name);
+		$("input[name='inCareOf']").val(resupplyLocations[h].inCareOf);
+		$("input[name='address1']").val(resupplyLocations[h].address1);
+		$("input[name='address2']").val(resupplyLocations[h].address2);
+		$("input[name='city']").val(resupplyLocations[h].city);
+		$("input[name='state']").val(resupplyLocations[h].state);
+		$("input[name='zip']").val(resupplyLocations[h].zip);
+		
+		$("#resupplyLocationSaveButton").off('click');
+		$("#resupplyLocationSaveButton").click(function () { updateResupplyLocation(shippingLocationId)});
+		
+		$("#addResupplyLocation").modal ('show');
+	}
+}
+
+function updateResupplyLocation (shippingLocationId)
+{
+	var resupplyLocation = objectifyForm($("#resupplyLocationForm").serializeArray());
+	resupplyLocation.shippingLocationId = shippingLocationId;
+	
+	let h = findResupplyLocationIndex (shippingLocationId);
+
+	resupplyLocation.lat = resupplyLocations[h].lat;
+	resupplyLocation.lng = resupplyLocations[h].lng;
+	
+	var xmlhttp = new XMLHttpRequest ();
+	xmlhttp.onreadystatechange = function ()
+	{
+		if (this.readyState == 4 && this.status == 200)
+		{
+			let h = findResupplyLocationIndex (shippingLocationId);
+			resupplyLocations[h] = resupplyLocation;
+		}
+	}
+	
+	xmlhttp.open("PUT", "/resupplyLocation.php", true);
+	xmlhttp.setRequestHeader("Content-type", "application/json");
+	xmlhttp.send(JSON.stringify(resupplyLocation));
+}
+
+
+function deleteResupplyLocation ()
+{
 }

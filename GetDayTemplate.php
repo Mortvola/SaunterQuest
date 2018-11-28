@@ -36,6 +36,7 @@ try
 }
 catch(PDOException $e)
 {
+	http_response_code (500);
 	echo $e->getMessage();
 }
 

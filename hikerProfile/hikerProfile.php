@@ -14,7 +14,7 @@ if($_SERVER["REQUEST_METHOD"] == "GET")
 		$sql = "select hikerProfileId, startDay, endDay, percentage, startTime, endTime, breakDuration
 				from hikerProfile
 				where userId = :userId
-				and :userHikeId = :userHikeId";
+				and userHikeId = :userHikeId";
 		
 		if ($stmt = $pdo->prepare($sql))
 		{
@@ -35,6 +35,7 @@ if($_SERVER["REQUEST_METHOD"] == "GET")
 	}
 	catch(PDOException $e)
 	{
+		http_response_code (500);
 		echo $e->getMessage();
 	}
 }
@@ -63,6 +64,7 @@ else if($_SERVER["REQUEST_METHOD"] == "DELETE")
 	}
 	catch(PDOException $e)
 	{
+		http_response_code (500);
 		echo $e->getMessage();
 	}
 }
@@ -131,6 +133,7 @@ else if($_SERVER["REQUEST_METHOD"] == "POST")
 	}
 	catch(PDOException $e)
 	{
+		http_response_code (500);
 		echo $e->getMessage();
 	}
 }
@@ -201,6 +204,7 @@ else if($_SERVER["REQUEST_METHOD"] == "PUT")
 	}
 	catch(PDOException $e)
 	{
+		http_response_code (500);
 		echo $e->getMessage();
 	}
 }
