@@ -623,8 +623,21 @@ function retrieveResupplyLocations ()
 }
 
 
-function resupplyFromLocation ()
+function resupplyFromLocation (shippingLocationId)
 {
+	let resupplyEvent = {userHikeId: userHikeId, shippingLocationId: shippingLocationId}
+
+	var xmlhttp = new XMLHttpRequest ();
+	xmlhttp.onreadystatechange = function ()
+	{
+		if (this.readyState == 4 && this.status == 200)
+		{
+		}
+	}
+	
+	xmlhttp.open("POST", "/resupplyEvent.php", true);
+	xmlhttp.setRequestHeader("Content-type", "application/json");
+	xmlhttp.send(JSON.stringify(resupplyEvent));
 }
 
 

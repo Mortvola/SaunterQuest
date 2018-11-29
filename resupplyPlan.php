@@ -10,6 +10,7 @@ $userHikeId = $_GET["id"];
 require_once "config.php";
 
 class foodPlan {};
+class shippingLocation {};
 
 function foodPlanGet ($foodPlanId)
 {
@@ -115,18 +116,53 @@ function scheduleGet (&$day)
 }
 
 
-function resupplyPackageAdd ()
+function resupplyPackageAdd ($shippingLocationId)
 {
-	global $resupplyPackages, $foodPlanAccumulator;
+	global $pdo, $resupplyPackages, $foodPlanAccumulator;
 	
-	$resupplyPackages[] = (object)["items" => $foodPlanAccumulator];
+	$resupplyPackage = (object)["items" => $foodPlanAccumulator];
+	
+	if (isset($shippingLocationId) && $shippingLocationId != -1)
+	{
+		try
+		{
+			$sql = "select shippingLocationId, name, inCareOf, address1, address2, city, state, zip
+					from shippingLocation sl
+					where shippingLocationId = :shippingLocationId";
+			
+			if ($stmt = $pdo->prepare($sql))
+			{
+				$stmt->bindParam(":shippingLocationId", $paramShippingLocationId, PDO::PARAM_INT);
+				
+				$paramShippingLocationId = $shippingLocationId;
+				
+				$stmt->execute ();
+				
+				$shippingLocation = $stmt->fetchAll(PDO::FETCH_CLASS, 'shippingLocation');
+				
+				$resupplyPackage->shippingLocation = $shippingLocation;
+				
+				unset($stmt);
+			}
+		}
+		catch(PDOException $e)
+		{
+			http_response_code (500);
+			echo $e->getMessage();
+		}
+	}
+	
+	$resupplyPackages[] = $resupplyPackage;
+	
 	$foodPlanAccumulator = [];
 }
+
 
 $day = [];
 $foodPlans = [];
 $foodPlanAccumulator = [];
 $resupplyPackages = [];
+$nextShippingLocationId = -1;
 
 scheduleGet ($day);
 
@@ -148,13 +184,15 @@ for ($d = 0; $d < count($day); $d++)
 		{
 			if ($day[$d]->events[$e]->type == "resupply")
 			{
-				resupplyPackageAdd ();
+				resupplyPackageAdd ($nextShippingLocationId);
+				
+				$nextShippingLocationId = $day[$d]->events[$e]->shippingLocationId;
 			}
 		}
 	}
 }
 
-resupplyPackageAdd ();
+resupplyPackageAdd ($nextShippingLocationId);
 
 echo json_encode($resupplyPackages);
 
