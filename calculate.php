@@ -6,8 +6,10 @@
   $userHikeId = $_GET["id"];
 //   	$userId = 1;
 //   	$userHikeId = 100027;
-	
-	// Include config file
+//	$debug = true;
+//	$maxZ = 2000;
+  
+// Include config file
 require_once "config.php";
 require_once "coordinates.php";
 	
@@ -541,7 +543,7 @@ class segmentIterator implements Iterator
 function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 {
 	global $hikerProfile, $d, $day, $dayHours, $dayMeters, $dayGain, $dayLoss;
-	global $foodStart;
+	global $foodStart, $maxZ, $debug;
 	
 	$lingerHours = 0;
 	
@@ -857,10 +859,8 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 function traverseSegments ($it)
 {
 	global $hikerProfile, $d, $day, $dayHours, $dayMeters, $dayLoss, $dayGain;
-	global $foodStart;
+	global $foodStart, $maxZ, $debug;
 	
-//	$debug = true;
-//	$maxZ = 2000;
 	$restart = false;
 	
 	$z = 0;
