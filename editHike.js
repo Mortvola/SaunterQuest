@@ -10,7 +10,7 @@ var startPosition;
 var routeMeasuringEnabled = false;
 var markerContextMenu = {};
 var resupplyLocationCM = {};
-
+var infoWindow = {};
 
 function timeFormat (t)
 {
@@ -33,11 +33,15 @@ function timeFormat (t)
 	return formattedTime;
 }
 
-function attachMessage (marker, message)
+function attachInfoWindowMessage (poi, message)
 {
-	var infoWindow = new google.maps.InfoWindow({content: message});
+	poi.message = message;
 	
-	return marker.addListener ("click", function () {infoWindow.open(map, marker);});
+	return poi.marker.addListener ("click", function ()
+		{
+			infoWindow.setContent (poi.message);
+			infoWindow.open(map, poi.marker);
+		});
 }
 
 function removePointOfInterest (marker)
@@ -397,6 +401,8 @@ function myMap()
 
 	map.addListener ("rightclick", function(event) {mapContextMenu.open (map, event);});
 	
+	infoWindow = new google.maps.InfoWindow({content: "This is a test"});
+
 	retrieveRoute ();
 	retrieveResupplyLocations ();
 	retrieveHikerProfiles (); //todo: only do this when visiting the tab of hiker profiles
@@ -472,7 +478,6 @@ function calculate ()
 							
 							let markerIndex = m;
 							markers[m].marker.addListener ("rightclick", function (event) { markerContextMenu.open (map, event, markerIndex); });
-							markers[m].listener = attachMessage(markers[m].marker, "Resupply");
 						}
 						else
 						{
@@ -481,10 +486,12 @@ function calculate ()
 							markers[m].lng = parseFloat(data[d].events[e].lng);
 							
 							markers[m].marker.setPosition(markers[m]);
-							
-							//attachMessage(markers[m].marker, "Resupply");
+
+							google.maps.event.removeListener (markers[m].listener);
 						}
 
+						markers[m].listener = attachInfoWindowMessage(markers[m], "Resupply");
+						
 						m++;
 					}
 				}
@@ -507,10 +514,6 @@ function calculate ()
 							url: "http://maps.google.com/mapfiles/ms/micons/campground.png"
 						},
 					});
-					
-					dayMarkers[day].listener = attachMessage(dayMarkers[day].marker, "<div>Day " + dayMarkers[day].day
-							+ "</div><div>Mile: " + metersToMiles(data[d].meters)
-							+ "</div><div>Elevation: " + metersToFeet(data[d].ele) + "\'</div>");
 				}
 				else
 				{
@@ -521,10 +524,12 @@ function calculate ()
 					dayMarkers[day].marker.setPosition(dayMarkers[day]);
 
 					google.maps.event.removeListener (dayMarkers[day].listener);
-					dayMarkers[day].listener = attachMessage(dayMarkers[day].marker, "<div>Day " + dayMarkers[day].day
-							+ "</div><div>Mile: " + metersToMiles(data[d].meters)
-							+ "</div><div>Elevation: " + metersToFeet(data[d].ele) + "\'</div>");
 				}
+				
+				dayMarkers[day].listener = attachInfoWindowMessage(dayMarkers[day],
+					"<div>Day " + dayMarkers[day].day
+					+ "</div><div>Mile: " + metersToMiles(data[d].meters)
+					+ "</div><div>Elevation: " + metersToFeet(data[d].ele) + "\'</div>");
 				
 				day++;
 			}
@@ -611,7 +616,17 @@ function retrieveResupplyLocations ()
 					
 					let shippingLocationId = resupplyLocations[r].shippingLocationId;
 					resupplyLocations[r].marker.addListener ("rightclick", function (event) { resupplyLocationCM.open (map, event, shippingLocationId); });
-					//resupplyLocations[r].listener = attachMessage(markers[m].marker, "Resupply");
+
+					if (resupplyLocations[r].address2 == null)
+					{
+						resupplyLocations[r].address2 = "";
+					}
+					
+					resupplyLocations[r].listener = attachInfoWindowMessage(resupplyLocations[r],
+						"<div>" + resupplyLocations[r].name + "</div>"
+						+ "<div>" + resupplyLocations[r].address1 + "</div>"
+						+ "<div>" + resupplyLocations[r].address2 + "</div>"
+						+ "<div>" + resupplyLocations[r].city + ", " + resupplyLocations[r].state + " " + resupplyLocations[r].zip + "</div>");
 				}
 			}
 		}
