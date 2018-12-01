@@ -313,6 +313,8 @@ function pointsOfInterestGet ($userId, $userHikeId)
 	
 				if ($s != -1)
 				{
+					$distance = haversineGreatCircleDistance ($segments[$s]->lat, $segments[$s]->lng, $poi["lat"], $poi["lng"]);
+					
 					//echo "Found segment $s\n";
 					$segments[$s]->events[] = (object)[
 							"poiId" => $poi["pointOfInterestId"],
@@ -321,7 +323,12 @@ function pointsOfInterestGet ($userId, $userHikeId)
 							"lng" => $poi["lng"],
 							"shippingLocationId" => $poi["shippingLocationId"],
 							"time" => $poi["time"],
-							"enabled" => true];
+							"enabled" => true,
+							"segments" => [
+								(object)["lat" => $segments[$s]->lat, "lng" => $segments[$s]->lng, "ele" => $segments[$s]->ele, "dist" => 0],
+								(object)["lat" => $poi["lat"], "lng" => $poi["lng"], "ele" => $segments[$s]->ele, "dist" => $distance],
+							]
+							];
 				}
 			}
 	
@@ -454,12 +461,91 @@ function metersPerHourGet ($dh, $dx)
 }
 
 
-function traverseSegment (&$k, &$segment, $nextSegmentIndex, &$nextSegment, &$z, &$lingerHours, $segmentMeters, $lastEle, &$restart)
+class segmentIterator implements Iterator
+{
+	private $_array = array();
+	private $direction = 1;
+	private $position = 0;
+	
+	public function __construct ($array, $direction)
+	{
+		$this->_array = $array;
+		$this->direction = $direction;
+		if ($direction > 0)
+		{
+			$this->position = 0;
+		}
+		else
+		{
+			$this->position = count($array) - 1;
+		}
+	}
+	
+	
+	public function current ()
+	{
+		return $this->_array[$this->position];
+	}
+	
+	public function key ()
+	{
+		return $this->position;
+	}
+	
+	public function next ()
+	{
+		$this->position += $this->direction;
+	}
+	
+	public function nextSegment ()
+	{
+		return $this->_array[$this->position + $this->direction];
+	}
+	
+	public function segmentLength ()
+	{
+		if ($this->direction > 0)
+		{
+			return $this->_array[$this->position + 1]->dist - $this->_array[$this->position]->dist;
+		}
+		else
+		{
+			return $this->_array[$this->position]->dist - $this->_array[$this->position - 1]->dist;
+		}
+	}
+
+	public function rewind ()
+	{
+		if ($this->direction > 0)
+		{
+			$this->position = 0;
+		}
+		else
+		{
+			$this->position = count($this->_array) - 1;
+		}
+	}
+	
+	public function valid ()
+	{
+		return isset($this->_array[$this->position]);
+	}
+	
+	public function nextValid ()
+	{
+		return isset($this->_array[$this->position + $this->direction]);
+	}
+}
+
+
+function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 {
 	global $hikerProfile, $d, $day, $dayHours, $dayMeters, $dayGain, $dayLoss;
 	global $foodStart;
 	
-	$metersPerHour = metersPerHourGet ($nextSegment->ele - $segment->ele, $nextSegment->dist - $segment->dist);
+	$lingerHours = 0;
+	
+	$metersPerHour = metersPerHourGet ($it->nextSegment()->ele - $it->current()->ele, $it->segmentLength());
 	
 	// Loop until we reach the end of the current segment, no matter how many days that takes
 	for (;;)
@@ -494,22 +580,22 @@ function traverseSegment (&$k, &$segment, $nextSegmentIndex, &$nextSegment, &$z,
 		// 			echo "Adjusted Meters/hour = ", ($metersPerHour * $hikerProfile["percentage"]), "\n";
 		// 			echo "Meters/day = $dayMetersRemaining\n";
 		
-		if ($segmentMeters + $dayMetersRemaining >= $nextSegment->dist)
+		if ($segmentMeters + $dayMetersRemaining >= $it->segmentLength ())
 		{
 			if (isset($debug))
 			{
 				echo "Day $d, segment meters: $segmentMeters, hours remaining: $hoursRemaining, meters remaining: $dayMetersRemaining, meters/hour = $metersPerHour\n";
 			}
 			
-			$remainingSegmentMeters = $nextSegment->dist - $segmentMeters;
-			$segmentMeters = $nextSegment->dist;
+			$remainingSegmentMeters = $it->segmentLength () - $segmentMeters;
+			$segmentMeters = $it->segmentLength ();
 			
 			$dayMeters += $remainingSegmentMeters;
 			$hoursHiked = $remainingSegmentMeters / ($metersPerHour * ($hikerProfile["percentage"] / 100.0));
 			$dayHours += $hoursHiked;
 			$currentTime = DayGet ($d)->startTime + $dayHours;
 			
-			$eleDelta = $nextSegment->ele - $lastEle;
+			$eleDelta = $it->nextSegment()->ele - $lastEle;
 			
 			if ($eleDelta > 0)
 			{
@@ -520,14 +606,14 @@ function traverseSegment (&$k, &$segment, $nextSegmentIndex, &$nextSegment, &$z,
 				$dayLoss += -$eleDelta;
 			}
 			
-			// todo: This needs to change so that events are processed as we come across them *during* the segment
+			// todo: This should change so that events are processed as we come across them *during* the segment
 			// instead of processing the ones from the next segment.
-			if (isset($nextSegment->events) && count($nextSegment->events) > 0)
+			if (isset($it->nextSegment()->events) && count($it->nextSegment()->events) > 0)
 			{
 				//					echo "events available at segment ", $k + 1, "\n";
 				//					var_dump($nextSegment->events);
 				
-				$event = findEvent("arriveBefore", $nextSegment->events);
+				$event = findEvent("arriveBefore", $it->nextSegment()->events);
 				
 				if ($event && $event->enabled)
 				{
@@ -578,10 +664,21 @@ function traverseSegment (&$k, &$segment, $nextSegmentIndex, &$nextSegment, &$z,
 					DayGet ($d)->events[] = new Event("arriveBefore", $event->poiId, $event->lat, $event->lng, $segmentMeters, $currentTime, "Arrive Before: " . $arriveBeforeTime . ", arrived at " . $currentTime . ";");
 				}
 				
-				$event = findEvent("resupply", $nextSegment->events);
+				$event = findEvent("resupply", $it->nextSegment()->events);
 				
 				if ($event && $event->enabled)
 				{
+					if (isset($event->segments) && count($event->segments) > 0)
+					{
+// 						echo "Following segments to resupply. dayMeters = $dayMeters\n";
+ 						$pathIt = new segmentIterator($event->segments, 1);
+ 						traverseSegments($pathIt);
+// 						echo "Reversing direction. dayMeters = $dayMeters\n";
+ 						$pathIt = new segmentIterator($event->segments, -1);
+ 						traverseSegments($pathIt);
+// 						echo "Returned from following segments to resupply. dayMeters = $dayMeters\n";
+					}
+					
 					computeFoodWeight ($day, $d, $foodStart);
 					
 					if ($event)
@@ -590,7 +687,7 @@ function traverseSegment (&$k, &$segment, $nextSegmentIndex, &$nextSegment, &$z,
 					}
 				}
 				
-				$event = findEvent("stop", $nextSegment->events);
+				$event = findEvent("stop", $it->nextSegment()->events);
 				
 				if ($event && $event->enabled)
 				{
@@ -608,7 +705,7 @@ function traverseSegment (&$k, &$segment, $nextSegmentIndex, &$nextSegment, &$z,
 // 					}
 				}
 				
-				$event = findEvent("linger", $nextSegment->events);
+				$event = findEvent("linger", $it->nextSegment()->events);
 				
 				if ($event && $event->enabled)
 				{
@@ -717,7 +814,7 @@ function traverseSegment (&$k, &$segment, $nextSegmentIndex, &$nextSegment, &$z,
 			// Determine where in the segment we ended and compute current elevation and
 			// lat/lng.
 			
-			$segmentPercent = ($segmentMeters - $segment->dist) / ($nextSegment->dist - $segment->dist);
+			$segmentPercent = $segmentMeters / $it->segmentLength ();
 			
 			// 				echo "segmentPercent = $segmentPercent\n";
 			// 				echo "segmentMeters = $segmentMeters\n";
@@ -726,7 +823,7 @@ function traverseSegment (&$k, &$segment, $nextSegmentIndex, &$nextSegment, &$z,
 			// 				echo "numerator = ", ($segmentMeters - $segment->dist), "\n";
 			// 				echo "denominator = ", ($nextSegment->dist - $segment->dist), "\n";
 			
-			$currentEle = ($nextSegment->ele - $segment->ele) * $segmentPercent + $segment->ele;
+			$currentEle = ($it->nextSegment()->ele - $it->current()->ele) * $segmentPercent + $it->current()->ele;
 			
 			$eleDelta = $currentEle - $lastEle;
 			
@@ -741,10 +838,10 @@ function traverseSegment (&$k, &$segment, $nextSegmentIndex, &$nextSegment, &$z,
 			
 			//todo: This is just a linear computation of lat/lng given the distance. Change this to
 			// use a geodesic computation.
-			$lat = ($nextSegment->lat - $segment->lat) * $segmentPercent + $segment->lat;
-			$lng = ($nextSegment->lng - $segment->lng) * $segmentPercent + $segment->lng;
+			$lat = ($it->nextSegment()->lat - $it->current()->lat) * $segmentPercent + $it->current()->lat;
+			$lng = ($it->nextSegment()->lng - $it->current()->lng) * $segmentPercent + $it->current()->lng;
 			
-			newDayStart ($d, $dayMeters, $dayHours, $lat, $lng, $currentEle, $dayGain, $dayLoss, $k, $segmentMeters);
+			newDayStart ($d, $dayMeters, $dayHours, $lat, $lng, $currentEle, $dayGain, $dayLoss, $it->key(), $segmentMeters);
 			
 			$lastEle = $currentEle;
 			
@@ -757,7 +854,7 @@ function traverseSegment (&$k, &$segment, $nextSegmentIndex, &$nextSegment, &$z,
 }
 
 
-function traverseSegments ($segments)
+function traverseSegments ($it)
 {
 	global $hikerProfile, $d, $day, $dayHours, $dayMeters, $dayLoss, $dayGain;
 	global $foodStart;
@@ -765,12 +862,16 @@ function traverseSegments ($segments)
 //	$debug = true;
 //	$maxZ = 2000;
 	$restart = false;
-	$lingerHours = 0;
 	
 	$z = 0;
 	
-	for ($k = 0; $k < count($segments) - 1; $k++)
+	foreach ($it as $segment)
 	{
+		if (!$it->nextValid())
+		{
+			break;
+		}
+		
 		if ($restart)
 		{
 			if (isset($debug))
@@ -786,21 +887,15 @@ function traverseSegments ($segments)
 		}
 		else
 		{
-			if ($k == 0)
-			{
-				DayGet ($d)->segment = $k;
-				DayGet ($d)->segmentMeters = $segments[$k]->dist;
-			}
-			
-			$segmentMeters = $segments[$k]->dist;
-			$lastEle = $segments[$k]->ele;
+			$segmentMeters = 0;
+			$lastEle = $segment->ele;
 		}
 		
-		traverseSegment ($k, $segments[$k], $k + 1, $segments[$k+1], $z, $lingerHours, $segmentMeters, $lastEle, $restart);
+		traverseSegment ($it, $z, $segmentMeters, $lastEle, $restart);
 		
 		if ($restart)
 		{
-			$k = DayGet ($d)->segment - 1; // decrease by one since the for loop will increase it by one
+			$it->position(DayGet ($d)->segment - 1); // decrease by one since the for loop will increase it by one
 		}
 		
 		if (isset($maxZ) && $z > $maxZ)
@@ -869,7 +964,9 @@ function userHikeDataStore ($jsonHikeData)
 
 	$foodStart = $d;
 	
-	traverseSegments($segments);
+	$it = new segmentIterator($segments, 1);
+	
+	traverseSegments($it);
 	
 	computeFoodWeight ($day, $d, $foodStart);
 	
