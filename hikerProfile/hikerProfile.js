@@ -3,19 +3,6 @@
 var hikerProfiles = [];
 
 
-function nvl(value, replacement)
-{
-	if (value == null)
-	{
-		return replacement;
-	}
-	else
-	{
-		return value;
-	}
-}
-
-
 function hikerProfileRowGet (profile)
 {
 	let txt = "";
@@ -126,8 +113,6 @@ function objectifyForm(formArray)
 
 function updateHikerProfile (hikerProfileId)
 {
-	console.log(hikerProfileId);
-
 	var profile = objectifyForm($("#hikerProfileForm").serializeArray());
 	profile.hikerProfileId = hikerProfileId;
 	

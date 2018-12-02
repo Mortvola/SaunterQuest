@@ -157,3 +157,17 @@ create table hikerProfile (
 	startTime DECIMAL(4,2),
 	endTime DECIMAL(4,2),
 	breakDuration DECIMAL(4,2));
+	
+create table trailCondition (
+	trailConditionId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	creationDate DATETIME NOT NULL,
+	modificationDate DATETIME NOT NULL,
+	hikeId INT,		-- Either hikeId or userHikeId must be set but not both
+	userHikeId INT,
+	startLat DECIMAL(17,14) NOT NULL,
+	startLng DECIMAL(17,14) NOT NULL,
+	endLat DECIMAL(17,14) NOT NULL,
+	endLng DECIMAL(17,14) NOT NULL,
+	type INT NOT NULL, -- 0 = no camping, 1 = no stealth camping, 2 = custom
+	description VARCHAR(255),
+	percentage INT);

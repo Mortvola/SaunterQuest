@@ -185,7 +185,6 @@ if ($hikeId)
 		</div>
 	</div> <!--  Modal -->
 	
-	
 	<!-- Modal -->
 	<div class="modal fade" id="modalDialog" role="dialog">
 		<div class="modal-dialog">
@@ -214,15 +213,45 @@ if ($hikeId)
 		<li><a class="nav-link" href="/DayTemplates.php" style="color:white">Food Plans</a></li>
 		</ul>
 		</nav>
-		<div class="col-md-7" style="padding:0;height:100%">
+		<div class="col-md-7" style="display:flex;flex-direction:column;padding:0;height:100%">
+			<div id='editTrailConditions' style='display:none'>
+				<form id='trailConditionForm'>
+					<div class="grid-container">
+					
+					<div>
+			        <label>Type:</label>
+					<select class="form-control" name='type'>
+						<option value=0>No Camping</option>
+						<option value=1>No Stealth Camping</option>
+						<option value=2>Other</option>
+					</select>
+					</div>
+			        
+			        <div>
+			        <label>Description:</label>
+			        <input type="text" class='form-control' name='description'/>
+					</div>
+					
+					<div>
+			        <label>Percentage:</label>
+			        <input type="number" class='form-control' name='percentage' value='100'/>
+					</div>
+					
+			        </div>
+				</form>
+				<div class="modal-footer">
+					<button type="button" class="btn" onclick='cancelEditTrailConditions()'>Cancel</button>
+					<button id='trailConditionSaveButton' type="button" class="btn btn-default" data-dismiss="modal">Save</button>
+				</div>
+			</div>
 			<div id="googleMap" style="width:100%;height:100%"></div>
 		</div>
 		<div class="col-md-4" style="height:100%;padding:0px 5px 0px 5px">
 			<div style="display:grid;align-content:start;grid-template-rows: auto auto;height:100%">
 				<ul class="nav nav-tabs" role="tablist">
 					<li role="presentation" class="active"><a data-toggle="tab" href="#schedule">Schedule</a></li>
-					<li role="presentation"><a data-toggle="tab" href="#hikerProfiles">Hiker Profiles</a></li>
 					<li role="presentation"><a data-toggle="tab" href="#trailConditions">Trail Conditions</a></li>
+					<li role="presentation"><a data-toggle="tab" href="#hikerProfiles">Hiker Profiles</a></li>
 					<li role="presentation"><a data-toggle="tab" href="#equipment">Gear</a></li>
 					<li role="presentation"><a data-toggle="tab" href="#resupply" onclick="loadResupply()">Resupply</a></li>
 					<li role="presentation"><a data-toggle="tab" href="#todoList">To-do</a></li>
@@ -272,10 +301,8 @@ if ($hikeId)
 							<table class="table table-condensed">
 							<thead>
 							<tr>
+							<th>Type</th>
 							<th>Description</th>
-							<th>Start Mile</th>
-							<th>End Mile</th>
-							<th>Condition</th>
 							<th>Percentage</th>
 							</tr>
 							</thead>
@@ -311,6 +338,7 @@ if ($hikeId)
 		var userHikeId = <?php echo $userHikeId ?>;
 	</script>
 	
+	<script src="/utilities.js"></script>
 	<script src="/contextMenu.js"></script>
 	<script	src="/editHike.js"></script>
 	<script	src="/hikerProfile/hikerProfile.js"></script>

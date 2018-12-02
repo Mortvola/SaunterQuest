@@ -3,14 +3,25 @@
 var markers = [];
 var dayMarkers = [];
 var resupplyLocations = [];
+var route;
 var routeCoords = [];
+var routeContextMenu;
+var routeContextMenuListener;
+var trailConditionMenu;
+var trailConditions = [];
+var trailConditionMarkers = [];
+var temporaryTrailConditionPolyLine;
+var editingTrailConditionId = null;
 var map;
 var data;
 var startPosition;
-var routeMeasuringEnabled = false;
+var interfaceMode = "normal";
 var markerContextMenu = {};
 var resupplyLocationCM = {};
 var infoWindow = {};
+
+const routeStrokeWeight = 6;
+const trailConditionStrokePadding = 4;
 
 function timeFormat (t)
 {
@@ -38,10 +49,10 @@ function attachInfoWindowMessage (poi, message)
 	poi.message = message;
 	
 	return poi.marker.addListener ("click", function ()
-		{
-			infoWindow.setContent (poi.message);
-			infoWindow.open(map, poi.marker);
-		});
+	{
+		infoWindow.setContent (poi.message);
+		infoWindow.open(map, poi.marker);
+	});
 }
 
 function removePointOfInterest (marker)
@@ -85,16 +96,17 @@ function addPointOfInterest (position)
 function startRouteMeasurement (position)
 {
 	startPosition = position;
-	routeMeasuringEnabled = true;
+	interfaceMode = "routeMeasurement";
 }
 
-function routeRightClick (position)
+function routeClick (position)
 {
-	if (routeMeasuringEnabled)
+	if (interfaceMode == "routeMeasurement")
 	{
-		routeMeasuringEnabled = false;
 		measureRouteDistance (startPosition, position);
 	}
+
+	interfaceMode = "normal";
 }
 
 function measureRouteDistance (startPosition, endPosition)
@@ -119,6 +131,8 @@ function measureRouteDistance (startPosition, endPosition)
 			endSegment = [startSegment, startSegment=endSegment][0];
 		}
 		
+		// Compute the distance between the start point and the start segment (the
+		// start point might be int he middle of a segment)
 		let startDistance = google.maps.geometry.spherical.computeDistanceBetween(
 				startPosition,
 				new google.maps.LatLng(routeCoords[startSegment + 1].lat, routeCoords[startSegment + 1].lng));		
@@ -130,6 +144,8 @@ function measureRouteDistance (startPosition, endPosition)
 				new google.maps.LatLng(routeCoords[r + 1].lat, routeCoords[r + 1].lng));		
 		}
 
+		// Compute the distance between the end segment and the end point (the
+		// start point might be int he middle of a segment)
 		let endDistance = google.maps.geometry.spherical.computeDistanceBetween(
 				new google.maps.LatLng(routeCoords[endSegment].lat, routeCoords[endSegment].lng),
 				endPosition);
@@ -151,6 +167,52 @@ function measureRouteDistance (startPosition, endPosition)
 	$("#modalDialog").modal ('show');
 }
 
+
+function trailConditionPolylineCreate (startPosition, endPosition, color)
+{
+	let startSegment = findNearestSegment(startPosition);
+	let endSegment = findNearestSegment(endPosition);
+
+	let polyline = [];
+	
+	if (startSegment != endSegment)
+	{
+		//
+		// Swap the values if needed.
+		//
+		if (startSegment > endSegment)
+		{
+			endSegment = [startSegment, startSegment=endSegment][0];
+			endPosition = [startPosition, startPosition=endPosition][0];
+		}
+		
+		// Compute the distance between the start point and the start segment (the
+		// start point might be int he middle of a segment)
+		polyline.push({lat: startPosition.lat(), lng: startPosition.lng()});
+		
+		for (let r = startSegment + 1; r <= endSegment; r++)
+		{
+			polyline.push({lat: routeCoords[r].lat, lng: routeCoords[r].lng});
+		}
+
+		// Compute the distance between the end segment and the end point (the
+		// start point might be int he middle of a segment)
+		polyline.push({lat: endPosition.lat(), lng: endPosition.lng()});
+	}
+	
+	var polyLine = new google.maps.Polyline({
+		path: polyline,
+		geodesic: true,
+		strokeColor: color,
+		strokeOpacity: 1.0,
+		strokeWeight: routeStrokeWeight + 2 * trailConditionStrokePadding,
+		zIndex: 10});
+
+	polyLine.setMap(map);
+
+	return polyLine;
+}
+
 function sqr(x)
 {
 	return x * x;
@@ -161,21 +223,43 @@ function distSquared(v, w)
 	return sqr(v.x - w.x) + sqr(v.y - w.y)
 }
 
-function distToSegmentSquared(p, v, w)
+function nearestPointOnSegment (p, v, w)
 {
 	// Check to see if the line segment is really just a point. If so, return the distance between
 	// the point and one of the points of the line segment.
 	var l2 = distSquared(v, w);
 	if (l2 == 0)
 	{
-		return distSquared(p, v);
+		return v;
 	}
 
 	var t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
 	t = Math.max(0, Math.min(1, t));
 
-	return distSquared(p, { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) });
+	return { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) };
 }
+
+
+function distToSegmentSquared(p, v, w)
+{
+	// Check to see if the line segment is really just a point. If so, return the distance between
+	// the point and one of the points of the line segment.
+//	var l2 = distSquared(v, w);
+//	if (l2 == 0)
+//	{
+//		return distSquared(p, v);
+//	}
+//
+//	var t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+//	t = Math.max(0, Math.min(1, t));
+//
+//	return distSquared(p, { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) });
+	
+	let l = nearestPointOnSegment (p, v, w);
+	
+	return distSquared(p, l);
+}
+
 
 function distToSegment(p, v, w)
 {
@@ -282,32 +366,50 @@ function insertResupplyLocation (position)
 //
 function positionMapToDay (d)
 {
+	positionMapToBounds ({lat: data[d].lat, lng: data[d].lng}, {lat: data[d+1].lat, lng: data[d+1].lng});
+}
+
+
+function positionMapToBounds (p1, p2)
+{
 	var bounds = {};
 
-	if (data[d].lng < data[d + 1].lng)
+	if (p1.lng < p2.lng)
 	{
-		bounds.east = data[d + 1].lng;
-		bounds.west = data[d].lng;
+		bounds.east = p2.lng;
+		bounds.west = p1.lng;
 	}
 	else
 	{
-		bounds.east = data[d].lng;
-		bounds.west = data[d + 1].lng;
+		bounds.east = p1.lng;
+		bounds.west = p2.lng;
 	}
 
-	if (data[d].lat < data[d + 1].lat)
+	if (p1.lat < p2.lat)
 	{
-		bounds.north = data[d + 1].lat;
-		bounds.south = data[d].lat;
+		bounds.north = p2.lat;
+		bounds.south = p1.lat;
 	}
 	else
 	{
-		bounds.north = data[d].lat;
-		bounds.south = data[d + 1].lat;
+		bounds.north = p1.lat;
+		bounds.south = p2.lat;
 	}
 
 	map.fitBounds(bounds);
 }
+
+
+function setRouteContextMenu (contextMenu)
+{
+	if (routeContextMenuListener)
+	{
+		google.maps.event.removeListener (routeContextMenuListener);
+	}
+	
+	routeContextMenuListener = route.addListener ("rightclick", function (event) {contextMenu.open (map, event); });
+}
+
 
 function drawRoute ()
 {
@@ -353,22 +455,28 @@ function drawRoute ()
 
 		map.fitBounds(bounds);
 		
-		var route = new google.maps.Polyline({
+		route = new google.maps.Polyline({
 			path: routeCoords,
 			geodesic: true,
-			strokeColor: '#FF0000',
+			strokeColor: '#0000FF',
 			strokeOpacity: 1.0,
-			strokeWeight: 4});
+			strokeWeight: routeStrokeWeight,
+			zIndex: 20});
 
 		route.setMap(map);
 
-		var routeContextMenu = new ContextMenu ([
+		route.addListener ("click", function (event) { routeClick (event.latLng); });
+
+		routeContextMenu = new ContextMenu ([
 			{title:"Add Point of Interest", func:addPointOfInterest},
 			{title:"Measure route distance", func:startRouteMeasurement},
 			{title:"Add Note"}]);
-		
-		route.addListener ("click", function (event) { routeRightClick (event.latLng); });
-		route.addListener ("rightclick", function (event) {routeContextMenu.open (map, event); });
+
+		trailConditionMenu = new ContextMenu ([
+			{title:"Set start marker", func:setStartMarker},
+			{title:"Set end marker", func:setEndMarker}]);
+
+		setRouteContextMenu (routeContextMenu);
 	}
 }
 
@@ -406,6 +514,7 @@ function myMap()
 	retrieveRoute ();
 	retrieveResupplyLocations ();
 	retrieveHikerProfiles (); //todo: only do this when visiting the tab of hiker profiles
+	retrieveTrailConditions ();
 	calculate ();
 } 
 
@@ -722,4 +831,398 @@ function updateResupplyLocation (shippingLocationId)
 
 function deleteResupplyLocation ()
 {
+}
+
+
+function insertTrailCondition ()
+{
+	var trailCondition = objectifyForm($("#trailConditionForm").serializeArray());
+	
+	trailCondition.userHikeId = userHikeId;
+	
+	// Both markers must be placed on the map.
+	if (trailConditionMarkers[0] && trailConditionMarkers[0].map
+	 && trailConditionMarkers[1] && trailConditionMarkers[1].map)
+	{
+		trailCondition.startLat = trailConditionMarkers[0].position.lat ();
+		trailCondition.startLng = trailConditionMarkers[0].position.lng ();
+		trailCondition.endLat = trailConditionMarkers[1].position.lat ();
+		trailCondition.endLng = trailConditionMarkers[1].position.lng ();
+	
+		var xmlhttp = new XMLHttpRequest ();
+		xmlhttp.onreadystatechange = function ()
+		{
+			if (this.readyState == 4)
+			{
+				if (this.status == 200)
+				{
+					trailCondition = JSON.parse(this.responseText);
+	
+					trailCondition.polyLine = trailConditionPolylineCreate (
+						new google.maps.LatLng({lat: parseFloat(trailCondition.startLat), lng: parseFloat(trailCondition.startLng)}),
+						new google.maps.LatLng({lat: parseFloat(trailCondition.endLat), lng: parseFloat(trailCondition.endLng)}),
+						'#FF0000');
+					
+					trailConditions.push(trailCondition);
+	
+					$("#conditionsLastRow").before(trailConditionRowGet (trailCondition));
+					
+					calculate ();
+				}
+
+				closeEditTrailConditions ();
+			}
+		}
+		
+		xmlhttp.open("POST", "/trailCondition.php", true);
+		xmlhttp.setRequestHeader("Content-type", "application/json");
+		xmlhttp.send(JSON.stringify(trailCondition));
+	}
+}
+
+
+function trailConditionTypeGet (type)
+{
+	if (type == 0)
+	{
+		return "No Camping";
+	}
+	else if (type == 1)
+	{
+		return "No Stealth Camping";
+	}
+	else if (type == 2)
+	{
+		return "Other";
+	}
+}
+
+
+function trailConditionRowGet (trailCondition)
+{
+	let txt = "";
+	
+	txt += "<tr id='trailCondition_" + trailCondition.trailConditionId + "'>";
+
+	txt += "<td style='display:flex;justify-content:flex-start;'>";
+	txt += "<span style='padding-right:15px'>";
+	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='viewTrailCondition(" + trailCondition.trailConditionId + ")'><span class='glyphicon glyphicon-eye-open'></span></a>";
+	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='editTrailCondition(" + trailCondition.trailConditionId + ")'><span class='glyphicon glyphicon-pencil'></span></a>";
+	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='removeTrailCondition(" + trailCondition.trailConditionId + ")'><span class='glyphicon glyphicon-trash'></span></a>";
+	txt += "</span>"
+	txt += trailConditionTypeGet(trailCondition.type) + "</td>";
+	txt += "<td align='left'>" + nvl(trailCondition.description, "") + "</td>";
+	txt += "<td align='right'>" + nvl(trailCondition.percentage, 100) + "</td>";
+
+	txt += "</tr>";
+
+	return txt;
+}
+
+
+function getTrailConditionColor (type)
+{
+	if (type == 0)
+	{
+		return '#FF0000';
+	}
+	else if (type == 1)
+	{
+		return '#FFA500'; //'#FFFF00'; //'#FFD700'
+	}
+	else
+	{
+		return '#FF00FF'; //'#C0C0C0'; //'#708090'
+	}
+}
+
+
+function retrieveTrailConditions ()
+{
+	var xmlhttp = new XMLHttpRequest ();
+	xmlhttp.onreadystatechange = function ()
+	{
+		if (this.readyState == 4 && this.status == 200)
+		{
+			trailConditions = JSON.parse(this.responseText);
+			
+			let txt = "";
+
+			for (let t in trailConditions)
+			{
+				trailConditions[t].polyLine = trailConditionPolylineCreate (
+					new google.maps.LatLng({lat: parseFloat(trailConditions[t].startLat), lng: parseFloat(trailConditions[t].startLng)}),
+					new google.maps.LatLng({lat: parseFloat(trailConditions[t].endLat), lng: parseFloat(trailConditions[t].endLng)}),
+					getTrailConditionColor(trailConditions[t].type));
+
+				txt += trailConditionRowGet (trailConditions[t]);
+			}
+			
+			$("#conditionsLastRow").before(txt);
+		}
+	}
+	
+	xmlhttp.open("GET", "/trailCondition.php?id=" + userHikeId, true);
+	//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	xmlhttp.send();
+}
+
+
+function findTrailConditionIndex (trailConditionId)
+{
+	for (let t in trailConditions)
+	{
+		if (trailConditions[t].trailConditionId == trailConditionId)
+		{
+			return t;
+		}
+	}
+	
+	return -1;
+}
+
+
+function moveMarkerToTrail (marker, otherMarker)
+{
+	let segment = findNearestSegment(trailConditionMarkers[marker].position);
+	
+	let p = nearestPointOnSegment (
+		{x: trailConditionMarkers[marker].position.lat(), y: trailConditionMarkers[marker].position.lng()},
+		{x: routeCoords[segment].lat, y: routeCoords[segment].lng},
+		{x: routeCoords[segment + 1].lat, y: routeCoords[segment + 1].lng});
+
+	trailConditionMarkers[marker].setPosition ({lat: p.x, lng: p.y});
+
+	if (temporaryTrailConditionPolyLine)
+	{
+		temporaryTrailConditionPolyLine.setMap(null);
+	}
+	
+	// If both markers are on the map then draw a poly line between them on the trail.
+	if (trailConditionMarkers[marker] && trailConditionMarkers[marker].map
+	 && trailConditionMarkers[otherMarker] && trailConditionMarkers[otherMarker].map)
+	{
+		temporaryTrailConditionPolyLine = trailConditionPolylineCreate (
+			trailConditionMarkers[marker].position, trailConditionMarkers[otherMarker].position,
+			'#FF0000');
+	}
+}
+
+
+function markerSetup (marker, position, otherMarker)
+{
+	if (trailConditionMarkers[marker] == undefined)
+	{
+		trailConditionMarkers[marker] = new google.maps.Marker({
+			position: position,
+			map: map,
+			draggable: true
+		});
+
+		trailConditionMarkers[marker].addListener ("dragend", function (event)
+		{
+			moveMarkerToTrail (marker, otherMarker);
+		});
+	}
+	else
+	{
+		trailConditionMarkers[marker].setPosition(position);
+		trailConditionMarkers[marker].setMap(map);
+	}
+}
+
+
+function setStartMarker (position)
+{
+	markerSetup (0, position, 1);
+	
+	moveMarkerToTrail (0, 1);
+}
+
+
+function setEndMarker (position)
+{
+	markerSetup (1, position, 0);
+
+	moveMarkerToTrail (1, 0);
+}
+
+
+function addTrailCondition ()
+{
+	setRouteContextMenu (trailConditionMenu);
+
+	$("#trailConditionSaveButton").off('click');
+	$("#trailConditionSaveButton").click(function () { insertTrailCondition()});
+
+	$("#editTrailConditions").show (250);
+}
+
+
+function viewTrailCondition (trailConditionId)
+{
+	let t = findTrailConditionIndex(trailConditionId);
+	
+	if (t > -1)
+	{
+		let startPosition = {lat: parseFloat(trailConditions[t].startLat), lng: parseFloat(trailConditions[t].startLng)};
+		let endPosition = {lat: parseFloat(trailConditions[t].endLat), lng: parseFloat(trailConditions[t].endLng)};
+
+		positionMapToBounds (startPosition, endPosition);
+	}
+}
+
+
+function editTrailCondition (trailConditionId)
+{
+	let t = findTrailConditionIndex(trailConditionId);
+	
+	if (t > -1)
+	{
+		let startPosition = {lat: parseFloat(trailConditions[t].startLat), lng: parseFloat(trailConditions[t].startLng)};
+		let endPosition = {lat: parseFloat(trailConditions[t].endLat), lng: parseFloat(trailConditions[t].endLng)};
+		
+		markerSetup (0, startPosition, 1);
+		markerSetup (1, endPosition, 0);
+		
+		positionMapToBounds (startPosition, endPosition);
+
+		temporaryTrailConditionPolyLine = trailConditionPolylineCreate (
+			trailConditionMarkers[0].position, trailConditionMarkers[1].position,
+			'#FF0000');
+
+		//
+		// If we were editing another trail condition polyline then restore it
+		//
+		if (editingTrailConditionId != null && trailConditionId != editingTrailConditionId)
+		{
+			let previous = findTrailConditionIndex(editingTrailConditionId);
+			
+			trailConditions[previous].polyLine.setMap(map);
+		}
+		
+		editingTrailConditionId = trailConditionId;
+		
+		trailConditions[t].polyLine.setMap(null);
+		
+		setRouteContextMenu (trailConditionMenu);
+
+		$("#trailConditionForm select[name='type']").val(trailConditions[t].type);
+		$("#trailConditionForm input[name='description']").val(trailConditions[t].description);
+		$("#trailConditionForm input[name='percentage']").val(nvl(trailConditions[t].percentage, 100));
+
+		$("#trailConditionSaveButton").off('click');
+		$("#trailConditionSaveButton").click(function () { updateTrailCondition(trailConditionId)});
+
+		$("#editTrailConditions").show (250);
+
+	}
+}
+
+
+function cancelEditTrailConditions ()
+{
+	// If we were editing a trail condition then restore its polyline.
+	if (editingTrailConditionId != null)
+	{
+		let t = findTrailConditionIndex (editingTrailConditionId);
+		
+		if (t > -1)
+		{
+			trailConditions[t].polyLine.setMap(map);
+		}
+	
+		editingTrailConditionId = null;
+	}
+
+	closeEditTrailConditions ();
+}
+
+
+function closeEditTrailConditions ()
+{
+	$("#editTrailConditions").hide(250);
+
+	trailConditionMarkers[0].setMap(null);
+	trailConditionMarkers[1].setMap(null);
+	temporaryTrailConditionPolyLine.setMap(null);
+	
+	setRouteContextMenu (routeContextMenu);
+}
+
+
+function updateTrailCondition (trailConditionId)
+{
+	var trailCondition = objectifyForm($("#trailConditionForm").serializeArray());
+	trailCondition.trailConditionId = trailConditionId;
+	
+	let t = findTrailConditionIndex (trailConditionId);
+
+	trailCondition.startLat = trailConditionMarkers[0].position.lat ();
+	trailCondition.startLng = trailConditionMarkers[0].position.lng ();
+	trailCondition.endLat = trailConditionMarkers[1].position.lat ();
+	trailCondition.endLng = trailConditionMarkers[1].position.lng ();
+	
+	var xmlhttp = new XMLHttpRequest ();
+	xmlhttp.onreadystatechange = function ()
+	{
+		if (this.readyState == 4)
+		{
+			if (this.status == 200)
+			{
+				let t = findTrailConditionIndex (trailConditionId);
+	
+				// If there is an existing polyline then remove it from the map.
+				if (trailConditions[t].polyLine)
+				{
+					trailConditions[t].polyLine.setMap(null);
+				}
+				
+				trailConditions[t] = trailCondition;
+				
+				trailConditions[t].polyLine = trailConditionPolylineCreate (
+					new google.maps.LatLng({lat: parseFloat(trailConditions[t].startLat), lng: parseFloat(trailConditions[t].startLng)}),
+					new google.maps.LatLng({lat: parseFloat(trailConditions[t].endLat), lng: parseFloat(trailConditions[t].endLng)}),
+					'#FF0000');
+	
+				$("#trailCondition_" + trailConditionId).replaceWith (trailConditionRowGet(trailCondition));
+	
+				calculate ();
+			}
+
+			closeEditTrailConditions ();
+		}
+	}
+	
+	xmlhttp.open("PUT", "/trailCondition.php", true);
+	xmlhttp.setRequestHeader("Content-type", "application/json");
+	xmlhttp.send(JSON.stringify(trailCondition));
+}
+
+
+function removeTrailCondition (trailConditionId)
+{
+	var xmlhttp = new XMLHttpRequest ();
+	xmlhttp.onreadystatechange = function ()
+	{
+		if (this.readyState == 4 && this.status == 200)
+		{
+			let t = findTrailConditionIndex (trailConditionId);
+			
+			// If there is an existing polyline then remove it from the map.
+			if (trailConditions[t].polyLine)
+			{
+				trailConditions[t].polyLine.setMap(null);
+			}
+
+			trailConditions.splice(t, 1);
+			
+			$("#trailCondition_" + trailConditionId).remove();
+			calculate ();
+		}
+	}
+	
+	xmlhttp.open("DELETE", "/trailCondition.php", true);
+	xmlhttp.setRequestHeader("Content-type", "application/json");
+	xmlhttp.send(JSON.stringify(trailConditionId));
 }
