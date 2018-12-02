@@ -343,6 +343,7 @@ if ($hikeId)
 	<script	src="/editHike.js"></script>
 	<script	src="/hikerProfile/hikerProfile.js"></script>
 	<script src="/resupplyPlan.js"></script>
+	<script src="/trailCondition.js"></script>
 	
 	<script async defer
 	 src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB16_kVJjm2plHSOkrxZDC4etbpp6vW8kU&callback=myMap&libraries=geometry">
