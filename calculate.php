@@ -367,7 +367,7 @@ function trailConditionsGet ($userHikeId)
 	
 	try
 	{
-		$sql = "select tc.trailConditionId, startLat, startLng, endLat, endLng, type, IFNULL(percentage, 100) AS percentage
+		$sql = "select tc.trailConditionId, startLat, startLng, endLat, endLng, type, IFNULL(percentage, 100) AS speedFactor
 				from trailCondition tc
 				join userHike uh on (uh.userHikeId = tc.userHikeId OR uh.hikeId = tc.hikeId)
 				and uh.userHikeId = :userHikeId";
@@ -441,7 +441,7 @@ function hikerProfilesGet ($userId, $userHikeId)
 	
 	try
 	{
-		$sql = "select percentage,
+		$sql = "select percentage AS speedFactor,
 					startDay, endDay,
 					startTime, endTime, breakDuration
 				from hikerProfile
@@ -475,7 +475,7 @@ function activeHikerProfileGet ($d)
 {
 	global $hikerProfile, $hikerProfiles;
 	
-	$hikerProfile->percentage = 100;
+	$hikerProfile->speedFactor = 100;
 	$hikerProfile->startTime = 8;
 	$hikerProfile->endTime = 19;
 	$hikerProfile->breakDuration = 1;
@@ -485,9 +485,9 @@ function activeHikerProfileGet ($d)
 		if ((!isset($profile->startDay) || $d >= $profile->startDay)
 		 && (!isset($profile->endDay) || $d <= $profile->endDay))
 		{
-			if (isset($profile->percentage))
+			if (isset($profile->speedFactor))
 			{
-				$hikerProfile->percentage = $profile->percentage;
+				$hikerProfile->speedFactor = $profile->speedFactor;
 			}
 			
 			if (isset($profile->startTime))
@@ -625,11 +625,12 @@ class segmentIterator implements Iterator
 }
 
 
-function activeTrailConditionsGet ($segmentIndex, $segmentPercentage, &$percentage)
+function activeTrailConditionsGet ($segmentIndex, $segmentPercentage, &$speedFactor, &$type)
 {
 	global $trailConditions;
 	
-	$percentage = 1.0;
+	$speedFactor = 1.0;
+	$type = 2; // 'other'
 	
 	foreach ($trailConditions as $tc)
 	{
@@ -639,7 +640,15 @@ function activeTrailConditionsGet ($segmentIndex, $segmentPercentage, &$percenta
 		 || ($tc->endSegment->segment == $segmentIndex && $tc->endSegment->percentage > $segmentPercentage)))
 		{
 //			echo "Active trail condition: start segment: ", $tc->startSegment->segment, ", end segment: ", $tc->endSegment->segment, "\n";
-			$percentage *= $tc->percentage / 100.0;
+			$speedFactor *= $tc->speedFactor / 100.0;
+			
+			// If the type of the trail condition is a lower number (more signficant) then
+			// change to it instead of the current type.
+			// Current defined types are: 0=no camping, 1=no stealth camping, 2= other
+			if ($tc->type < $type)
+			{
+				$type = $tc->type;
+			}
 		}
 	}
 }
@@ -650,12 +659,15 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 	global $hikerProfile, $d, $day, $dayHours, $dayMeters, $dayGain, $dayLoss;
 	global $foodStart, $maxZ, $debug, $trailConditions;
 	
-	$trailConditionsPercentage = 1.0;
+	$trailConditionsSpeedFactor = 1.0;
+	$trailConditionType = 2; // other (no consequence) //todo: should the numbers be reversed (other = 0, no camping = 2)?
 	$lingerHours = 0;
 	
 	$metersPerHour = metersPerHourGet ($it->nextSegment()->ele - $it->current()->ele, $it->segmentLength());
 	
-	activeTrailConditionsGet ($it->key(), $segmentMeters / $it->segmentLength (), $trailConditionsPercentage);
+	// todo: do we need to call this per segment or should the results just be global and only call this
+	// when reaching a new trail condition point or if starting the segment mid-segment?
+	activeTrailConditionsGet ($it->key(), $segmentMeters / $it->segmentLength (), $trailConditionsSpeedFactor, $trailConditionType);
 
 	if (isset($it->current()->subsegments))
 	{
@@ -687,12 +699,12 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 		$lingerHours = 0;
 		
 		$hoursRemaining = $hoursPerDay - $dayHours;
-		$dayMetersRemaining = $hoursRemaining * ($metersPerHour * $trailConditionsPercentage * ($hikerProfile->percentage / 100.0));
+		$dayMetersRemaining = $hoursRemaining * ($metersPerHour * $trailConditionsSpeedFactor * ($hikerProfile->speedFactor / 100.0));
 		
 		// 			echo "Hours/Day = $hoursPerDay\n";
 		// 			echo "Day Hours = $dayHours\n";
 		// 			echo "Meters/hour = $metersPerHour\n";
-		// 			echo "Adjusted Meters/hour = ", ($metersPerHour * $hikerProfile->percentage), "\n";
+		// 			echo "Adjusted Meters/hour = ", ($metersPerHour * $hikerProfile->speedFactor), "\n";
 		// 			echo "Meters/day = $dayMetersRemaining\n";
 		
 		if (isset($it->current()->subsegments) && key($it->current()->subsegments) !== null)
@@ -719,7 +731,7 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 			$segmentMeters = $it->segmentLength ();
 			
 			$dayMeters += $remainingSegmentMeters;
-			$hoursHiked = $remainingSegmentMeters / ($metersPerHour * $trailConditionsPercentage * ($hikerProfile->percentage / 100.0));
+			$hoursHiked = $remainingSegmentMeters / ($metersPerHour * $trailConditionsSpeedFactor * ($hikerProfile->speedFactor / 100.0));
 			$dayHours += $hoursHiked;
 			$currentTime = DayGet ($d)->startTime + $dayHours;
 			
@@ -751,11 +763,11 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 					
 					if ($event->type == "trailCondition")
 					{
-	//					echo "before: $trailConditionsPercentage\n";
+	//					echo "before: $trailConditionsSpeedFactor\n";
 						
-						activeTrailConditionsGet ($it->key(), $segmentMeters / $it->segmentLength (), $trailConditionsPercentage);
+						activeTrailConditionsGet ($it->key(), $segmentMeters / $it->segmentLength (), $trailConditionsSpeedFactor, $trailConditionType);
 						
-	//					echo "after: $trailConditionsPercentage\n";
+	//					echo "after: $trailConditionsSpeedFactor\n";
 					}
 					else if ($event->type == "arriveBefore" && $event->enabled)
 					{
@@ -895,6 +907,11 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 		{
 			//$found = false;
 			
+//			if ($trailConditionType != 2)
+//			{
+//				echo "trailConditionType = $trailConditionType\n";
+//			}
+			
 			for ($i = 0; isset($noCamping) && $i < count($noCamping); $i++)
 			{
 				//echo "no camping start " . $noCamping[i][0] . " stop ". $noCamping
@@ -906,7 +923,7 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 					// We are in a no camping area... need to move.
 					//
 					$remainingMeters = $noCamping[$i][1] - ($segmentMeters + $dayMetersRemaining);
-					$hoursNeeded = $remainingMeters / ($metersPerHour * $trailConditionsPercentage * ($hikerProfile->percentage / 100.0));
+					$hoursNeeded = $remainingMeters / ($metersPerHour * $trailConditionsSpeedFactor * ($hikerProfile->speedFactor / 100.0));
 					
 					//echo "needed hours: $hoursNeeded\n";
 					
