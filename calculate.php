@@ -6,8 +6,8 @@ $userId = $_SESSION["userId"];
 $userHikeId = $_GET["id"];
 //    	$userId = 1;
 //    	$userHikeId = 100027;
-//	$debug = true;
-//	$maxZ = 2000;
+// 	$debug = true;
+// 	$maxZ = 2000;
   
 // Include config file
 require_once "config.php";
@@ -16,6 +16,7 @@ require_once "coordinates.php";
 class trailCondition {};
 class pointOfInterest {};
 class hikerProfile {};
+class foodPlan {};
 
 
 class Event
@@ -76,8 +77,8 @@ class Day
 			$this->meters = $dayMeters;
 		}
 		
-		$this->foodPlanId = $food[0]["dayTemplateId"];
-		$this->foodWeight = $food[0]["weight"]; //todo: randomly select meal plan
+		$this->foodPlanId = $food[0]->dayTemplateId;
+		$this->foodWeight = $food[0]->weight; //todo: randomly select meal plan
 		
 		if ($this->notes == null)
 		{
@@ -527,7 +528,7 @@ function foodPlansGet ($userId)
 			
 			$stmt->execute ();
 			
-			$food = $stmt->fetchAll (PDO::FETCH_ASSOC);
+			$food = $stmt->fetchAll (PDO::FETCH_CLASS, 'foodPlan');
 			
 			unset($stmt);
 		}
