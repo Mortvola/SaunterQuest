@@ -1,9 +1,9 @@
 <?php 
 
- require_once "checkLogin.php";
+require_once "checkLogin.php";
 
-  $userId = $_SESSION["userId"];
-  $userHikeId = $_GET["id"];
+$userId = $_SESSION["userId"];
+$userHikeId = $_GET["id"];
 //    	$userId = 1;
 //    	$userHikeId = 100027;
 //	$debug = true;
@@ -15,6 +15,8 @@ require_once "coordinates.php";
 
 class trailCondition {};
 class pointOfInterest {};
+class hikerProfile {};
+
 
 class Event
 {
@@ -84,12 +86,12 @@ class Day
 		
 		if ($this->startTime == null)
 		{
-			$this->startTime = $hikerProfile["startTime"];
+			$this->startTime = $hikerProfile->startTime;
 		}
 		
 		if ($this->endTime == null)
 		{
-			$this->endTime = $hikerProfile["endTime"];
+			$this->endTime = $hikerProfile->endTime;
 		}
 		
 		$this->lat = $lat;
@@ -162,7 +164,7 @@ function StrategyEndLater ($timeShift, &$day, $d, &$hoursNeeded)
 	// Try extending the end hours for the past days
 	for (; $d > 0; $d--)
 	{
-		$amountToShift = $hikerProfile["endTime"] + $timeShift - $day[$d]->endTime;
+		$amountToShift = $hikerProfile->endTime + $timeShift - $day[$d]->endTime;
 		
 		if ($amountToShift > 0)
 		{
@@ -208,7 +210,7 @@ function StrategyStartEarlier ($timeShift, &$day, $d, &$hoursNeeded)
 	//
 	for (; $d > 0; $d--)
 	{
-		$amountToShift = $day[$d]->startTime - ($hikerProfile["startTime"] - $timeShift);
+		$amountToShift = $day[$d]->startTime - ($hikerProfile->startTime - $timeShift);
 		
 		if ($amountToShift > 0)
 		{
@@ -455,7 +457,7 @@ function hikerProfilesGet ($userId, $userHikeId)
 			
 			$stmt->execute ();
 			
-			$hikerProfiles = $stmt->fetchAll (PDO::FETCH_ASSOC);
+			$hikerProfiles = $stmt->fetchAll (PDO::FETCH_CLASS, 'hikerProfile');
 			
 			unset ($stmt);
 		}
@@ -472,39 +474,37 @@ function activeHikerProfileGet ($d)
 {
 	global $hikerProfile, $hikerProfiles;
 	
-	$hikerProfile["percentage"] = 100;
-	$hikerProfile["startTime"] = 8;
-	$hikerProfile["endTime"] = 19;
-	$hikerProfile["breakDuration"] = 1;
+	$hikerProfile->percentage = 100;
+	$hikerProfile->startTime = 8;
+	$hikerProfile->endTime = 19;
+	$hikerProfile->breakDuration = 1;
 	
 	foreach ($hikerProfiles as $profile)
 	{
-		if ((!isset($profile["startDay"]) || $d >= $profile["startDay"])
-		 && (!isset($profile["endDay"]) || $d <= $profile["endDay"]))
+		if ((!isset($profile->startDay) || $d >= $profile->startDay)
+		 && (!isset($profile->endDay) || $d <= $profile->endDay))
 		{
-			if (isset($profile["percentage"]))
+			if (isset($profile->percentage))
 			{
-				$hikerProfile["percentage"] = $profile["percentage"];
+				$hikerProfile->percentage = $profile->percentage;
 			}
 			
-			if (isset($profile["startTime"]))
+			if (isset($profile->startTime))
 			{
-				$hikerProfile["startTime"] = $profile["startTime"];
+				$hikerProfile->startTime = $profile->startTime;
 			}
 			
-			if (isset($profile["endTime"]))
+			if (isset($profile->endTime))
 			{
-				$hikerProfile["endTime"] = $profile["endTime"];
+				$hikerProfile->endTime = $profile->endTime;
 			}
 			
-			if (isset($profile["breakDuration"]))
+			if (isset($profile->breakDuration))
 			{
-				$hikerProfile["breakDuration"] = $profile["breakDuration"];
+				$hikerProfile->breakDuration = $profile->breakDuration;
 			}
 		}
 	}
-	
-	//echo "hikerProfile['percentage'] = ", $hikerProfile['percentage'], "\n";
 }
 	
 
@@ -681,17 +681,17 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 		//echo "Day $d, segment meters: " . DayGet ($d)->segmentMeters . "\n";
 		
 		// todo: does this need to be calculated each iteration?
-		$hoursPerDay = ((DayGet ($d)->endTime - DayGet ($d)->startTime) - $hikerProfile["breakDuration"]);
+		$hoursPerDay = ((DayGet ($d)->endTime - DayGet ($d)->startTime) - $hikerProfile->breakDuration);
 		$hoursPerDay -= $lingerHours;
 		$lingerHours = 0;
 		
 		$hoursRemaining = $hoursPerDay - $dayHours;
-		$dayMetersRemaining = $hoursRemaining * ($metersPerHour * $trailConditionsPercentage * ($hikerProfile["percentage"] / 100.0));
+		$dayMetersRemaining = $hoursRemaining * ($metersPerHour * $trailConditionsPercentage * ($hikerProfile->percentage / 100.0));
 		
 		// 			echo "Hours/Day = $hoursPerDay\n";
 		// 			echo "Day Hours = $dayHours\n";
 		// 			echo "Meters/hour = $metersPerHour\n";
-		// 			echo "Adjusted Meters/hour = ", ($metersPerHour * $hikerProfile["percentage"]), "\n";
+		// 			echo "Adjusted Meters/hour = ", ($metersPerHour * $hikerProfile->percentage), "\n";
 		// 			echo "Meters/day = $dayMetersRemaining\n";
 		
 		if (isset($it->current()->subsegments) && key($it->current()->subsegments) !== null)
@@ -718,7 +718,7 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 			$segmentMeters = $it->segmentLength ();
 			
 			$dayMeters += $remainingSegmentMeters;
-			$hoursHiked = $remainingSegmentMeters / ($metersPerHour * $trailConditionsPercentage * ($hikerProfile["percentage"] / 100.0));
+			$hoursHiked = $remainingSegmentMeters / ($metersPerHour * $trailConditionsPercentage * ($hikerProfile->percentage / 100.0));
 			$dayHours += $hoursHiked;
 			$currentTime = DayGet ($d)->startTime + $dayHours;
 			
@@ -905,7 +905,7 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 					// We are in a no camping area... need to move.
 					//
 					$remainingMeters = $noCamping[$i][1] - ($segmentMeters + $dayMetersRemaining);
-					$hoursNeeded = $remainingMeters / ($metersPerHour * $trailConditionsPercentage * ($hikerProfile["percentage"] / 100.0));
+					$hoursNeeded = $remainingMeters / ($metersPerHour * $trailConditionsPercentage * ($hikerProfile->percentage / 100.0));
 					
 					//echo "needed hours: $hoursNeeded\n";
 					
@@ -1082,12 +1082,11 @@ function userHikeDataStore ($jsonHikeData)
 
 // Main routine
 {
-//	$noCamping = array(
-//					array (18.1, 28.9));
-	
 	$segments = [];
 	$segments = json_decode(file_get_contents("CDT.json")); // todo: need to get segment file based on hikeId from the userHike table
 		
+	$hikerProfile = (object)[];
+	
 	hikerProfilesGet ($userId, $userHikeId);
 	foodPlansGet ($userId);
 	pointsOfInterestGet ($userId, $userHikeId);
