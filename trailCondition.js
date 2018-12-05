@@ -96,7 +96,7 @@ function trailConditionRowGet (trailCondition)
 	txt += "</span>"
 	txt += trailConditionTypeGet(trailCondition.type) + "</td>";
 	txt += "<td align='left'>" + nvl(trailCondition.description, "") + "</td>";
-	txt += "<td align='right'>" + nvl(trailCondition.percentage, 100) + "</td>";
+	txt += "<td align='right'>" + nvl(trailCondition.speedFactor, 100) + "</td>";
 
 	txt += "</tr>";
 
@@ -293,7 +293,7 @@ function editTrailCondition (trailConditionId)
 
 		$("#trailConditionForm select[name='type']").val(trailConditions[t].type);
 		$("#trailConditionForm input[name='description']").val(trailConditions[t].description);
-		$("#trailConditionForm input[name='percentage']").val(nvl(trailConditions[t].percentage, 100));
+		$("#trailConditionForm input[name='speedFactor']").val(nvl(trailConditions[t].speedFactor, 100));
 
 		$("#trailConditionSaveButton").off('click');
 		$("#trailConditionSaveButton").click(function () { updateTrailCondition(trailConditionId)});

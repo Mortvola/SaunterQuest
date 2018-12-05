@@ -6,12 +6,12 @@ require_once "../config.php";
 
 if($_SERVER["REQUEST_METHOD"] == "GET")
 {
-	$userId = $_SESSION["userId"];
-	$userHikeId = $_GET["id"];
+ 	$userId = $_SESSION["userId"];
+ 	$userHikeId = $_GET["id"];
 	
 	try
 	{
-		$sql = "select hikerProfileId, startDay, endDay, percentage, startTime, endTime, breakDuration
+		$sql = "select hikerProfileId, startDay, endDay, speedFactor, startTime, endTime, breakDuration
 				from hikerProfile
 				where userId = :userId
 				and userHikeId = :userHikeId";
@@ -75,8 +75,8 @@ else if($_SERVER["REQUEST_METHOD"] == "POST")
 	
 	try
 	{
-		$sql = "insert into hikerProfile (creationDate, modificationDate, userId, userHikeId, startDay, endDay, percentage, startTime, endTime, breakDuration)
-	 				values (now(), now(), :userId, :userHikeId, :startDay, :endDay, :percentage, :startTime, :endTime, :breakDuration)";
+		$sql = "insert into hikerProfile (creationDate, modificationDate, userId, userHikeId, startDay, endDay, speedFactor, startTime, endTime, breakDuration)
+	 				values (now(), now(), :userId, :userHikeId, :startDay, :endDay, :speedFactor, :startTime, :endTime, :breakDuration)";
 		
 		if ($stmt = $pdo->prepare($sql))
 		{
@@ -84,7 +84,7 @@ else if($_SERVER["REQUEST_METHOD"] == "POST")
 			$stmt->bindParam(":userHikeId", $paramUserHikeId, PDO::PARAM_INT);
 			$stmt->bindParam(":startDay", $paramStartDay, PDO::PARAM_INT);
 			$stmt->bindParam(":endDay", $paramEndDay, PDO::PARAM_INT);
-			$stmt->bindParam(":percentage", $paramPercentage, PDO::PARAM_INT);
+			$stmt->bindParam(":speedFactor", $paramSpeedFactor, PDO::PARAM_INT);
 			$stmt->bindParam(":startTime", $paramStartTime, PDO::PARAM_INT);
 			$stmt->bindParam(":endTime", $paramEndTime, PDO::PARAM_INT);
 			$stmt->bindParam(":breakDuration", $paramBreakDuration, PDO::PARAM_INT);
@@ -102,9 +102,9 @@ else if($_SERVER["REQUEST_METHOD"] == "POST")
 				$paramEndDay = $profile->endDay;
 			}
 			
-			if (isset($profile->percentage) && $profile->percentage != "")
+			if (isset($profile->speedFactor) && $profile->speedFactor != "")
 			{
-				$paramPercentage = $profile->percentage;
+				$paramSpeedFactor = $profile->speedFactor;
 			}
 			
 			if (isset($profile->startTime) && $profile->startTime != "")
@@ -147,7 +147,7 @@ else if($_SERVER["REQUEST_METHOD"] == "PUT")
 					modificationDate = now(),
 					startDay = :startDay,
 					endDay = :endDay,
-					percentage = :percentage,
+					speedFactor = :speedFactor,
 					startTime = :startTime,
 					endTime = :endTime,
 					breakDuration = :breakDuration
@@ -157,7 +157,7 @@ else if($_SERVER["REQUEST_METHOD"] == "PUT")
 		{
 			$stmt->bindParam(":startDay", $paramStartDay, PDO::PARAM_INT);
 			$stmt->bindParam(":endDay", $paramEndDay, PDO::PARAM_INT);
-			$stmt->bindParam(":percentage", $paramPercentage, PDO::PARAM_INT);
+			$stmt->bindParam(":speedFactor", $paramSpeedFactor, PDO::PARAM_INT);
 			$stmt->bindParam(":startTime", $paramStartTime, PDO::PARAM_INT);
 			$stmt->bindParam(":endTime", $paramEndTime, PDO::PARAM_INT);
 			$stmt->bindParam(":breakDuration", $paramBreakDuration, PDO::PARAM_INT);
@@ -177,9 +177,9 @@ else if($_SERVER["REQUEST_METHOD"] == "PUT")
 				$paramEndDay = $profile->endDay;
 			}
 			
-			if (isset($profile->percentage) && $profile->percentage != "")
+			if (isset($profile->speedFactor) && $profile->speedFactor != "")
 			{
-				$paramPercentage = $profile->percentage;
+				$paramSpeedFactor = $profile->speedFactor;
 			}
 			
 			if (isset($profile->startTime) && $profile->startTime != "")

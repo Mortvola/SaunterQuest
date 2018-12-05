@@ -153,7 +153,7 @@ create table hikerProfile (
 	userHikeId INT, 		-- if this is null then this applies to all trails (there should only be one in this state)
 	startDay INT, 			-- if this is null then the start is the beinning of the trail
 	endDay INT, 			-- if this is null then the end is at the end of the trail
-	percentage INT,
+	speedFactor INT,
 	startTime DECIMAL(4,2),
 	endTime DECIMAL(4,2),
 	breakDuration DECIMAL(4,2));
@@ -170,4 +170,4 @@ create table trailCondition (
 	endLng DECIMAL(17,14) NOT NULL,
 	type INT NOT NULL, -- 0 = no camping, 1 = no stealth camping, 2 = custom
 	description VARCHAR(255),
-	percentage INT);
+	speedFactor INT);

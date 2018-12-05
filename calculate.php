@@ -367,7 +367,7 @@ function trailConditionsGet ($userHikeId)
 	
 	try
 	{
-		$sql = "select tc.trailConditionId, startLat, startLng, endLat, endLng, type, IFNULL(percentage, 100) AS speedFactor
+		$sql = "select tc.trailConditionId, startLat, startLng, endLat, endLng, type, IFNULL(speedFactor, 100) AS speedFactor
 				from trailCondition tc
 				join userHike uh on (uh.userHikeId = tc.userHikeId OR uh.hikeId = tc.hikeId)
 				and uh.userHikeId = :userHikeId";
@@ -441,7 +441,7 @@ function hikerProfilesGet ($userId, $userHikeId)
 	
 	try
 	{
-		$sql = "select percentage AS speedFactor,
+		$sql = "select speedFactor,
 					startDay, endDay,
 					startTime, endTime, breakDuration
 				from hikerProfile

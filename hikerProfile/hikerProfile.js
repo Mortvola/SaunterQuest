@@ -16,7 +16,7 @@ function hikerProfileRowGet (profile)
 	txt += "</span>"
 	txt += nvl(profile.startDay, "") + "</td>";
 	txt += "<td align='right'>" + nvl(profile.endDay, "") + "</td>";
-	txt += "<td align='right'>" + nvl(profile.percentage, "") + "</td>";
+	txt += "<td align='right'>" + nvl(profile.speedFactor, "") + "</td>";
 	txt += "<td align='right'>" + nvl(profile.startTime, "") + "</td>";
 	txt += "<td align='right'>" + nvl(profile.endTime, "") + "</td>";
 	txt += "<td align='right'>" + nvl(profile.breakDuration, "") + "</td>";
@@ -85,7 +85,7 @@ function editHikerProfile (hikerProfileId)
 	{
 		$("input[name='startDay']").val(hikerProfiles[h].startDay);
 		$("input[name='endDay']").val(hikerProfiles[h].endDay);
-		$("input[name='percentage']").val(hikerProfiles[h].percentage);
+		$("input[name='speedFactor']").val(hikerProfiles[h].speedFactor);
 		$("input[name='startTime']").val(hikerProfiles[h].startTime);
 		$("input[name='endTime']").val(hikerProfiles[h].endTime);
 		$("input[name='breakDuration']").val(hikerProfiles[h].breakDuration);

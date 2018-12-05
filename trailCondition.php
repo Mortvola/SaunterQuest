@@ -11,7 +11,7 @@ if($_SERVER["REQUEST_METHOD"] == "GET")
 	
 	try
 	{
-		$sql = "select tc.trailConditionId, tc.hikeId, tc.userHikeId, startLat, startLng, endLat, endLng, type, description, percentage
+		$sql = "select tc.trailConditionId, tc.hikeId, tc.userHikeId, startLat, startLng, endLat, endLng, type, description, speedFactor
 				from trailCondition tc
 				join userHike uh on (uh.userHikeId = tc.userHikeId OR uh.hikeId = tc.hikeId)
 				and uh.userHikeId = :userHikeId and uh.userId = :userId";
@@ -48,11 +48,11 @@ else if ($_SERVER["REQUEST_METHOD"] == "POST")
 		$sql = "insert into trailCondition (creationDate, modificationDate, userHikeId,
 					type, description,
 					startLat, startLng, endLat, endLng,
-					percentage)
+					speedFactor)
 	 			values (now(), now(), :userHikeId,
 					:type, :description,
 					:startLat, :startLng, :endLat, :endLng,
-					:percentage)";
+					:speedFactor)";
 		
 		if ($stmt = $pdo->prepare($sql))
 		{
@@ -63,7 +63,7 @@ else if ($_SERVER["REQUEST_METHOD"] == "POST")
 			$stmt->bindParam(":startLng", $paramStartLng, PDO::PARAM_INT);
 			$stmt->bindParam(":endLat", $paramEndLat, PDO::PARAM_INT);
 			$stmt->bindParam(":endLng", $paramEndLng, PDO::PARAM_INT);
-			$stmt->bindParam(":percentage", $paramPercentage, PDO::PARAM_INT);
+			$stmt->bindParam(":speedFactor", $paramSpeedFactor, PDO::PARAM_INT);
 			
 			$paramUserHikeId = $trailCondition->userHikeId;
 			$paramType = $trailCondition->type;
@@ -73,9 +73,9 @@ else if ($_SERVER["REQUEST_METHOD"] == "POST")
 			$paramEndLat = $trailCondition->endLat;
 			$paramEndLng = $trailCondition->endLng;
 			
-			if (isset($trailCondition->percentage) && $trailCondition->percentage != "")
+			if (isset($trailCondition->speedFactor) && $trailCondition->speedFactor != "")
 			{
-				$paramPercentage = $trailCondition->percentage;
+				$paramSpeedFactor = $trailCondition->speedFactor;
 			}
 			
 			$stmt->execute ();
@@ -107,7 +107,7 @@ else if($_SERVER["REQUEST_METHOD"] == "PUT")
 					endLat = :endLat,
 					endLng = :endLng,
 					description = :description,
-					percentage = :percentage
+					speedFactor = :speedFactor
 				where trailConditionId = :trailConditionId";
 		
 		if ($stmt = $pdo->prepare($sql))
@@ -118,7 +118,7 @@ else if($_SERVER["REQUEST_METHOD"] == "PUT")
 			$stmt->bindParam(":endLat", $paramEndLat, PDO::PARAM_INT);
 			$stmt->bindParam(":endLng", $paramEndLng, PDO::PARAM_INT);
 			$stmt->bindParam(":description", $paramDescription, PDO::PARAM_STR);
-			$stmt->bindParam(":percentage", $paramPercentage, PDO::PARAM_INT);
+			$stmt->bindParam(":speedFactor", $paramSpeedFactor, PDO::PARAM_INT);
 			$stmt->bindParam(":trailConditionId", $paramTrailConditionId, PDO::PARAM_INT);
 			
 			$paramTrailConditionId = $trailCondition->trailConditionId;
@@ -131,7 +131,7 @@ else if($_SERVER["REQUEST_METHOD"] == "PUT")
 
 			$paramDescription = $trailCondition->description;
 			
-			$paramPercentage = $trailCondition->percentage;
+			$paramSpeedFactor = $trailCondition->speedFactor;
 			
 			$stmt->execute ();
 			

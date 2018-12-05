@@ -109,8 +109,8 @@ if ($hikeId)
 			        <input type="number" class='form-control' name='endDay'/>
 			    	<br/>
 
-			        <label>Percentage:</label>
-			        <input type="number" class='form-control' name='percentage'/>
+			        <label>Speed Factor:</label>
+			        <input type="number" class='form-control' name='speedFactor'/>
 			    	<br/>
 			    	
 			        <label>Start Time:</label>
@@ -233,8 +233,8 @@ if ($hikeId)
 					</div>
 					
 					<div>
-			        <label>Percentage:</label>
-			        <input type="number" class='form-control' name='percentage' value='100'/>
+			        <label>Speed Factor:</label>
+			        <input type="number" class='form-control' name='speedFactor' value='100'/>
 					</div>
 					
 			        </div>
@@ -267,7 +267,7 @@ if ($hikeId)
 							<tr>
 							<th>Start Day</th>
 							<th>End Day</th>
-							<th>Percentage</th>
+							<th>Speed Factor</th>
 							<th>Start Time</th>
 							<th>End Time</th>
 							<th>Break Duration</th>
@@ -303,7 +303,7 @@ if ($hikeId)
 							<tr>
 							<th>Type</th>
 							<th>Description</th>
-							<th>Percentage</th>
+							<th>Speed Factor</th>
 							</tr>
 							</thead>
 							<tbody">
