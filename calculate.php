@@ -1,10 +1,18 @@
 <?php 
 
-require_once "checkLogin.php";
-$userId = $_SESSION["userId"];
-$userHikeId = $_GET["id"];
-//    	$userId = 1;
-//    	$userHikeId = 100031;
+$commandLine = 0;
+
+if ($commandLine == 0)
+{
+	require_once "checkLogin.php";
+	$userId = $_SESSION["userId"];
+	$userHikeId = $_GET["id"];
+}
+else
+{
+	$userId = 1;
+	$userHikeId = 100031;
+}
 //$debug = true;
 // 	$maxZ = 2000;
   
@@ -111,16 +119,10 @@ class Day
 	}
 }
 
-function newDayStart (&$d, &$dayMeters, &$dayHours, $lat, $lng, $ele, &$dayGain, &$dayLoss, $segmentIndex, $segmentMeters)
+
+function dayStart (&$d, &$dayMeters, &$dayHours, $lat, $lng, $ele, &$dayGain, &$dayLoss, $segmentIndex, $segmentMeters)
 {
 	global $segments;
-	
-	if ($d >= 0)
-	{
-		DayGet ($d)->gain = $dayGain;
-		DayGet ($d)->loss = $dayLoss;
-		DayGet ($d)->distance = $dayMeters;
-	}
 	
 	$d++;
 	
@@ -133,8 +135,16 @@ function newDayStart (&$d, &$dayMeters, &$dayHours, $lat, $lng, $ele, &$dayGain,
 	$dayGain = 0;
 	$dayLoss = 0;
 }
-	
-	
+
+
+function dayEnd ($d, $dayMeters, $dayGain, $dayLoss)
+{
+	DayGet ($d)->gain = $dayGain;
+	DayGet ($d)->loss = $dayLoss;
+	DayGet ($d)->distance = $dayMeters;
+}
+
+
 //
 // Compute the weight of food over a period of days
 //
@@ -878,7 +888,8 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 						
 	// 					if ($nextSegmentIndex < count($segments) - 1)
 	// 					{
-	// 						newDayStart ($d, $dayMeters, $dayHours, $nextSegment->lat, $nextSegment->lng, $nextSegment->ele, $dayGain, $dayLoss, $nextSegmentIndex, $segmentMeters);
+	//						dayEnd ($d, $dayMeters, $dayGain, $dayLoss);
+	// 						dayStart ($d, $dayMeters, $dayHours, $nextSegment->lat, $nextSegment->lng, $nextSegment->ele, $dayGain, $dayLoss, $nextSegmentIndex, $segmentMeters);
 							
 	// 						DayGet ($d)->cantMoveStartMeters = true;
 	// 					}
@@ -912,7 +923,8 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 							// todo: Determine what to do here. If we are mid-segment then we should record the day. Otherwise, return back to the caller?
 	// 						if ($nextSegmentIndex < count($segments) - 1)
 	// 						{
-	// 							newDayStart ($d, $dayMeters, $dayHours, $nextSegment->lat, $nextSegment->lng, $nextSegment->ele, $dayGain, $dayLoss, $nextSegmentIndex, $segmentMeters);
+	//							dayEnd ($d, $dayMeters, $dayGain, $dayLoss);
+	// 							dayStart ($d, $dayMeters, $dayHours, $nextSegment->lat, $nextSegment->lng, $nextSegment->ele, $dayGain, $dayLoss, $nextSegmentIndex, $segmentMeters);
 								
 	// 							$lingerHours = -$remainingHours;
 								
@@ -1031,7 +1043,8 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 			$lat = ($it->nextSegment()->lat - $it->current()->lat) * $segmentPercent + $it->current()->lat;
 			$lng = ($it->nextSegment()->lng - $it->current()->lng) * $segmentPercent + $it->current()->lng;
 			
-			newDayStart ($d, $dayMeters, $dayHours, $lat, $lng, $currentEle, $dayGain, $dayLoss, $it->key(), $segmentMeters);
+			dayEnd ($d, $dayMeters, $dayGain, $dayLoss);
+			dayStart ($d, $dayMeters, $dayHours, $lat, $lng, $currentEle, $dayGain, $dayLoss, $it->key(), $segmentMeters);
 			
 			$lastEle = $currentEle;
 			
@@ -1106,6 +1119,8 @@ function traverseSegments ($it)
 			}
 		}
 	}
+	
+	dayEnd ($d, $dayMeters, $dayGain, $dayLoss);
 }
 
 function userHikeDataStore ($jsonHikeData)
@@ -1198,7 +1213,7 @@ function getRouteFile ()
 	$dayGain = 0;
 	$dayLoss = 0;
 	
-	newDayStart ($d, $dayMeters, $dayHours, $segments[0]->lat, $segments[0]->lng, $segments[0]->ele, $dayGain, $dayLoss, 0, 0);
+	dayStart ($d, $dayMeters, $dayHours, $segments[0]->lat, $segments[0]->lng, $segments[0]->ele, $dayGain, $dayLoss, 0, 0);
 
 	$foodStart = $d;
 	
