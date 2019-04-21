@@ -1,12 +1,11 @@
 <?php 
 
 require_once "checkLogin.php";
-
 $userId = $_SESSION["userId"];
 $userHikeId = $_GET["id"];
 //    	$userId = 1;
-//    	$userHikeId = 100027;
-// 	$debug = true;
+//    	$userHikeId = 100031;
+//$debug = true;
 // 	$maxZ = 2000;
   
 // Include config file
@@ -544,7 +543,22 @@ function foodPlansGet ($userId)
 
 function metersPerHourGet ($dh, $dx)
 {
-	return 6 * pow(2.71828, -3.5 * abs($dh / $dx + 0.05)) * 1000;
+	$metersPerHour = 6 * pow(2.71828, -3.5 * abs($dh / $dx + 0.05)) * 1000;
+	
+	// Make sure the minimum speede is 1/2 kilometer per hour.
+	// Sometimes elevation data is wrong and it may look like one is
+	// climbing up an extremely steep cliff.
+	if ($metersPerHour < 500)
+	{
+		if (isset($debug))
+		{
+			echo "dh = $dh, dx = $dx\n";
+		}
+		
+		$metersPerHour = 500;
+	}
+	
+	return $metersPerHour;
 }
 
 
@@ -699,6 +713,12 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 		$lingerHours = 0;
 		
 		$hoursRemaining = $hoursPerDay - $dayHours;
+		
+		if (isset($debug))
+		{
+			echo "hours remaining: ", $hoursRemaining, ", meters per hour: ", $metersPerHour, ", trail conditions speed factor: ", $trailConditionsSpeedFactor, ", hiker profile speed factor: ", $hikerProfile->speedFactor, "\n";
+		}
+		
 		$dayMetersRemaining = $hoursRemaining * ($metersPerHour * $trailConditionsSpeedFactor * ($hikerProfile->speedFactor / 100.0));
 		
 		// 			echo "Hours/Day = $hoursPerDay\n";
@@ -720,11 +740,16 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 			$lengthToNextEvent = $it->segmentLength ();
 		}
 		
+		if (isset($debug))
+		{
+			echo "Segment Meters: ", $segmentMeters, ", day meters remaining: ", $dayMetersRemaining, ", Length to next event: ", $lengthToNextEvent, "\n";
+		}
+		
 		if ($segmentMeters + $dayMetersRemaining >= $lengthToNextEvent)
 		{
 			if (isset($debug))
 			{
-				echo "Day $d, segment meters: $segmentMeters, hours remaining: $hoursRemaining, meters remaining: $dayMetersRemaining, meters/hour = $metersPerHour\n";
+				echo "Day $d, segment meters: $segmentMeters, day hours remaining: $hoursRemaining, day meters remaining: $dayMetersRemaining, meters/hour = $metersPerHour\n";
 			}
 			
 			$remainingSegmentMeters = $it->segmentLength () - $segmentMeters;
@@ -901,6 +926,11 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 				}
 			}
 			
+			if (isset($debug))
+			{
+				echo "Ended segment. Segment Meters = ", $segmentMeters, "\n\n";
+			}
+			
 			break;
 		}
 		else
@@ -1030,40 +1060,50 @@ function traverseSegments ($it)
 			break;
 		}
 		
-		if ($restart)
+		if (isset($debug))
 		{
-			if (isset($debug))
+			echo "Segment Length = ", $it->segmentLength (), "\n";
+		}
+		
+		// If the segment has some length to it then traverse. If it is zero (or less)
+		// then just skip it.
+		if ($it->segmentLength () > 0)
+		{
+			if ($restart)
 			{
-				echo "Restarting at day $d\n";
+				if (isset($debug))
+				{
+					echo "Restarting at day $d\n";
+				}
+				
+				$segmentMeters = DayGet ($d)->segmentMeters;
+				$lastEle = DayGet ($d)->ele;
+				$dayMeters = 0;
+				$dayHours = 0;
+				$restart = false;
+			}
+			else
+			{
+				$segmentMeters = 0;
+				$lastEle = $segment->ele;
 			}
 			
-			$segmentMeters = DayGet ($d)->segmentMeters;
-			$lastEle = DayGet ($d)->ele;
-			$dayMeters = 0;
-			$dayHours = 0;
-			$restart = false;
-		}
-		else
-		{
-			$segmentMeters = 0;
-			$lastEle = $segment->ele;
-		}
-		
-		traverseSegment ($it, $z, $segmentMeters, $lastEle, $restart);
-		
-		if ($restart)
-		{
-			$it->position(DayGet ($d)->segment - 1); // decrease by one since the for loop will increase it by one
-		}
-		
-		if (isset($maxZ) && $z > $maxZ)
-		{
-			if (isset($debug))
+			traverseSegment ($it, $z, $segmentMeters, $lastEle, $restart);
+			
+			if ($restart)
 			{
-				echo "exited outer loop after $z iterations\n";
+				$it->position(DayGet ($d)->segment - 1); // decrease by one since the for loop will increase it by one
 			}
 			
-			break;
+			if (isset($maxZ) && $z > $maxZ)
+			{
+				if (isset($debug))
+				{
+					echo "exited outer loop after $z iterations\n";
+				}
+				
+				break;
+			}
 		}
 	}
 }
@@ -1161,6 +1201,11 @@ function getRouteFile ()
 	newDayStart ($d, $dayMeters, $dayHours, $segments[0]->lat, $segments[0]->lng, $segments[0]->ele, $dayGain, $dayLoss, 0, 0);
 
 	$foodStart = $d;
+	
+	if (isset($debug))
+	{
+		echo "Total Segments: ", count($segments), "\n";
+	}
 	
 	$it = new segmentIterator($segments, 1);
 	
