@@ -687,8 +687,7 @@ function retrieveRoute ()
 		}
 	}
 	
-	// todo: the parameter needs to be dynamic to retrieve the correct route.
-	xmlhttp.open("GET", "getRoute.php?id=0", true);
+	xmlhttp.open("GET", "getRoute.php?id=" + userHikeId, true);
 	//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xmlhttp.send();
 }

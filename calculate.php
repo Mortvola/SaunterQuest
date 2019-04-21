@@ -1098,11 +1098,51 @@ function userHikeDataStore ($jsonHikeData)
 }
 
 
+function getRouteFile ()
+{
+	global $userHikeId, $pdo;
+
+	class hike {};
+	
+	try
+	{
+		$sql = "select h.file
+			from userHike uh
+			join hike h on h.hikeId = uh.hikeId
+			where uh.userHikeId = :userHikeId";
+		
+		if ($stmt = $pdo->prepare($sql))
+		{
+			$stmt->bindParam(":userHikeId", $paramUserHikeId, PDO::PARAM_INT);
+			
+			$paramUserHikeId = $userHikeId;
+			
+			$stmt->execute ();
+			
+			$hike = $stmt->fetchAll (PDO::FETCH_CLASS, 'hike');
+			
+			$fileName = $hike[0]->file;
+			
+			unset($stmt);
+		}
+	}
+	catch(PDOException $e)
+	{
+		http_response_code (500);
+		echo $e->getMessage();
+		throw $e;
+	}
+	
+	return $fileName;
+}
+
 // Main routine
 {
 	$segments = [];
-	$segments = json_decode(file_get_contents("CDT.json")); // todo: need to get segment file based on hikeId from the userHike table
-		
+
+	$fileName = getRouteFile ();
+	$segments = json_decode(file_get_contents($fileName));
+	
 	$hikerProfile = (object)[];
 	
 	hikerProfilesGet ($userId, $userHikeId);

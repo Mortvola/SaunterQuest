@@ -91,7 +91,8 @@ create table hike (
 	hikeId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
-	name VARCHAR (255) NOT NULL);
+	name VARCHAR (255) NOT NULL,
+	file VARCHAR (255));
 	
 create table userHike (
 	userHikeId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
