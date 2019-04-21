@@ -20,7 +20,16 @@ else
 		$lat2 = $coord['lat'];
 		$lng2 = $coord['lon'];
 		$ele2 = $coord->ele;
-	
+
+		//
+		// Throw out coords that seem bad (below the Dead Sea or above Everest).
+		//
+		if ($ele2 < -413 || $ele2 > 8848)
+		{
+//			echo "Point thrown out: lat: ", $lat2, ", lon: ", $lng2, ", ele: ", $ele2, "\n";
+			continue;
+		}
+		
 		if ($first)
 		{
 			$first = false;
