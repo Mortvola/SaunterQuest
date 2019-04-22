@@ -2,6 +2,7 @@
 
 var markers = [];
 var dayMarkers = [];
+var endOfTrailMarker = {};
 var resupplyLocations = [];
 var route;
 var routeCoords = [];
@@ -14,6 +15,10 @@ var interfaceMode = "normal";
 var markerContextMenu = {};
 var resupplyLocationCM = {};
 var infoWindow = {};
+
+var startPointUrl = "http://maps.google.com/mapfiles/ms/micons/green-dot.png";
+var campUrl = "http://maps.google.com/mapfiles/ms/micons/campground.png";
+var endPointUrl = "http://maps.google.com/mapfiles/ms/micons/red-dot.png";
 
 const routeStrokeWeight = 6;
 const trailConditionStrokePadding = 4;
@@ -596,10 +601,18 @@ function calculate ()
 					}
 				}
 
+				txt += "<div style='padding:2px 2px 2px 2px'>" + timeFormat(data[d].endTime) + ", " + "mile ";
+				
 				if (d < data.length - 1)
 				{
-					txt += "<div style='padding:2px 2px 2px 2px'>" + timeFormat(data[d].endTime) + ", " + "mile " + metersToMiles (data[parseInt(d) + 1].meters) + ": stop " + "</div>";
+					 txt += metersToMiles (data[parseInt(d) + 1].meters);
 				}
+				else
+				{
+					txt += metersToMiles (data[parseInt(d)].endMeters);
+				}
+				
+				txt += ": stop " + "</div>";
 
 				txt += "</div>";
 				
@@ -611,7 +624,7 @@ function calculate ()
 						position: dayMarkers[day],
 						map: map,
 						icon: {
-							url: "http://maps.google.com/mapfiles/ms/micons/campground.png"
+							url: day == 0 ? startPointUrl : campUrl
 						},
 					});
 				}
@@ -634,6 +647,26 @@ function calculate ()
 				day++;
 			}
 
+			//
+			// Add end of trail marker
+			//
+			endOfTrailMarker.lat = parseFloat(data[d].endLat);
+			endOfTrailMarker.lng = parseFloat(data[d].endLng);
+
+			endOfTrailMarker.marker = new google.maps.Marker({
+				position: endOfTrailMarker,
+				map: map,
+				icon: {
+					url: endPointUrl
+				},
+			});
+
+			google.maps.event.removeListener (endOfTrailMarker.listener);
+		
+			endOfTrailMarker.listener = attachInfoWindowMessage(endOfTrailMarker,
+				"<div>Mile: " + metersToMiles(data[d].endMeters)
+				+ "</div><div>Elevation: " + metersToFeet(data[d].endEle) + "\'</div>");
+			
 			document.getElementById ("schedule").innerHTML = txt;
 
 			//

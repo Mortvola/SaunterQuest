@@ -1121,6 +1121,11 @@ function traverseSegments ($it)
 	}
 	
 	dayEnd ($d, $dayMeters, $dayGain, $dayLoss);
+	
+	$day[$d]->endLat = $segment->lat;
+	$day[$d]->endLng = $segment->lng;
+	$day[$d]->endEle = $segment->ele;
+	$day[$d]->endMeters = $day[$d]->meters + $dayMeters;
 }
 
 function userHikeDataStore ($jsonHikeData)
