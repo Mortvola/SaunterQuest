@@ -1,8 +1,10 @@
 var trailConditions = [];
-var trailConditionMarkers = [];
-var temporaryTrailConditionPolyLine;
+var routeHighlightMarkers = [];
+var routeHighLightPolyLine;
 var editingTrailConditionId = null;
 var trailConditionMenu;
+
+const dialogSpeed = 250;
 
 
 function trailConditionMenuGet ()
@@ -10,13 +12,58 @@ function trailConditionMenuGet ()
 	if (trailConditionMenu == undefined)
 	{
 		trailConditionMenu = new ContextMenu ([
-			{title:"Set start marker", func:setStartMarker},
-			{title:"Set end marker", func:setEndMarker}]);
+			{title:"Set start marker", func:setRouteHighlightStartMarker},
+			{title:"Set end marker", func:setRouteHighlightEndMarker}]);
 	}
 	
 	return trailConditionMenu;
 }
 
+
+function routeHighlightPolylineCreate (startPosition, endPosition, color)
+{
+	let startSegment = findNearestSegment(startPosition);
+	let endSegment = findNearestSegment(endPosition);
+
+	let polyline = [];
+	
+	if (startSegment != endSegment)
+	{
+		//
+		// Swap the values if needed.
+		//
+		if (startSegment > endSegment)
+		{
+			endSegment = [startSegment, startSegment=endSegment][0];
+			endPosition = [startPosition, startPosition=endPosition][0];
+		}
+		
+		// Compute the distance between the start point and the start segment (the
+		// start point might be int he middle of a segment)
+		polyline.push({lat: startPosition.lat(), lng: startPosition.lng()});
+		
+		for (let r = startSegment + 1; r <= endSegment; r++)
+		{
+			polyline.push({lat: routeCoords[r].lat, lng: routeCoords[r].lng});
+		}
+
+		// Compute the distance between the end segment and the end point (the
+		// start point might be int he middle of a segment)
+		polyline.push({lat: endPosition.lat(), lng: endPosition.lng()});
+	}
+	
+	var polyLine = new google.maps.Polyline({
+		path: polyline,
+		geodesic: true,
+		strokeColor: color,
+		strokeOpacity: 1.0,
+		strokeWeight: routeStrokeWeight + 2 * routeHighlightStrokePadding,
+		zIndex: 10});
+
+	polyLine.setMap(map);
+
+	return polyLine;
+}
 
 function insertTrailCondition ()
 {
@@ -25,13 +72,13 @@ function insertTrailCondition ()
 	trailCondition.userHikeId = userHikeId;
 	
 	// Both markers must be placed on the map.
-	if (trailConditionMarkers[0] && trailConditionMarkers[0].map
-	 && trailConditionMarkers[1] && trailConditionMarkers[1].map)
+	if (routeHighlightMarkers[0] && routeHighlightMarkers[0].map
+	 && routeHighlightMarkers[1] && routeHighlightMarkers[1].map)
 	{
-		trailCondition.startLat = trailConditionMarkers[0].position.lat ();
-		trailCondition.startLng = trailConditionMarkers[0].position.lng ();
-		trailCondition.endLat = trailConditionMarkers[1].position.lat ();
-		trailCondition.endLng = trailConditionMarkers[1].position.lng ();
+		trailCondition.startLat = routeHighlightMarkers[0].position.lat ();
+		trailCondition.startLng = routeHighlightMarkers[0].position.lng ();
+		trailCondition.endLat = routeHighlightMarkers[1].position.lat ();
+		trailCondition.endLng = routeHighlightMarkers[1].position.lng ();
 	
 		var xmlhttp = new XMLHttpRequest ();
 		xmlhttp.onreadystatechange = function ()
@@ -42,7 +89,7 @@ function insertTrailCondition ()
 				{
 					trailCondition = JSON.parse(this.responseText);
 	
-					trailCondition.polyLine = trailConditionPolylineCreate (
+					trailCondition.polyLine = routeHighlightPolylineCreate (
 						new google.maps.LatLng({lat: parseFloat(trailCondition.startLat), lng: parseFloat(trailCondition.startLng)}),
 						new google.maps.LatLng({lat: parseFloat(trailCondition.endLat), lng: parseFloat(trailCondition.endLng)}),
 						'#FF0000');
@@ -134,7 +181,7 @@ function retrieveTrailConditions ()
 
 			for (let t in trailConditions)
 			{
-				trailConditions[t].polyLine = trailConditionPolylineCreate (
+				trailConditions[t].polyLine = routeHighlightPolylineCreate (
 					new google.maps.LatLng({lat: parseFloat(trailConditions[t].startLat), lng: parseFloat(trailConditions[t].startLng)}),
 					new google.maps.LatLng({lat: parseFloat(trailConditions[t].endLat), lng: parseFloat(trailConditions[t].endLng)}),
 					getTrailConditionColor(trailConditions[t].type));
@@ -166,69 +213,80 @@ function findTrailConditionIndex (trailConditionId)
 }
 
 
-function moveMarkerToTrail (marker, otherMarker)
+function highlightBetweenMarkers ()
 {
-	let segment = findNearestSegment(trailConditionMarkers[marker].position);
-	
-	let p = nearestPointOnSegment (
-		{x: trailConditionMarkers[marker].position.lat(), y: trailConditionMarkers[marker].position.lng()},
-		{x: routeCoords[segment].lat, y: routeCoords[segment].lng},
-		{x: routeCoords[segment + 1].lat, y: routeCoords[segment + 1].lng});
-
-	trailConditionMarkers[marker].setPosition ({lat: p.x, lng: p.y});
-
-	if (temporaryTrailConditionPolyLine)
+	// If there is an existing poly line then remove it.
+	if (routeHighLightPolyLine)
 	{
-		temporaryTrailConditionPolyLine.setMap(null);
+		routeHighLightPolyLine.setMap(null);
 	}
 	
 	// If both markers are on the map then draw a poly line between them on the trail.
-	if (trailConditionMarkers[marker] && trailConditionMarkers[marker].map
-	 && trailConditionMarkers[otherMarker] && trailConditionMarkers[otherMarker].map)
+	if (routeHighlightMarkers[0] && routeHighlightMarkers[0].map
+	 && routeHighlightMarkers[1] && routeHighlightMarkers[1].map)
 	{
-		temporaryTrailConditionPolyLine = trailConditionPolylineCreate (
-			trailConditionMarkers[marker].position, trailConditionMarkers[otherMarker].position,
+		routeHighLightPolyLine = routeHighlightPolylineCreate (
+			routeHighlightMarkers[0].position, routeHighlightMarkers[1].position,
 			'#FF0000');
 	}
 }
 
 
-function markerSetup (marker, position, otherMarker)
+function moveRouteHighlightMarkerToTrail (marker, listener)
 {
-	if (trailConditionMarkers[marker] == undefined)
+	let otherMarker = marker == 0 ? 1 : 0;
+	
+	let segment = findNearestSegment(routeHighlightMarkers[marker].position);
+	
+	let p = nearestPointOnSegment (
+		{x: routeHighlightMarkers[marker].position.lat(), y: routeHighlightMarkers[marker].position.lng()},
+		{x: routeCoords[segment].lat, y: routeCoords[segment].lng},
+		{x: routeCoords[segment + 1].lat, y: routeCoords[segment + 1].lng});
+
+	routeHighlightMarkers[marker].setPosition ({lat: p.x, lng: p.y});
+
+	highlightBetweenMarkers ();
+
+	listener (p, segment);
+}
+
+
+function markerSetup (marker, position, listener)
+{
+	if (routeHighlightMarkers[marker] == undefined)
 	{
-		trailConditionMarkers[marker] = new google.maps.Marker({
+		routeHighlightMarkers[marker] = new google.maps.Marker({
 			position: position,
 			map: map,
 			draggable: true
 		});
 
-		trailConditionMarkers[marker].addListener ("dragend", function (event)
+		routeHighlightMarkers[marker].addListener ("dragend", function (event)
 		{
-			moveMarkerToTrail (marker, otherMarker);
+			moveRouteHighlightMarkerToTrail (marker, listener);
 		});
 	}
 	else
 	{
-		trailConditionMarkers[marker].setPosition(position);
-		trailConditionMarkers[marker].setMap(map);
+		routeHighlightMarkers[marker].setPosition(position);
+		routeHighlightMarkers[marker].setMap(map);
 	}
 }
 
 
-function setStartMarker (position)
+function setRouteHighlightStartMarker (position, listener)
 {
-	markerSetup (0, position, 1);
+	markerSetup (0, position, listener);
 	
-	moveMarkerToTrail (0, 1);
+	moveRouteHighlightMarkerToTrail (0, listener);
 }
 
 
-function setEndMarker (position)
+function setRouteHighlightEndMarker (position, listener)
 {
-	markerSetup (1, position, 0);
+	markerSetup (1, position, listener);
 
-	moveMarkerToTrail (1, 0);
+	moveRouteHighlightMarkerToTrail (1, listener);
 }
 
 
@@ -239,7 +297,7 @@ function addTrailCondition ()
 	$("#trailConditionSaveButton").off('click');
 	$("#trailConditionSaveButton").click(function () { insertTrailCondition()});
 
-	$("#editTrailConditions").show (250);
+	$("#editTrailConditions").show (dialogSpeed);
 }
 
 
@@ -266,14 +324,12 @@ function editTrailCondition (trailConditionId)
 		let startPosition = {lat: parseFloat(trailConditions[t].startLat), lng: parseFloat(trailConditions[t].startLng)};
 		let endPosition = {lat: parseFloat(trailConditions[t].endLat), lng: parseFloat(trailConditions[t].endLng)};
 		
-		markerSetup (0, startPosition, 1);
-		markerSetup (1, endPosition, 0);
+		markerSetup (0, startPosition);
+		markerSetup (1, endPosition);
 		
 		positionMapToBounds (startPosition, endPosition);
 
-		temporaryTrailConditionPolyLine = trailConditionPolylineCreate (
-			trailConditionMarkers[0].position, trailConditionMarkers[1].position,
-			'#FF0000');
+		highlightBetweenMarkers ();
 
 		//
 		// If we were editing another trail condition polyline then restore it
@@ -298,7 +354,7 @@ function editTrailCondition (trailConditionId)
 		$("#trailConditionSaveButton").off('click');
 		$("#trailConditionSaveButton").click(function () { updateTrailCondition(trailConditionId)});
 
-		$("#editTrailConditions").show (250);
+		$("#editTrailConditions").show (dialogSpeed);
 
 	}
 }
@@ -323,13 +379,19 @@ function cancelEditTrailConditions ()
 }
 
 
+function endRouteHighlighting ()
+{
+	routeHighlightMarkers[0].setMap(null);
+	routeHighlightMarkers[1].setMap(null);
+	routeHighLightPolyLine.setMap(null);
+}
+
+
 function closeEditTrailConditions ()
 {
-	$("#editTrailConditions").hide(250);
+	$("#editTrailConditions").hide(dialogSpeed);
 
-	trailConditionMarkers[0].setMap(null);
-	trailConditionMarkers[1].setMap(null);
-	temporaryTrailConditionPolyLine.setMap(null);
+	endRouteHighlighting ();
 	
 	setRouteContextMenu (routeContextMenu);
 }
@@ -342,10 +404,10 @@ function updateTrailCondition (trailConditionId)
 	
 	let t = findTrailConditionIndex (trailConditionId);
 
-	trailCondition.startLat = trailConditionMarkers[0].position.lat ();
-	trailCondition.startLng = trailConditionMarkers[0].position.lng ();
-	trailCondition.endLat = trailConditionMarkers[1].position.lat ();
-	trailCondition.endLng = trailConditionMarkers[1].position.lng ();
+	trailCondition.startLat = routeHighlightMarkers[0].position.lat ();
+	trailCondition.startLng = routeHighlightMarkers[0].position.lng ();
+	trailCondition.endLat = routeHighlightMarkers[1].position.lat ();
+	trailCondition.endLng = routeHighlightMarkers[1].position.lng ();
 	
 	var xmlhttp = new XMLHttpRequest ();
 	xmlhttp.onreadystatechange = function ()
@@ -364,7 +426,7 @@ function updateTrailCondition (trailConditionId)
 				
 				trailConditions[t] = trailCondition;
 				
-				trailConditions[t].polyLine = trailConditionPolylineCreate (
+				trailConditions[t].polyLine = routeHighlightPolylineCreate (
 					new google.maps.LatLng({lat: parseFloat(trailConditions[t].startLat), lng: parseFloat(trailConditions[t].startLng)}),
 					new google.maps.LatLng({lat: parseFloat(trailConditions[t].endLat), lng: parseFloat(trailConditions[t].endLng)}),
 					'#FF0000');

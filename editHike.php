@@ -244,6 +244,19 @@ if ($hikeId)
 					<button id='trailConditionSaveButton' type="button" class="btn btn-default" data-dismiss="modal">Save</button>
 				</div>
 			</div>
+			<div id='measureRoute' style='display:none'>
+				<form id='measureRouteForm'>
+					<div class="grid-container">
+						<div>
+							<label>Distance:</label>
+							<input type="number" class='form-control' name='speedFactor' value='100'/>
+						</div>
+					</div>
+				</form>
+				<div class="modal-footer">
+					<button type="button" class="btn" onclick='stopRouteMeasurement()'>Close</button>
+				</div>
+			</div>
 			<div id="googleMap" style="width:100%;height:100%"></div>
 		</div>
 		<div class="col-md-4" style="height:100%;padding:0px 5px 0px 5px">

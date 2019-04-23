@@ -11,6 +11,9 @@ var routeContextMenuListener;
 var map;
 var data;
 var startPosition;
+var startSegment;
+var endPosition;
+var endSegment;
 var interfaceMode = "normal";
 var markerContextMenu = {};
 var resupplyLocationCM = {};
@@ -21,7 +24,7 @@ var campUrl = "http://maps.google.com/mapfiles/ms/micons/campground.png";
 var endPointUrl = "http://maps.google.com/mapfiles/ms/micons/red-dot.png";
 
 const routeStrokeWeight = 6;
-const trailConditionStrokePadding = 4;
+const routeHighlightStrokePadding = 4;
 
 function timeFormat (t)
 {
@@ -93,28 +96,101 @@ function addPointOfInterest (position)
 }
 
 
+function addNote (position)
+{
+}
+
+
+function startRouteEdit (position)
+{
+	let nearestSegment = findNearestSegment(position);
+
+	//
+	// Get the ends of the new editable polyline (100 points in each direction)
+	//
+	let startSegment = Math.max(0, nearestSegment - 100);
+	let endSegment = Math.min(routeCoords.length - 1, nearestSegment + 100);
+	
+	let polyline = [];
+	
+	if (startSegment != endSegment)
+	{
+		for (let r = startSegment; r <= endSegment; r++)
+		{
+			polyline.push({lat: routeCoords[r].lat, lng: routeCoords[r].lng});
+		}
+
+		var polyLine = new google.maps.Polyline({
+			path: polyline,
+			editable: true,
+			geodesic: true,
+			strokeColor: '#0000FF',
+			strokeOpacity: 1.0,
+			strokeWeight: routeStrokeWeight,
+			zIndex: 30});
+
+		polyLine.setMap(map);
+	}
+}
+
+
+function startMarkerSet (position, segment)
+{
+	startPosition = new google.maps.LatLng({lat: position.x, lng: position.y});
+	startSegment = segment;
+	
+	if (startPosition != undefined && endPosition != undefined)
+	{
+		measureRouteDistance (startPosition, startSegment, endPosition, endSegment);
+	}
+}
+
+function endMarkerSet (position, segment)
+{
+	endPosition = new google.maps.LatLng({lat: position.x, lng: position.y});
+	endSegment = segment;
+	
+	if (startPosition != undefined && endPosition != undefined)
+	{
+		measureRouteDistance (startPosition, startSegment, endPosition, endSegment);
+	}
+}
+
 function startRouteMeasurement (position)
 {
+	setRouteHighlightStartMarker (position, startMarkerSet);
+	setRouteHighlightEndMarker (position, endMarkerSet);
+	
 	startPosition = position;
-	interfaceMode = "routeMeasurement";
+	endPosition = position;
+
+	startSegment = findNearestSegment(startPosition);
+	endSegment = startSegment;
+
+	//	interfaceMode = "routeMeasurement";
+	
+	$("#measureRoute").show (250);
 }
+
+
+function stopRouteMeasurement ()
+{
+	$("#measureRoute").hide(250);
+}
+
 
 function routeClick (position)
 {
 	if (interfaceMode == "routeMeasurement")
 	{
-		measureRouteDistance (startPosition, position);
+		measureRouteDistance ();
 	}
 
 	interfaceMode = "normal";
 }
 
-function measureRouteDistance (startPosition, endPosition)
+function measureRouteDistance (startPosition, startSegment, endPosition, endSegment)
 {
-	let startSegment = findNearestSegment(startPosition);
-	
-	let endSegment = findNearestSegment(endPosition);
-	
 	let distance = 0;
 	
 	if (startSegment == endSegment)
@@ -129,6 +205,7 @@ function measureRouteDistance (startPosition, endPosition)
 		if (startSegment > endSegment)
 		{
 			endSegment = [startSegment, startSegment=endSegment][0];
+			endPosition = [startPosition, startPosition=endPosition][0];
 		}
 		
 		// Compute the distance between the start point and the start segment (the
@@ -145,7 +222,7 @@ function measureRouteDistance (startPosition, endPosition)
 		}
 
 		// Compute the distance between the end segment and the end point (the
-		// start point might be int he middle of a segment)
+		// end point might be int he middle of a segment)
 		let endDistance = google.maps.geometry.spherical.computeDistanceBetween(
 				new google.maps.LatLng(routeCoords[endSegment].lat, routeCoords[endSegment].lng),
 				endPosition);
@@ -153,9 +230,10 @@ function measureRouteDistance (startPosition, endPosition)
 		distance += startDistance + endDistance;
 	}
 	
-	let miles = metersToMiles(distance);
-	if (miles > 0)
+	// If less than a 0.10 miles then measure in feet, otherwise measure in miles.
+	if (distance >= 160.934)
 	{
+		let miles = metersToMiles(distance);
 		$("#modalBody").html("Distance: " + miles + " miles");
 	}
 	else
@@ -167,51 +245,6 @@ function measureRouteDistance (startPosition, endPosition)
 	$("#modalDialog").modal ('show');
 }
 
-
-function trailConditionPolylineCreate (startPosition, endPosition, color)
-{
-	let startSegment = findNearestSegment(startPosition);
-	let endSegment = findNearestSegment(endPosition);
-
-	let polyline = [];
-	
-	if (startSegment != endSegment)
-	{
-		//
-		// Swap the values if needed.
-		//
-		if (startSegment > endSegment)
-		{
-			endSegment = [startSegment, startSegment=endSegment][0];
-			endPosition = [startPosition, startPosition=endPosition][0];
-		}
-		
-		// Compute the distance between the start point and the start segment (the
-		// start point might be int he middle of a segment)
-		polyline.push({lat: startPosition.lat(), lng: startPosition.lng()});
-		
-		for (let r = startSegment + 1; r <= endSegment; r++)
-		{
-			polyline.push({lat: routeCoords[r].lat, lng: routeCoords[r].lng});
-		}
-
-		// Compute the distance between the end segment and the end point (the
-		// start point might be int he middle of a segment)
-		polyline.push({lat: endPosition.lat(), lng: endPosition.lng()});
-	}
-	
-	var polyLine = new google.maps.Polyline({
-		path: polyline,
-		geodesic: true,
-		strokeColor: color,
-		strokeOpacity: 1.0,
-		strokeWeight: routeStrokeWeight + 2 * trailConditionStrokePadding,
-		zIndex: 10});
-
-	polyLine.setMap(map);
-
-	return polyLine;
-}
 
 function sqr(x)
 {
@@ -457,6 +490,7 @@ function drawRoute ()
 		
 		route = new google.maps.Polyline({
 			path: routeCoords,
+			editable: false,
 			geodesic: true,
 			strokeColor: '#0000FF',
 			strokeOpacity: 1.0,
@@ -470,7 +504,8 @@ function drawRoute ()
 		routeContextMenu = new ContextMenu ([
 			{title:"Add Point of Interest", func:addPointOfInterest},
 			{title:"Measure route distance", func:startRouteMeasurement},
-			{title:"Add Note"}]);
+			{title:"Add Note", func:addNote},
+			{title:"Edit route", func:startRouteEdit}]);
 
 		setRouteContextMenu (routeContextMenu);
 	}
