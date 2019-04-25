@@ -101,29 +101,29 @@ if ($hikeId)
 				</div>
 				<div class="modal-body">
 				<form id='hikerProfileForm'>
-			        <label>Start Day:</label>
-			        <input type="number" class='form-control' name='startDay'/>
-			    	<br/>
+					<label>Start Day:</label>
+					<input type="number" class='form-control' name='startDay'/>
+					<br/>
 
-			        <label>End Day:</label>
-			        <input type="number" class='form-control' name='endDay'/>
-			    	<br/>
+					<label>End Day:</label>
+					<input type="number" class='form-control' name='endDay'/>
+					<br/>
 
-			        <label>Speed Factor:</label>
-			        <input type="number" class='form-control' name='speedFactor'/>
-			    	<br/>
-			    	
-			        <label>Start Time:</label>
-			        <input type="number" class='form-control' name='startTime'/>
-			    	<br/>
+					<label>Speed Factor:</label>
+					<input type="number" class='form-control' name='speedFactor'/>
+					<br/>
+					
+					<label>Start Time:</label>
+					<input type="number" class='form-control' name='startTime'/>
+					<br/>
 
-			        <label>End Time:</label>
-			        <input type="number" class='form-control' name='endTime'/>
-			    	<br/>
-			    	
-			        <label>Break Duration:</label>
-			        <input type="number" class='form-control' name='breakDuration'/>
-			    	<br/>
+					<label>End Time:</label>
+					<input type="number" class='form-control' name='endTime'/>
+					<br/>
+					
+					<label>Break Duration:</label>
+					<input type="number" class='form-control' name='breakDuration'/>
+					<br/>
 				</form>
 				</div>
 				<div class="modal-footer">
@@ -147,33 +147,33 @@ if ($hikeId)
 				</div>
 				<div class="modal-body">
 				<form id='resupplyLocationForm'>
-			        <label>Name:</label>
-			        <input type="text" class='form-control' name='name'/>
-			    	<br/>
+					<label>Name:</label>
+					<input type="text" class='form-control' name='name'/>
+					<br/>
 
-			        <label>In Care Of:</label>
-			        <input type="text" class='form-control' name='inCareOf'/>
-			    	<br/>
+					<label>In Care Of:</label>
+					<input type="text" class='form-control' name='inCareOf'/>
+					<br/>
 
-			        <label>Address 1:</label>
-			        <input type="text" class='form-control' name='address1'/>
-			    	<br/>
+					<label>Address 1:</label>
+					<input type="text" class='form-control' name='address1'/>
+					<br/>
 
-			        <label>Address 2:</label>
-			        <input type="text" class='form-control' name='address2'/>
-			    	<br/>
-			    	
-			        <label>City:</label>
-			        <input type="text" class='form-control' name='city'/>
-			    	<br/>
+					<label>Address 2:</label>
+					<input type="text" class='form-control' name='address2'/>
+					<br/>
+					
+					<label>City:</label>
+					<input type="text" class='form-control' name='city'/>
+					<br/>
 
-			        <label>State:</label>
-			        <input type="text" class='form-control' name='state'/>
-			    	<br/>
-			    	
-			        <label>Zip Code:</label>
-			        <input type="text" class='form-control' name='zip'/>
-			    	<br/>
+					<label>State:</label>
+					<input type="text" class='form-control' name='state'/>
+					<br/>
+					
+					<label>Zip Code:</label>
+					<input type="text" class='form-control' name='zip'/>
+					<br/>
 				</form>
 				</div>
 				<div class="modal-footer">
@@ -219,25 +219,25 @@ if ($hikeId)
 					<div class="grid-container">
 					
 					<div>
-			        <label>Type:</label>
+					<label>Type:</label>
 					<select class="form-control" name='type'>
 						<option value=0>No Camping</option>
 						<option value=1>No Stealth Camping</option>
 						<option value=2>Other</option>
 					</select>
 					</div>
-			        
-			        <div>
-			        <label>Description:</label>
-			        <input type="text" class='form-control' name='description'/>
+					
+					<div>
+					<label>Description:</label>
+					<input type="text" class='form-control' name='description'/>
 					</div>
 					
 					<div>
-			        <label>Speed Factor:</label>
-			        <input type="number" class='form-control' name='speedFactor' value='100'/>
+					<label>Speed Factor:</label>
+					<input type="number" class='form-control' name='speedFactor' value='100'/>
 					</div>
 					
-			        </div>
+					</div>
 				</form>
 				<div class="modal-footer">
 					<button type="button" class="btn" onclick='cancelEditTrailConditions()'>Cancel</button>
@@ -248,8 +248,8 @@ if ($hikeId)
 				<form id='measureRouteForm'>
 					<div class="grid-container">
 						<div>
-							<label>Distance:</label>
-							<input type="number" class='form-control' name='speedFactor' value='100'/>
+							<p>Distance: <span id='distance'></span></p>
+							
 						</div>
 					</div>
 				</form>
@@ -356,6 +356,7 @@ if ($hikeId)
 	<script	src="/editHike.js"></script>
 	<script	src="/hikerProfile/hikerProfile.js"></script>
 	<script src="/resupplyPlan.js"></script>
+	<script src="/routeHighlighting.js"></script>
 	<script src="/trailCondition.js"></script>
 	
 	<script async defer

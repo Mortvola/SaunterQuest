@@ -553,6 +553,8 @@ function foodPlansGet ($userId)
 
 function metersPerHourGet ($dh, $dx)
 {
+	// This formula was defined by Tobler
+	// On flat ground the formula works out to about 5 km/h.
 	$metersPerHour = 6 * pow(2.71828, -3.5 * abs($dh / $dx + 0.05)) * 1000;
 	
 	// Make sure the minimum speede is 1/2 kilometer per hour.

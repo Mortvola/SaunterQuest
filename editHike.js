@@ -175,6 +175,8 @@ function startRouteMeasurement (position)
 
 function stopRouteMeasurement ()
 {
+	endRouteHighlighting ();
+	
 	$("#measureRoute").hide(250);
 }
 
@@ -212,19 +214,19 @@ function measureRouteDistance (startPosition, startSegment, endPosition, endSegm
 		// start point might be int he middle of a segment)
 		let startDistance = google.maps.geometry.spherical.computeDistanceBetween(
 				startPosition,
-				new google.maps.LatLng(routeCoords[startSegment + 1].lat, routeCoords[startSegment + 1].lng));		
+				new google.maps.LatLng(routeCoords[startSegment + 1]));		
 
 		for (let r = startSegment + 1; r < endSegment; r++)
 		{
 			distance += google.maps.geometry.spherical.computeDistanceBetween(
-				new google.maps.LatLng(routeCoords[r].lat, routeCoords[r].lng),
-				new google.maps.LatLng(routeCoords[r + 1].lat, routeCoords[r + 1].lng));		
+				new google.maps.LatLng(routeCoords[r]),
+				new google.maps.LatLng(routeCoords[r + 1]));		
 		}
 
 		// Compute the distance between the end segment and the end point (the
 		// end point might be int he middle of a segment)
 		let endDistance = google.maps.geometry.spherical.computeDistanceBetween(
-				new google.maps.LatLng(routeCoords[endSegment].lat, routeCoords[endSegment].lng),
+				new google.maps.LatLng(routeCoords[endSegment]),
 				endPosition);
 		
 		distance += startDistance + endDistance;
@@ -234,15 +236,13 @@ function measureRouteDistance (startPosition, startSegment, endPosition, endSegm
 	if (distance >= 160.934)
 	{
 		let miles = metersToMiles(distance);
-		$("#modalBody").html("Distance: " + miles + " miles");
+		$("#distance").html(miles + " miles");
 	}
 	else
 	{
 		let feet = metersToFeet(distance);
-		$("#modalBody").html("Distance: " + feet + " feet");
+		$("#distance").html(feet + " feet");
 	}
-	$("#modalTitle").html("Distance");
-	$("#modalDialog").modal ('show');
 }
 
 
