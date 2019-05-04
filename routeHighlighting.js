@@ -93,22 +93,17 @@ function markerSetup (marker, position, listener)
 			map: map,
 			draggable: true
 		});
-
-		if (marker.listener != undefined)
-		{
-			google.maps.event.removeListener (marker.listener);
-		}
-		
-		marker.listener = routeHighlightMarkers[marker].addListener ("dragend", function (event)
-		{
-			moveRouteHighlightMarkerToTrail (marker, listener);
-		});
 	}
 	else
 	{
 		routeHighlightMarkers[marker].setPosition(position);
 		routeHighlightMarkers[marker].setMap(map);
 	}
+
+	routeHighlightMarkers[marker].listener = routeHighlightMarkers[marker].addListener ("dragend", function (event)
+	{
+		moveRouteHighlightMarkerToTrail (marker, listener);
+	});
 }
 
 
@@ -131,8 +126,20 @@ function setRouteHighlightEndMarker (position, listener)
 function endRouteHighlighting ()
 {
 	routeHighlightMarkers[0].setMap(null);
+	if (routeHighlightMarkers[0].listener != undefined)
+	{
+		google.maps.event.removeListener (routeHighlightMarkers[0].listener);
+	}
+
 	routeHighlightMarkers[1].setMap(null);
+	if (routeHighlightMarkers[1].listener != undefined)
+	{
+		google.maps.event.removeListener (routeHighlightMarkers[1].listener);
+	}
+
 	routeHighLightPolyLine.setMap(null);
+
+	
 }
 
 
