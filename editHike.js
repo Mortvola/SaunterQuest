@@ -14,7 +14,6 @@ var startPosition;
 var startSegment;
 var endPosition;
 var endSegment;
-var interfaceMode = "normal";
 var markerContextMenu = {};
 var resupplyLocationCM = {};
 var infoWindow = {};
@@ -255,8 +254,6 @@ function startRouteMeasurement (position)
 	startSegment = findNearestSegment(startPosition);
 	endSegment = startSegment;
 
-	//	interfaceMode = "routeMeasurement";
-	
 	$("#measureRoute").show (250);
 }
 
@@ -271,16 +268,6 @@ function stopRouteMeasurement ()
 	$("#measureRoute").hide(250);
 }
 
-
-function routeClick (position)
-{
-	if (interfaceMode == "routeMeasurement")
-	{
-		measureRouteDistance ();
-	}
-
-	interfaceMode = "normal";
-}
 
 function measureRouteDistance (startPosition, startSegment, endPosition, endSegment)
 {
@@ -619,8 +606,6 @@ function drawRoute ()
 			zIndex: 20});
 
 		route.setMap(map);
-
-		route.addListener ("click", function (event) { routeClick (event.latLng); });
 
 		routeContextMenu = new ContextMenu ([
 			{title:"Add Point of Interest", func:addPointOfInterest},

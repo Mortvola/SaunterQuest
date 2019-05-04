@@ -94,7 +94,12 @@ function markerSetup (marker, position, listener)
 			draggable: true
 		});
 
-		routeHighlightMarkers[marker].addListener ("dragend", function (event)
+		if (marker.listener != undefined)
+		{
+			google.maps.event.removeListener (marker.listener);
+		}
+		
+		marker.listener = routeHighlightMarkers[marker].addListener ("dragend", function (event)
 		{
 			moveRouteHighlightMarkerToTrail (marker, listener);
 		});
