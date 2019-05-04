@@ -434,9 +434,39 @@ function findNearestSegment (position)
 
 function displayLocation (position)
 {
-	$("#modalTitle").html("Distance");
+	$("#modalTitle").html("Location");
 	$("#modalBody").html("Lat: " + position.lat() + " Lng: " + position.lng());
 	$("#modalDialog").modal ('show');
+	
+	var xmlhttp = new XMLHttpRequest ();
+	xmlhttp.onreadystatechange = function ()
+	{
+		if (this.readyState == 4 && this.status == 200)
+		{
+			let elevation = JSON.parse(this.responseText);
+
+			$("#modalBody").html("Lat: " + position.lat() + " Lng: " + position.lng() + " Elevation: " + metersToFeet(elevation));
+
+//			resupplyLocation.shippingLocationId = JSON.parse(this.responseText);
+//
+//			resupplyLocation.marker = new google.maps.Marker({
+//				position: {lat: parseFloat(resupplyLocation.lat), lng: parseFloat(resupplyLocation.lng)},
+//				map: map,
+//				icon: {
+//					url: "http://maps.google.com/mapfiles/ms/micons/postoffice-us.png"
+//				}
+//			});
+//			
+//			let markerIndex = 0; //todo: fix this, it shouldn't be zero.
+//			resupplyLocation.marker.addListener ("rightclick", function (event) { resupplyLocationCM.open (map, event, markerIndex); });
+//			
+//			resupplyLocations.push(resupplyLocation);
+		}
+	}
+	
+	xmlhttp.open("GET", "elevation.php?lat=" + position.lat () + "&lng=" + position.lng (), true);
+	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	xmlhttp.send();
 }
 
 
@@ -623,8 +653,7 @@ function myMap()
 
 	markerContextMenu = new ContextMenu ([
 		{title:"Remove Point of Interest", func:removePointOfInterest},
-		{title:"Edit Point of Interest", func:editPointOfInterest},
-	]);
+		{title:"Edit Point of Interest", func:editPointOfInterest}]);
 
 	resupplyLocationCM = new ContextMenu ([
 		{title:"Resupply from this location", func:resupplyFromLocation},
