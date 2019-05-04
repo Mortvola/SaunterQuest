@@ -18,6 +18,7 @@ var interfaceMode = "normal";
 var markerContextMenu = {};
 var resupplyLocationCM = {};
 var infoWindow = {};
+var editPolyLine = {};
 
 var startPointUrl = "http://maps.google.com/mapfiles/ms/micons/green-dot.png";
 var campUrl = "http://maps.google.com/mapfiles/ms/micons/campground.png";
@@ -103,24 +104,86 @@ function addNote (position)
 
 function startRouteEdit (position)
 {
-	let nearestSegment = findNearestSegment(position);
+	setRouteHighlightStartMarker (position, editStartMarkerSet);
+	setRouteHighlightEndMarker (position, editEndMarkerSet);
+	
+	startPosition = position;
+	endPosition = position;
+	
+	startSegment = findNearestSegment(startPosition);
+	endSegment = startSegment;
+	
+	$("#editRoute").show (250);
+}
 
-	//
-	// Get the ends of the new editable polyline (100 points in each direction)
-	//
-	let startSegment = Math.max(0, nearestSegment - 100);
-	let endSegment = Math.min(routeCoords.length - 1, nearestSegment + 100);
+
+function stopRouteEdit ()
+{
+	endRouteHighlighting ();
 	
-	let polyline = [];
+	if (editPolyLine != undefined && editPolyLine.setMap != undefined)
+	{
+		editPolyLine.setMap(null);
+		editPolyLine = null;
+	}
+
+	startPosition = undefined;
+	endPosition = undefined;
 	
+	$("#editRoute").hide(250);
+}
+
+
+function editStartMarkerSet (position, segment)
+{
+	startPosition = new google.maps.LatLng({lat: position.x, lng: position.y});
+	startSegment = segment;
+	
+	if (startPosition != undefined && endPosition != undefined)
+	{
+		createEditablePolyline (startPosition, startSegment, endPosition, endSegment);
+	}
+}
+
+function editEndMarkerSet (position, segment)
+{
+	endPosition = new google.maps.LatLng({lat: position.x, lng: position.y});
+	endSegment = segment;
+	
+	if (startPosition != undefined && endPosition != undefined)
+	{
+		createEditablePolyline (startPosition, startSegment, endPosition, endSegment);
+	}
+}
+
+function createEditablePolyline (startPosition, startSegment, endPosition, endSegment)
+{
+	//
+	// Get the ends of the new editable polyline
+	//
 	if (startSegment != endSegment)
 	{
+		//
+		// Swap the values if needed.
+		//
+		if (startSegment > endSegment)
+		{
+			endSegment = [startSegment, startSegment=endSegment][0];
+		}
+		
+		let polyline = [];
+
 		for (let r = startSegment; r <= endSegment; r++)
 		{
 			polyline.push({lat: routeCoords[r].lat, lng: routeCoords[r].lng});
 		}
 
-		var polyLine = new google.maps.Polyline({
+		if (editPolyLine != undefined && editPolyLine.setMap != undefined)
+		{
+			editPolyLine.setMap(null);
+		}
+		
+		editPolyLine = new google.maps.Polyline({
 			path: polyline,
 			editable: true,
 			geodesic: true,
@@ -129,12 +192,37 @@ function startRouteEdit (position)
 			strokeWeight: routeStrokeWeight,
 			zIndex: 30});
 
-		polyLine.setMap(map);
+		editPolyLine.setMap(map);
 	}
 }
 
 
-function startMarkerSet (position, segment)
+function clearVertices ()
+{
+	let polyline = [];
+
+	polyline.push({lat: routeCoords[startSegment].lat, lng: routeCoords[startSegment].lng});
+	polyline.push({lat: routeCoords[endSegment].lat, lng: routeCoords[endSegment].lng});
+
+	if (editPolyLine != undefined && editPolyLine.setMap != undefined)
+	{
+		editPolyLine.setMap(null);
+	}
+	
+	editPolyLine = new google.maps.Polyline({
+		path: polyline,
+		editable: true,
+		geodesic: true,
+		strokeColor: '#0000FF',
+		strokeOpacity: 1.0,
+		strokeWeight: routeStrokeWeight,
+		zIndex: 30});
+
+	editPolyLine.setMap(map);
+}
+
+
+function measureStartMarkerSet (position, segment)
 {
 	startPosition = new google.maps.LatLng({lat: position.x, lng: position.y});
 	startSegment = segment;
@@ -145,7 +233,7 @@ function startMarkerSet (position, segment)
 	}
 }
 
-function endMarkerSet (position, segment)
+function measureEndMarkerSet (position, segment)
 {
 	endPosition = new google.maps.LatLng({lat: position.x, lng: position.y});
 	endSegment = segment;
@@ -158,8 +246,8 @@ function endMarkerSet (position, segment)
 
 function startRouteMeasurement (position)
 {
-	setRouteHighlightStartMarker (position, startMarkerSet);
-	setRouteHighlightEndMarker (position, endMarkerSet);
+	setRouteHighlightStartMarker (position, measureStartMarkerSet);
+	setRouteHighlightEndMarker (position, measureEndMarkerSet);
 	
 	startPosition = position;
 	endPosition = position;
@@ -176,6 +264,9 @@ function startRouteMeasurement (position)
 function stopRouteMeasurement ()
 {
 	endRouteHighlighting ();
+	
+	startPosition = undefined;
+	endPosition = undefined;
 	
 	$("#measureRoute").hide(250);
 }
@@ -526,7 +617,9 @@ function myMap()
 
 	initializeContextMenu ();
 
-	var mapContextMenu = new ContextMenu ([{title:"Create Resupply Location", func:addResupplyLocation},{title:"Display Location", func:displayLocation}]);
+	var mapContextMenu = new ContextMenu ([
+		{title:"Create Resupply Location", func:addResupplyLocation},
+		{title:"Display Location", func:displayLocation}]);
 
 	markerContextMenu = new ContextMenu ([
 		{title:"Remove Point of Interest", func:removePointOfInterest},

@@ -249,12 +249,24 @@ if ($hikeId)
 					<div class="grid-container">
 						<div>
 							<p>Distance: <span id='distance'></span></p>
-							
 						</div>
 					</div>
 				</form>
 				<div class="modal-footer">
 					<button type="button" class="btn" onclick='stopRouteMeasurement()'>Close</button>
+				</div>
+			</div>
+			<div id='editRoute' style='display:none'>
+				<form id='editRouteForm'>
+					<div class="grid-container">
+						<div>
+							<p>Distance: <span id='distance'></span></p>
+						</div>
+					</div>
+				</form>
+				<div class="modal-footer">
+					<button type="button" class="btn" onclick='clearVertices()'>Clear Vertices</button>
+					<button type="button" class="btn" onclick='stopRouteEdit()'>Close</button>
 				</div>
 			</div>
 			<div id="googleMap" style="width:100%;height:100%"></div>
