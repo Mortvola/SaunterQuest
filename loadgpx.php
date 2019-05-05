@@ -12,6 +12,8 @@ else
 {
 	$first = true;
 	$totalDist = 0;
+	$shortestDistance = 1000000;
+	$duplicateCount = 0;
 	
 	$points = [];
 	
@@ -30,6 +32,21 @@ else
 			continue;
 		}
 		
+		$duplicateFound = false;
+		foreach ($points as $point)
+		{
+			if ($point->lat == $lat2 && $point->lng == $lng2)
+			{
+				//				echo "Found duplicate point.";
+				$duplicateFound = true;
+			}
+		}
+		
+		if ($duplicateFound)
+		{
+			continue;
+		}
+		
 		if ($first)
 		{
 			$first = false;
@@ -37,6 +54,14 @@ else
 		else
 		{
 			$d = haversineGreatCircleDistance (floatval($lat1), floatval($lng1), floatVal($lat2), floatval($lng2));
+
+			if ($d < 30)
+			{
+				$duplicateCount++;
+				continue;
+			}
+			
+			$shortestDistance = min ($shortestDistance, $d);
 			
 			$totalDist += $d; // * 1.128547862;
 		}
@@ -46,9 +71,13 @@ else
 		$lat1 = $lat2;
 		$lng1 = $lng2;
 		$ele1 = $ele2;
-	
 	}
 	
+	$totalPoints = count($points);
+	
+	error_log("Shortest Distance: $shortestDistance");
+	error_log("Duplicates removed: $duplicateCount");
+	error_log("Total points: $totalPoints");
 	echo json_encode($points), "\n";
 }
 ?>
