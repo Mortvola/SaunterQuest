@@ -6,6 +6,7 @@ var endOfTrailMarker = {};
 var resupplyLocations = [];
 var route;
 var routeCoords = [];
+var editedRoute = [];
 var routeContextMenu;
 var routeContextMenuListener;
 var map;
@@ -130,6 +131,8 @@ function stopRouteEdit ()
 	endPosition = undefined;
 	
 	$("#editRoute").hide(250);
+
+	getAndLoadElevationData (0, routeCoords.length, routeCoords);
 }
 
 
@@ -170,11 +173,11 @@ function createEditablePolyline (startPosition, startSegment, endPosition, endSe
 			endSegment = [startSegment, startSegment=endSegment][0];
 		}
 		
-		let polyline = [];
+		editedRoute = [];
 
 		for (let r = startSegment; r <= endSegment; r++)
 		{
-			polyline.push({lat: routeCoords[r].lat, lng: routeCoords[r].lng});
+			editedRoute.push(routeCoords[r]);
 		}
 
 		if (editPolyLine != undefined && editPolyLine.setMap != undefined)
@@ -183,7 +186,7 @@ function createEditablePolyline (startPosition, startSegment, endPosition, endSe
 		}
 		
 		editPolyLine = new google.maps.Polyline({
-			path: polyline,
+			path: editedRoute,
 			editable: true,
 			geodesic: true,
 			strokeColor: '#0000FF',
@@ -192,16 +195,86 @@ function createEditablePolyline (startPosition, startSegment, endPosition, endSe
 			zIndex: 30});
 
 		editPolyLine.setMap(map);
+		
+		getAndLoadElevationData (0, editedRoute.length, editedRoute);
 	}
+}
+
+function vertexInserted (index)
+{
+	var path = editPolyLine.getPath ();
+	
+	var vertex = path.getAt(index);
+
+	editedRoute.splice (index, 0, {lat: vertex.lat (), lng: vertex.lng ()});
+	
+	updateEditedRoute (index);
+}
+
+
+function vertexUpdated (index)
+{
+	var path = editPolyLine.getPath ();
+	
+	var vertex = path.getAt(index);
+
+	editedRoute[index].lat = vertex.lat ();
+	editedRoute[index].lng = vertex.lng ();
+	
+	updateEditedRoute (index);
+}
+
+function updateEditedRoute (index)
+{
+	var xmlhttp = new XMLHttpRequest ();
+
+	function setReadyStateChange (i)
+	{
+		xmlhttp.onreadystatechange = function ()
+		{
+			if (this.readyState == 4 && this.status == 200)
+			{
+				editedRoute[i].ele = JSON.parse(this.responseText);
+				
+				getAndLoadElevationData (0, editedRoute.length, editedRoute);
+			}
+		}
+	}
+	
+	setReadyStateChange(index);
+	
+	xmlhttp.open("GET", "elevation.php?lat=" + editedRoute[index].lat + "&lng=" + editedRoute[index].lng, true);
+	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	xmlhttp.send();
+
+	// Update the distance data members.
+	var position1 = new google.maps.LatLng(editedRoute[index - 1]);
+	var position2 = new google.maps.LatLng(editedRoute[index]);
+	var delta = google.maps.geometry.spherical.computeDistanceBetween(position1, position2);
+	editedRoute[index].dist = editedRoute[index - 1].dist + delta;
+
+	var position3 = new google.maps.LatLng(editedRoute[index + 1]);
+	delta = google.maps.geometry.spherical.computeDistanceBetween(position2, position3);
+	
+	var newDistance = editedRoute[index].dist + delta
+
+	for (++index; index < editedRoute.length - 1; index++)
+	{
+		delta = editedRoute[index + 1].dist - editedRoute[index].dist;
+		editedRoute[index].dist = newDistance;
+		newDistance = editedRoute[index].dist + delta;
+	}
+
+	editedRoute[index].dist = newDistance;
 }
 
 
 function clearVertices ()
 {
-	let polyline = [];
+	editedRoute = [];
 
-	polyline.push({lat: routeCoords[startSegment].lat, lng: routeCoords[startSegment].lng});
-	polyline.push({lat: routeCoords[endSegment].lat, lng: routeCoords[endSegment].lng});
+	editedRoute.push(routeCoords[startSegment]);
+	editedRoute.push(routeCoords[endSegment]);
 
 	if (editPolyLine != undefined && editPolyLine.setMap != undefined)
 	{
@@ -209,7 +282,7 @@ function clearVertices ()
 	}
 	
 	editPolyLine = new google.maps.Polyline({
-		path: polyline,
+		path: editedRoute,
 		editable: true,
 		geodesic: true,
 		strokeColor: '#0000FF',
@@ -217,7 +290,12 @@ function clearVertices ()
 		strokeWeight: routeStrokeWeight,
 		zIndex: 30});
 
+	google.maps.event.addListener(editPolyLine.getPath(), "insert_at", vertexInserted);
+	google.maps.event.addListener(editPolyLine.getPath(), "set_at", vertexUpdated);
+	
 	editPolyLine.setMap(map);
+
+	getAndLoadElevationData (0, editedRoute.length, editedRoute);
 }
 
 
@@ -226,10 +304,8 @@ function measureStartMarkerSet (position, segment)
 	startPosition = new google.maps.LatLng({lat: position.x, lng: position.y});
 	startSegment = segment;
 	
-	if (startPosition != undefined && endPosition != undefined)
-	{
-		measureRouteDistance (startPosition, startSegment, endPosition, endSegment);
-	}
+	measureRouteDistance (startPosition, startSegment, endPosition, endSegment);
+	displayRouteElevations (startSegment, endSegment);
 }
 
 function measureEndMarkerSet (position, segment)
@@ -237,10 +313,8 @@ function measureEndMarkerSet (position, segment)
 	endPosition = new google.maps.LatLng({lat: position.x, lng: position.y});
 	endSegment = segment;
 	
-	if (startPosition != undefined && endPosition != undefined)
-	{
-		measureRouteDistance (startPosition, startSegment, endPosition, endSegment);
-	}
+	measureRouteDistance (startPosition, startSegment, endPosition, endSegment);
+	displayRouteElevations (startSegment, endSegment);
 }
 
 function startRouteMeasurement (position)
@@ -261,11 +335,13 @@ function startRouteMeasurement (position)
 function stopRouteMeasurement ()
 {
 	endRouteHighlighting ();
-	
+
 	startPosition = undefined;
 	endPosition = undefined;
 	
 	$("#measureRoute").hide(250);
+
+	getAndLoadElevationData (0, routeCoords.length, routeCoords);
 }
 
 
@@ -273,56 +349,109 @@ function measureRouteDistance (startPosition, startSegment, endPosition, endSegm
 {
 	let distance = 0;
 	
-	if (startSegment == endSegment)
+	if (startPosition != undefined && endPosition != undefined)
 	{
-		distance = google.maps.geometry.spherical.computeDistanceBetween(startPosition, endPosition);
-	}
-	else
-	{
-		//
-		// Swap the values if needed.
-		//
-		if (startSegment > endSegment)
+		if (startSegment == endSegment)
 		{
-			endSegment = [startSegment, startSegment=endSegment][0];
-			endPosition = [startPosition, startPosition=endPosition][0];
+			distance = google.maps.geometry.spherical.computeDistanceBetween(startPosition, endPosition);
 		}
-		
-		// Compute the distance between the start point and the start segment (the
-		// start point might be int he middle of a segment)
-		let startDistance = google.maps.geometry.spherical.computeDistanceBetween(
-				startPosition,
-				new google.maps.LatLng(routeCoords[startSegment + 1]));		
-
-		for (let r = startSegment + 1; r < endSegment; r++)
+		else
 		{
-			distance += google.maps.geometry.spherical.computeDistanceBetween(
-				new google.maps.LatLng(routeCoords[r]),
-				new google.maps.LatLng(routeCoords[r + 1]));		
-		}
-
-		// Compute the distance between the end segment and the end point (the
-		// end point might be int he middle of a segment)
-		let endDistance = google.maps.geometry.spherical.computeDistanceBetween(
-				new google.maps.LatLng(routeCoords[endSegment]),
-				endPosition);
-		
-		distance += startDistance + endDistance;
-	}
+			//
+			// Swap the values if needed.
+			//
+			if (startSegment > endSegment)
+			{
+				endSegment = [startSegment, startSegment=endSegment][0];
+				endPosition = [startPosition, startPosition=endPosition][0];
+			}
+			
+			// Compute the distance between the start point and the start segment (the
+			// start point might be int he middle of a segment)
+			let startDistance = google.maps.geometry.spherical.computeDistanceBetween(
+					startPosition,
+					new google.maps.LatLng(routeCoords[startSegment + 1]));		
 	
-	// If less than a 0.10 miles then measure in feet, otherwise measure in miles.
-	if (distance >= 160.934)
-	{
-		let miles = metersToMiles(distance);
-		$("#distance").html(miles + " miles");
-	}
-	else
-	{
-		let feet = metersToFeet(distance);
-		$("#distance").html(feet + " feet");
+			for (let r = startSegment + 1; r < endSegment; r++)
+			{
+				distance += google.maps.geometry.spherical.computeDistanceBetween(
+					new google.maps.LatLng(routeCoords[r]),
+					new google.maps.LatLng(routeCoords[r + 1]));		
+			}
+	
+			// Compute the distance between the end segment and the end point (the
+			// end point might be int he middle of a segment)
+			let endDistance = google.maps.geometry.spherical.computeDistanceBetween(
+					new google.maps.LatLng(routeCoords[endSegment]),
+					endPosition);
+			
+			distance += startDistance + endDistance;
+		}
+		
+		// If less than a 0.10 miles then measure in feet, otherwise measure in
+		// miles.
+		if (distance >= 160.934)
+		{
+			let miles = metersToMilesRounded(distance);
+			$("#distance").html(miles + " miles");
+		}
+		else
+		{
+			let feet = metersToFeet(distance);
+			$("#distance").html(feet + " feet");
+		}
 	}
 }
 
+
+function getAndLoadElevationData (s, e, route)
+{
+	elevationData = [];
+	
+	elevationData.push([{label: 'Distance', type: 'number'}, {label: 'Elevation', type: 'number'}]);
+	
+	elevationMin = metersToFeet(route[s].ele);
+	elevationMax = elevationMin;
+	
+	for (let r = s; r < e;  r++)
+	{
+		elevationData.push([metersToMiles(route[r].dist), metersToFeet(route[r].ele)]);
+		
+		elevationMin = Math.min(elevationMin, metersToFeet(route[r].ele));
+		elevationMax = Math.max(elevationMax, metersToFeet(route[r].ele));
+	}
+	
+	loadData ();
+}
+
+
+function displayRouteElevations (startSegment, endSegment)
+{
+	let distance = 0;
+	
+	if (startSegment != undefined && endSegment != undefined)
+	{
+		if (startSegment == endSegment)
+		{
+			if (endSegment + 1 < routeCoords.length)
+			{
+				getAndLoadElevationData (startSegment, endSegment + 1, routeCoords);
+			}
+		}
+		else
+		{
+			//
+			// Swap the values if needed.
+			//
+			if (startSegment > endSegment)
+			{
+				endSegment = [startSegment, startSegment=endSegment][0];
+			}
+			
+			getAndLoadElevationData (startSegment, Math.min(endSegment + 1, routeCoords.length), routeCoords);
+		}
+	}
+}
 
 function sqr(x)
 {
@@ -656,9 +785,14 @@ function myMap()
 	calculate ();
 } 
 
-function metersToMiles (meters)
+function metersToMilesRounded (meters)
 {
 	return Math.round(parseFloat(meters) / 1609.34 * 10) / 10;
+}
+
+function metersToMiles (meters)
+{
+	return parseFloat(meters) / 1609.34;
 }
 
 function metersToFeet (meters)
@@ -698,17 +832,17 @@ function calculate ()
 				txt += "<div>" + "Gain/Loss (feet): " + metersToFeet(data[d].gain) + "/" + metersToFeet(data[d].loss) + "</div>";
 				txt += "<div>" + "Food: " + pounds + " lb " + ounces  + " oz" + "</div>";
 				txt += "<div>" + "" + "</div>";
-				txt += "<div>" + "Miles: " + metersToMiles (data[d].distance) + "</div>";
+				txt += "<div>" + "Miles: " + metersToMilesRounded (data[d].distance) + "</div>";
 				txt += "</div>";
 				txt += "</div>";
 					
-				txt += "<div style='padding:2px 2px 2px 2px'>" + timeFormat(data[d].startTime) + ", " + "mile " + metersToMiles (data[d].meters) + ": start" + "</div>";
+				txt += "<div style='padding:2px 2px 2px 2px'>" + timeFormat(data[d].startTime) + ", " + "mile " + metersToMilesRounded (data[d].meters) + ": start" + "</div>";
 				
 				if (data[d].events.length > 0)
 				{
 					for (let e in data[d].events)
 					{
-						txt += "<div style='padding:2px 2px 2px 2px'>" + timeFormat(data[d].events[e].time) + ", " + "mile " + metersToMiles (data[d].events[e].meters) + ": " + data[d].events[e].type + "</div>";
+						txt += "<div style='padding:2px 2px 2px 2px'>" + timeFormat(data[d].events[e].time) + ", " + "mile " + metersToMilesRounded (data[d].events[e].meters) + ": " + data[d].events[e].type + "</div>";
 
 						if (m >= markers.length)
 						{
@@ -747,11 +881,11 @@ function calculate ()
 				
 				if (d < data.length - 1)
 				{
-					 txt += metersToMiles (data[parseInt(d) + 1].meters);
+					 txt += metersToMilesRounded (data[parseInt(d) + 1].meters);
 				}
 				else
 				{
-					txt += metersToMiles (data[parseInt(d)].endMeters);
+					txt += metersToMilesRounded (data[parseInt(d)].endMeters);
 				}
 				
 				txt += ": stop " + "</div>";
@@ -783,7 +917,7 @@ function calculate ()
 				
 				dayMarkers[day].listener = attachInfoWindowMessage(dayMarkers[day],
 					"<div>Day " + dayMarkers[day].day
-					+ "</div><div>Mile: " + metersToMiles(data[d].meters)
+					+ "</div><div>Mile: " + metersToMilesRounded(data[d].meters)
 					+ "</div><div>Elevation: " + metersToFeet(data[d].ele) + "\'</div>");
 				
 				day++;
@@ -806,7 +940,7 @@ function calculate ()
 			google.maps.event.removeListener (endOfTrailMarker.listener);
 		
 			endOfTrailMarker.listener = attachInfoWindowMessage(endOfTrailMarker,
-				"<div>Mile: " + metersToMiles(data[d].endMeters)
+				"<div>Mile: " + metersToMilesRounded(data[d].endMeters)
 				+ "</div><div>Elevation: " + metersToFeet(data[d].endEle) + "\'</div>");
 			
 			document.getElementById ("schedule").innerHTML = txt;
@@ -860,20 +994,7 @@ function retrieveRoute ()
 				drawRoute ();
 			}
 			
-			elevationData.push([{label: 'Distance', type: 'number'}, {label: 'Elevation', type: 'number'}]);
-			
-			elevationMin = metersToFeet(routeCoords[0].ele);
-			elevationMax = elevationMin;
-			
-			for (let r in routeCoords)
-			{
-				elevationData.push([metersToMiles(routeCoords[r].dist), metersToFeet(routeCoords[r].ele)]);
-				
-				elevationMin = Math.min(elevationMin, metersToFeet(routeCoords[r].ele));
-				elevationMax = Math.max(elevationMax, metersToFeet(routeCoords[r].ele));
-			}
-			
-			loadData ();
+			getAndLoadElevationData (0, routeCoords.length, routeCoords);
 		}
 	}
 	
