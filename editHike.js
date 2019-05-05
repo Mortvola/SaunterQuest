@@ -859,6 +859,21 @@ function retrieveRoute ()
 			{
 				drawRoute ();
 			}
+			
+			elevationData.push([{label: 'Distance', type: 'number'}, {label: 'Elevation', type: 'number'}]);
+			
+			elevationMin = metersToFeet(routeCoords[0].ele);
+			elevationMax = elevationMin;
+			
+			for (let r in routeCoords)
+			{
+				elevationData.push([metersToMiles(routeCoords[r].dist), metersToFeet(routeCoords[r].ele)]);
+				
+				elevationMin = Math.min(elevationMin, metersToFeet(routeCoords[r].ele));
+				elevationMax = Math.max(elevationMax, metersToFeet(routeCoords[r].ele));
+			}
+			
+			loadData ();
 		}
 	}
 	

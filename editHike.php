@@ -23,6 +23,72 @@ if ($hikeId)
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.css">
 	<script src="/jquery-3.3.1.min.js"></script>
 	<script src="/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+	<script type="text/javascript">
+		google.charts.load('current', {packages: ['corechart']});
+		google.charts.setOnLoadCallback(initializeCharts);
+
+		var chartsInitialized = false;
+		var elevation;
+
+		var elevationData = [];
+		var elevationMin = 0;
+		var elevationMax = 11000;
+		var elevationDataTable;
+		var elevationChart;
+
+		function initializeCharts ()
+		{
+			createCharts ();
+			loadData ();
+		}
+		
+		function loadData ()
+		{
+			if (chartsInitialized)
+			{
+				elevationDataTable = google.visualization.arrayToDataTable (elevationData);
+
+				drawCharts ();
+				
+// 				var xmlhttp = new XMLHttpRequest ();
+// 				xmlhttp.onreadystatechange = function ()
+// 				{
+// 					if (this.readyState == 4 && this.status == 200)
+// 					{
+// 						elevation = JSON.parse(this.responseText);
+	
+// 						elevationData = new google.visualization.DataTable (elevation);
+	
+// 						drawCharts ();
+// 					}
+// 				};
+	
+// 				xmlhttp.open("GET", "retirementCalculate.php?plan=" + currentPlanId, true);
+// 				//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+// 				xmlhttp.send();
+			}
+		}
+
+		function createCharts ()
+		{
+			elevationChart = new google.visualization.LineChart(document.getElementById('elevation_chart_div'));
+			chartsInitialized = true;
+		}
+
+		function drawCharts ()
+		{
+			var elevationOptions = {
+				title: 'Elevation',
+				legend: {position: 'none'},
+				chartArea: {width:'90%'},
+				vAxis: {viewWindowMode: 'pretty'},
+				vAxis: {viewWindow: {min: elevationMin, max: elevationMax}}
+			};
+			
+			elevationChart.draw(elevationDataTable, elevationOptions);
+		}
+	</script>
 	<style type="text/css">
 		body{ font: 14px sans-serif; }
 		.grid-container
@@ -270,6 +336,10 @@ if ($hikeId)
 				</div>
 			</div>
 			<div id="googleMap" style="width:100%;height:100%"></div>
+			<div id='elevation' style="height:250px">
+				<div id="elevation_chart_div" style="width:100%;height:90%">
+				</div>
+			</div>
 		</div>
 		<div class="col-md-4" style="height:100%;padding:0px 5px 0px 5px">
 			<div style="display:grid;align-content:start;grid-template-rows: auto auto;height:100%">
