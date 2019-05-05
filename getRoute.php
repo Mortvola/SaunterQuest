@@ -26,7 +26,7 @@ try
 		
 		$hike = $stmt->fetchAll (PDO::FETCH_CLASS, 'hike');
 
-		echo file_get_contents($hike[0]->file);
+		echo file_get_contents("data/" . $hike[0]->file);
 
 		unset($stmt);
 	}

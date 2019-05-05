@@ -118,6 +118,27 @@ function startRouteEdit (position)
 }
 
 
+function sendRouteEdits ()
+{
+	var xmlhttp = new XMLHttpRequest ();
+
+	xmlhttp.onreadystatechange = function ()
+	{
+		if (this.readyState == 4 && this.status == 200)
+		{
+//			editedRoute[i].ele = JSON.parse(this.responseText);
+//			
+//			getAndLoadElevationData (0, editedRoute.length, editedRoute);
+		}
+	}
+	
+	var routeUpdate = {userHikeId: userHikeId, start: startSegment, end: endSegment, points: editedRoute};
+	
+	xmlhttp.open("PUT", "route.php", true);
+	xmlhttp.setRequestHeader("Content-type", "application/json");
+	xmlhttp.send(JSON.stringify(routeUpdate));
+}
+
 function stopRouteEdit ()
 {
 	endRouteHighlighting ();
@@ -130,6 +151,8 @@ function stopRouteEdit ()
 
 	routeCoords.splice (startSegment, endSegment - startSegment, ...editedRoute);
 	
+	sendRouteEdits ();
+	
 	startPosition = undefined;
 	endPosition = undefined;
 	
@@ -139,7 +162,6 @@ function stopRouteEdit ()
 	$("#editRoute").hide(250);
 
 	drawRoute ();
-	
 	getAndLoadElevationData (0, routeCoords.length, routeCoords);
 }
 

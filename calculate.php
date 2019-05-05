@@ -1195,7 +1195,7 @@ function getRouteFile ()
 		throw $e;
 	}
 	
-	return $fileName;
+	return "data/" . $fileName;
 }
 
 // Main routine
