@@ -8,19 +8,19 @@ function routeHighlightPolylineCreate (startPosition, endPosition, color)
 
 	let polyline = [];
 	
+	//
+	// Swap the values if needed.
+	//
+	if (startSegment > endSegment)
+	{
+		endSegment = [startSegment, startSegment=endSegment][0];
+		endPosition = [startPosition, startPosition=endPosition][0];
+	}
+
+	polyline.push({lat: startPosition.lat(), lng: startPosition.lng()});
+
 	if (startSegment != endSegment)
 	{
-		//
-		// Swap the values if needed.
-		//
-		if (startSegment > endSegment)
-		{
-			endSegment = [startSegment, startSegment=endSegment][0];
-			endPosition = [startPosition, startPosition=endPosition][0];
-		}
-		
-		// Compute the distance between the start point and the start segment (the
-		// start point might be int he middle of a segment)
 		polyline.push({lat: startPosition.lat(), lng: startPosition.lng()});
 		
 		for (let r = startSegment + 1; r <= endSegment; r++)
@@ -28,11 +28,11 @@ function routeHighlightPolylineCreate (startPosition, endPosition, color)
 			polyline.push({lat: routeCoords[r].lat, lng: routeCoords[r].lng});
 		}
 
-		// Compute the distance between the end segment and the end point (the
-		// start point might be int he middle of a segment)
 		polyline.push({lat: endPosition.lat(), lng: endPosition.lng()});
 	}
 	
+	polyline.push({lat: endPosition.lat(), lng: endPosition.lng()});
+
 	var polyLine = new google.maps.Polyline({
 		path: polyline,
 		geodesic: true,
