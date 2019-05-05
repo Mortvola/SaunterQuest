@@ -10,6 +10,7 @@ var editedRoute = [];
 var routeContextMenu;
 var routeContextMenuListener;
 var map;
+var bounds = {};
 var data;
 var startPosition;
 var startSegment;
@@ -127,11 +128,18 @@ function stopRouteEdit ()
 		editPolyLine = null;
 	}
 
+	routeCoords.splice (startSegment, endSegment - startSegment, ...editedRoute);
+	
 	startPosition = undefined;
 	endPosition = undefined;
 	
+	startSegment = undefined;
+	endSegment = undefined;
+	
 	$("#editRoute").hide(250);
 
+	drawRoute ();
+	
 	getAndLoadElevationData (0, routeCoords.length, routeCoords);
 }
 
@@ -143,7 +151,7 @@ function editStartMarkerSet (position, segment)
 	
 	if (startPosition != undefined && endPosition != undefined)
 	{
-		createEditablePolyline (startPosition, startSegment, endPosition, endSegment);
+		updateEditedRoute (startPosition, startSegment, endPosition, endSegment);
 	}
 }
 
@@ -154,11 +162,11 @@ function editEndMarkerSet (position, segment)
 	
 	if (startPosition != undefined && endPosition != undefined)
 	{
-		createEditablePolyline (startPosition, startSegment, endPosition, endSegment);
+		updateEditedRoute (startPosition, startSegment, endPosition, endSegment);
 	}
 }
 
-function createEditablePolyline (startPosition, startSegment, endPosition, endSegment)
+function updateEditedRoute (startPosition, startSegment, endPosition, endSegment)
 {
 	//
 	// Get the ends of the new editable polyline
@@ -180,23 +188,7 @@ function createEditablePolyline (startPosition, startSegment, endPosition, endSe
 			editedRoute.push(routeCoords[r]);
 		}
 
-		if (editPolyLine != undefined && editPolyLine.setMap != undefined)
-		{
-			editPolyLine.setMap(null);
-		}
-		
-		editPolyLine = new google.maps.Polyline({
-			path: editedRoute,
-			editable: true,
-			geodesic: true,
-			strokeColor: '#0000FF',
-			strokeOpacity: 1.0,
-			strokeWeight: routeStrokeWeight,
-			zIndex: 30});
-
-		editPolyLine.setMap(map);
-		
-		getAndLoadElevationData (0, editedRoute.length, editedRoute);
+		createEditablePolyline ();
 	}
 }
 
@@ -208,7 +200,7 @@ function vertexInserted (index)
 
 	editedRoute.splice (index, 0, {lat: vertex.lat (), lng: vertex.lng ()});
 	
-	updateEditedRoute (index);
+	updateEditedVertex (index);
 }
 
 
@@ -221,10 +213,10 @@ function vertexUpdated (index)
 	editedRoute[index].lat = vertex.lat ();
 	editedRoute[index].lng = vertex.lng ();
 	
-	updateEditedRoute (index);
+	updateEditedVertex (index);
 }
 
-function updateEditedRoute (index)
+function updateEditedVertex (index)
 {
 	var xmlhttp = new XMLHttpRequest ();
 
@@ -269,13 +261,8 @@ function updateEditedRoute (index)
 }
 
 
-function clearVertices ()
+function createEditablePolyline ()
 {
-	editedRoute = [];
-
-	editedRoute.push(routeCoords[startSegment]);
-	editedRoute.push(routeCoords[endSegment]);
-
 	if (editPolyLine != undefined && editPolyLine.setMap != undefined)
 	{
 		editPolyLine.setMap(null);
@@ -294,8 +281,19 @@ function clearVertices ()
 	google.maps.event.addListener(editPolyLine.getPath(), "set_at", vertexUpdated);
 	
 	editPolyLine.setMap(map);
-
+	
 	getAndLoadElevationData (0, editedRoute.length, editedRoute);
+}
+
+
+function clearVertices ()
+{
+	editedRoute = [];
+
+	editedRoute.push(routeCoords[startSegment]);
+	editedRoute.push(routeCoords[endSegment]);
+
+	createEditablePolyline ();
 }
 
 
@@ -685,8 +683,6 @@ function drawRoute ()
 {
 	if (map && routeCoords.length > 1)
 	{
-		var bounds = {};
-		
 		//
 		// Traverse route coords and find the bounds
 		// todo: this should be part of the file retrieved
@@ -723,7 +719,10 @@ function drawRoute ()
 			}
 		}
 
-		map.fitBounds(bounds);
+		if (route != undefined)
+		{
+			route.setMap(null);
+		}
 		
 		route = new google.maps.Polyline({
 			path: routeCoords,
@@ -735,13 +734,7 @@ function drawRoute ()
 			zIndex: 20});
 
 		route.setMap(map);
-
-		routeContextMenu = new ContextMenu ([
-			{title:"Add Point of Interest", func:addPointOfInterest},
-			{title:"Measure route distance", func:startRouteMeasurement},
-			{title:"Add Note", func:addNote},
-			{title:"Edit route", func:startRouteEdit}]);
-
+		
 		setRouteContextMenu (routeContextMenu);
 	}
 }
@@ -991,7 +984,15 @@ function retrieveRoute ()
 			
 			if (map)
 			{
+				routeContextMenu = new ContextMenu ([
+					{title:"Add Point of Interest", func:addPointOfInterest},
+					{title:"Measure route distance", func:startRouteMeasurement},
+					{title:"Add Note", func:addNote},
+					{title:"Edit route", func:startRouteEdit}]);
+
 				drawRoute ();
+
+				map.fitBounds(bounds);
 			}
 			
 			getAndLoadElevationData (0, routeCoords.length, routeCoords);
