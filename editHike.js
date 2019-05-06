@@ -103,19 +103,33 @@ function addNote (position)
 }
 
 
-function startRouteEdit (position)
+function editSelection ()
 {
-	setRouteHighlightStartMarker (position, editStartMarkerSet);
-	setRouteHighlightEndMarker (position, editEndMarkerSet);
-	
-	startPosition = position;
-	endPosition = position;
-	
-	startSegment = findNearestSegment(startPosition);
-	endSegment = startSegment;
-	
-	$("#editRoute").show (250);
+	if (startPosition != undefined && endPosition != undefined)
+	{
+		updateEditedRoute (startPosition, startSegment, endPosition, endSegment);
+		
+		endRouteHighlighting ();
+		
+		$("#editRoute").show (250);
+		$("#measureRoute").hide (250);
+	}
 }
+
+
+//function startRouteEdit (position)
+//{
+//	setRouteHighlightStartMarker (position, editStartMarkerSet);
+//	setRouteHighlightEndMarker (position, editEndMarkerSet);
+//	
+//	startPosition = position;
+//	endPosition = position;
+//	
+//	startSegment = findNearestSegment(startPosition);
+//	endSegment = Math.min(startSegment + 1, routeCoords.length - 1);
+//	
+//	$("#editRoute").show (250);
+//}
 
 
 function sendRouteEdits ()
@@ -141,7 +155,7 @@ function sendRouteEdits ()
 
 function stopRouteEdit ()
 {
-	endRouteHighlighting ();
+	//endRouteHighlighting ();
 	
 	if (editPolyLine != undefined && editPolyLine.setMap != undefined)
 	{
@@ -149,7 +163,7 @@ function stopRouteEdit ()
 		editPolyLine = null;
 	}
 
-	routeCoords.splice (startSegment, endSegment - startSegment, ...editedRoute);
+	routeCoords.splice (startSegment + 1, endSegment - startSegment, ...editedRoute);
 	
 	sendRouteEdits ();
 	
@@ -166,52 +180,72 @@ function stopRouteEdit ()
 }
 
 
-function editStartMarkerSet (position, segment)
-{
-	startPosition = new google.maps.LatLng({lat: position.x, lng: position.y});
-	startSegment = segment;
-	
-	if (startPosition != undefined && endPosition != undefined)
-	{
-		updateEditedRoute (startPosition, startSegment, endPosition, endSegment);
-	}
-}
+//function editStartMarkerSet (position, segment)
+//{
+//	startPosition = new google.maps.LatLng({lat: position.x, lng: position.y});
+//	startSegment = segment;
+//	
+//	if (startPosition != undefined && endPosition != undefined)
+//	{
+//		updateEditedRoute (startPosition, startSegment, endPosition, endSegment);
+//	}
+//}
 
-function editEndMarkerSet (position, segment)
-{
-	endPosition = new google.maps.LatLng({lat: position.x, lng: position.y});
-	endSegment = segment;
-	
-	if (startPosition != undefined && endPosition != undefined)
-	{
-		updateEditedRoute (startPosition, startSegment, endPosition, endSegment);
-	}
-}
+//function editEndMarkerSet (position, segment)
+//{
+//	endPosition = new google.maps.LatLng({lat: position.x, lng: position.y});
+//	endSegment = Math.min(segment + 1, routeCoords.length - 1);
+//
+//	if (startPosition != undefined && endPosition != undefined)
+//	{
+//		updateEditedRoute (startPosition, startSegment, endPosition, endSegment);
+//	}
+//}
 
 function updateEditedRoute (startPosition, startSegment, endPosition, endSegment)
 {
 	//
-	// Get the ends of the new editable polyline
+	// Swap the values if needed.
 	//
+	if (startSegment > endSegment)
+	{
+		endSegment = [startSegment, startSegment=endSegment][0];
+		endPosition = [startPosition, startPosition=endPosition][0];
+	}
+	
+	editedRoute = [];
+
+	let delta = google.maps.geometry.spherical.computeDistanceBetween(
+		startPosition,
+		new google.maps.LatLng(routeCoords[startSegment]));		
+
+	editedRoute.push({
+		lat: startPosition.lat (),
+		lng: startPosition.lng (),
+		dist: routeCoords[startSegment].dist + delta,
+		ele: (routeCoords[startSegment + 1].ele - routeCoords[startSegment].ele) / 2 + routeCoords[startSegment].ele
+	});
+	
 	if (startSegment != endSegment)
 	{
-		//
-		// Swap the values if needed.
-		//
-		if (startSegment > endSegment)
-		{
-			endSegment = [startSegment, startSegment=endSegment][0];
-		}
-		
-		editedRoute = [];
-
-		for (let r = startSegment; r <= endSegment; r++)
+		for (let r = startSegment + 1; r <= endSegment; r++)
 		{
 			editedRoute.push(routeCoords[r]);
 		}
-
-		createEditablePolyline ();
 	}
+
+	delta = google.maps.geometry.spherical.computeDistanceBetween(
+		endPosition,
+		new google.maps.LatLng(routeCoords[endSegment]));		
+
+	editedRoute.push({
+		lat: endPosition.lat (),
+		lng: endPosition.lng (),
+		dist: routeCoords[endSegment].dist + delta,
+		ele: (routeCoords[endSegment + 1].ele - routeCoords[endSegment].ele) / 2 + routeCoords[endSegment].ele
+	});
+
+	createEditablePolyline ();
 }
 
 function vertexInserted (index)
@@ -387,7 +421,7 @@ function measureRouteDistance (startPosition, startSegment, endPosition, endSegm
 			}
 			
 			// Compute the distance between the start point and the start segment (the
-			// start point might be int he middle of a segment)
+			// start point might be in the middle of a segment)
 			let startDistance = google.maps.geometry.spherical.computeDistanceBetween(
 					startPosition,
 					new google.maps.LatLng(routeCoords[startSegment + 1]));		
@@ -1008,9 +1042,9 @@ function retrieveRoute ()
 			{
 				routeContextMenu = new ContextMenu ([
 					{title:"Add Point of Interest", func:addPointOfInterest},
-					{title:"Measure route distance", func:startRouteMeasurement},
+					{title:"Select route segment", func:startRouteMeasurement},
 					{title:"Add Note", func:addNote},
-					{title:"Edit route", func:startRouteEdit}]);
+				]);
 
 				drawRoute ();
 

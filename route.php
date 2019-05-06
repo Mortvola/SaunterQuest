@@ -44,7 +44,7 @@ if($_SERVER["REQUEST_METHOD"] == "PUT")
 	
 	echo "length = $length\n";
 	
-	array_splice ($segments, $routeUpdate->start,
+	array_splice ($segments, $routeUpdate->start + 1,
 			$length,
 			$routeUpdate->points);
 	
