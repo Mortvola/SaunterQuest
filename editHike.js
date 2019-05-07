@@ -6,6 +6,8 @@ var endOfTrailMarker = {};
 var resupplyLocations = [];
 var route;
 var routeCoords = [];
+var trail;
+var trailCoords = [];
 var editedRoute = [];
 var routeContextMenu;
 var routeContextMenuListener;
@@ -826,6 +828,31 @@ function drawRoute ()
 	}
 }
 
+function drawTrails ()
+{
+	if (map && trailCoords.length > 0)
+	{
+		for (let t in trailCoords)
+		{
+//			if (trail != undefined)
+//			{
+//				trail.setMap(null);
+//			}
+			
+			trail = new google.maps.Polyline({
+				path: trailCoords[t],
+				editable: false,
+				geodesic: true,
+				strokeColor: '#00FF00',
+				strokeOpacity: 1.0,
+				strokeWeight: routeStrokeWeight,
+				zIndex: 20});
+	
+			trail.setMap(map);
+		}
+	}
+}
+
 function myMap()
 {
 	var mapProp =
@@ -859,6 +886,7 @@ function myMap()
 	infoWindow = new google.maps.InfoWindow({content: "This is a test"});
 
 	retrieveRoute ();
+	retrieveTrails ();
 	retrieveResupplyLocations ();
 	retrieveHikerProfiles (); //todo: only do this when visiting the tab of hiker profiles
 	retrieveTrailConditions ();
@@ -1088,6 +1116,27 @@ function retrieveRoute ()
 	}
 	
 	xmlhttp.open("GET", "route.php?id=" + userHikeId, true);
+	//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	xmlhttp.send();
+}
+
+function retrieveTrails ()
+{
+	var xmlhttp = new XMLHttpRequest ();
+	xmlhttp.onreadystatechange = function ()
+	{
+		if (this.readyState == 4 && this.status == 200)
+		{
+			trailCoords = JSON.parse(this.responseText);
+			
+			if (map)
+			{
+				drawTrails ();
+			}
+		}
+	}
+	
+	xmlhttp.open("GET", "trails.php", true);
 	//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xmlhttp.send();
 }
