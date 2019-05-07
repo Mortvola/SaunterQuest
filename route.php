@@ -1,8 +1,45 @@
 <?php 
 require_once "checkLogin.php";
 require_once "config.php";
+require_once "coordinates.php";
 
-if($_SERVER["REQUEST_METHOD"] == "PUT")
+if ($_SERVER["REQUEST_METHOD"] == "GET")
+{
+	class hike {};
+	
+	$userId = $_SESSION["userId"];
+	$userHikeId = $_GET["id"];
+	
+	try
+	{
+		$sql = "select h.file
+			from userHike uh
+			join hike h on h.hikeId = uh.hikeId
+			where uh.userHikeId = :userHikeId";
+		
+		if ($stmt = $pdo->prepare($sql))
+		{
+			$stmt->bindParam(":userHikeId", $paramUserHikeId, PDO::PARAM_INT);
+			
+			$paramUserHikeId = $userHikeId;
+			
+			$stmt->execute ();
+			
+			$hike = $stmt->fetchAll (PDO::FETCH_CLASS, 'hike');
+			
+			echo file_get_contents("data/" . $hike[0]->file);
+			
+			unset($stmt);
+		}
+	}
+	catch(PDOException $e)
+	{
+		http_response_code (500);
+		echo $e->getMessage();
+		throw $e;
+	}
+}
+else if ($_SERVER["REQUEST_METHOD"] == "PUT")
 {
 	$routeUpdate = json_decode(file_get_contents("php://input"));
 	
@@ -33,25 +70,31 @@ if($_SERVER["REQUEST_METHOD"] == "PUT")
 		http_response_code (500);
 		echo $e->getMessage();
 	}
+
+ 	// Read the data from the file.
+ 	$segments = json_decode(file_get_contents("data/" . $fileName));
 	
-	$segments = json_decode(file_get_contents("data/" . $fileName));
-	
-	echo "starting segments: ", count($segments), "\n";
-	
-	var_dump($routeUpdate);
-	
-	$length = $routeUpdate->end - $routeUpdate->start;
-	
-	echo "length = $length\n";
-	
+	// Remove any points being replaced and splice in the new points.
 	array_splice ($segments, $routeUpdate->start + 1,
-			$length,
+			$routeUpdate->end - $routeUpdate->start,
 			$routeUpdate->points);
+
+	// Sanitize the data by recomputing the distances and elevations.
+	for ($i = 0; $i < count($segments); $i++)
+	{
+		if ($i == 0)
+		{
+			$segments[$i]->dist = 0;
+		}
+		else
+		{
+			$distance = haversineGreatCircleDistance ($segments[$i - 1]->lat, $segments[$i - 1]->lng, $segments[$i]->lat, $segments[$i]->lng);
+			
+			$segments[$i]->dist = $segments[$i - 1]->dist + $distance;
+		}
+	}
 	
-	echo "remaining segments: ", count($segments), "\n";
-	
+	// Write the data to the file.
 	$result = file_put_contents ("data/" . $fileName, json_encode($segments));
-	
-	echo "result = $result\n";
 }
 ?>

@@ -352,6 +352,29 @@ function clearVertices ()
 	createEditablePolyline ();
 }
 
+function recalculateDistances ()
+{
+	for (let r in routeCoords)
+	{
+		if (r == 0)
+		{
+			routeCoords[0].dist = 0;
+		}
+		else
+		{
+			let delta = google.maps.geometry.spherical.computeDistanceBetween(
+					new google.maps.LatLng(routeCoords[r - 1]),
+					new google.maps.LatLng(routeCoords[r]));
+			
+			routeCoords[r].dist = routeCoords[r - 1].dist + delta;
+		}
+	}
+	
+	drawRoute ();
+	getAndLoadElevationData (0, routeCoords.length, routeCoords);
+	calculate ();
+}
+
 
 function measureStartMarkerSet (position, segment)
 {
@@ -469,10 +492,18 @@ function getAndLoadElevationData (s, e, route)
 	
 	for (let r = s; r < e;  r++)
 	{
-		elevationData.push([metersToMiles(route[r].dist), metersToFeet(route[r].ele)]);
-		
-		elevationMin = Math.min(elevationMin, metersToFeet(route[r].ele));
-		elevationMax = Math.max(elevationMax, metersToFeet(route[r].ele));
+		if (!isNaN(route[r].ele) && route[r].ele !== null)
+		{
+			elevationData.push([metersToMiles(route[r].dist), metersToFeet(route[r].ele)]);
+			
+			elevationMin = Math.min(elevationMin, metersToFeet(route[r].ele));
+			elevationMax = Math.max(elevationMax, metersToFeet(route[r].ele));
+			
+			if (isNaN(elevationMin))
+			{
+				console.log("NAN");
+			}
+		}
 	}
 	
 	loadData ();
@@ -1041,9 +1072,10 @@ function retrieveRoute ()
 			if (map)
 			{
 				routeContextMenu = new ContextMenu ([
-					{title:"Add Point of Interest", func:addPointOfInterest},
-					{title:"Select route segment", func:startRouteMeasurement},
-					{title:"Add Note", func:addNote},
+					{title: "Add Point of Interest", func: addPointOfInterest},
+					{title: "Select route segment", func: startRouteMeasurement},
+					{title: "Add Note", func: addNote},
+					{title: "Recalculate distances", func: recalculateDistances}
 				]);
 
 				drawRoute ();
@@ -1055,7 +1087,7 @@ function retrieveRoute ()
 		}
 	}
 	
-	xmlhttp.open("GET", "getRoute.php?id=" + userHikeId, true);
+	xmlhttp.open("GET", "route.php?id=" + userHikeId, true);
 	//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xmlhttp.send();
 }
