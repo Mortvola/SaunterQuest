@@ -10,7 +10,9 @@ var trail;
 var trailCoords = [];
 var editedRoute = [];
 var routeContextMenu;
+var vertexContextMenu;
 var routeContextMenuListener;
+var vertexContextMenuListener;
 var map;
 var bounds = {};
 var data;
@@ -212,22 +214,31 @@ function deletePoints (index, length)
 	{
 		if (this.readyState == 4 && this.status == 200)
 		{
-//			let updatedVertex = JSON.parse(this.responseText);
-//			
-//			editedRoute[index].lat = updatedVertex.lat;
-//			editedRoute[index].lng = updatedVertex.lng;
-//			
-//			var path = editPolyLine.getPath ();
-//			vertex = new google.maps.LatLng({lat: editedRoute[index].lat, lng: editedRoute[index].lng});
-//			vertex.moved = true;
-//			var vertex = path.setAt(index, vertex);
-////			editPolyLine.setPath(path);
-//
-//			updateEditedVertex (index);
+			let trail = JSON.parse(this.responseText);
+
+			if (editedRoute[index - 1].trail != undefined)
+			{
+				editedRoute[index - 1].trail.setMap(null);
+				editedRoute[index - 1].trail = null;
+			}
+			
+			if (trail.length > 0)
+			{
+				editedRoute[index - 1].trail = new google.maps.Polyline({
+					path: trail,
+					editable: false,
+					geodesic: true,
+					strokeColor: '#FF0000',
+					strokeOpacity: 1.0,
+					strokeWeight: routeStrokeWeight,
+					zIndex: 40});
+		
+				editedRoute[index - 1].trail.setMap(map);
+			}
 		}
 	}
 
-	var routeUpdate = {userHikeId: userHikeId, mode: "delete", index: index, length: length};
+	var routeUpdate = {userHikeId: userHikeId, mode: "delete", index: startSegment + index, length: length};
 	
 	xmlhttp.open("PUT", "route.php", true);
 	xmlhttp.setRequestHeader("Content-type", "application/json");
@@ -443,10 +454,24 @@ function createEditablePolyline ()
 	google.maps.event.addListener(editPolyLine.getPath(), "set_at", vertexUpdated);
 	
 	editPolyLine.setMap(map);
+
+	if (vertexContextMenuListener)
+	{
+		google.maps.event.removeListener (vertexContextMenuListener);
+	}
 	
+	vertexContextMenuListener = editPolyLine.addListener ("rightclick", function (event) { if (event.vertex != undefined) { vertexContextMenu.open (map, event); }});
+
 	getAndLoadElevationData (0, editedRoute.length, editedRoute);
 }
 
+
+function deleteVertex (index)
+{
+	deletePoints (index, 1);
+	
+	editPolyLine.getPath ().removeAt (index);
+}
 
 function clearVertices ()
 {
@@ -455,7 +480,7 @@ function clearVertices ()
 	editedRoute.push(routeCoords[startSegment]);
 	editedRoute.push(routeCoords[endSegment]);
 
-	deletePoints (startSegment + 1, endSegment - startSegment + 1);
+	deletePoints (1, endSegment - startSegment + 1);
 	
 	createEditablePolyline ();
 }
@@ -1188,6 +1213,9 @@ function retrieveRoute ()
 					{title: "Add Note", func: addNote},
 					{title: "Recalculate distances", func: recalculateDistances}
 				]);
+
+				vertexContextMenu = new ContextMenu ([
+					{title:"Delete", func:deleteVertex}]);
 
 				drawRoute ();
 

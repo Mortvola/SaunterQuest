@@ -7,6 +7,7 @@ function initializeContextMenu ()
 	ContextMenu.prototype.open = function (map, event, id)
 	{
 		this.set('position', event.latLng);
+		this.set('vertex', event.vertex);
 		this.set('id', id);
 		
 		this.setMap(map);
@@ -75,9 +76,18 @@ function initializeContextMenu ()
 			}
 			else
 			{
-				var position = this.get('position');
-	
-				itemFunction(position);
+				var vertex = this.get ('vertex');
+				
+				if (vertex != undefined)
+				{
+					itemFunction (vertex);
+				}
+				else
+				{
+					var position = this.get('position');
+		
+					itemFunction(position);
+				}
 			}
 	
 			this.close ();

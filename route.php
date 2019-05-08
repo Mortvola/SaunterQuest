@@ -176,6 +176,25 @@ else if ($_SERVER["REQUEST_METHOD"] == "PUT")
  		// Remove the specified points
  		array_splice ($segments, $routeUpdate->index, $routeUpdate->length);
  		
+ 		// Are the previous point and the next point on the same trail? If so, then send all
+ 		// of the points between the previous point and the next point.
+ 		if ($routeUpdate->index > 0 && $segments[$routeUpdate->index - 1]->trailName == $segments[$routeUpdate->index]->trailName)
+ 		{
+ 			$result = json_decode(file_get_contents($segments[$routeUpdate->index]->trailName));
+ 			
+ 			if ($segments[$routeUpdate->index - 1]->trailIndex > $segments[$routeUpdate->index]->trailIndex)
+ 			{
+ 				array_splice ($result, $segments[$routeUpdate->index - 1]->trailIndex + 1);
+ 				array_splice ($result, 0, $segments[$routeUpdate->index]->trailIndex - 1);
+ 			}
+ 			else
+ 			{
+ 				array_splice ($result, $segments[$routeUpdate->index]->trailIndex + 1);
+ 				array_splice ($result, 0, $segments[$routeUpdate->index - 1]->trailIndex - 1);
+ 			}
+ 		}
+ 		
+ 		
  		// Adjust distances now that vertices have been removed.
  		for ($i = $routeUpdate->index; $i < count($segments); $i++)
  		{
@@ -190,6 +209,8 @@ else if ($_SERVER["REQUEST_METHOD"] == "PUT")
  				$segments[$i]->dist = $segments[$i - 1]->dist + $distance;
  			}
  		}
+ 		
+ 		echo json_encode($result);
  	}
  	else
  	{
