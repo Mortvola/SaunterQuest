@@ -134,6 +134,27 @@ function editSelection ()
 //}
 
 
+function sendPoint (event)
+{
+	var xmlhttp = new XMLHttpRequest ();
+
+	xmlhttp.onreadystatechange = function ()
+	{
+		if (this.readyState == 4 && this.status == 200)
+		{
+//			editedRoute[i].ele = JSON.parse(this.responseText);
+//			
+//			getAndLoadElevationData (0, editedRoute.length, editedRoute);
+		}
+	}
+	
+	var routeUpdate = {point: {lat: event.latLng.lat (), lng: event.latLng.lng ()}};
+	
+	xmlhttp.open("PUT", "route.php", true);
+	xmlhttp.setRequestHeader("Content-type", "application/json");
+	xmlhttp.send(JSON.stringify(routeUpdate));
+}
+
 function sendRouteEdits ()
 {
 	var xmlhttp = new XMLHttpRequest ();
@@ -607,26 +628,20 @@ function findNearestSegment (position)
 		
 		for (let r = 0; r < routeCoords.length - 1; r++)
 		{
+			let distance = distToSegmentSquared(
+				{x: position.lng(), y: position.lat()},
+				{x: routeCoords[r].lng, y: routeCoords[r].lat},
+				{x: routeCoords[r + 1].lng, y: routeCoords[r + 1].lat});
+
 			if (r == 0)
 			{
-				shortestDistance = distToSegmentSquared(
-					{x: position.lng(), y: position.lat()},
-					{x: routeCoords[r].lng, y: routeCoords[r].lat},
-					{x: routeCoords[r + 1].lng, y: routeCoords[r + 1].lat})
+				shortestDistance = distance;
 				closestEdge = r;
 			}
-			else
+			else if (distance < shortestDistance)
 			{
-				let distance = distToSegmentSquared(
-						{x: position.lng(), y: position.lat()},
-						{x: routeCoords[r].lng, y: routeCoords[r].lat},
-						{x: routeCoords[r + 1].lng, y: routeCoords[r + 1].lat})
-
-				if (distance < shortestDistance)
-				{
-					shortestDistance = distance;
-					closestEdge = r;
-				}
+				shortestDistance = distance;
+				closestEdge = r;
 			}
 		}
 	}
@@ -765,6 +780,7 @@ function setRouteContextMenu (contextMenu)
 	}
 	
 	routeContextMenuListener = route.addListener ("rightclick", function (event) {contextMenu.open (map, event); });
+	route.addListener("click", sendPoint);
 }
 
 
@@ -882,6 +898,8 @@ function myMap()
 		{title:"Delete Resupply Location", func:deleteResupplyLocation}]);
 
 	map.addListener ("rightclick", function(event) {mapContextMenu.open (map, event);});
+
+	map.addListener ("click", sendPoint);
 	
 	infoWindow = new google.maps.InfoWindow({content: "This is a test"});
 

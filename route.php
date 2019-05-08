@@ -3,6 +3,36 @@ require_once "checkLogin.php";
 require_once "config.php";
 require_once "coordinates.php";
 
+function findTrail ($point)
+{
+	$trails = [];
+	$closestTrail = -1;
+	
+	array_push($trails, json_decode(file_get_contents("CentralGWT.trail")));
+	array_push($trails, json_decode(file_get_contents("TieForkGWT.trail")));
+	array_push($trails, json_decode(file_get_contents("StrawberryRidgeGWT.trail")));
+	array_push($trails, json_decode(file_get_contents("SouthForkToPackardCanyon.trail")));
+
+	echo "Number of trails: ", count($trails), "\n";
+	
+	for ($t = 0; $t < count($trails); $t++)
+	{
+		pointOnPath ($point->lat, $point->lng, $trails[$t], 30, $index, $distance, $point);
+		
+		echo "distance = $distance, index = $index\n";
+		
+		if ($index != -1 && ($closestTrail = -1 || $distance < $shortestDistance))
+		{
+			$shortestDistance = $distance;
+			$closestTrail = $t;
+			$closestSegment = $index;
+		}
+	}
+	
+	echo $closestTrail;
+}
+
+
 if ($_SERVER["REQUEST_METHOD"] == "GET")
 {
 	class hike {};
@@ -42,7 +72,11 @@ if ($_SERVER["REQUEST_METHOD"] == "GET")
 else if ($_SERVER["REQUEST_METHOD"] == "PUT")
 {
 	$routeUpdate = json_decode(file_get_contents("php://input"));
+
+	findTrail ($routeUpdate->point);
 	
+	
+	/*
 	try
 	{
 		$sql = "select file
@@ -96,5 +130,6 @@ else if ($_SERVER["REQUEST_METHOD"] == "PUT")
 	
 	// Write the data to the file.
 	$result = file_put_contents ("data/" . $fileName, json_encode($segments));
+	*/
 }
 ?>

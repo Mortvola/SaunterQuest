@@ -86,4 +86,56 @@ function nearestPointOnSegment ($p, $v, $w)
 	return $point;
 }
 
+function distToSegmentSquared($p, $v, $w)
+{
+	$l = nearestPointOnSegment ($p, $v, $w);
+		
+	return distSquared($p, $l);
+}
+
+
+function pointOnPath ($lat, $lng, &$segments, $tolerance, &$index, &$distance, &$point)
+{
+	$closestEdge = -1;
+	$index = -1;
+	
+	//
+	// There has to be at least two points in the array. Otherwise, we wouldn't have any edges.
+	//
+	if (count($segments) > 1)
+	{
+		for ($s = 0; $s < count($segments) - 1; $s++)
+		{
+			$p = nearestPointOnSegment(
+			(object)["x" => $lat, "y" => $lng],
+				(object)["x" => $segments[$s]->lat, "y" => $segments[$s]->lng],
+				(object)["x" => $segments[$s + 1]->lat, "y" => $segments[$s + 1]->lng]);
+			
+			$d = distSquared ((object)["x" => $lat, "y" => $lng], $p);
+			
+			if ($s == 0 || $d < $shortestDistance)
+			{
+				$shortestDistance = $d;
+				$closestEdge = $s;
+				$closestPoint = $p;
+			}
+		}
+		
+		$shortestDistance = haversineGreatCircleDistance ($lat, $lng, $closestPoint->x, $closestPoint->y);
+		//$shortestDistance = haversineGreatCircleDistance (40.159708252, -111.24445577, 40.158448612326, -111.22906855015);
+		
+// 		echo $shortestDistance, " lat: ", $closestPoint->x, " lng: ", $closestPoint->y, "\n";
+// 		echo "lat: $lat, lng: $lng\n";
+		
+		if ($shortestDistance <= $tolerance)
+		{
+			$index = $closestEdge;
+			$point = $closestPoint;
+			$distance = $shortestDistance;
+		}
+	}
+	
+	return closestEdge;
+}
+
 ?>
