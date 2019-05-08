@@ -134,7 +134,7 @@ function editSelection ()
 //}
 
 
-function sendPoint (event)
+function sendPoint (index, vertex)
 {
 	var xmlhttp = new XMLHttpRequest ();
 
@@ -142,13 +142,92 @@ function sendPoint (event)
 	{
 		if (this.readyState == 4 && this.status == 200)
 		{
-//			editedRoute[i].ele = JSON.parse(this.responseText);
-//			
-//			getAndLoadElevationData (0, editedRoute.length, editedRoute);
+			let updatedVertex = JSON.parse(this.responseText);
+			
+			editedRoute[index].lat = updatedVertex.point.lat;
+			editedRoute[index].lng = updatedVertex.point.lng;
+			
+			var path = editPolyLine.getPath ();
+			vertex = new google.maps.LatLng({lat: editedRoute[index].lat, lng: editedRoute[index].lng});
+			vertex.moved = true;
+			var vertex = path.setAt(index, vertex);
+//			editPolyLine.setPath(path);
+
+			updateEditedVertex (index);
+			
+			if (editedRoute[index - 1].trail != undefined)
+			{
+				editedRoute[index - 1].trail.setMap(null);
+				editedRoute[index - 1].trail = null;
+			}
+			
+			if (updatedVertex.previousTrail != undefined)
+			{
+				editedRoute[index - 1].trail = new google.maps.Polyline({
+					path: updatedVertex.previousTrail,
+					editable: false,
+					geodesic: true,
+					strokeColor: '#FF0000',
+					strokeOpacity: 1.0,
+					strokeWeight: routeStrokeWeight,
+					zIndex: 40});
+		
+				editedRoute[index - 1].trail.setMap(map);
+			}
+
+			if (editedRoute[index].trail != undefined)
+			{
+				editedRoute[index].trail.setMap(null);
+				editedRoute[index].trail = null;
+			}
+			
+			if (updatedVertex.nextTrail != undefined)
+			{
+				editedRoute[index].trail = new google.maps.Polyline({
+					path: updatedVertex.nextTrail,
+					editable: false,
+					geodesic: true,
+					strokeColor: '#FF0000',
+					strokeOpacity: 1.0,
+					strokeWeight: routeStrokeWeight,
+					zIndex: 40});
+		
+				editedRoute[index].trail.setMap(map);
+			}
 		}
 	}
+
+	var routeUpdate = {userHikeId: userHikeId, mode: "update", index: startSegment + index, point: {lat: vertex.lat (), lng: vertex.lng ()}};
 	
-	var routeUpdate = {point: {lat: event.latLng.lat (), lng: event.latLng.lng ()}};
+	xmlhttp.open("PUT", "route.php", true);
+	xmlhttp.setRequestHeader("Content-type", "application/json");
+	xmlhttp.send(JSON.stringify(routeUpdate));
+}
+
+function deletePoints (index, length)
+{
+	var xmlhttp = new XMLHttpRequest ();
+
+	xmlhttp.onreadystatechange = function ()
+	{
+		if (this.readyState == 4 && this.status == 200)
+		{
+//			let updatedVertex = JSON.parse(this.responseText);
+//			
+//			editedRoute[index].lat = updatedVertex.lat;
+//			editedRoute[index].lng = updatedVertex.lng;
+//			
+//			var path = editPolyLine.getPath ();
+//			vertex = new google.maps.LatLng({lat: editedRoute[index].lat, lng: editedRoute[index].lng});
+//			vertex.moved = true;
+//			var vertex = path.setAt(index, vertex);
+////			editPolyLine.setPath(path);
+//
+//			updateEditedVertex (index);
+		}
+	}
+
+	var routeUpdate = {userHikeId: userHikeId, mode: "delete", index: index, length: length};
 	
 	xmlhttp.open("PUT", "route.php", true);
 	xmlhttp.setRequestHeader("Content-type", "application/json");
@@ -289,10 +368,14 @@ function vertexUpdated (index)
 	
 	var vertex = path.getAt(index);
 
-	editedRoute[index].lat = vertex.lat ();
-	editedRoute[index].lng = vertex.lng ();
-	
-	updateEditedVertex (index);
+	if (vertex.moved != undefined && vertex.moved)
+	{
+		vertex.moved = false;
+	}
+	else
+	{
+		sendPoint (index, vertex);
+	}
 }
 
 function updateEditedVertex (index)
@@ -372,8 +455,11 @@ function clearVertices ()
 	editedRoute.push(routeCoords[startSegment]);
 	editedRoute.push(routeCoords[endSegment]);
 
+	deletePoints (startSegment + 1, endSegment - startSegment + 1);
+	
 	createEditablePolyline ();
 }
+
 
 function recalculateDistances ()
 {
@@ -590,19 +676,6 @@ function nearestPointOnSegment (p, v, w)
 
 function distToSegmentSquared(p, v, w)
 {
-	// Check to see if the line segment is really just a point. If so, return the distance between
-	// the point and one of the points of the line segment.
-//	var l2 = distSquared(v, w);
-//	if (l2 == 0)
-//	{
-//		return distSquared(p, v);
-//	}
-//
-//	var t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
-//	t = Math.max(0, Math.min(1, t));
-//
-//	return distSquared(p, { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) });
-	
 	let l = nearestPointOnSegment (p, v, w);
 	
 	return distSquared(p, l);
@@ -633,12 +706,7 @@ function findNearestSegment (position)
 				{x: routeCoords[r].lng, y: routeCoords[r].lat},
 				{x: routeCoords[r + 1].lng, y: routeCoords[r + 1].lat});
 
-			if (r == 0)
-			{
-				shortestDistance = distance;
-				closestEdge = r;
-			}
-			else if (distance < shortestDistance)
+			if (r == 0 || distance < shortestDistance)
 			{
 				shortestDistance = distance;
 				closestEdge = r;
@@ -780,7 +848,6 @@ function setRouteContextMenu (contextMenu)
 	}
 	
 	routeContextMenuListener = route.addListener ("rightclick", function (event) {contextMenu.open (map, event); });
-	route.addListener("click", sendPoint);
 }
 
 
@@ -899,8 +966,6 @@ function myMap()
 
 	map.addListener ("rightclick", function(event) {mapContextMenu.open (map, event);});
 
-	map.addListener ("click", sendPoint);
-	
 	infoWindow = new google.maps.InfoWindow({content: "This is a test"});
 
 	retrieveRoute ();
