@@ -19,6 +19,7 @@ else
 // Include config file
 require_once "config.php";
 require_once "coordinates.php";
+require_once "routeFile.php";
 
 class trailCondition {};
 class pointOfInterest {};
@@ -1203,7 +1204,7 @@ function getRouteFile ()
 	$segments = [];
 
 	$fileName = getRouteFile ();
-	$segments = json_decode(file_get_contents($fileName));
+	$segments = getRouteFromFile($fileName);
 	
 	$hikerProfile = (object)[];
 	
