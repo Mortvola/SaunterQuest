@@ -4,7 +4,7 @@ var markers = [];
 var dayMarkers = [];
 var endOfTrailMarker = {};
 var resupplyLocations = [];
-var routeCoords = [];
+var anchors = [];
 var actualRoute = [];
 var actualRoutePolyline;
 var trail;
@@ -124,9 +124,9 @@ function editSelection ()
 
 function adjustAnchorRouteIndexes (anchorIndex, adjustment)
 {
-	for (let i = anchorIndex; i < routeCoords.length; i++)
+	for (let i = anchorIndex; i < anchors.length; i++)
 	{
-		routeCoords[i].actualRouteIndex += adjustment;
+		anchors[i].actualRouteIndex += adjustment;
 	}
 }
 
@@ -139,7 +139,7 @@ function adjustAnchorRouteIndexes (anchorIndex, adjustment)
 //	endPosition = position;
 //	
 //	startSegment = findNearestSegment(startPosition);
-//	endSegment = Math.min(startSegment + 1, routeCoords.length - 1);
+//	endSegment = Math.min(startSegment + 1, anchors.length - 1);
 //	
 //	$("#editRoute").show (250);
 //}
@@ -156,9 +156,9 @@ function sendPoint (index, vertex)
 			let updatedVertex = JSON.parse(this.responseText);
 			
 			let anchorIndex = startSegment + index;
-			let anchor = routeCoords[anchorIndex];
-			let prevAnchor = routeCoords[anchorIndex - 1];
-			let nextAnchor = routeCoords[anchorIndex + 1];
+			let anchor = anchors[anchorIndex];
+			let prevAnchor = anchors[anchorIndex - 1];
+			let nextAnchor = anchors[anchorIndex + 1];
 			
 			actualRoute[anchor.actualRouteIndex].lat = updatedVertex.point.lat;
 			actualRoute[anchor.actualRouteIndex].lng = updatedVertex.point.lng;
@@ -335,7 +335,7 @@ function stopRouteEdit ()
 		editPolyLine = null;
 	}
 
-	routeCoords.splice (startSegment + 1, endSegment - startSegment, ...editedRoute);
+	anchors.splice (startSegment + 1, endSegment - startSegment, ...editedRoute);
 	
 	sendRouteEdits ();
 	
@@ -348,7 +348,7 @@ function stopRouteEdit ()
 	$("#editRoute").hide(250);
 
 	drawRoute ();
-	getAndLoadElevationData (0, routeCoords.length, routeCoords);
+	getAndLoadElevationData (0, anchors.length, anchors);
 }
 
 
@@ -366,7 +366,7 @@ function stopRouteEdit ()
 //function editEndMarkerSet (position, segment)
 //{
 //	endPosition = new google.maps.LatLng({lat: position.x, lng: position.y});
-//	endSegment = Math.min(segment + 1, routeCoords.length - 1);
+//	endSegment = Math.min(segment + 1, anchors.length - 1);
 //
 //	if (startPosition != undefined && endPosition != undefined)
 //	{
@@ -389,32 +389,32 @@ function updateEditedRoute (startPosition, startSegment, endPosition, endSegment
 
 	let delta = google.maps.geometry.spherical.computeDistanceBetween(
 		startPosition,
-		new google.maps.LatLng(routeCoords[startSegment]));		
+		new google.maps.LatLng(anchors[startSegment]));		
 
 	editedRoute.push({
 		lat: startPosition.lat (),
 		lng: startPosition.lng (),
-		dist: routeCoords[startSegment].dist + delta,
-		ele: (routeCoords[startSegment + 1].ele - routeCoords[startSegment].ele) / 2 + routeCoords[startSegment].ele
+		dist: anchors[startSegment].dist + delta,
+		ele: (anchors[startSegment + 1].ele - anchors[startSegment].ele) / 2 + anchors[startSegment].ele
 	});
 	
 	if (startSegment != endSegment)
 	{
 		for (let r = startSegment + 1; r <= endSegment; r++)
 		{
-			editedRoute.push(routeCoords[r]);
+			editedRoute.push(anchors[r]);
 		}
 	}
 
 	delta = google.maps.geometry.spherical.computeDistanceBetween(
 		endPosition,
-		new google.maps.LatLng(routeCoords[endSegment]));		
+		new google.maps.LatLng(anchors[endSegment]));		
 
 	editedRoute.push({
 		lat: endPosition.lat (),
 		lng: endPosition.lng (),
-		dist: routeCoords[endSegment].dist + delta,
-		ele: (routeCoords[endSegment + 1].ele - routeCoords[endSegment].ele) / 2 + routeCoords[endSegment].ele
+		dist: anchors[endSegment].dist + delta,
+		ele: (anchors[endSegment + 1].ele - anchors[endSegment].ele) / 2 + anchors[endSegment].ele
 	});
 
 	createEditablePolyline ();
@@ -557,8 +557,8 @@ function clearVertices ()
 {
 	editedRoute = [];
 
-	editedRoute.push(routeCoords[startSegment]);
-	editedRoute.push(routeCoords[endSegment]);
+	editedRoute.push(anchors[startSegment]);
+	editedRoute.push(anchors[endSegment]);
 
 	deletePoints (1, endSegment - startSegment + 1);
 	
@@ -568,24 +568,24 @@ function clearVertices ()
 
 function recalculateDistances ()
 {
-	for (let r in routeCoords)
+	for (let r in anchors)
 	{
 		if (r == 0)
 		{
-			routeCoords[0].dist = 0;
+			anchors[0].dist = 0;
 		}
 		else
 		{
 			let delta = google.maps.geometry.spherical.computeDistanceBetween(
-					new google.maps.LatLng(routeCoords[r - 1]),
-					new google.maps.LatLng(routeCoords[r]));
+					new google.maps.LatLng(anchors[r - 1]),
+					new google.maps.LatLng(anchors[r]));
 			
-			routeCoords[r].dist = routeCoords[r - 1].dist + delta;
+			anchors[r].dist = anchors[r - 1].dist + delta;
 		}
 	}
 	
 	drawRoute ();
-	getAndLoadElevationData (0, routeCoords.length, routeCoords);
+	getAndLoadElevationData (0, anchors.length, anchors);
 	calculate ();
 }
 
@@ -638,7 +638,7 @@ function stopRouteMeasurement ()
 	
 	$("#measureRoute").hide(250);
 
-	getAndLoadElevationData (0, routeCoords.length, routeCoords);
+	getAndLoadElevationData (0, anchors.length, anchors);
 }
 
 
@@ -667,19 +667,19 @@ function measureRouteDistance (startPosition, startSegment, endPosition, endSegm
 			// start point might be in the middle of a segment)
 			let startDistance = google.maps.geometry.spherical.computeDistanceBetween(
 					startPosition,
-					new google.maps.LatLng(routeCoords[startSegment + 1]));		
+					new google.maps.LatLng(anchors[startSegment + 1]));		
 	
 			for (let r = startSegment + 1; r < endSegment; r++)
 			{
 				distance += google.maps.geometry.spherical.computeDistanceBetween(
-					new google.maps.LatLng(routeCoords[r]),
-					new google.maps.LatLng(routeCoords[r + 1]));		
+					new google.maps.LatLng(anchors[r]),
+					new google.maps.LatLng(anchors[r + 1]));		
 			}
 	
 			// Compute the distance between the end segment and the end point (the
 			// end point might be int he middle of a segment)
 			let endDistance = google.maps.geometry.spherical.computeDistanceBetween(
-					new google.maps.LatLng(routeCoords[endSegment]),
+					new google.maps.LatLng(anchors[endSegment]),
 					endPosition);
 			
 			distance += startDistance + endDistance;
@@ -738,9 +738,9 @@ function displayRouteElevations (startSegment, endSegment)
 	{
 		if (startSegment == endSegment)
 		{
-			if (endSegment + 1 < routeCoords.length)
+			if (endSegment + 1 < anchors.length)
 			{
-				getAndLoadElevationData (startSegment, endSegment + 1, routeCoords);
+				getAndLoadElevationData (startSegment, endSegment + 1, anchors);
 			}
 		}
 		else
@@ -753,7 +753,7 @@ function displayRouteElevations (startSegment, endSegment)
 				endSegment = [startSegment, startSegment=endSegment][0];
 			}
 			
-			getAndLoadElevationData (startSegment, Math.min(endSegment + 1, routeCoords.length), routeCoords);
+			getAndLoadElevationData (startSegment, Math.min(endSegment + 1, anchors.length), anchors);
 		}
 	}
 }
@@ -806,16 +806,16 @@ function findNearestSegment (position)
 	//
 	// There has to be at least two points in the array. Otherwise, we wouldn't have any edges.
 	//
-	if (routeCoords.length > 1)
+	if (anchors.length > 1)
 	{
 		let shortestDistance;
 		
-		for (let r = 0; r < routeCoords.length - 1; r++)
+		for (let r = 0; r < anchors.length - 1; r++)
 		{
 			let distance = distToSegmentSquared(
 				{x: position.lng(), y: position.lat()},
-				{x: routeCoords[r].lng, y: routeCoords[r].lat},
-				{x: routeCoords[r + 1].lng, y: routeCoords[r + 1].lat});
+				{x: anchors[r].lng, y: anchors[r].lat},
+				{x: anchors[r + 1].lng, y: anchors[r + 1].lat});
 
 			if (r == 0 || distance < shortestDistance)
 			{
@@ -964,64 +964,64 @@ function setRouteContextMenu (contextMenu)
 
 function drawRoute ()
 {
-	if (map && routeCoords.length > 1)
+	if (map && anchors.length > 1)
 	{
 		//
 		// Traverse route coords and find the bounds
 		// todo: this should be part of the file retrieved
-		for (let r in routeCoords)
+		for (let r in anchors)
 		{
 			if (r == 0)
 			{
-				bounds.east = routeCoords[r].lng;
-				bounds.west = routeCoords[r].lng;
-				bounds.north = routeCoords[r].lat;
-				bounds.south = routeCoords[r].lat;
+				bounds.east = anchors[r].lng;
+				bounds.west = anchors[r].lng;
+				bounds.north = anchors[r].lat;
+				bounds.south = anchors[r].lat;
 			}
 			else
 			{
-				if (routeCoords[r].lng > bounds.east)
+				if (anchors[r].lng > bounds.east)
 				{
-					bounds.east = routeCoords[r].lng;
+					bounds.east = anchors[r].lng;
 				}
 
-				if (routeCoords[r].lng < bounds.west)
+				if (anchors[r].lng < bounds.west)
 				{
-					bounds.west = routeCoords[r].lng;
+					bounds.west = anchors[r].lng;
 				}
 				
-				if (routeCoords[r].lat > bounds.north)
+				if (anchors[r].lat > bounds.north)
 				{
-					bounds.north = routeCoords[r].lat;
+					bounds.north = anchors[r].lat;
 				}
 
-				if (routeCoords[r].lat < bounds.south)
+				if (anchors[r].lat < bounds.south)
 				{
-					bounds.south = routeCoords[r].lat;
+					bounds.south = anchors[r].lat;
 				}
 			}
 
 			if (r > 0)
 			{
-				if (routeCoords[r].lat == routeCoords[r - 1].lat && routeCoords[r].lng == routeCoords[r - 1].lng)
+				if (anchors[r].lat == anchors[r - 1].lat && anchors[r].lng == anchors[r - 1].lng)
 				{
 					console.log ("same coordinate");
 				}
 			}
 			
-			actualRoute.push({lat: routeCoords[r].lat, lng: routeCoords[r].lng});
-			routeCoords[r].actualRouteIndex = actualRoute.length - 1;
+			actualRoute.push({lat: anchors[r].lat, lng: anchors[r].lng});
+			anchors[r].actualRouteIndex = actualRoute.length - 1;
 			
-			if (routeCoords[r].trail != undefined)
+			if (anchors[r].trail != undefined)
 			{
-				if (routeCoords[r].lat == routeCoords[r].trail[0].lat && routeCoords[r].lng == routeCoords[r].trail[0].lng)
+				if (anchors[r].lat == anchors[r].trail[0].lat && anchors[r].lng == anchors[r].trail[0].lng)
 				{
 					console.log ("same coordinate");
 				}
 				
-				for (let t in routeCoords[r].trail)
+				for (let t in anchors[r].trail)
 				{
-					actualRoute.push({lat: routeCoords[r].trail[t].lat, lng: routeCoords[r].trail[t].lng});
+					actualRoute.push({lat: anchors[r].trail[t].lat, lng: anchors[r].trail[t].lng});
 				}
 			}
 		}
@@ -1316,7 +1316,7 @@ function retrieveRoute ()
 	{
 		if (this.readyState == 4 && this.status == 200)
 		{
-			routeCoords = JSON.parse(this.responseText);
+			anchors = JSON.parse(this.responseText);
 			
 			if (map)
 			{
@@ -1336,7 +1336,7 @@ function retrieveRoute ()
 				map.fitBounds(bounds);
 			}
 			
-			getAndLoadElevationData (0, routeCoords.length, routeCoords);
+			getAndLoadElevationData (0, anchors.length, anchors);
 		}
 	}
 	
