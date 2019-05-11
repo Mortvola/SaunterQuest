@@ -3,8 +3,8 @@ var routeHighLightPolyLine;
 
 function routeHighlightPolylineCreate (startPosition, endPosition, color)
 {
-	let startSegment = findNearestSegment(startPosition);
-	let endSegment = findNearestSegment(endPosition);
+	let startSegment = findNearestSegment(startPosition, actualRoute);
+	let endSegment = findNearestSegment(endPosition, actualRoute);
 
 	let polyline = [];
 	
@@ -25,7 +25,7 @@ function routeHighlightPolylineCreate (startPosition, endPosition, color)
 		
 		for (let r = startSegment + 1; r <= endSegment; r++)
 		{
-			polyline.push({lat: anchors[r].lat, lng: anchors[r].lng});
+			polyline.push({lat: actualRoute[r].lat, lng: actualRoute[r].lng});
 		}
 
 		polyline.push({lat: endPosition.lat(), lng: endPosition.lng()});
@@ -69,12 +69,12 @@ function moveRouteHighlightMarkerToTrail (marker, listener)
 {
 	let otherMarker = marker == 0 ? 1 : 0;
 	
-	let segment = findNearestSegment(routeHighlightMarkers[marker].position);
+	let segment = findNearestSegment(routeHighlightMarkers[marker].position, actualRoute);
 	
 	let p = nearestPointOnSegment (
 		{x: routeHighlightMarkers[marker].position.lat(), y: routeHighlightMarkers[marker].position.lng()},
-		{x: anchors[segment].lat, y: anchors[segment].lng},
-		{x: anchors[segment + 1].lat, y: anchors[segment + 1].lng});
+		{x: actualRoute[segment].lat, y: actualRoute[segment].lng},
+		{x: actualRoute[segment + 1].lat, y: actualRoute[segment + 1].lng});
 
 	routeHighlightMarkers[marker].setPosition ({lat: p.x, lng: p.y});
 

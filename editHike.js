@@ -603,7 +603,7 @@ function startRouteMeasurement (position)
 	startPosition = position;
 	endPosition = position;
 
-	startSegment = findNearestSegment(startPosition);
+	startSegment = findNearestSegment(startPosition, actualRoute);
 	endSegment = startSegment;
 
 	$("#measureRoute").show (250);
@@ -793,7 +793,7 @@ function distToSegment(p, v, w)
 }
 
 
-function findNearestSegment (position)
+function findNearestSegment (position, anchors)
 {
 	let closestEdge = -1;
 
