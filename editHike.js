@@ -165,6 +165,26 @@ function removePointsFromRoute (anchor, anchorIndex)
 }
 
 
+function addPointsToRoute (anchor, anchorIndex, trail)
+{
+	// Add the points from the actual route
+	actualRoute.splice(anchor.actualRouteIndex + 1, 0, ...trail);
+	anchor.trail = trail;
+
+	// Insert points into the polyline
+	let path = actualRoutePolyline.getPath ();
+
+	for (let i = 0; i < trail.length; i++)
+	{
+		path.insertAt(anchor.actualRouteIndex + 1 + i,
+			new google.maps.LatLng (trail[i]));
+	}
+
+	// update the anchor indexes into the actual trail now that we added some portion to the trail.
+	adjustAnchorRouteIndexes (anchorIndex + 1, trail.length);
+}
+
+
 function sendPoint (index, vertex)
 {
 	var xmlhttp = new XMLHttpRequest ();
@@ -206,21 +226,7 @@ function sendPoint (index, vertex)
 			}
 			else
 			{
-				// Add the points from the actual route
-				actualRoute.splice(prevAnchor.actualRouteIndex + 1, 0, ...updatedVertex.previousTrail);
-				prevAnchor.trail = updatedVertex.previousTrail;
-
-				// Insert points into the polyline
-				let path = actualRoutePolyline.getPath ();
-
-				for (let i = 0; i < updatedVertex.previousTrail.length; i++)
-				{
-					path.insertAt(prevAnchor.actualRouteIndex + 1 + i,
-						new google.maps.LatLng (updatedVertex.previousTrail[i]));
-				}
-
-				// update the anchor indexes into the actual trail now that we added some portion to the trail.
-				adjustAnchorRouteIndexes (anchorIndex, updatedVertex.previousTrail.length);
+				addPointsToRoute (prevAnchor, anchorIndex - 1, updatedVertex.previousTrail);
 			}
 
 			if (updatedVertex.nextTrail == undefined)
@@ -232,20 +238,7 @@ function sendPoint (index, vertex)
 			}
 			else
 			{
-				actualRoute.splice(anchor.actualRouteIndex + 1, 0, ...updatedVertex.nextTrail);
-				anchor.trail = updatedVertex.nextTrail;
-				
-				// Insert points into the polyline
-				let path = actualRoutePolyline.getPath ();
-
-				for (let i = 0; i < updatedVertex.nextTrail.length; i++)
-				{
-					path.insertAt(anchor.actualRouteIndex + 1 + i,
-						new google.maps.LatLng (updatedVertex.nextTrail[i]));
-				}
-
-				// update the anchor indexes into the actual trail now that we added some portion to the trail.
-				adjustAnchorRouteIndexes (anchorIndex + 1, updatedVertex.nextTrail.length);
+				addPointsToRoute (anchor, anchorIndex, updatedVertex.nextTrail);
 			}
 		}
 	}
