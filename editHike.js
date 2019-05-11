@@ -4,8 +4,9 @@ var markers = [];
 var dayMarkers = [];
 var endOfTrailMarker = {};
 var resupplyLocations = [];
-var route;
 var routeCoords = [];
+var actualRoute = [];
+var actualRoutePolyline;
 var trail;
 var trailCoords = [];
 var editedRoute = [];
@@ -146,55 +147,138 @@ function sendPoint (index, vertex)
 		{
 			let updatedVertex = JSON.parse(this.responseText);
 			
+			let anchorIndex = startSegment + index;
+			let anchor = routeCoords[anchorIndex];
+			let prevAnchor = routeCoords[anchorIndex - 1];
+			let nextAnchor = routeCoords[anchorIndex + 1];
+			
+//			actualRoute[anchor.actualRouteIndex].lat = updatedVertex.point.lat;
+//			actualRoute[anchor.actualRouteIndex].lng = updatedVertex.point.lng;
+			
 			editedRoute[index].lat = updatedVertex.point.lat;
 			editedRoute[index].lng = updatedVertex.point.lng;
 			
 			var path = editPolyLine.getPath ();
 			vertex = new google.maps.LatLng({lat: editedRoute[index].lat, lng: editedRoute[index].lng});
 			vertex.moved = true;
-			var vertex = path.setAt(index, vertex);
-//			editPolyLine.setPath(path);
+			path.setAt(index, vertex);
 
 			updateEditedVertex (index);
 			
-			if (editedRoute[index - 1].trail != undefined)
+			if (updatedVertex.previousTrail == undefined)
 			{
-				editedRoute[index - 1].trail.setMap(null);
-				editedRoute[index - 1].trail = null;
+				if (prevAnchor.trail != undefined)
+				{
+					let actualRouteIndex = prevAnchor.actualRouteIndex;
+					
+					// Delete the points from the actual route
+					actualRoute.splice(actualRouteIndex + 1, prevAnchor.trail.length)
+					
+					// Delete the points from the polyline
+					let path = actualRoutePolyline.getPath ();
+					
+					for (let i = actualRouteIndex; i < actualRouteIndex + prevAnchor.trail.length; i++)
+					{
+						path.removeAt(actualRouteIndex);
+					}
+
+					// update the anchor indexes into the actual trail now that we deleted some portion of the trail.
+					for (let i = anchorIndex; i < routeCoords.length; i++)
+					{
+						routeCoords[i].actualRouteIndex -= prevAnchor.trail.length;
+					}
+					
+					prevAnchor.trail = undefined;
+				}
 			}
-			
-			if (updatedVertex.previousTrail != undefined)
+			else
 			{
-				editedRoute[index - 1].trail = new google.maps.Polyline({
-					path: updatedVertex.previousTrail,
-					editable: false,
-					geodesic: true,
-					strokeColor: '#FF0000',
-					strokeOpacity: 1.0,
-					strokeWeight: routeStrokeWeight,
-					zIndex: 40});
-		
-				editedRoute[index - 1].trail.setMap(map);
+				// Insert points into the polyline
+				let path = actualRoutePolyline.getPath ();
+
+				for (let i = 0; i < updatedVertex.previousTrail.length; i++)
+				{
+					path.insertAt(prevAnchor.actualRouteIndex + 1 + i,
+						new google.maps.LatLng (updatedVertex.previousTrail[i]));
+				}
+
+				// update the anchor indexes into the actual trail now that we added some portion to the trail.
+				for (let i = anchorIndex; i < routeCoords.length; i++)
+				{
+					routeCoords[i].actualRouteIndex += updatedVertex.previousTrail.length;
+				}
+
+//				editedRoute[index - 1].trail = new google.maps.Polyline({
+//					path: updatedVertex.previousTrail,
+//					editable: false,
+//					geodesic: true,
+//					strokeColor: '#FF0000',
+//					strokeOpacity: 1.0,
+//					strokeWeight: routeStrokeWeight,
+//					zIndex: 40});
+//		
+//				editedRoute[index - 1].trail.setMap(map);
 			}
 
-			if (editedRoute[index].trail != undefined)
+			if (updatedVertex.nextTrail == undefined)
 			{
-				editedRoute[index].trail.setMap(null);
-				editedRoute[index].trail = null;
+				if (anchor.trail != undefined)
+				{
+					let actualRouteIndex = anchor.actualRouteIndex;
+					
+					// Delete the points from the actual route
+					actualRoute.splice(actualRouteIndex + 1, anchor.trail.length)
+					
+					// Delete the points from the polyline
+					let path = actualRoutePolyline.getPath ();
+					
+					for (let i = actualRouteIndex; i < actualRouteIndex + anchor.trail.length; i++)
+					{
+						path.removeAt(actualRouteIndex);
+					}
+
+					// update the anchor indexes into the actual trail now that we deleted some portion of the trail.
+					for (let i = anchorIndex; i < routeCoords.length; i++)
+					{
+						if (routeCoords[i].actualRouteIndex != undefined)
+						{
+							routeCoords[i].actualRouteIndex -= anchor.trail.length;
+						}
+					}
+					
+					anchor.trail = undefined;
+				}
 			}
-			
-			if (updatedVertex.nextTrail != undefined)
+			else
 			{
-				editedRoute[index].trail = new google.maps.Polyline({
-					path: updatedVertex.nextTrail,
-					editable: false,
-					geodesic: true,
-					strokeColor: '#FF0000',
-					strokeOpacity: 1.0,
-					strokeWeight: routeStrokeWeight,
-					zIndex: 40});
-		
-				editedRoute[index].trail.setMap(map);
+				// Insert points into the polyline
+				let path = actualRoutePolyline.getPath ();
+
+				for (let i = 0; i < updatedVertex.nextTrail.length; i++)
+				{
+					path.insertAt(anchor.actualRouteIndex + 1 + i,
+						new google.maps.LatLng (updatedVertex.nextTrail[i]));
+				}
+
+				// update the anchor indexes into the actual trail now that we added some portion to the trail.
+				for (let i = anchorIndex; i < routeCoords.length; i++)
+				{
+					if (routeCoords[i].actualRouteIndex != undefined)
+					{
+						routeCoords[i].actualRouteIndex += updatedVertex.nextTrail.length;
+					}
+				}
+
+//				editedRoute[index].trail = new google.maps.Polyline({
+//					path: updatedVertex.nextTrail,
+//					editable: false,
+//					geodesic: true,
+//					strokeColor: '#FF0000',
+//					strokeOpacity: 1.0,
+//					strokeWeight: routeStrokeWeight,
+//					zIndex: 40});
+//		
+//				editedRoute[index].trail.setMap(map);
 			}
 		}
 	}
@@ -445,7 +529,7 @@ function createEditablePolyline ()
 		path: editedRoute,
 		editable: true,
 		geodesic: true,
-		strokeColor: '#0000FF',
+		strokeColor: '#7F7F7F',
 		strokeOpacity: 1.0,
 		strokeWeight: routeStrokeWeight,
 		zIndex: 30});
@@ -872,7 +956,7 @@ function setRouteContextMenu (contextMenu)
 		google.maps.event.removeListener (routeContextMenuListener);
 	}
 	
-	routeContextMenuListener = route.addListener ("rightclick", function (event) {contextMenu.open (map, event); });
+	routeContextMenuListener = actualRoutePolyline.addListener ("rightclick", function (event) {contextMenu.open (map, event); });
 }
 
 
@@ -914,15 +998,26 @@ function drawRoute ()
 					bounds.south = routeCoords[r].lat;
 				}
 			}
+			
+			actualRoute.push({lat: routeCoords[r].lat, lng: routeCoords[r].lng});
+			routeCoords[r].actualRouteIndex = actualRoute.length;
+			
+			if (routeCoords[r].trail != undefined)
+			{
+				for (let t in routeCoords[r].trail)
+				{
+					actualRoute.push({lat: routeCoords[r].trail[t].lat, lng: routeCoords[r].trail[t].lng});
+				}
+			}
 		}
 
-		if (route != undefined)
+		if (actualRoutePolyline != undefined)
 		{
-			route.setMap(null);
+			actualRoutePolyline.setMap(null);
 		}
 		
-		route = new google.maps.Polyline({
-			path: routeCoords,
+		actualRoutePolyline = new google.maps.Polyline({
+			path: actualRoute,
 			editable: false,
 			geodesic: true,
 			strokeColor: '#0000FF',
@@ -930,7 +1025,7 @@ function drawRoute ()
 			strokeWeight: routeStrokeWeight,
 			zIndex: 20});
 
-		route.setMap(map);
+		actualRoutePolyline.setMap(map);
 		
 		setRouteContextMenu (routeContextMenu);
 	}
@@ -953,8 +1048,8 @@ function drawTrails ()
 				geodesic: true,
 				strokeColor: '#00FF00',
 				strokeOpacity: 1.0,
-				strokeWeight: routeStrokeWeight,
-				zIndex: 20});
+				strokeWeight: routeStrokeWeight + 2,
+				zIndex: 15});
 	
 			trail.setMap(map);
 		}
