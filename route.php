@@ -160,13 +160,9 @@ function readAndSanatizeFile ($fileName)
 	return $segments;
 }
 
-if ($_SERVER["REQUEST_METHOD"] == "GET")
-{
-	$userId = $_SESSION["userId"];
-	$userHikeId = $_GET["id"];
-	
-	$fileName = getFileName ($userHikeId);
 
+function getRouteFromFile ($fileName)
+{
 	if (isset($fileName) && $fileName != "")
 	{
 		$segments = readAndSanatizeFile ($fileName);
@@ -176,20 +172,33 @@ if ($_SERVER["REQUEST_METHOD"] == "GET")
 			// If this segment and the next start on the same trail then
 			// find the route along the trail.
 			if (isset($segments[$s]->trailName) && isset($segments[$s + 1]->trailName)
-			 && $segments[$s]->trailName == $segments[$s]->trailName)
+					&& $segments[$s]->trailName == $segments[$s]->trailName)
 			{
 				$trail = getTrail ($segments[$s]->trailName, $segments[$s]->trailIndex, $segments[$s + 1]->trailIndex);
-
-//				array_splice ($segments, $s + 1, 0, $trail);
-//				$s += count($trail);
+				
+				//				array_splice ($segments, $s + 1, 0, $trail);
+				//				$s += count($trail);
 				$segments[$s]->trail = $trail;
 			}
 		}
 		
 		assignDistances ($segments, 0);
-		
-		echo json_encode($segments);
 	}
+	
+	return $segments;
+}
+
+
+if ($_SERVER["REQUEST_METHOD"] == "GET")
+{
+	$userId = $_SESSION["userId"];
+	$userHikeId = $_GET["id"];
+	
+	$fileName = getFileName ($userHikeId);
+
+	$segments = getRouteFromFile ($fileName);
+	
+	echo json_encode($segments);
 }
 else if ($_SERVER["REQUEST_METHOD"] == "PUT")
 {
@@ -199,11 +208,6 @@ else if ($_SERVER["REQUEST_METHOD"] == "PUT")
 	
 	if ($fileName)
 	{
-		$trailName = "";
-		$trailIndex = -1;
-		
-		findTrail ($routeUpdate->point, $trailName, $trailIndex);
-	
 		// Read the data from the file.
 		$segments = readAndSanatizeFile ($fileName);
 		
@@ -216,6 +220,11 @@ else if ($_SERVER["REQUEST_METHOD"] == "PUT")
 			$segments[$routeUpdate->index]->lat = $routeUpdate->point->lat;
 			$segments[$routeUpdate->index]->lng = $routeUpdate->point->lng;
 	
+			$trailName = "";
+			$trailIndex = -1;
+			
+			findTrail ($routeUpdate->point, $trailName, $trailIndex);
+			
 			if ($trailName == "")
 			{
 				unset ($segments[$routeUpdate->index]->trailName);
@@ -279,16 +288,6 @@ else if ($_SERVER["REQUEST_METHOD"] == "PUT")
 			}
 				
 			echo json_encode($result);
-		}
-		else
-		{
-			// Remove any points being replaced and splice in the new points.
-// 			array_splice ($segments, $routeUpdate->start + 1,
-// 					$routeUpdate->end - $routeUpdate->start,
-// 					$routeUpdate->points);
-// 			}
-			
-// 			assignDistances ($segments);
 		}
 		
 		// Write the data to the file.
