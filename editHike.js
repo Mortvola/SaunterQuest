@@ -122,6 +122,14 @@ function editSelection ()
 }
 
 
+function adjustAnchorRouteIndexes (anchorIndex, adjustment)
+{
+	for (let i = anchorIndex; i < routeCoords.length; i++)
+	{
+		routeCoords[i].actualRouteIndex += adjustment;
+	}
+}
+
 //function startRouteEdit (position)
 //{
 //	setRouteHighlightStartMarker (position, editStartMarkerSet);
@@ -152,8 +160,8 @@ function sendPoint (index, vertex)
 			let prevAnchor = routeCoords[anchorIndex - 1];
 			let nextAnchor = routeCoords[anchorIndex + 1];
 			
-//			actualRoute[anchor.actualRouteIndex].lat = updatedVertex.point.lat;
-//			actualRoute[anchor.actualRouteIndex].lng = updatedVertex.point.lng;
+			actualRoute[anchor.actualRouteIndex].lat = updatedVertex.point.lat;
+			actualRoute[anchor.actualRouteIndex].lng = updatedVertex.point.lng;
 			
 			editedRoute[index].lat = updatedVertex.point.lat;
 			editedRoute[index].lng = updatedVertex.point.lng;
@@ -165,34 +173,37 @@ function sendPoint (index, vertex)
 
 			updateEditedVertex (index);
 			
+			// Set the vertex that moved
+			path = actualRoutePolyline.getPath ();
+			path.setAt (anchor.actualRouteIndex, new google.maps.LatLng({lat: updatedVertex.point.lat, lng: updatedVertex.point.lng}));
+
 			if (updatedVertex.previousTrail == undefined)
 			{
 				if (prevAnchor.trail != undefined)
 				{
-					let actualRouteIndex = prevAnchor.actualRouteIndex;
-					
 					// Delete the points from the actual route
-					actualRoute.splice(actualRouteIndex + 1, prevAnchor.trail.length)
+					actualRoute.splice(prevAnchor.actualRouteIndex + 1, prevAnchor.trail.length)
 					
 					// Delete the points from the polyline
 					let path = actualRoutePolyline.getPath ();
 					
-					for (let i = actualRouteIndex; i < actualRouteIndex + prevAnchor.trail.length; i++)
+					for (let i = prevAnchor.actualRouteIndex + 1; i < prevAnchor.actualRouteIndex + 1 + prevAnchor.trail.length; i++)
 					{
-						path.removeAt(actualRouteIndex);
+						path.removeAt(prevAnchor.actualRouteIndex + 1);
 					}
 
 					// update the anchor indexes into the actual trail now that we deleted some portion of the trail.
-					for (let i = anchorIndex; i < routeCoords.length; i++)
-					{
-						routeCoords[i].actualRouteIndex -= prevAnchor.trail.length;
-					}
+					adjustAnchorRouteIndexes (anchorIndex, -prevAnchor.trail.length);
 					
 					prevAnchor.trail = undefined;
 				}
 			}
 			else
 			{
+				// Add the points from the actual route
+				actualRoute.splice(prevAnchor.actualRouteIndex + 1, 0, ...updatedVertex.previousTrail);
+				prevAnchor.trail = updatedVertex.previousTrail;
+
 				// Insert points into the polyline
 				let path = actualRoutePolyline.getPath ();
 
@@ -203,54 +214,35 @@ function sendPoint (index, vertex)
 				}
 
 				// update the anchor indexes into the actual trail now that we added some portion to the trail.
-				for (let i = anchorIndex; i < routeCoords.length; i++)
-				{
-					routeCoords[i].actualRouteIndex += updatedVertex.previousTrail.length;
-				}
-
-//				editedRoute[index - 1].trail = new google.maps.Polyline({
-//					path: updatedVertex.previousTrail,
-//					editable: false,
-//					geodesic: true,
-//					strokeColor: '#FF0000',
-//					strokeOpacity: 1.0,
-//					strokeWeight: routeStrokeWeight,
-//					zIndex: 40});
-//		
-//				editedRoute[index - 1].trail.setMap(map);
+				adjustAnchorRouteIndexes (anchorIndex, updatedVertex.previousTrail.length);
 			}
 
 			if (updatedVertex.nextTrail == undefined)
 			{
 				if (anchor.trail != undefined)
 				{
-					let actualRouteIndex = anchor.actualRouteIndex;
-					
 					// Delete the points from the actual route
-					actualRoute.splice(actualRouteIndex + 1, anchor.trail.length)
+					actualRoute.splice(anchor.actualRouteIndex + 1, anchor.trail.length)
 					
 					// Delete the points from the polyline
 					let path = actualRoutePolyline.getPath ();
 					
-					for (let i = actualRouteIndex; i < actualRouteIndex + anchor.trail.length; i++)
+					for (let i = anchor.actualRouteIndex + 1; i < anchor.actualRouteIndex + 1 + anchor.trail.length; i++)
 					{
-						path.removeAt(actualRouteIndex);
+						path.removeAt(anchor.actualRouteIndex + 1);
 					}
 
 					// update the anchor indexes into the actual trail now that we deleted some portion of the trail.
-					for (let i = anchorIndex; i < routeCoords.length; i++)
-					{
-						if (routeCoords[i].actualRouteIndex != undefined)
-						{
-							routeCoords[i].actualRouteIndex -= anchor.trail.length;
-						}
-					}
+					adjustAnchorRouteIndexes (anchorIndex + 1, -anchor.trail.length);
 					
 					anchor.trail = undefined;
 				}
 			}
 			else
 			{
+				actualRoute.splice(anchor.actualRouteIndex + 1, 0, ...updatedVertex.nextTrail);
+				anchor.trail = updatedVertex.nextTrail;
+				
 				// Insert points into the polyline
 				let path = actualRoutePolyline.getPath ();
 
@@ -261,24 +253,7 @@ function sendPoint (index, vertex)
 				}
 
 				// update the anchor indexes into the actual trail now that we added some portion to the trail.
-				for (let i = anchorIndex; i < routeCoords.length; i++)
-				{
-					if (routeCoords[i].actualRouteIndex != undefined)
-					{
-						routeCoords[i].actualRouteIndex += updatedVertex.nextTrail.length;
-					}
-				}
-
-//				editedRoute[index].trail = new google.maps.Polyline({
-//					path: updatedVertex.nextTrail,
-//					editable: false,
-//					geodesic: true,
-//					strokeColor: '#FF0000',
-//					strokeOpacity: 1.0,
-//					strokeWeight: routeStrokeWeight,
-//					zIndex: 40});
-//		
-//				editedRoute[index].trail.setMap(map);
+				adjustAnchorRouteIndexes (anchorIndex + 1, updatedVertex.nextTrail.length);
 			}
 		}
 	}
@@ -445,6 +420,27 @@ function updateEditedRoute (startPosition, startSegment, endPosition, endSegment
 	createEditablePolyline ();
 }
 
+function actualRouteVertexInserted (index)
+{
+	console.log ("vertex inserted: " + index);
+}
+
+function printVertex (polyLine, index)
+{
+	var path = polyLine.getPath ();
+	var vertex = path.getAt(index);
+
+	console.log ("vertex " + index + ": (" + vertex.lat() + ", " + vertex.lng() + ")");
+}
+
+function actualRouteVertexUpdated (index)
+{
+	console.log ("vertex updated: " + index);
+	printVertex(actualRoutePolyline, index);
+	printVertex(actualRoutePolyline, index - 1);
+}
+
+
 function vertexInserted (index)
 {
 	var path = editPolyLine.getPath ();
@@ -531,7 +527,7 @@ function createEditablePolyline ()
 		geodesic: true,
 		strokeColor: '#7F7F7F',
 		strokeOpacity: 1.0,
-		strokeWeight: routeStrokeWeight,
+		strokeWeight: routeStrokeWeight - 2,
 		zIndex: 30});
 
 	google.maps.event.addListener(editPolyLine.getPath(), "insert_at", vertexInserted);
@@ -624,6 +620,12 @@ function startRouteMeasurement (position)
 	endSegment = startSegment;
 
 	$("#measureRoute").show (250);
+}
+
+
+function toggleEdit (position)
+{
+	actualRoutePolyline.setEditable(!actualRoutePolyline.getEditable ());
 }
 
 
@@ -998,12 +1000,25 @@ function drawRoute ()
 					bounds.south = routeCoords[r].lat;
 				}
 			}
+
+			if (r > 0)
+			{
+				if (routeCoords[r].lat == routeCoords[r - 1].lat && routeCoords[r].lng == routeCoords[r - 1].lng)
+				{
+					console.log ("same coordinate");
+				}
+			}
 			
 			actualRoute.push({lat: routeCoords[r].lat, lng: routeCoords[r].lng});
-			routeCoords[r].actualRouteIndex = actualRoute.length;
+			routeCoords[r].actualRouteIndex = actualRoute.length - 1;
 			
 			if (routeCoords[r].trail != undefined)
 			{
+				if (routeCoords[r].lat == routeCoords[r].trail[0].lat && routeCoords[r].lng == routeCoords[r].trail[0].lng)
+				{
+					console.log ("same coordinate");
+				}
+				
 				for (let t in routeCoords[r].trail)
 				{
 					actualRoute.push({lat: routeCoords[r].trail[t].lat, lng: routeCoords[r].trail[t].lng});
@@ -1027,6 +1042,9 @@ function drawRoute ()
 
 		actualRoutePolyline.setMap(map);
 		
+//		google.maps.event.addListener(actualRoutePolyline.getPath(), "insert_at", actualRouteVertexInserted);
+//		google.maps.event.addListener(actualRoutePolyline.getPath(), "set_at", actualRouteVertexUpdated);
+
 		setRouteContextMenu (routeContextMenu);
 	}
 }
@@ -1306,7 +1324,8 @@ function retrieveRoute ()
 					{title: "Add Point of Interest", func: addPointOfInterest},
 					{title: "Select route segment", func: startRouteMeasurement},
 					{title: "Add Note", func: addNote},
-					{title: "Recalculate distances", func: recalculateDistances}
+					{title: "Recalculate distances", func: recalculateDistances},
+					{title: "Edit", func: toggleEdit}
 				]);
 
 				vertexContextMenu = new ContextMenu ([
