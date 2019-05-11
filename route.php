@@ -108,18 +108,36 @@ function getTrail ($trailName, $startIndex, $endIndex)
 
 function assignDistances (&$segments, $startIndex)
 {
+	$distance = 0;
+	
 	// Sanitize the data by recomputing the distances and elevations.
 	for ($i = $startIndex; $i < count($segments); $i++)
 	{
 		if ($i == 0)
 		{
-			$segments[$i]->dist = 0;
+			$segments[$i]->dist = $distance;
 		}
 		else
 		{
-			$distance = haversineGreatCircleDistance ($segments[$i - 1]->lat, $segments[$i - 1]->lng, $segments[$i]->lat, $segments[$i]->lng);
+			$distance += haversineGreatCircleDistance ($prevLat, $prevLng, $segments[$i]->lat, $segments[$i]->lng);
 			
-			$segments[$i]->dist = $segments[$i - 1]->dist + $distance;
+			$segments[$i]->dist = $distance;
+		}
+		
+		$prevLat = $segments[$i]->lat;
+		$prevLng = $segments[$i]->lng;
+		
+		if ($segments[$i]->trail)
+		{
+			for ($t = 0; $t < count($segments[$i]->trail); $t++)
+			{
+				$distance += haversineGreatCircleDistance ($prevLat, $prevLng, $segments[$i]->trail[$t]->lat, $segments[$i]->trail[$t]->lng);
+
+				$segments[$i]->trail[$t]->dist = $distance;
+				
+				$prevLat = $segments[$i]->trail[$t]->lat;
+				$prevLng = $segments[$i]->trail[$t]->lng;
+			}
 		}
 	}
 }

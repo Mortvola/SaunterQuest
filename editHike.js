@@ -335,7 +335,7 @@ function stopRouteEdit ()
 	$("#editRoute").hide(250);
 
 	drawRoute ();
-	getAndLoadElevationData (0, anchors.length, anchors);
+	getAndLoadElevationData (0, actualRoute.length, actualRoute);
 }
 
 
@@ -572,7 +572,7 @@ function recalculateDistances ()
 	}
 	
 	drawRoute ();
-	getAndLoadElevationData (0, anchors.length, anchors);
+	getAndLoadElevationData (0, actualRoute.length, actualRoute);
 	calculate ();
 }
 
@@ -661,19 +661,19 @@ function measureRouteDistance (startPosition, startSegment, endPosition, endSegm
 			// start point might be in the middle of a segment)
 			let startDistance = google.maps.geometry.spherical.computeDistanceBetween(
 					startPosition,
-					new google.maps.LatLng(anchors[startSegment + 1]));		
+					new google.maps.LatLng(actualRoute[startSegment + 1]));		
 	
 			for (let r = startSegment + 1; r < endSegment; r++)
 			{
 				distance += google.maps.geometry.spherical.computeDistanceBetween(
-					new google.maps.LatLng(anchors[r]),
-					new google.maps.LatLng(anchors[r + 1]));		
+					new google.maps.LatLng(actualRoute[r]),
+					new google.maps.LatLng(actualRoute[r + 1]));		
 			}
 	
 			// Compute the distance between the end segment and the end point (the
 			// end point might be int he middle of a segment)
 			let endDistance = google.maps.geometry.spherical.computeDistanceBetween(
-					new google.maps.LatLng(anchors[endSegment]),
+					new google.maps.LatLng(actualRoute[endSegment]),
 					endPosition);
 			
 			distance += startDistance + endDistance;
@@ -732,9 +732,9 @@ function displayRouteElevations (startSegment, endSegment)
 	{
 		if (startSegment == endSegment)
 		{
-			if (endSegment + 1 < anchors.length)
+			if (endSegment + 1 < actualRoute.length)
 			{
-				getAndLoadElevationData (startSegment, endSegment + 1, anchors);
+				getAndLoadElevationData (startSegment, endSegment + 1, actualRoute);
 			}
 		}
 		else
@@ -747,7 +747,7 @@ function displayRouteElevations (startSegment, endSegment)
 				endSegment = [startSegment, startSegment=endSegment][0];
 			}
 			
-			getAndLoadElevationData (startSegment, Math.min(endSegment + 1, anchors.length), anchors);
+			getAndLoadElevationData (startSegment, Math.min(endSegment + 1, actualRoute.length), actualRoute);
 		}
 	}
 }
@@ -1003,7 +1003,7 @@ function drawRoute ()
 				}
 			}
 			
-			actualRoute.push({lat: anchors[r].lat, lng: anchors[r].lng});
+			actualRoute.push({lat: anchors[r].lat, lng: anchors[r].lng, dist: anchors[r].dist});
 			anchors[r].actualRouteIndex = actualRoute.length - 1;
 			
 			if (anchors[r].trail != undefined)
@@ -1015,7 +1015,7 @@ function drawRoute ()
 				
 				for (let t in anchors[r].trail)
 				{
-					actualRoute.push({lat: anchors[r].trail[t].lat, lng: anchors[r].trail[t].lng});
+					actualRoute.push({lat: anchors[r].trail[t].lat, lng: anchors[r].trail[t].lng, dist: anchors[r].trail[t].dist});
 				}
 			}
 		}
@@ -1330,7 +1330,7 @@ function retrieveRoute ()
 				map.fitBounds(bounds);
 			}
 			
-			getAndLoadElevationData (0, anchors.length, anchors);
+			getAndLoadElevationData (0, actualRoute.length, actualRoute);
 		}
 	}
 	
