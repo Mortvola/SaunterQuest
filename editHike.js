@@ -1003,7 +1003,7 @@ function drawRoute ()
 				}
 			}
 			
-			actualRoute.push({lat: anchors[r].lat, lng: anchors[r].lng, dist: anchors[r].dist});
+			actualRoute.push({lat: anchors[r].lat, lng: anchors[r].lng, dist: anchors[r].dist, ele: anchors[r].ele});
 			anchors[r].actualRouteIndex = actualRoute.length - 1;
 			
 			if (anchors[r].trail != undefined)
@@ -1015,7 +1015,7 @@ function drawRoute ()
 				
 				for (let t in anchors[r].trail)
 				{
-					actualRoute.push({lat: anchors[r].trail[t].lat, lng: anchors[r].trail[t].lng, dist: anchors[r].trail[t].dist});
+					actualRoute.push({lat: anchors[r].trail[t].lat, lng: anchors[r].trail[t].lng, dist: anchors[r].trail[t].dist, ele: anchors[r].trail[t].ele});
 				}
 			}
 		}
