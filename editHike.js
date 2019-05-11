@@ -206,6 +206,9 @@ function sendPoint (index, vertex)
 			actualRoute[anchor.actualRouteIndex].lat = updatedVertex.point.lat;
 			actualRoute[anchor.actualRouteIndex].lng = updatedVertex.point.lng;
 			
+			anchor.lat = updatedVertex.point.lat;
+			anchor.lng = updatedVertex.point.lng;
+
 			editedRoute[index].lat = updatedVertex.point.lat;
 			editedRoute[index].lng = updatedVertex.point.lng;
 			
@@ -220,26 +223,22 @@ function sendPoint (index, vertex)
 			path = actualRoutePolyline.getPath ();
 			path.setAt (anchor.actualRouteIndex, new google.maps.LatLng({lat: updatedVertex.point.lat, lng: updatedVertex.point.lng}));
 
-			if (updatedVertex.previousTrail == undefined)
+			if (prevAnchor.trail != undefined)
 			{
-				if (prevAnchor.trail != undefined)
-				{
-					removePointsFromRoute (prevAnchor, anchorIndex - 1);
-				}
+				removePointsFromRoute (prevAnchor, anchorIndex - 1);
 			}
-			else
+
+			if (updatedVertex.previousTrail != undefined)
 			{
 				addPointsToRoute (prevAnchor, anchorIndex - 1, updatedVertex.previousTrail);
 			}
 
-			if (updatedVertex.nextTrail == undefined)
+			if (anchor.trail != undefined)
 			{
-				if (anchor.trail != undefined)
-				{
-					removePointsFromRoute (anchor, anchorIndex);
-				}
+				removePointsFromRoute (anchor, anchorIndex);
 			}
-			else
+
+			if (updatedVertex.nextTrail != undefined)
 			{
 				addPointsToRoute (anchor, anchorIndex, updatedVertex.nextTrail);
 			}

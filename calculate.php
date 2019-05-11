@@ -1238,7 +1238,7 @@ function getRouteFile ()
 	
 	$jsonHikeData = json_encode($day);
 	
-	userHikeDataStore ($jsonHikeData);
+//	userHikeDataStore ($jsonHikeData);
 	
 	echo $jsonHikeData;
 }

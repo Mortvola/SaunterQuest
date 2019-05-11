@@ -78,7 +78,7 @@ function assignDistances (&$segments, $startIndex)
 		
 		if ($segments[$i]->trail)
 		{
-			assignTrailDistances ($segments[$i]->trail, $distance, $prevLat, $prefLng);
+			assignTrailDistances ($segments[$i]->trail, $distance, $prevLat, $prevLng);
 		}
 	}
 }
@@ -95,8 +95,6 @@ function readAndSanatizeFile ($fileName)
 	{
 		$segments = array_values ($objectVars);
 	}
-	
-	assignDistances ($segments, 0);
 	
 	return $segments;
 }
