@@ -145,6 +145,26 @@ function adjustAnchorRouteIndexes (anchorIndex, adjustment)
 //}
 
 
+function removePointsFromRoute (anchor, anchorIndex)
+{
+	// Delete the points from the actual route
+	actualRoute.splice(anchor.actualRouteIndex + 1, anchor.trail.length)
+	
+	// Delete the points from the polyline
+	let path = actualRoutePolyline.getPath ();
+	
+	for (let i = anchor.actualRouteIndex + 1; i < anchor.actualRouteIndex + 1 + anchor.trail.length; i++)
+	{
+		path.removeAt(anchor.actualRouteIndex + 1);
+	}
+
+	// update the anchor indexes into the actual trail now that we deleted some portion of the trail.
+	adjustAnchorRouteIndexes (anchorIndex + 1, -anchor.trail.length);
+	
+	anchor.trail = undefined;
+}
+
+
 function sendPoint (index, vertex)
 {
 	var xmlhttp = new XMLHttpRequest ();
@@ -181,21 +201,7 @@ function sendPoint (index, vertex)
 			{
 				if (prevAnchor.trail != undefined)
 				{
-					// Delete the points from the actual route
-					actualRoute.splice(prevAnchor.actualRouteIndex + 1, prevAnchor.trail.length)
-					
-					// Delete the points from the polyline
-					let path = actualRoutePolyline.getPath ();
-					
-					for (let i = prevAnchor.actualRouteIndex + 1; i < prevAnchor.actualRouteIndex + 1 + prevAnchor.trail.length; i++)
-					{
-						path.removeAt(prevAnchor.actualRouteIndex + 1);
-					}
-
-					// update the anchor indexes into the actual trail now that we deleted some portion of the trail.
-					adjustAnchorRouteIndexes (anchorIndex, -prevAnchor.trail.length);
-					
-					prevAnchor.trail = undefined;
+					removePointsFromRoute (prevAnchor, anchorIndex - 1);
 				}
 			}
 			else
@@ -221,21 +227,7 @@ function sendPoint (index, vertex)
 			{
 				if (anchor.trail != undefined)
 				{
-					// Delete the points from the actual route
-					actualRoute.splice(anchor.actualRouteIndex + 1, anchor.trail.length)
-					
-					// Delete the points from the polyline
-					let path = actualRoutePolyline.getPath ();
-					
-					for (let i = anchor.actualRouteIndex + 1; i < anchor.actualRouteIndex + 1 + anchor.trail.length; i++)
-					{
-						path.removeAt(anchor.actualRouteIndex + 1);
-					}
-
-					// update the anchor indexes into the actual trail now that we deleted some portion of the trail.
-					adjustAnchorRouteIndexes (anchorIndex + 1, -anchor.trail.length);
-					
-					anchor.trail = undefined;
+					removePointsFromRoute (anchor, anchorIndex);
 				}
 			}
 			else
