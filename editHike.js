@@ -147,21 +147,24 @@ function adjustAnchorRouteIndexes (anchorIndex, adjustment)
 
 function removePointsFromRoute (anchor, anchorIndex)
 {
-	// Delete the points from the actual route
-	actualRoute.splice(anchor.actualRouteIndex + 1, anchor.trail.length)
-	
-	// Delete the points from the polyline
-	let path = actualRoutePolyline.getPath ();
-	
-	for (let i = anchor.actualRouteIndex + 1; i < anchor.actualRouteIndex + 1 + anchor.trail.length; i++)
+	if (anchor.trail != undefined)
 	{
-		path.removeAt(anchor.actualRouteIndex + 1);
-	}
-
-	// update the anchor indexes into the actual trail now that we deleted some portion of the trail.
-	adjustAnchorRouteIndexes (anchorIndex + 1, -anchor.trail.length);
+		// Delete the points from the actual route
+		actualRoute.splice(anchor.actualRouteIndex + 1, anchor.trail.length)
+		
+		// Delete the points from the polyline
+		let path = actualRoutePolyline.getPath ();
+		
+		for (let i = anchor.actualRouteIndex + 1; i < anchor.actualRouteIndex + 1 + anchor.trail.length; i++)
+		{
+			path.removeAt(anchor.actualRouteIndex + 1);
+		}
 	
-	anchor.trail = undefined;
+		// update the anchor indexes into the actual trail now that we deleted some portion of the trail.
+		adjustAnchorRouteIndexes (anchorIndex + 1, -anchor.trail.length);
+		
+		anchor.trail = undefined;
+	}
 }
 
 
@@ -260,24 +263,23 @@ function deletePoints (index, length)
 		{
 			let trail = JSON.parse(this.responseText);
 
-			if (editedRoute[index - 1].trail != undefined)
+			let anchorIndex = startSegment + index;
+			
+			let path = actualRoutePolyline.getPath ();
+
+			for (let i = 0; i < length; i++)
 			{
-				editedRoute[index - 1].trail.setMap(null);
-				editedRoute[index - 1].trail = null;
+				removePointsFromRoute (anchors[anchorIndex - 1], anchorIndex - 1);
+				actualRoute.splice(anchors[anchorIndex].actualRouteIndex, 1)
+				path.removeAt(anchors[anchorIndex].actualRouteIndex);
+
+				anchors.splice (anchorIndex, 1);
 			}
 			
-			if (trail.length > 0)
+			// Add in the points for the specified new trail between the anchors
+			if (trail != undefined)
 			{
-				editedRoute[index - 1].trail = new google.maps.Polyline({
-					path: trail,
-					editable: false,
-					geodesic: true,
-					strokeColor: '#FF0000',
-					strokeOpacity: 1.0,
-					strokeWeight: routeStrokeWeight,
-					zIndex: 40});
-		
-				editedRoute[index - 1].trail.setMap(map);
+				addPointsToRoute (anchors[anchorIndex - 1], anchorIndex - 1, trail);
 			}
 		}
 	}
@@ -610,7 +612,14 @@ function startRouteMeasurement (position)
 
 function toggleEdit (position)
 {
-	actualRoutePolyline.setEditable(!actualRoutePolyline.getEditable ());
+	editedRoute = [];
+
+	startSegment = 0;
+	endSegment = anchors.length - 1;
+	
+	editedRoute.splice (0, 0, ...anchors);
+
+	createEditablePolyline ();
 }
 
 

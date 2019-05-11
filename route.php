@@ -88,7 +88,8 @@ function getTrail ($trailName, $startIndex, $endIndex)
 		{
 			array_splice ($trail, $endIndex + 1);
 			array_splice ($trail, 0, $startIndex);
-		
+			$trail = array_values ($trail);
+			
 			return $trail;
 		}
 		else if ($startIndex > $endIndex)
@@ -97,17 +98,18 @@ function getTrail ($trailName, $startIndex, $endIndex)
 			array_splice ($trail, 0, $endIndex);
 			
 			$trail = array_reverse($trail);
-		
+			$trail = array_values ($trail);
+			
 			return $trail;
 		}
 	}
 }
 
 
-function assignDistances (&$segments)
+function assignDistances (&$segments, $startIndex)
 {
 	// Sanitize the data by recomputing the distances and elevations.
-	for ($i = 0; $i < count($segments); $i++)
+	for ($i = $startIndex; $i < count($segments); $i++)
 	{
 		if ($i == 0)
 		{
@@ -123,6 +125,21 @@ function assignDistances (&$segments)
 }
 
 
+function readAndSanatizeFile ($fileName)
+{
+	$segments = json_decode(file_get_contents($fileName));
+	
+	// Ensure the array is not an object and is indexed numerically
+	$objectVars = get_object_vars ($segments);
+	
+	if ($objectVars)
+	{
+		$segments = array_values ($objectVars);
+	}
+	
+	return $segments;
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "GET")
 {
 	$userId = $_SESSION["userId"];
@@ -132,7 +149,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET")
 
 	if (isset($fileName) && $fileName != "")
 	{
-		$segments = json_decode(file_get_contents($fileName));
+		$segments = readAndSanatizeFile ($fileName);
 		
 		for ($s = 0; $s < count($segments) - 1; $s++)
 		{
@@ -149,7 +166,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET")
 			}
 		}
 		
-		assignDistances ($segment);
+		assignDistances ($segments, 0);
 		
 		echo json_encode($segments);
 	}
@@ -168,8 +185,8 @@ else if ($_SERVER["REQUEST_METHOD"] == "PUT")
 		findTrail ($routeUpdate->point, $trailName, $trailIndex);
 	
 		// Read the data from the file.
-		$segments = json_decode(file_get_contents($fileName));
-	
+		$segments = readAndSanatizeFile ($fileName);
+		
 		if ($routeUpdate->mode == "update")
 		{
 			$result->point = $routeUpdate->point;
@@ -213,10 +230,11 @@ else if ($_SERVER["REQUEST_METHOD"] == "PUT")
 		{
 			 // Remove the specified points
 			array_splice ($segments, $routeUpdate->index, $routeUpdate->length);
+			$segments = array_values($segments);
 			
 			// Are the previous point and the next point on the same trail? If so, then send all
 			// of the points between the previous point and the next point.
-			if ($routeUpdate->index > 0 && $segments[$routeUpdate->index - 1]->trailName == $segments[$routeUpdate->index]->trailName)
+			if ($routeUpdate->index > 0 && $routeUpdate->index < count($segments) && $segments[$routeUpdate->index - 1]->trailName == $segments[$routeUpdate->index]->trailName)
 			{
 				$result = json_decode(file_get_contents($segments[$routeUpdate->index]->trailName));
 				
@@ -230,23 +248,16 @@ else if ($_SERVER["REQUEST_METHOD"] == "PUT")
 					array_splice ($result, $segments[$routeUpdate->index]->trailIndex + 1);
 					array_splice ($result, 0, $segments[$routeUpdate->index - 1]->trailIndex - 1);
 				}
+				
+				$result = array_values ($result);
 			}
 
 			// Adjust distances now that vertices have been removed.
-			for ($i = $routeUpdate->index; $i < count($segments); $i++)
+			if ($routeUpdate->index < count($segments))
 			{
-				if ($i == 0)
-				{
-					$segments[$i]->dist = 0;
-				}
-				else
-				{
-					$distance = haversineGreatCircleDistance ($segments[$i - 1]->lat, $segments[$i - 1]->lng, $segments[$i]->lat, $segments[$i]->lng);
-					
-					$segments[$i]->dist = $segments[$i - 1]->dist + $distance;
-				}
+				assignDistances ($segments, $routeUpdate->index);
 			}
-			
+				
 			echo json_encode($result);
 		}
 		else
