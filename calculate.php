@@ -1204,7 +1204,20 @@ function getRouteFile ()
 	$segments = [];
 
 	$fileName = getRouteFile ();
-	$segments = getRouteFromFile($fileName);
+	$route = getRouteFromFile($fileName);
+	
+	foreach ($route as $r)
+	{
+		array_push($segments, $r);
+		
+		if (isset ($r->trail))
+		{
+			foreach ($r->trail as $t)
+			{
+				array_push ($segments, $t);
+			}
+		}
+	}
 	
 	$hikerProfile = (object)[];
 	
