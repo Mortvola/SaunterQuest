@@ -111,7 +111,7 @@ function getRouteFromFile ($fileName)
 			// If this segment and the next start on the same trail then
 			// find the route along the trail.
 			if (isset($segments[$s]->trailName) && isset($segments[$s + 1]->trailName)
-					&& $segments[$s]->trailName == $segments[$s]->trailName)
+					&& $segments[$s]->trailName == $segments[$s + 1]->trailName)
 			{
 				$trail = getTrail ($segments[$s]->trailName, $segments[$s]->trailIndex, $segments[$s + 1]->trailIndex);
 				
