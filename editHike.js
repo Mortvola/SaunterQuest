@@ -130,20 +130,6 @@ function adjustAnchorRouteIndexes (anchorIndex, adjustment)
 	}
 }
 
-//function startRouteEdit (position)
-//{
-//	setRouteHighlightStartMarker (position, editStartMarkerSet);
-//	setRouteHighlightEndMarker (position, editEndMarkerSet);
-//	
-//	startPosition = position;
-//	endPosition = position;
-//	
-//	startSegment = findNearestSegment(startPosition);
-//	endSegment = Math.min(startSegment + 1, anchors.length - 1);
-//	
-//	$("#editRoute").show (250);
-//}
-
 
 function removePointsFromRoute (anchor, anchorIndex)
 {
@@ -355,26 +341,20 @@ function deletePoints (index, length)
 	xmlhttp.send(JSON.stringify(routeUpdate));
 }
 
-function sendRouteEdits ()
-{
-	var xmlhttp = new XMLHttpRequest ();
+//function startRouteEdit (position)
+//{
+//	setRouteHighlightStartMarker (position, editStartMarkerSet);
+//	setRouteHighlightEndMarker (position, editEndMarkerSet);
+//	
+//	startPosition = position;
+//	endPosition = position;
+//	
+//	startSegment = findNearestSegment(startPosition);
+//	endSegment = Math.min(startSegment + 1, anchors.length - 1);
+//	
+//	$("#editRoute").show (250);
+//}
 
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && this.status == 200)
-		{
-//			editedRoute[i].ele = JSON.parse(this.responseText);
-//			
-//			getAndLoadElevationData (0, editedRoute.length, editedRoute);
-		}
-	}
-	
-	var routeUpdate = {userHikeId: userHikeId, start: startSegment, end: endSegment, points: editedRoute};
-	
-	xmlhttp.open("PUT", "route.php", true);
-	xmlhttp.setRequestHeader("Content-type", "application/json");
-	xmlhttp.send(JSON.stringify(routeUpdate));
-}
 
 function stopRouteEdit ()
 {
@@ -386,10 +366,6 @@ function stopRouteEdit ()
 		editPolyLine = null;
 	}
 
-	anchors.splice (startSegment + 1, endSegment - startSegment, ...editedRoute);
-	
-	sendRouteEdits ();
-	
 	startPosition = undefined;
 	endPosition = undefined;
 	
@@ -398,7 +374,7 @@ function stopRouteEdit ()
 	
 	$("#editRoute").hide(250);
 
-	drawRoute ();
+//	drawRoute ();
 	getAndLoadElevationData (0, actualRoute.length, actualRoute);
 }
 
@@ -519,51 +495,6 @@ function vertexUpdated (index)
 		moveAnchor (index, vertex);
 	}
 }
-
-function updateEditedVertex (index)
-{
-	var xmlhttp = new XMLHttpRequest ();
-
-	function setReadyStateChange (i)
-	{
-		xmlhttp.onreadystatechange = function ()
-		{
-			if (this.readyState == 4 && this.status == 200)
-			{
-				editedRoute[i].ele = JSON.parse(this.responseText);
-				
-				getAndLoadElevationData (0, editedRoute.length, editedRoute);
-			}
-		}
-	}
-	
-	setReadyStateChange(index);
-	
-	xmlhttp.open("GET", "elevation.php?lat=" + editedRoute[index].lat + "&lng=" + editedRoute[index].lng, true);
-	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	xmlhttp.send();
-
-	// Update the distance data members.
-	var position1 = new google.maps.LatLng(editedRoute[index - 1]);
-	var position2 = new google.maps.LatLng(editedRoute[index]);
-	var delta = google.maps.geometry.spherical.computeDistanceBetween(position1, position2);
-	editedRoute[index].dist = editedRoute[index - 1].dist + delta;
-
-	var position3 = new google.maps.LatLng(editedRoute[index + 1]);
-	delta = google.maps.geometry.spherical.computeDistanceBetween(position2, position3);
-	
-	var newDistance = editedRoute[index].dist + delta
-
-	for (++index; index < editedRoute.length - 1; index++)
-	{
-		delta = editedRoute[index + 1].dist - editedRoute[index].dist;
-		editedRoute[index].dist = newDistance;
-		newDistance = editedRoute[index].dist + delta;
-	}
-
-	editedRoute[index].dist = newDistance;
-}
-
 
 function createEditablePolyline ()
 {
@@ -901,21 +832,6 @@ function displayLocation (position)
 			let elevation = JSON.parse(this.responseText);
 
 			$("#modalBody").html("Lat: " + position.lat() + " Lng: " + position.lng() + " Elevation: " + metersToFeet(elevation));
-
-//			resupplyLocation.shippingLocationId = JSON.parse(this.responseText);
-//
-//			resupplyLocation.marker = new google.maps.Marker({
-//				position: {lat: parseFloat(resupplyLocation.lat), lng: parseFloat(resupplyLocation.lng)},
-//				map: map,
-//				icon: {
-//					url: "http://maps.google.com/mapfiles/ms/micons/postoffice-us.png"
-//				}
-//			});
-//			
-//			let markerIndex = 0; //todo: fix this, it shouldn't be zero.
-//			resupplyLocation.marker.addListener ("rightclick", function (event) { resupplyLocationCM.open (map, event, markerIndex); });
-//			
-//			resupplyLocations.push(resupplyLocation);
 		}
 	}
 	
