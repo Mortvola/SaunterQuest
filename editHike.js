@@ -205,9 +205,13 @@ function sendPoint (index, vertex)
 			
 			actualRoute[anchor.actualRouteIndex].lat = updatedVertex.point.lat;
 			actualRoute[anchor.actualRouteIndex].lng = updatedVertex.point.lng;
+			actualRoute[anchor.actualRouteIndex].ele = updatedVertex.point.ele;
+			actualRoute[anchor.actualRouteIndex].dist = updatedVertex.point.dist;
 			
 			anchor.lat = updatedVertex.point.lat;
 			anchor.lng = updatedVertex.point.lng;
+			anchor.ele = updatedVertex.point.ele;
+			anchor.dist = updatedVertex.point.dist;
 
 			editedRoute[index].lat = updatedVertex.point.lat;
 			editedRoute[index].lng = updatedVertex.point.lng;
@@ -217,8 +221,6 @@ function sendPoint (index, vertex)
 			vertex.moved = true;
 			path.setAt(index, vertex);
 
-			updateEditedVertex (index);
-			
 			// Set the vertex that moved
 			path = actualRoutePolyline.getPath ();
 			path.setAt (anchor.actualRouteIndex, new google.maps.LatLng({lat: updatedVertex.point.lat, lng: updatedVertex.point.lng}));
