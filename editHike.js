@@ -269,7 +269,12 @@ function deletePoints (index, length)
 			for (let i = 0; i < length; i++)
 			{
 				removePointsFromRoute (anchors[anchorIndex - 1], anchorIndex - 1);
+				removePointsFromRoute (anchors[anchorIndex], anchorIndex);
+
+				// Delete the anchor from the actual route and from the actual route polyline
 				actualRoute.splice(anchors[anchorIndex].actualRouteIndex, 1)
+				// update the anchor indexes into the actual trail now that we deleted some portion of the trail.
+				adjustAnchorRouteIndexes (anchorIndex + 1, -1);
 				path.removeAt(anchors[anchorIndex].actualRouteIndex);
 
 				anchors.splice (anchorIndex, 1);
