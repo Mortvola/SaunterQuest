@@ -188,7 +188,7 @@ function addPointsToRoute (anchor, anchorIndex, trail)
 }
 
 
-function sendPoint (index, vertex)
+function moveAnchor (index, vertex)
 {
 	var xmlhttp = new XMLHttpRequest ();
 
@@ -197,17 +197,16 @@ function sendPoint (index, vertex)
 		if (this.readyState == 4 && this.status == 200)
 		{
 			let updatedVertex = JSON.parse(this.responseText);
-			
+
 			let anchorIndex = startSegment + index;
 			let anchor = anchors[anchorIndex];
 			let prevAnchor = anchors[anchorIndex - 1];
-			let nextAnchor = anchors[anchorIndex + 1];
-			
+	
 			actualRoute[anchor.actualRouteIndex].lat = updatedVertex.point.lat;
 			actualRoute[anchor.actualRouteIndex].lng = updatedVertex.point.lng;
 			actualRoute[anchor.actualRouteIndex].ele = updatedVertex.point.ele;
 			actualRoute[anchor.actualRouteIndex].dist = updatedVertex.point.dist;
-			
+	
 			anchor.lat = updatedVertex.point.lat;
 			anchor.lng = updatedVertex.point.lng;
 			anchor.ele = updatedVertex.point.ele;
@@ -215,7 +214,7 @@ function sendPoint (index, vertex)
 
 			editedRoute[index].lat = updatedVertex.point.lat;
 			editedRoute[index].lng = updatedVertex.point.lng;
-			
+	
 			var path = editPolyLine.getPath ();
 			vertex = new google.maps.LatLng({lat: editedRoute[index].lat, lng: editedRoute[index].lng});
 			vertex.moved = true;
@@ -253,6 +252,65 @@ function sendPoint (index, vertex)
 	xmlhttp.setRequestHeader("Content-type", "application/json");
 	xmlhttp.send(JSON.stringify(routeUpdate));
 }
+
+
+function insertAnchor (index, vertex)
+{
+	var xmlhttp = new XMLHttpRequest ();
+
+	xmlhttp.onreadystatechange = function ()
+	{
+		if (this.readyState == 4 && this.status == 200)
+		{
+			let updatedVertex = JSON.parse(this.responseText);
+	
+			let anchorIndex = startSegment + index;
+			let prevAnchor = anchors[anchorIndex - 1];
+
+			removePointsFromRoute (prevAnchor, anchorIndex - 1);
+
+			if (updatedVertex.previousTrail != undefined)
+			{
+				addPointsToRoute (prevAnchor, anchorIndex - 1, updatedVertex.previousTrail);
+			}
+
+			actualRoute.splice (anchors[anchorIndex].actualRouteIndex, 0, {lat: updatedVertex.point.lat, lng: updatedVertex.point.lng});
+			actualRoute[anchors[anchorIndex].actualRouteIndex].ele = updatedVertex.point.ele;
+			actualRoute[anchors[anchorIndex].actualRouteIndex].dist = updatedVertex.point.dist;
+
+			anchors.splice (anchorIndex, 0, {lat: updatedVertex.point.lat, lng: updatedVertex.point.lng, actualRouteIndex: anchors[anchorIndex].actualRouteIndex});
+			anchors[anchorIndex].ele = updatedVertex.point.ele;
+			anchors[anchorIndex].dist = updatedVertex.point.dist;
+
+			editedRoute[index].lat = updatedVertex.point.lat;
+			editedRoute[index].lng = updatedVertex.point.lng;
+
+			// Insert the vertex into the actual route polyline.
+			path = actualRoutePolyline.getPath ();
+			path.insertAt (anchors[anchorIndex].actualRouteIndex, new google.maps.LatLng({lat: updatedVertex.point.lat, lng: updatedVertex.point.lng}));
+
+			var path = editPolyLine.getPath ();
+			var vertex = new google.maps.LatLng({lat: editedRoute[index].lat, lng: editedRoute[index].lng});
+			vertex.moved = true;
+			path.setAt(index, vertex);
+
+			// update the anchor indexes into the actual trail now that we deleted some portion of the trail.
+			adjustAnchorRouteIndexes (anchorIndex + 1, 1);
+
+			if (updatedVertex.nextTrail != undefined)
+			{
+				addPointsToRoute (anchors[anchorIndex], anchorIndex, updatedVertex.nextTrail);
+			}
+		}
+	}
+	
+	var routeUpdate = {userHikeId: userHikeId, mode: "insert", index: startSegment + index, point: {lat: vertex.lat (), lng: vertex.lng ()}};
+	
+	xmlhttp.open("PUT", "route.php", true);
+	xmlhttp.setRequestHeader("Content-type", "application/json");
+	xmlhttp.send(JSON.stringify(routeUpdate));
+}
+
 
 function deletePoints (index, length)
 {
@@ -442,7 +500,7 @@ function vertexInserted (index)
 
 	editedRoute.splice (index, 0, {lat: vertex.lat (), lng: vertex.lng ()});
 	
-	updateEditedVertex (index);
+	insertAnchor (index, vertex);
 }
 
 
@@ -458,7 +516,7 @@ function vertexUpdated (index)
 	}
 	else
 	{
-		sendPoint (index, vertex);
+		moveAnchor (index, vertex);
 	}
 }
 

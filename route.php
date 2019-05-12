@@ -77,6 +77,75 @@ function findTrail (&$point, &$trailName, &$trailIndex)
 }
 
 
+function modifyPoint (&$segments, $routeUpdate)
+{
+	$trailName = "";
+	$trailIndex = -1;
+	
+	findTrail ($routeUpdate->point, $trailName, $trailIndex);
+	
+	$segments[$routeUpdate->index]->lat = $routeUpdate->point->lat;
+	$segments[$routeUpdate->index]->lng = $routeUpdate->point->lng;
+	
+	$result->point = $routeUpdate->point;
+	
+	if ($trailName == "")
+	{
+		unset ($segments[$routeUpdate->index]->trailName);
+		unset ($segments[$routeUpdate->index]->trailIndex);
+	}
+	else
+	{
+		// The point was on a trail. Save the trail information.
+		
+		$segments[$routeUpdate->index]->trailName = $trailName;
+		$segments[$routeUpdate->index]->trailIndex = $trailIndex;
+		
+		// If the previous point is on the same trail then send all
+		// of the points between the previous point and this point.
+		
+		if ($routeUpdate->index > 0 && $segments[$routeUpdate->index - 1]->trailName == $trailName)
+		{
+			$result->previousTrail = getTrail ($trailName, $segments[$routeUpdate->index - 1]->trailIndex, $segments[$routeUpdate->index]->trailIndex);
+			
+			$prevLat = $segments[$routeUpdate->index - 1]->lat;
+			$prevLng = $segments[$routeUpdate->index - 1]->lng;
+			$distance = $segments[$routeUpdate->index - 1]->dist;
+			
+			assignTrailDistances ($result->previousTrail, $distance, $prevLat, $prevLng);
+			
+			$distance += haversineGreatCircleDistance ($prevLat, $prevLng, $segments[$routeUpdate->index]->lat, $segments[$routeUpdate->index]->lng);
+		}
+		else
+		{
+			$prevLat = $segments[$routeUpdate->index]->lat;
+			$prevLng = $segments[$routeUpdate->index]->lng;
+			$distance = 0;
+		}
+		
+		$segments[$routeUpdate->index]->dist = $distance;
+		$segments[$routeUpdate->index]->ele = getElevation ($segments[$routeUpdate->index]->lat, $segments[$routeUpdate->index]->lng);
+		
+		$result->point->dist = $segments[$routeUpdate->index]->dist;
+		$result->point->ele = $segments[$routeUpdate->index]->ele;
+		
+		$prevLat = $segments[$routeUpdate->index]->lat;
+		$prevLng = $segments[$routeUpdate->index]->lng;
+		
+		// If the next point is on the same trail then send all
+		// of the points between this point and the next point.
+		if ($routeUpdate->index < count($segments) - 1 && $segments[$routeUpdate->index + 1]->trailName == $trailName)
+		{
+			$result->nextTrail = getTrail ($trailName, $segments[$routeUpdate->index]->trailIndex, $segments[$routeUpdate->index + 1]->trailIndex);
+			
+			assignTrailDistances ($result->nextTrail, $distance, $prevLat, $prevLng);
+		}
+	}
+	
+	echo json_encode($result);
+}
+
+
 if ($_SERVER["REQUEST_METHOD"] == "GET")
 {
 	$userId = $_SESSION["userId"];
@@ -102,71 +171,13 @@ else if ($_SERVER["REQUEST_METHOD"] == "PUT")
 		if ($routeUpdate->mode == "update")
 		{
 			// Update the point that was moved in the segments array.
-
-			$trailName = "";
-			$trailIndex = -1;
+			modifyPoint ($segments, $routeUpdate);
+		}
+		else if ($routeUpdate->mode == "insert")
+		{
+			array_splice ($segments, $routeUpdate->index, 0, [ "0" => $routeUpdate->point]);
 			
-			findTrail ($routeUpdate->point, $trailName, $trailIndex);
-			
-			$segments[$routeUpdate->index]->lat = $routeUpdate->point->lat;
-			$segments[$routeUpdate->index]->lng = $routeUpdate->point->lng;
-			
-			$result->point = $routeUpdate->point;
-			
-			if ($trailName == "")
-			{
-				unset ($segments[$routeUpdate->index]->trailName);
-				unset ($segments[$routeUpdate->index]->trailIndex);
-			}
-			else
-			{
-				// The point was on a trail. Save the trail information.
-
-				$segments[$routeUpdate->index]->trailName = $trailName;
-				$segments[$routeUpdate->index]->trailIndex = $trailIndex;
-				
-				// If the previous point is on the same trail then send all
-				// of the points between the previous point and this point.
-				
-				if ($routeUpdate->index > 0 && $segments[$routeUpdate->index - 1]->trailName == $trailName)
-				{
-					$result->previousTrail = getTrail ($trailName, $segments[$routeUpdate->index - 1]->trailIndex, $segments[$routeUpdate->index]->trailIndex);
-				
-					$prevLat = $segments[$routeUpdate->index - 1]->lat;
-					$prevLng = $segments[$routeUpdate->index - 1]->lng;
-					$distance = $segments[$routeUpdate->index - 1]->dist;
-					
-					assignTrailDistances ($result->previousTrail, $distance, $prevLat, $prevLng);
-
-					$distance += haversineGreatCircleDistance ($prevLat, $prevLng, $segments[$routeUpdate->index]->lat, $segments[$routeUpdate->index]->lng);
-				}
-				else
-				{
-					$prevLat = $segments[$routeUpdate->index]->lat;
-					$prevLng = $segments[$routeUpdate->index]->lng;
-					$distance = 0;
-				}
-	
-				$segments[$routeUpdate->index]->dist = $distance;
-				$segments[$routeUpdate->index]->ele = getElevation ($segments[$routeUpdate->index]->lat, $segments[$routeUpdate->index]->lng);
-				
-				$result->point->dist = $segments[$routeUpdate->index]->dist;
-				$result->point->ele = $segments[$routeUpdate->index]->ele;
-				
-				$prevLat = $segments[$routeUpdate->index]->lat;
-				$prevLng = $segments[$routeUpdate->index]->lng;
-				
-				// If the next point is on the same trail then send all
-				// of the points between this point and the next point.
-				if ($routeUpdate->index < count($segments) - 1 && $segments[$routeUpdate->index + 1]->trailName == $trailName)
-				{
-					$result->nextTrail = getTrail ($trailName, $segments[$routeUpdate->index]->trailIndex, $segments[$routeUpdate->index + 1]->trailIndex);
-
-					assignTrailDistances ($result->nextTrail, $distance, $prevLat, $prevLng);
-				}
-			}
-			
-			echo json_encode($result);
+			modifyPoint ($segments, $routeUpdate);
 		}
 		else if ($routeUpdate->mode == "delete")
 		{
