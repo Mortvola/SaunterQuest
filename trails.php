@@ -7,11 +7,38 @@ if ($_SERVER["REQUEST_METHOD"] == "GET")
 {
 	$trails = [];
 	
- 	array_push($trails, json_decode(file_get_contents("CentralGWT.trail")));
- 	array_push($trails, json_decode(file_get_contents("TieForkGWT.trail")));
- 	array_push($trails, json_decode(file_get_contents("StrawberryRidgeGWT.trail")));
- 	array_push($trails, json_decode(file_get_contents("SouthForkToPackardCanyon.trail")));
- 	
+	$handle = fopen("trails/N40W112.trails", "rb");
+	
+	if ($handle)
+	{
+		for (;;)
+		{
+			$jsonString = fgets ($handle);
+			
+			if (!$jsonString)
+			{
+				break;
+			}
+			
+			$trail = json_decode($jsonString);
+			
+			if (isset($trail))
+			{
+				if (isset($trail->route))
+				{
+					array_push ($trails, $trail->route);
+				}
+			}
+			else
+			{
+				echo "Failed to JSON decode:\n";
+				echo $jsonString;
+			}
+		}
+		
+		fclose ($handle);
+	}
+	
 	echo json_encode($trails);
 }
 else if ($_SERVER["REQUEST_METHOD"] == "PUT")
