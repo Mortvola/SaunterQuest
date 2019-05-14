@@ -1,13 +1,12 @@
 <?php 
 require_once "checkLogin.php";
-require_once "config.php";
-require_once "coordinates.php";
 
 if ($_SERVER["REQUEST_METHOD"] == "GET")
 {
-	$trails = [];
-	
 	$handle = fopen("trails/N40W112.trails", "rb");
+	$first = true;
+	
+	echo "[";
 	
 	if ($handle)
 	{
@@ -26,7 +25,15 @@ if ($_SERVER["REQUEST_METHOD"] == "GET")
 			{
 				if (isset($trail->route))
 				{
-					array_push ($trails, $trail->route);
+					$t = (object)[ "type" => $trail->type, "route" => $trail->route];
+	
+					if (!$first)
+					{
+						echo ",";
+					}
+					$first = false;
+					
+					echo json_encode ($t);
 				}
 			}
 			else
@@ -39,7 +46,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET")
 		fclose ($handle);
 	}
 	
-	echo json_encode($trails);
+	echo "]";
 }
 else if ($_SERVER["REQUEST_METHOD"] == "PUT")
 {

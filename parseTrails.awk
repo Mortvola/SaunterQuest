@@ -3,7 +3,7 @@ BEGIN {
 	FS = "\n";
 
 	trailCount = 0;
-#	printf "{ \"trails\" : ["
+#	printf "{ \"trails\":["
 };
 
 {
@@ -45,11 +45,12 @@ BEGIN {
 		trailCount++;
 
 		printf "{"
-		printf "\"number\" : \"%s\",", trailNO;
-		printf "\"cn\" : \"%s\",", trailCN;
-		printf "\"name\" : \"%s\",", trailName;
+		printf "\"type\":\"trail\",";
+		printf "\"number\":\"%s\",", trailNO;
+		printf "\"cn\":\"%s\",", trailCN;
+		printf "\"name\":\"%s\",", trailName;
 
-		printf "\"route\" : ["
+		printf "\"route\":["
 
 		count = split (trailRoute, coords, ",");
 

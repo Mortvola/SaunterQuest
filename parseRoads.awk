@@ -35,9 +35,10 @@ BEGIN {
 		roadCount++;
 
 		printf "{"
-		printf "\"cn\" : \"%s\",", roadCN;
+		printf "\"type\":\"road\",";
+		printf "\"cn\":\"%s\",", roadCN;
 
-		printf "\"route\" : ["
+		printf "\"route\":["
 
 		count = split (roadRoute, coords, ",");
 

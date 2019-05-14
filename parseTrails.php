@@ -87,7 +87,7 @@ function parseJSON ($inputFile)
 	}
 }
 
-//parseJSON ("trails.json");
+parseJSON ("trails.json");
 parseJSON ("roads.json");
 
 ?>

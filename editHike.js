@@ -1035,10 +1035,10 @@ function drawTrails ()
 //			}
 			
 			trail = new google.maps.Polyline({
-				path: trailCoords[t],
+				path: trailCoords[t].route,
 				editable: false,
 				geodesic: true,
-				strokeColor: '#00FF00',
+				strokeColor: trailCoords[t].type == "trail" ? '#704513' : "#404040",
 				strokeOpacity: 1.0,
 				strokeWeight: routeStrokeWeight + 2,
 				zIndex: 15});
