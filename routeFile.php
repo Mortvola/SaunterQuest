@@ -1,31 +1,74 @@
 <?php
-function getTrail ($trailName, $startIndex, $endIndex)
+
+function trimRoute ($route, $startIndex, $endIndex)
 {
-	$trail = json_decode(file_get_contents($trailName));
-	
-	if (count($trail) > 1)
+	if (isset($route) && count($route) > 1)
 	{
 		// Remove the portions that are not between the indexes.
 		
 		if ($startIndex < $endIndex)
 		{
-			array_splice ($trail, $endIndex + 1);
-			array_splice ($trail, 0, $startIndex);
-			$trail = array_values ($trail);
+			array_splice ($route, $endIndex + 1);
+			array_splice ($route, 0, $startIndex);
+			$route = array_values ($route);
 			
-			return $trail;
+			return $route;
 		}
 		else if ($startIndex > $endIndex)
 		{
-			array_splice ($trail, $startIndex + 1);
-			array_splice ($trail, 0, $endIndex);
+			array_splice ($route, $startIndex + 1);
+			array_splice ($route, 0, $endIndex);
 			
-			$trail = array_reverse($trail);
-			$trail = array_values ($trail);
-			
-			return $trail;
+			$route = array_reverse($route);
+			$route = array_values ($route);
+		
+			return $route;
 		}
 	}
+}
+
+
+function getTrail ($trailName, $startIndex, $endIndex)
+{
+	if (strpos ($trailName, ":") !== false)
+	{
+		$parts = explode (":", $trailName);
+		
+		$handle = fopen ($parts[0], "rb");
+		
+		if ($handle)
+		{
+			for (;;)
+			{
+				$jsonString = fgets ($handle);
+				
+				if (!$jsonString)
+				{
+					break;
+				}
+				
+				$trail = json_decode($jsonString);
+				
+				if (isset($trail) && isset($trail->route))
+				{
+					if ($parts[1] == $trail->cn)
+					{
+						$route = $trail->route;
+						
+						break;
+					}
+				}
+			}
+				
+			fclose ($handle);
+		}
+	}
+	else
+	{
+		$route = json_decode(file_get_contents($trailName));
+	}
+
+	return trimRoute ($route, $startIndex, $endIndex);
 }
 
 

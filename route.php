@@ -43,34 +43,51 @@ function getFileName ($userHikeId)
 }
 
 
-function findTrail (&$point, &$trailName, &$trailIndex)
+function findTrail (&$point, &$trailName, &$trailIndex, &$route)
 {
 	$trails = [];
 	$closestTrail = -1;
 	$adjustedPoint = $point;
+	$first = true;
 	
-	array_push($trails, (object)["data" => json_decode(file_get_contents("CentralGWT.trail")), "name" => "CentralGWT.trail"]);
-	array_push($trails, (object)["data" => json_decode(file_get_contents("TieForkGWT.trail")), "name" => "TieForkGWT.trail"]);
-	array_push($trails, (object)["data" => json_decode(file_get_contents("StrawberryRidgeGWT.trail")), "name" => "StrawberryRidgeGWT.trail"]);
-	array_push($trails, (object)["data" => json_decode(file_get_contents("SouthForkToPackardCanyon.trail")), "name" => "SouthForkToPackardCanyon.trail"]);
-
-	//echo "Number of trails: ", count($trails), "\n";
+	$fileName = "trails/" . getTrailFileName ($point->lat, $point->lng);
 	
-	for ($t = 0; $t < count($trails); $t++)
+	$handle = fopen ($fileName, "rb");
+	
+	if ($handle)
 	{
-		pointOnPath ($point->lat, $point->lng, $trails[$t]->data, 30, $index, $distance, $point);
-		
-		//echo "distance = $distance, index = $index\n";
-		
-		if ($index != -1 && ($closestTrail = -1 || $distance < $shortestDistance))
+		for (;;)
 		{
-			$shortestDistance = $distance;
-			$closestTrail = $t;
-			$trailName = $trails[$t]->name;
-			$trailIndex = $index;
+			$jsonString = fgets ($handle);
 			
-			$adjustedPoint = (object)["lat" => $point->x, "lng" => $point->y];
+			if (!$jsonString)
+			{
+				break;
+			}
+			
+			$trail = json_decode($jsonString);
+			
+			if (isset($trail) && isset($trail->route))
+			{
+				$newPoint = (object)[];
+				
+				pointOnPath ($point->lat, $point->lng, $trail->route, 30, $index, $distance, $newPoint);
+				
+				if ($index != -1 && ($first || $distance < $shortestDistance))
+				{
+					$first = false;
+					
+					$shortestDistance = $distance;
+					$trailName = $fileName . ":" . $trail->cn;
+					$trailIndex = $index;
+					$route = $trail->route;
+					
+					$adjustedPoint = (object)["lat" => $newPoint->x, "lng" => $newPoint->y];
+				}
+			}
 		}
+		
+		fclose ($handle);
 	}
 	
 	$point = $adjustedPoint;
@@ -82,7 +99,7 @@ function modifyPoint (&$segments, $routeUpdate)
 	$trailName = "";
 	$trailIndex = -1;
 	
-	findTrail ($routeUpdate->point, $trailName, $trailIndex);
+	findTrail ($routeUpdate->point, $trailName, $trailIndex, $trail);
 	
 	$segments[$routeUpdate->index]->lat = $routeUpdate->point->lat;
 	$segments[$routeUpdate->index]->lng = $routeUpdate->point->lng;
@@ -106,7 +123,7 @@ function modifyPoint (&$segments, $routeUpdate)
 		
 		if ($routeUpdate->index > 0 && $segments[$routeUpdate->index - 1]->trailName == $trailName)
 		{
-			$result->previousTrail = getTrail ($trailName, $segments[$routeUpdate->index - 1]->trailIndex, $segments[$routeUpdate->index]->trailIndex);
+			$result->previousTrail = trimRoute ($trail, $segments[$routeUpdate->index - 1]->trailIndex, $segments[$routeUpdate->index]->trailIndex);
 			
 			$prevLat = $segments[$routeUpdate->index - 1]->lat;
 			$prevLng = $segments[$routeUpdate->index - 1]->lng;
@@ -136,7 +153,7 @@ function modifyPoint (&$segments, $routeUpdate)
 		// of the points between this point and the next point.
 		if ($routeUpdate->index < count($segments) - 1 && $segments[$routeUpdate->index + 1]->trailName == $trailName)
 		{
-			$result->nextTrail = getTrail ($trailName, $segments[$routeUpdate->index]->trailIndex, $segments[$routeUpdate->index + 1]->trailIndex);
+			$result->nextTrail = trimRoute ($trail, $segments[$routeUpdate->index]->trailIndex, $segments[$routeUpdate->index + 1]->trailIndex);
 			
 			assignTrailDistances ($result->nextTrail, $distance, $prevLat, $prevLng);
 		}

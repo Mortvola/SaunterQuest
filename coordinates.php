@@ -138,6 +138,37 @@ function pointOnPath ($lat, $lng, &$segments, $tolerance, &$index, &$distance, &
 	return closestEdge;
 }
 
+
+function getTrailFileName ($lat, $lng)
+{
+	$lat = floor($lat);
+	$lng = floor($lng);
+	
+	if ($lat && $lng)
+	{
+		if ($lat >= 0)
+		{
+			$fileName = "N" . $lat;
+		}
+		else
+		{
+			$fileName = "S" . -$lat;
+		}
+		
+		if ($lng >= 0)
+		{
+			$fileName .= "E" . $lng;
+		}
+		else
+		{
+			$fileName .= "W" . -$lng;
+		}
+
+		return $fileName . ".trails";
+	}
+}
+
+
 function getElevation ($lat, $lng)
 {
 	// Determine file name
