@@ -78,7 +78,7 @@ function findTrail (&$point, &$trailName, &$trailIndex, &$route)
 					$first = false;
 					
 					$shortestDistance = $distance;
-					$trailName = $fileName . ":" . $trail->cn;
+					$trailName = $trail->type . ":" . $trail->feature;
 					$trailIndex = $index;
 					$route = $trail->route;
 					
@@ -202,30 +202,33 @@ else if ($_SERVER["REQUEST_METHOD"] == "PUT")
 			array_splice ($segments, $routeUpdate->index, $routeUpdate->length);
 			$segments = array_values($segments);
 			
+			$prevSegment = $segments[$routeUpdate->index - 1];
+			$nextSegment = $segments[$routeUpdate->index];
+			
 			// Are the previous point and the next point on the same trail? If so, then send all
 			// of the points between the previous point and the next point.
-			if ($routeUpdate->index > 0 && $routeUpdate->index < count($segments) && $segments[$routeUpdate->index - 1]->trailName == $segments[$routeUpdate->index]->trailName)
+			if ($routeUpdate->index > 0 && $routeUpdate->index < count($segments)
+				&& isset ($prevSegment->trailName) && isset($nextSegment->trailName)
+				&& $prevSegment->trailName == $nextSegment->trailName)
 			{
-				$result = json_decode(file_get_contents($segments[$routeUpdate->index]->trailName));
+				$result = getTrail($prevSegment->lat, $prevSegment->lng,
+						$prevSegment->trailName, $prevSegment->trailIndex,
+						$nextSegment->trailIndex);
 				
-				if ($segments[$routeUpdate->index - 1]->trailIndex > $segments[$routeUpdate->index]->trailIndex)
+				if (isset($result) && count($result) > 0)
 				{
-					array_splice ($result, $segments[$routeUpdate->index - 1]->trailIndex + 1);
-					array_splice ($result, 0, $segments[$routeUpdate->index]->trailIndex - 1);
+					$prevLat = $prevSegment->lat;
+					$prevLng = $prevSegment->lng;
+					$distance = $prevSegment->dist;
+					
+					assignTrailDistances ($result, $distance, $prevLat, $prevLng);
 				}
-				else
-				{
-					array_splice ($result, $segments[$routeUpdate->index]->trailIndex + 1);
-					array_splice ($result, 0, $segments[$routeUpdate->index - 1]->trailIndex - 1);
-				}
-				
-				$result = array_values ($result);
 			}
 
 			// Adjust distances now that vertices have been removed.
 			if ($routeUpdate->index < count($segments))
 			{
-				assignDistances ($segments, $routeUpdate->index);
+				assignDistances ($segments, $routeUpdate->index - 1);
 			}
 				
 			echo json_encode($result);

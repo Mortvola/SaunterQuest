@@ -11,6 +11,11 @@ BEGIN {
 	trailNO = ""; trailCN = ""; trailRoute = "";
 
 	for (i = 1; i <= NF; i++) {
+		if ($i ~ "TrailNFS_Publish") {
+			split($i, subFields, ":");
+			featureID = subFields[2];
+		}
+
 		if ($i ~ "TRAIL_NO") {
 			split($i, subFields, "[ ]*=[ ]*");
 			trailNO = subFields[2];
@@ -45,6 +50,7 @@ BEGIN {
 		trailCount++;
 
 		printf "{"
+		printf "\"feature\":\"%s\",", featureID;
 		printf "\"type\":\"trail\",";
 		printf "\"number\":\"%s\",", trailNO;
 		printf "\"cn\":\"%s\",", trailCN;

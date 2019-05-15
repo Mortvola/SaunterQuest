@@ -11,6 +11,11 @@ BEGIN {
 	roadCN = ""; roadRoute = "";
 
 	for (i = 1; i <= NF; i++) {
+                if ($i ~ "RoadCore_FS") {
+                        split($i, subFields, ":");
+                        featureID = subFields[2];
+                }
+
 
 		if ($i ~ "RTE_CN") {
 			split($i, subFields, "[ ]*=[ ]*");
@@ -35,6 +40,7 @@ BEGIN {
 		roadCount++;
 
 		printf "{"
+		printf "\"feature\":\"%s\",", featureID;
 		printf "\"type\":\"road\",";
 		printf "\"cn\":\"%s\",", roadCN;
 
