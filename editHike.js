@@ -21,6 +21,12 @@ var startPosition;
 var startSegment;
 var endPosition;
 var endSegment;
+
+var selectStartPosition;
+var selectStartSegment;
+var selectEndPosition;
+var selectEndSegment;
+
 var markerContextMenu = {};
 var resupplyLocationCM = {};
 var infoWindow = {};
@@ -108,18 +114,18 @@ function addNote (position)
 }
 
 
-function editSelection ()
-{
-	if (startPosition != undefined && endPosition != undefined)
-	{
-		updateEditedRoute (startPosition, startSegment, endPosition, endSegment);
-		
-		endRouteHighlighting ();
-		
-		$("#editRoute").show (250);
-		$("#measureRoute").hide (250);
-	}
-}
+//function editSelection ()
+//{
+//	if (startPosition != undefined && endPosition != undefined)
+//	{
+//		updateEditedRoute (startPosition, startSegment, endPosition, endSegment);
+//		
+//		endRouteHighlighting ();
+//		
+//		$("#editRoute").show (250);
+//		$("#measureRoute").hide (250);
+//	}
+//}
 
 
 function adjustAnchorRouteIndexes (anchorIndex, adjustment)
@@ -324,6 +330,9 @@ function deletePoints (index, length)
 				path.removeAt(anchors[anchorIndex].actualRouteIndex);
 
 				anchors.splice (anchorIndex, 1);
+				
+				editPolyLine.getPath ().removeAt (index);
+				editedRoute.splice(index, 1);
 			}
 			
 			// Add in the points for the specified new trail between the anchors
@@ -531,20 +540,40 @@ function createEditablePolyline ()
 function deleteVertex (index)
 {
 	deletePoints (index, 1);
-	
-	editPolyLine.getPath ().removeAt (index);
 }
 
 function clearVertices ()
 {
-	editedRoute = [];
+	if (selectStartSegment > selectEndSegment)
+	{
+		selectEndSegment = [selectStartSegment, selectStartSegment=selectEndSegment][0];
+	}
 
-	editedRoute.push(anchors[startSegment]);
-	editedRoute.push(anchors[endSegment]);
-
-	deletePoints (1, endSegment - startSegment + 1);
+	var startAnchor;
+	var endAnchor;
 	
-	createEditablePolyline ();
+	// Find anchors associated with the start and end segments.
+	for (let r in anchors)
+	{
+		if (startAnchor == undefined && selectStartSegment <= anchors[r].actualRouteIndex)
+		{
+			startAnchor = parseInt(r);
+		}
+		
+		if (endAnchor == undefined && selectEndSegment <= anchors[r].actualRouteIndex)
+		{
+			endAnchor = parseInt(r);
+		}
+		
+		if (startAnchor != undefined && endAnchor != undefined)
+		{
+			break;
+		}
+	}
+	
+	deletePoints (startAnchor, endAnchor - startAnchor + 1);
+
+	stopRouteMeasurement ();
 }
 
 
@@ -574,20 +603,20 @@ function recalculateDistances ()
 
 function measureStartMarkerSet (position, segment)
 {
-	startPosition = new google.maps.LatLng({lat: position.x, lng: position.y});
-	startSegment = segment;
+	selectStartPosition = new google.maps.LatLng({lat: position.x, lng: position.y});
+	selectStartSegment = segment;
 	
-	measureRouteDistance (startPosition, startSegment, endPosition, endSegment);
-	displayRouteElevations (startSegment, endSegment);
+	measureRouteDistance (selectStartPosition, selectStartSegment, selectEndPosition, selectEndSegment);
+	displayRouteElevations (selectStartSegment, selectEndSegment);
 }
 
 function measureEndMarkerSet (position, segment)
 {
-	endPosition = new google.maps.LatLng({lat: position.x, lng: position.y});
-	endSegment = segment;
+	selectEndPosition = new google.maps.LatLng({lat: position.x, lng: position.y});
+	selectEndSegment = segment;
 	
-	measureRouteDistance (startPosition, startSegment, endPosition, endSegment);
-	displayRouteElevations (startSegment, endSegment);
+	measureRouteDistance (selectStartPosition, selectStartSegment, selectEndPosition, selectEndSegment);
+	displayRouteElevations (selectStartSegment, selectEndSegment);
 }
 
 function startRouteMeasurement (position)
@@ -595,11 +624,11 @@ function startRouteMeasurement (position)
 	setRouteHighlightStartMarker (position, measureStartMarkerSet);
 	setRouteHighlightEndMarker (position, measureEndMarkerSet);
 	
-	startPosition = position;
-	endPosition = position;
+	selectStartPosition = position;
+	selectEndPosition = position;
 
-	startSegment = findNearestSegment(startPosition, actualRoute);
-	endSegment = startSegment;
+	selectStartSegment = findNearestSegment(selectStartPosition, actualRoute);
+	selectEndSegment = selectStartSegment;
 
 	$("#measureRoute").show (250);
 }
@@ -622,8 +651,8 @@ function stopRouteMeasurement ()
 {
 	endRouteHighlighting ();
 
-	startPosition = undefined;
-	endPosition = undefined;
+	selectStartPosition = undefined;
+	selectEndPosition = undefined;
 	
 	$("#measureRoute").hide(250);
 

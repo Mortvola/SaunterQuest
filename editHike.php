@@ -319,7 +319,7 @@ if ($hikeId)
 					</div>
 				</form>
 				<div class="modal-footer">
-					<button type="button" class="btn" onclick='editSelection()'>Edit Selection</button>
+					<button type="button" class="btn" onclick='clearVertices()'>Clear Vertices</button>
 					<button type="button" class="btn" onclick='stopRouteMeasurement()'>Close</button>
 				</div>
 			</div>
