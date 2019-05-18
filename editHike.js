@@ -1113,7 +1113,6 @@ function myMap()
 	retrieveTrails ();
 	retrieveResupplyLocations ();
 	retrieveHikerProfiles (); //todo: only do this when visiting the tab of hiker profiles
-	retrieveTrailConditions ();
 	calculate ();
 } 
 
@@ -1320,26 +1319,31 @@ function retrieveRoute ()
 		if (this.readyState == 4 && this.status == 200)
 		{
 			anchors = JSON.parse(this.responseText);
-			
-			if (map)
+
+			if (anchors.length > 0)
 			{
-				routeContextMenu = new ContextMenu ([
-					{title: "Add Point of Interest", func: addPointOfInterest},
-					{title: "Select route segment", func: startRouteMeasurement},
-					{title: "Add Note", func: addNote},
-					{title: "Recalculate distances", func: recalculateDistances},
-					{title: "Edit", func: toggleEdit}
-				]);
+				retrieveTrailConditions ();
 
-				vertexContextMenu = new ContextMenu ([
-					{title:"Delete", func:deleteVertex}]);
-
-				drawRoute ();
-
-				map.fitBounds(bounds);
+				if (map)
+				{
+					routeContextMenu = new ContextMenu ([
+						{title: "Add Point of Interest", func: addPointOfInterest},
+						{title: "Select route segment", func: startRouteMeasurement},
+						{title: "Add Note", func: addNote},
+						{title: "Recalculate distances", func: recalculateDistances},
+						{title: "Edit", func: toggleEdit}
+					]);
+	
+					vertexContextMenu = new ContextMenu ([
+						{title:"Delete", func:deleteVertex}]);
+	
+					drawRoute ();
+	
+					map.fitBounds(bounds);
+				}
+				
+				getAndLoadElevationData (0, actualRoute.length, actualRoute);
 			}
-			
-			getAndLoadElevationData (0, actualRoute.length, actualRoute);
 		}
 	}
 	
