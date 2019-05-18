@@ -169,6 +169,69 @@ function getTrailFileName ($lat, $lng)
 }
 
 
+function normalize ($x, $y)
+{
+	return (object)["x" => $x * 3600 - floor($x * 3600), "y" => $y * 3600 - floor($y * 3600)];
+}
+
+function getElevationUpper ($z1, $z2, $z3, $x, $y)
+{
+	return ($z3 - $z1) * $x + ($z1 + $z3 - 2 * $z2) * $y - ($z3 - 2 * $z2);
+}
+
+function getElevationLeft ($z1, $z2, $z3, $x, $y)
+{
+	return $z1 - ($z1 - $z3) * $y - ($z1 + $z3 - 2 * $z2) * $x;
+}
+
+function getElevationRight ($z1, $z2, $z3, $x, $y)
+{
+	return ($z1 - $z3) * $y + ($z3 + $z1 - 2 * $z2) * $x - ($z1 - 2 * $z2);
+}
+
+function getElevationLower ($z1, $z2, $z3, $x, $y)
+{
+	return $z3 - ($z3 - $z1) * $x - ($z3 + $z1 - 2 * $z2) * $y;
+}
+
+
+function findPoint ($ele, $x, $y)
+{
+	// Find the elevation of the midpiont by taking the average of the
+	// elevation between the midpoints of the two lines upperLeft to lowerRight
+	// and lowerLeft to upperRight
+	$midElevation = (($ele[1] + ($ele[2] - $ele[1]) / 2) + ($ele[0] + ($ele[3] - $ele[0]) / 2)) / 2;
+	
+	$p = normalize ($x, $y);
+	
+	if ($p->x > $p->y)
+	{
+		// Lower right
+		
+		if (1 - $p->x > $p->y)
+		{
+			return getElevationLower ($ele[1], $midElevation, $ele[0], $p->x, $p->y);
+		}
+		else
+		{
+			return getElevationRight ($ele[3], $midElevation, $ele[1], $p->x, $p->y);
+		}
+	}
+	else
+	{
+		// Upper left
+		
+		if (1 - $p->x >= $p->y)
+		{
+			return getElevationLeft ($ele[0], $midElevation, $ele[2], $p->x, $p->y);
+		}
+		else
+		{
+			return getElevationUpper ($ele[2], $midElevation, $ele[3], $p->x, $p->y);
+		}
+	}
+}
+
 function getElevation ($lat, $lng)
 {
 	// Determine file name
@@ -180,42 +243,61 @@ function getElevation ($lat, $lng)
 	{
 		$latPrefix = "N";
 		
-		$row = round(($latInt + 1 - $lat) * 3600);
+		$row = floor(($latInt + 1 - $lat) * 3600);
 	}
 	else
 	{
 		$latPrefix = "S";
 		
-		$row = round(($latInt - 1 - $lat) * 3600);
+		$row = floor(($latInt - 1 - $lat) * 3600);
 	}
 	
 	if ($lng >= 0)
 	{
 		$lngPrefix = "E";
 		
-		$col = round(($lng - $lngInt) * 3600);
+		$col = floor(($lng - $lngInt) * 3600);
 	}
 	else
 	{
 		$lngPrefix = "W";
 		
-		$col = round(($lngInt + $lng) * 3600);
+		$col = floor(($lng + $lngInt) * 3600);
 	}
 	
 	$filename = $latPrefix . $latInt . $lngPrefix . $lngInt . ".hgt";
 	
-	// todo: do a simple lookup for now. Should change this to get a more
-	// precise measurement by taking an average.
-	
 	$file = fopen("elevations/" . $filename, "rb");
 	
-	$result = fseek ($file, $row * 3601 * 2 + $col * 2);
+	$ele = [];
 	
-	$data = fread ($file, 2);
+	if ($file)
+	{
+		$result = fseek ($file, $row * 3601 * 2 + $col * 2);
 	
-	$elevation = unpack ("n", $data);
+		// Read the upper left elevation
+		$data = fread ($file, 2);
+		$ele[2] = unpack ("n", $data)[1];
+		
+		// Read the upper right elevation;
+		$data = fread ($file, 2);
+		$ele[3] = unpack ("n", $data)[1];
+		
+		// Move to the lower left
+		$result = fseek ($file, ($row + 1) * 3601 * 2 + $col * 2);
+		
+		// read the lower left
+		$data = fread ($file, 2);
+		$ele[0] = unpack ("n", $data)[1];
+		
+		// read the lower right
+		$data = fread ($file, 2);
+		$ele[1] = unpack ("n", $data)[1];
 	
-	return $elevation[1];
+		fclose ($file);
+	
+		return round(findPoint ($ele, $lng, $lat));
+	}
 }
 
 ?>
