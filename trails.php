@@ -17,7 +17,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET")
 	
 	$first = true;
 	
-	echo "[";
+	echo '{ "bounds":[', $parts[0], ',', $parts[1], ',', $parts[2], ',', $parts[3], '],';
+	echo '"trails":[';
 	
 	$handle = fopen($fileName, "rb");
 	
@@ -59,7 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET")
 		fclose ($handle);
 	}
 	
-	echo "]";
+	echo "]}";
 }
 else if ($_SERVER["REQUEST_METHOD"] == "PUT")
 {

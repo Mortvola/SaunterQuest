@@ -11,7 +11,9 @@ var actualRoutePolyline;
 var mapDragging = false;
 
 var trails = [];
-var trailCoords = [];
+var trailCoords = {};
+//var requestedTrailBounds;
+var currentTrailBounds;
 var currentTrailWeight;
 
 var editedRoute = [];
@@ -1342,7 +1344,8 @@ function releaseTrails ()
 	}
 	
 	trails = [];
-	trailCoords = [];
+	trailCoords = {};
+	currentTrailBounds = undefined;
 }
 
 
@@ -1366,17 +1369,17 @@ function getTrailWeight ()
 
 function drawTrails ()
 {
-	if (map && trailCoords.length > 0)
+	if (map && trailCoords.trails.length > 0)
 	{
 		currentTrailWeight = getTrailWeight ();
 		
-		for (let t in trailCoords)
+		for (let t in trailCoords.trails)
 		{
 			let trail = new google.maps.Polyline({
-				path: trailCoords[t].route,
+				path: trailCoords.trails[t].route,
 				editable: false,
 				geodesic: true,
-				strokeColor: trailCoords[t].type == "trail" ? '#704513' : "#404040",
+				strokeColor: trailCoords.trails[t].type == "trail" ? '#704513' : "#404040",
 				strokeOpacity: 1.0,
 				strokeWeight: currentTrailWeight,
 				zIndex: 15});
@@ -1387,6 +1390,13 @@ function drawTrails ()
 		}
 	}
 }
+
+
+function rectContainsRect (outer, inner)
+{
+	return outer.contains (inner.getNorthEast ()) && outer.contains (inner.getSouthWest ());
+}
+
 
 function retrieveTrails ()
 {
@@ -1399,10 +1409,11 @@ function retrieveTrails ()
 			
 			trailCoords = JSON.parse(this.responseText);
 			
-			if (map)
-			{
-				drawTrails ();
-			}
+			currentTrailBounds = new google.maps.LatLngBounds(
+					{lat: trailCoords.bounds[0], lng: trailCoords.bounds[1]},
+					{lat: trailCoords.bounds[2], lng: trailCoords.bounds[3]});
+			
+			drawTrails ();
 		}
 	}
 	
@@ -1410,9 +1421,15 @@ function retrieveTrails ()
 	{
 		var bounds = map.getBounds ();
 		
-		xmlhttp.open("GET", "trails.php?b=" + bounds.toUrlValue (), true);
-		//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-		xmlhttp.send();
+		if (currentTrailBounds == undefined || !rectContainsRect (currentTrailBounds, bounds))
+//		 && (requestedTrailBounds == undefined || !rectContainsRect(requestedTrailBounds, bounds))
+		{
+			requestedTrailBounds = bounds;
+			
+			xmlhttp.open("GET", "trails.php?b=" + requestedTrailBounds.toUrlValue (), true);
+			//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			xmlhttp.send();
+		}
 	}
 }
 
