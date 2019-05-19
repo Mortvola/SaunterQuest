@@ -1421,8 +1421,6 @@ function updateTrails ()
 {
 	var zoom = map.getZoom ();
 	
-	console.log ("zoom = " + zoom);
-	
 	if (zoom < 11)
 	{
 		// We are zoomed too far out. Release the trails.
