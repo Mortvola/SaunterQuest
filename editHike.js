@@ -663,7 +663,7 @@ function stopRouteMeasurement ()
 	
 	$("#measureRoute").hide(250);
 
-	getAndLoadElevationData (0, anchors.length, anchors);
+	getAndLoadElevationData (0, actualRoute.length, actualRoute);
 }
 
 
@@ -1424,7 +1424,7 @@ function retrieveTrails ()
 		if (currentTrailBounds == undefined || !rectContainsRect (currentTrailBounds, bounds))
 //		 && (requestedTrailBounds == undefined || !rectContainsRect(requestedTrailBounds, bounds))
 		{
-			requestedTrailBounds = bounds;
+			var requestedTrailBounds = bounds;
 			
 			xmlhttp.open("GET", "trails.php?b=" + requestedTrailBounds.toUrlValue (), true);
 			//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
