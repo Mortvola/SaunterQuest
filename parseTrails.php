@@ -1,5 +1,7 @@
 <?php
 
+require_once "coordinates.php";
+
 function parseJSON ($inputFile)
 {
 	$handle = fopen($inputFile, "rb");
@@ -47,33 +49,9 @@ function parseJSON ($inputFile)
 								$trail->maxLng = $t->lng;
 							}
 							
-							$lat = floor($t->lat);
-							$lng = floor($t->lng);
+							$fileName = getTrailFileName ($t->lat, $t->lng);
 							
-							if ($lat && $lng)
-							{
-								if ($lat >= 0)
-								{
-									$fileName = "N" . $lat;
-								}
-								else
-								{
-									$fileName = "S" . -$lat;
-								}
-								
-								if ($lng >= 0)
-								{
-									$fileName .= "E" . $lng;
-								}
-								else
-								{
-									$fileName .= "W" . -$lng;
-								}
-								
-								//echo "Route in ", $fileName, "\n";
-								
-								$files[$fileName . ".trails"] = TRUE;
-							}
+							$files[$fileName] = TRUE;
 						}
 					}
 					

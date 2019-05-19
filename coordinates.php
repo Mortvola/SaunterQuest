@@ -141,8 +141,8 @@ function pointOnPath ($lat, $lng, &$segments, $tolerance, &$index, &$distance, &
 
 function getTrailFileName ($lat, $lng)
 {
-	$lat = floor($lat);
-	$lng = floor($lng);
+	$lat = floor($lat * 2) * 5;
+	$lng = floor($lng * 2) * 5;
 	
 	if ($lat && $lng)
 	{

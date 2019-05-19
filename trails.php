@@ -1,12 +1,25 @@
 <?php 
 require_once "checkLogin.php";
+require_once "coordinates.php";
 
 if ($_SERVER["REQUEST_METHOD"] == "GET")
 {
-	$handle = fopen("trails/N40W112.trails", "rb");
+	$bounds = $_GET["b"];
+	
+	$parts = explode (",", $bounds);
+	
+	// todo: determine what sections the bounding rectangle covers and
+	// return the trails in those sections.
+	$lat = floatval($parts[0]) + (floatval($parts[2]) - floatval($parts[0])) / 2;
+	$lng = floatval($parts[1]) + (floatval($parts[3]) - floatval($parts[1])) / 2;
+
+	$fileName = "trails/" . getTrailFileName ($lat, $lng);
+	
 	$first = true;
 	
 	echo "[";
+	
+	$handle = fopen($fileName, "rb");
 	
 	if ($handle)
 	{

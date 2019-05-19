@@ -7,8 +7,13 @@ var resupplyLocations = [];
 var anchors = [];
 var actualRoute = [];
 var actualRoutePolyline;
-var trail;
+
+var mapDragging = false;
+
+var trails = [];
 var trailCoords = [];
+var currentTrailWeight;
+
 var editedRoute = [];
 var routeContextMenu;
 var vertexContextMenu;
@@ -1052,31 +1057,6 @@ function drawRoute ()
 	}
 }
 
-function drawTrails ()
-{
-	if (map && trailCoords.length > 0)
-	{
-		for (let t in trailCoords)
-		{
-//			if (trail != undefined)
-//			{
-//				trail.setMap(null);
-//			}
-			
-			trail = new google.maps.Polyline({
-				path: trailCoords[t].route,
-				editable: false,
-				geodesic: true,
-				strokeColor: trailCoords[t].type == "trail" ? '#704513' : "#404040",
-				strokeOpacity: 1.0,
-				strokeWeight: routeStrokeWeight + 2,
-				zIndex: 15});
-	
-			trail.setMap(map);
-		}
-	}
-}
-
 function myMap()
 {
 	var mapProp =
@@ -1106,11 +1086,13 @@ function myMap()
 		{title:"Delete Resupply Location", func:deleteResupplyLocation}]);
 
 	map.addListener ("rightclick", function(event) {mapContextMenu.open (map, event);});
+	map.addListener ("dragstart", function () { mapDragging = true;})
+	map.addListener ("dragend", function () { mapDragging = false; updateTrails (); });
+	map.addListener ("bounds_changed", function () { if (!mapDragging) { updateTrails (); }})
 
 	infoWindow = new google.maps.InfoWindow({content: "This is a test"});
 
 	retrieveRoute ();
-	retrieveTrails ();
 	retrieveResupplyLocations ();
 	retrieveHikerProfiles (); //todo: only do this when visiting the tab of hiker profiles
 	calculate ();
@@ -1352,6 +1334,60 @@ function retrieveRoute ()
 	xmlhttp.send();
 }
 
+function releaseTrails ()
+{
+	for (let t in trails)
+	{
+		trails[t].setMap(null);
+	}
+	
+	trails = [];
+	trailCoords = [];
+}
+
+
+function getTrailWeight ()
+{
+	var zoom = map.getZoom ();
+	
+	if (zoom >= 17)
+	{
+		return 8;
+	}
+	else if (zoom >= 16)
+	{
+		return 6;
+	}
+	else
+	{
+		return 4;
+	}
+}
+
+function drawTrails ()
+{
+	if (map && trailCoords.length > 0)
+	{
+		currentTrailWeight = getTrailWeight ();
+		
+		for (let t in trailCoords)
+		{
+			let trail = new google.maps.Polyline({
+				path: trailCoords[t].route,
+				editable: false,
+				geodesic: true,
+				strokeColor: trailCoords[t].type == "trail" ? '#704513' : "#404040",
+				strokeOpacity: 1.0,
+				strokeWeight: currentTrailWeight,
+				zIndex: 15});
+	
+			trail.setMap(map);
+			
+			trails.push(trail);
+		}
+	}
+}
+
 function retrieveTrails ()
 {
 	var xmlhttp = new XMLHttpRequest ();
@@ -1359,6 +1395,8 @@ function retrieveTrails ()
 	{
 		if (this.readyState == 4 && this.status == 200)
 		{
+			releaseTrails ();
+			
 			trailCoords = JSON.parse(this.responseText);
 			
 			if (map)
@@ -1368,10 +1406,55 @@ function retrieveTrails ()
 		}
 	}
 	
-	xmlhttp.open("GET", "trails.php", true);
-	//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	xmlhttp.send();
+	if (map.getZoom () >= 11)
+	{
+		var bounds = map.getBounds ();
+		
+		xmlhttp.open("GET", "trails.php?b=" + bounds.toUrlValue (), true);
+		//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+		xmlhttp.send();
+	}
 }
+
+
+function updateTrails ()
+{
+	var zoom = map.getZoom ();
+	
+	console.log ("zoom = " + zoom);
+	
+	if (zoom < 11)
+	{
+		// We are zoomed too far out. Release the trails.
+		releaseTrails ();
+	}
+	else
+	{
+		retrieveTrails ();
+	}
+
+	if (trails.length > 0)
+	{
+		// If the trail line weights have changed due to zooming then
+		// iterate through the trails and apply the new weight.
+		var weight = getTrailWeight ();
+		
+		if (weight != currentTrailWeight)
+		{
+			currentTrailWeight = weight;
+			
+			var options = {};
+	
+			options.strokeWeight = currentTrailWeight;
+			
+			for (let t in trails)
+			{
+				trails[t].setOptions (options);
+			}
+		}
+	}
+}
+
 
 function retrieveResupplyLocations ()
 {
