@@ -27,6 +27,26 @@ function parseJSON ($inputFile)
 					{
 						if (isset($t->lat) && isset($t->lng))
 						{
+							if (!isset($trail->minLat) || ($trail->minLat > $t->lat))
+							{
+								$trail->minLat = $t->lat;
+							}
+							
+							if (!isset ($trail->maxLat) || ($trail->maxLat < $t->lat))
+							{
+								$trail->maxLat = $t->lat;
+							}
+							
+							if (!isset($trail->minLng) || ($trail->minLng > $t->lng))
+							{
+								$trail->minLng = $t->lng;
+							}
+							
+							if (!isset($trail->maxLng) || ($trail->maxLng < $t->lng))
+							{
+								$trail->maxLng = $t->lng;
+							}
+							
 							$lat = floor($t->lat);
 							$lng = floor($t->lng);
 							
@@ -56,6 +76,8 @@ function parseJSON ($inputFile)
 							}
 						}
 					}
+					
+					$jsonString = json_encode($trail) . "\n";
 					
 					foreach ($files as $fileName => $bool)
 					{

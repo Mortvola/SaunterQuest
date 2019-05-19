@@ -67,7 +67,9 @@ function findTrail (&$point, &$trailName, &$trailIndex, &$route)
 			
 			$trail = json_decode($jsonString);
 			
-			if (isset($trail) && isset($trail->route))
+			if (isset($trail) && isset($trail->route)
+			 && $point->lng >= $trail->minLng && $point->lng <= $trail->maxLng
+			 && $point->lat >= $trail->minLat && $point->lat <= $trail->maxLat)
 			{
 				$newPoint = (object)[];
 				
