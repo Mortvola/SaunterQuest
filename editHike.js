@@ -1,6 +1,5 @@
 "use strict";
 
-var markers = [];
 var dayMarkers = [];
 var endOfTrailMarker = {};
 var resupplyLocations = [];
@@ -34,8 +33,6 @@ var selectStartSegment;
 var selectEndPosition;
 var selectEndSegment;
 
-var markerContextMenu = {};
-var resupplyLocationCM = {};
 var infoWindow = {};
 var editPolyLine = {};
 
@@ -76,43 +73,6 @@ function attachInfoWindowMessage (poi, message)
 		infoWindow.setContent (poi.message);
 		infoWindow.open(map, poi.marker);
 	});
-}
-
-function removePointOfInterest (marker)
-{
-	var xmlhttp = new XMLHttpRequest ();
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && this.status == 200)
-		{
-			calculate ();
-		}
-	}
-	
-	xmlhttp.open("DELETE", "pointOfInterest.php", true);
-	xmlhttp.setRequestHeader("Content-type", "application/json");
-	xmlhttp.send(JSON.stringify(markers[marker].poiId));
-}
-
-function editPointOfInterest (marker)
-{
-	$("#myModal").modal ('show');
-}
-
-function addPointOfInterest (position)
-{
-	var xmlhttp = new XMLHttpRequest ();
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && this.status == 200)
-		{
-			calculate();
-		}
-	}
-
-	xmlhttp.open("POST", "pointOfInterest.php", true);
-	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	xmlhttp.send("userHikeId=" + userHikeId + "\&location=" + JSON.stringify(position.toJSON()));
 }
 
 
@@ -877,49 +837,6 @@ function displayLocation (position)
 }
 
 
-function addResupplyLocation (position)
-{
-	$("#resupplyLocationSaveButton").off('click');
-	$("#resupplyLocationSaveButton").click(function () { insertResupplyLocation(position); });
-
-	$("#addResupplyLocation").modal ('show');
-}
-
-function insertResupplyLocation (position)
-{
-	var resupplyLocation = objectifyForm($("#resupplyLocationForm").serializeArray());
-	
-	resupplyLocation.lat = position.lat ();
-	resupplyLocation.lng = position.lng ();
-	
-	var xmlhttp = new XMLHttpRequest ();
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && this.status == 200)
-		{
-			resupplyLocation.shippingLocationId = JSON.parse(this.responseText);
-
-			resupplyLocation.marker = new google.maps.Marker({
-				position: {lat: parseFloat(resupplyLocation.lat), lng: parseFloat(resupplyLocation.lng)},
-				map: map,
-				icon: {
-					url: "http://maps.google.com/mapfiles/ms/micons/postoffice-us.png"
-				}
-			});
-			
-			let markerIndex = 0; //todo: fix this, it shouldn't be zero.
-			resupplyLocation.marker.addListener ("rightclick", function (event) { resupplyLocationCM.open (map, event, markerIndex); });
-			
-			resupplyLocations.push(resupplyLocation);
-		}
-	}
-	
-	xmlhttp.open("POST", "/resupplyLocation.php", true);
-	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	xmlhttp.send("userHikeId=" + userHikeId + "\&resupplyLocation=" + JSON.stringify(resupplyLocation));
-}
-
-
 //
 // Position the map so that the two endpoints (today's and tomorrow's) are visible.
 // todo: take into account the area the whole path uses. Some paths go out of window 
@@ -1075,12 +992,13 @@ function myMap()
 	initializeContextMenu ();
 
 	var mapContextMenu = new ContextMenu ([
+		{title:"Add Point of Interest", func:showAddPointOfInterest},
 		{title:"Create Resupply Location", func:addResupplyLocation},
 		{title:"Display Location", func:displayLocation}]);
 
-	markerContextMenu = new ContextMenu ([
-		{title:"Remove Point of Interest", func:removePointOfInterest},
-		{title:"Edit Point of Interest", func:editPointOfInterest}]);
+	pointOfInterestCM = new ContextMenu ([
+		{title:"Edit Point of Interest", func:editPointOfInterest},
+		{title:"Remove Point of Interest", func:removePointOfInterest}]);
 
 	resupplyLocationCM = new ContextMenu ([
 		{title:"Resupply from this location", func:resupplyFromLocation},
@@ -1095,6 +1013,7 @@ function myMap()
 	infoWindow = new google.maps.InfoWindow({content: "This is a test"});
 
 	retrieveRoute ();
+	retrievePointsOfInterest ();
 	retrieveResupplyLocations ();
 	retrieveHikerProfiles (); //todo: only do this when visiting the tab of hiker profiles
 	calculate ();
@@ -1153,44 +1072,44 @@ function calculate ()
 					
 				txt += "<div style='padding:2px 2px 2px 2px'>" + timeFormat(data[d].startTime) + ", " + "mile " + metersToMilesRounded (data[d].meters) + ": start" + "</div>";
 				
-				if (data[d].events.length > 0)
-				{
-					for (let e in data[d].events)
-					{
-						txt += "<div style='padding:2px 2px 2px 2px'>" + timeFormat(data[d].events[e].time) + ", " + "mile " + metersToMilesRounded (data[d].events[e].meters) + ": " + data[d].events[e].type + "</div>";
-
-						if (m >= markers.length)
-						{
-							// todo: should the marker just have the index to this day and event instead of the POI ID?
-							markers.push({poiId: data[d].events[e].poiId, lat: parseFloat(data[d].events[e].lat), lng: parseFloat(data[d].events[e].lng)});
-							
-							markers[m].marker = new google.maps.Marker({
-								position: markers[m],
-								map: map,
-								icon: {
-									url: "http://maps.google.com/mapfiles/ms/micons/blue.png"
-								},
-							});
-							
-							let markerIndex = m;
-							markers[m].marker.addListener ("rightclick", function (event) { markerContextMenu.open (map, event, markerIndex); });
-						}
-						else
-						{
-							markers[m].poiId = data[d].events[e].poiId;
-							markers[m].lat = parseFloat(data[d].events[e].lat);
-							markers[m].lng = parseFloat(data[d].events[e].lng);
-							
-							markers[m].marker.setPosition(markers[m]);
-
-							google.maps.event.removeListener (markers[m].listener);
-						}
-
-						markers[m].listener = attachInfoWindowMessage(markers[m], "Resupply");
-						
-						m++;
-					}
-				}
+//				if (data[d].events.length > 0)
+//				{
+//					for (let e in data[d].events)
+//					{
+//						txt += "<div style='padding:2px 2px 2px 2px'>" + timeFormat(data[d].events[e].time) + ", " + "mile " + metersToMilesRounded (data[d].events[e].meters) + ": " + data[d].events[e].type + "</div>";
+//
+//						if (m >= markers.length)
+//						{
+//							// todo: should the marker just have the index to this day and event instead of the POI ID?
+//							markers.push({poiId: data[d].events[e].poiId, lat: parseFloat(data[d].events[e].lat), lng: parseFloat(data[d].events[e].lng)});
+//							
+//							markers[m].marker = new google.maps.Marker({
+//								position: markers[m],
+//								map: map,
+//								icon: {
+//									url: pointOfInterestUrl
+//								},
+//							});
+//							
+//							let markerIndex = m;
+//							markers[m].marker.addListener ("rightclick", function (event) { pointOfInterestCM.open (map, event, markerIndex); });
+//						}
+//						else
+//						{
+//							markers[m].poiId = data[d].events[e].poiId;
+//							markers[m].lat = parseFloat(data[d].events[e].lat);
+//							markers[m].lng = parseFloat(data[d].events[e].lng);
+//							
+//							markers[m].marker.setPosition(markers[m]);
+//
+//							google.maps.event.removeListener (markers[m].listener);
+//						}
+//
+//						markers[m].listener = attachInfoWindowMessage(markers[m], "Resupply");
+//						
+//						m++;
+//					}
+//				}
 
 				txt += "<div style='padding:2px 2px 2px 2px'>" + timeFormat(data[d].endTime) + ", " + "mile ";
 				
@@ -1264,17 +1183,17 @@ function calculate ()
 			// Remove any remaining markers at the end of the array that are in
 			// excess.
 			//
-			if (m < markers.length)
-			{
-				for (let i = m; i < markers.length; i++)
-				{
-					markers[i].marker.setMap(null);
-					markers[i].marker = null;
-					google.maps.event.removeListener (markers[i].listener);
-				}
-				
-				markers.splice(m, markers.length - m);
-			}
+//			if (m < markers.length)
+//			{
+//				for (let i = m; i < markers.length; i++)
+//				{
+//					markers[i].marker.setMap(null);
+//					markers[i].marker = null;
+//					google.maps.event.removeListener (markers[i].listener);
+//				}
+//				
+//				markers.splice(m, markers.length - m);
+//			}
 			
 			if (day < dayMarkers.length)
 			{
@@ -1311,7 +1230,7 @@ function retrieveRoute ()
 				if (map)
 				{
 					routeContextMenu = new ContextMenu ([
-						{title: "Add Point of Interest", func: addPointOfInterest},
+						{title: "Add Point of Interest", func: showAddPointOfInterest},
 						{title: "Select route segment", func: startRouteMeasurement},
 						{title: "Add Note", func: addNote},
 						{title: "Recalculate distances", func: recalculateDistances},
@@ -1469,136 +1388,3 @@ function updateTrails ()
 		}
 	}
 }
-
-
-function retrieveResupplyLocations ()
-{
-	var xmlhttp = new XMLHttpRequest ();
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && this.status == 200)
-		{
-			resupplyLocations = JSON.parse(this.responseText);
-			
-			if (map)
-			{
-				for (let r in resupplyLocations)
-				{
-					resupplyLocations[r].marker = new google.maps.Marker({
-						position: {lat: parseFloat(resupplyLocations[r].lat), lng: parseFloat(resupplyLocations[r].lng)},
-						map: map,
-						icon: {
-							url: "http://maps.google.com/mapfiles/ms/micons/postoffice-us.png"
-						}
-					});
-					
-					let shippingLocationId = resupplyLocations[r].shippingLocationId;
-					resupplyLocations[r].marker.addListener ("rightclick", function (event) { resupplyLocationCM.open (map, event, shippingLocationId); });
-
-					if (resupplyLocations[r].address2 == null)
-					{
-						resupplyLocations[r].address2 = "";
-					}
-					
-					resupplyLocations[r].listener = attachInfoWindowMessage(resupplyLocations[r],
-						"<div>" + resupplyLocations[r].name + "</div>"
-						+ "<div>" + resupplyLocations[r].address1 + "</div>"
-						+ "<div>" + resupplyLocations[r].address2 + "</div>"
-						+ "<div>" + resupplyLocations[r].city + ", " + resupplyLocations[r].state + " " + resupplyLocations[r].zip + "</div>");
-				}
-			}
-		}
-	}
-	
-	xmlhttp.open("GET", "resupplyLocation.php?id=" + userHikeId, true);
-	//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	xmlhttp.send();
-}
-
-
-function resupplyFromLocation (shippingLocationId)
-{
-	let resupplyEvent = {userHikeId: userHikeId, shippingLocationId: shippingLocationId}
-
-	var xmlhttp = new XMLHttpRequest ();
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && this.status == 200)
-		{
-		}
-	}
-	
-	xmlhttp.open("POST", "/resupplyEvent.php", true);
-	xmlhttp.setRequestHeader("Content-type", "application/json");
-	xmlhttp.send(JSON.stringify(resupplyEvent));
-}
-
-
-function findResupplyLocationIndex (shippingLocationId)
-{
-	for (let h in resupplyLocations)
-	{
-		if (resupplyLocations[h].shippingLocationId == shippingLocationId)
-		{
-			return h;
-		}
-	}
-	
-	return -1;
-}
-
-
-function editResupplyLocation (shippingLocationId)
-{
-	//
-	// Find the resupply location using the shippingLocationId.
-	//
-	let h = findResupplyLocationIndex (shippingLocationId);
-	
-	if (h > -1)
-	{
-		$("input[name='name']").val(resupplyLocations[h].name);
-		$("input[name='inCareOf']").val(resupplyLocations[h].inCareOf);
-		$("input[name='address1']").val(resupplyLocations[h].address1);
-		$("input[name='address2']").val(resupplyLocations[h].address2);
-		$("input[name='city']").val(resupplyLocations[h].city);
-		$("input[name='state']").val(resupplyLocations[h].state);
-		$("input[name='zip']").val(resupplyLocations[h].zip);
-		
-		$("#resupplyLocationSaveButton").off('click');
-		$("#resupplyLocationSaveButton").click(function () { updateResupplyLocation(shippingLocationId)});
-		
-		$("#addResupplyLocation").modal ('show');
-	}
-}
-
-function updateResupplyLocation (shippingLocationId)
-{
-	var resupplyLocation = objectifyForm($("#resupplyLocationForm").serializeArray());
-	resupplyLocation.shippingLocationId = shippingLocationId;
-	
-	let h = findResupplyLocationIndex (shippingLocationId);
-
-	resupplyLocation.lat = resupplyLocations[h].lat;
-	resupplyLocation.lng = resupplyLocations[h].lng;
-	
-	var xmlhttp = new XMLHttpRequest ();
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && this.status == 200)
-		{
-			let h = findResupplyLocationIndex (shippingLocationId);
-			resupplyLocations[h] = resupplyLocation;
-		}
-	}
-	
-	xmlhttp.open("PUT", "/resupplyLocation.php", true);
-	xmlhttp.setRequestHeader("Content-type", "application/json");
-	xmlhttp.send(JSON.stringify(resupplyLocation));
-}
-
-
-function deleteResupplyLocation ()
-{
-}
-

@@ -252,6 +252,60 @@ if ($hikeId)
 	</div> <!--  Modal -->
 	
 	<!-- Modal -->
+	<div class="modal fade" id="addPointOfInterest" role="dialog">
+		<div class="modal-dialog">
+			<!-- Modal content-->
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Point of Interest</h4>
+				</div>
+				<div class="modal-body">
+					<form id='pointOfInterestForm'>
+						<label>Name:</label>
+						<input type="text" class='form-control' name='name'/>
+						<br/>
+	
+						<label>Description:</label>
+						<input type="text" class='form-control' name='description'/>
+						<br/>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn" data-dismiss="modal">Cancel</button>
+					<button id='pointOfInterestSaveButton' type="button" class="btn btn-default" data-dismiss="modal">Save</button>
+				</div>
+			</div>
+		</div>
+	</div> <!--  Modal -->
+
+	<!-- Modal -->
+	<div class="modal fade" id="addLinger" role="dialog">
+		<div class="modal-dialog">
+		
+			<!-- Modal content-->
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Add Linger</h4>
+				</div>
+				<div class="modal-body">
+					<form id='lingerForm'>
+						<label>Duration (in minutes):</label>
+						<input type="text" class='form-control' name='name'/>
+						<br/>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn" data-dismiss="modal">Cancel</button>
+					<button id='lingerSaveButton' type="button" class="btn btn-default" data-dismiss="modal">Save</button>
+				</div>
+			</div>
+			
+		</div>
+	</div> <!--  Modal -->
+
+	<!-- Modal -->
 	<div class="modal fade" id="modalDialog" role="dialog">
 		<div class="modal-dialog">
 		
@@ -436,6 +490,7 @@ if ($hikeId)
 	
 	<script src="/utilities.js"></script>
 	<script src="/contextMenu.js"></script>
+	<script src="/pointOfInterest.js"></script>
 	<script	src="/editHike.js"></script>
 	<script	src="/hikerProfile/hikerProfile.js"></script>
 	<script src="/resupplyPlan.js"></script>

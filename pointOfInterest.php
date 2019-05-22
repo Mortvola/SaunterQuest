@@ -1,18 +1,84 @@
 <?php
 
 require_once "checkLogin.php";
+require_once "config.php";
 
-if($_SERVER["REQUEST_METHOD"] == "POST")
+if ($_SERVER["REQUEST_METHOD"] == "GET")
 {
-	require_once "config.php";
-
-	$userHikeId = $_POST["userHikeId"];
-	$location = json_decode($_POST["location"], false);
+	$userHikeId = $_GET["id"];
 	
 	try
 	{
-		$sql = "insert into pointOfInterest (creationDate, modificationDate, userHikeId, lat, lng)
-	 				values (now(), now(), :userHikeId, :lat, :lng)";
+		$sql = "select pointOfInterestId, lat, lng, name, description
+				from pointOfInterest
+				where userHikeId = :userHikeId";
+		
+		if ($stmt = $pdo->prepare($sql))
+		{
+			$stmt->bindParam(":userHikeId", $paramUserHikeId, PDO::PARAM_INT);
+			
+			$paramUserHikeId = $userHikeId;
+			
+			$stmt->execute ();
+			
+			$output = $stmt->fetchAll (PDO::FETCH_ASSOC);
+			
+			echo json_encode($output);
+			
+			unset ($stmt);
+		}
+	}
+	catch(PDOException $e)
+	{
+		http_response_code (500);
+		echo $e->getMessage();
+	}
+}
+else if ($_SERVER["REQUEST_METHOD"] == "PUT")
+{
+	$pointOfInterest = json_decode(file_get_contents("php://input"));
+	
+	try
+	{
+		$sql = "update pointOfInterest
+				set modificationDate = now(), lat = :lat, lng = :lng, name = :name, description = :description
+				where pointOfInterestId = :pointOfInterestId";
+		
+ 		if ($stmt = $pdo->prepare($sql))
+ 		{
+			$stmt->bindParam(":pointOfInterestId", $paramPointOfInterestId, PDO::PARAM_INT);
+			$stmt->bindParam(":lat", $paramLat, PDO::PARAM_STR);
+			$stmt->bindParam(":lng", $paramLng, PDO::PARAM_STR);
+			$stmt->bindParam(":name", $paramName, PDO::PARAM_STR);
+			$stmt->bindParam(":description", $paramDescription, PDO::PARAM_STR);
+
+			$paramPointOfInterestId = $pointOfInterest->pointOfInterestId;
+			$paramLat = $pointOfInterest->lat;
+			$paramLng = $pointOfInterest->lng;
+			$paramName = $pointOfInterest->name;
+			$paramDescription = $pointOfInterest->description;
+
+ 			$stmt->execute ();
+			
+ 			unset ($stmt);
+			
+ 			echo json_encode($pointOfInterest);
+ 		}
+	}
+	catch(PDOException $e)
+	{
+		http_response_code (500);
+		echo $e->getMessage();
+	}
+}
+else if($_SERVER["REQUEST_METHOD"] == "POST")
+{
+	$pointOfInterest = json_decode(file_get_contents("php://input"));
+	
+	try
+	{
+		$sql = "insert into pointOfInterest (creationDate, modificationDate, userHikeId, lat, lng, name, description)
+	 				values (now(), now(), :userHikeId, :lat, :lng, :name, :description)";
 		
 		if ($stmt = $pdo->prepare($sql))
 		{
@@ -20,37 +86,43 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 	//		$stmt->bindParam(":userId", $paramUserId, PDO::PARAM_INT);
 			$stmt->bindParam(":lat", $paramLat, PDO::PARAM_STR);
 			$stmt->bindParam(":lng", $paramLng, PDO::PARAM_STR);
+			$stmt->bindParam(":name", $paramName, PDO::PARAM_STR);
+			$stmt->bindParam(":description", $paramDescription, PDO::PARAM_STR);
 			
-			$paramUserHikeId = $userHikeId;
+			$paramUserHikeId = $pointOfInterest->userHikeId;
 	//		$paramUserId = $_SESSION["userId"];
-			$paramLat = $location->lat;
-			$paramLng = $location->lng;
+			$paramLat = $pointOfInterest->lat;
+			$paramLng = $pointOfInterest->lng;
+			$paramName = $pointOfInterest->name;
+			$paramDescription = $pointOfInterest->description;
 	
 			$stmt->execute ();
 			
-			$pointOfInterestId = $pdo->lastInsertId ("pointOfInterestId");
+			$pointOfInterest->pointOfInterestId = $pdo->lastInsertId ("pointOfInterestId");
 			
 			unset ($stmt);
 		}
 	
-		if ($pointOfInterestId)
-		{
-			$sql = "insert into pointOfInterestConstraint (creationDate, modificationDate, pointOfInterestId, type)
-	 				values (now(), now(), :pointOfInterestId, :type)";
+// 		if ($pointOfInterestId)
+// 		{
+// 			$sql = "insert into pointOfInterestConstraint (creationDate, modificationDate, pointOfInterestId, type)
+// 	 				values (now(), now(), :pointOfInterestId, :type)";
 			
-			if ($stmt = $pdo->prepare($sql))
-			{
-				$stmt->bindParam(":pointOfInterestId", $paramPointOfInterestId, PDO::PARAM_INT);
-				$stmt->bindParam(":type", $paramType, PDO::PARAM_STR);
+// 			if ($stmt = $pdo->prepare($sql))
+// 			{
+// 				$stmt->bindParam(":pointOfInterestId", $paramPointOfInterestId, PDO::PARAM_INT);
+// 				$stmt->bindParam(":type", $paramType, PDO::PARAM_STR);
 				
-				$paramPointOfInterestId = $pointOfInterestId;
-				$paramType = "resupply";
+// 				$paramPointOfInterestId = $pointOfInterestId;
+// 				$paramType = "resupply";
 				
-				$stmt->execute ();
+// 				$stmt->execute ();
 				
-				unset ($stmt);
-			}
-		}
+// 				unset ($stmt);
+// 			}
+// 		}
+
+		echo json_encode ($pointOfInterest);
 	}
 	catch(PDOException $e)
 	{
@@ -60,8 +132,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 }
 else if($_SERVER["REQUEST_METHOD"] == "DELETE")
 {
-	require_once "config.php";
-	
 	$pointOfInterestId = json_decode(file_get_contents("php://input"));
 	
 	try
