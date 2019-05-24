@@ -298,11 +298,16 @@ function pointsOfInterestGet ($userId, $userHikeId)
 		
 	try
 	{
-		$sql = "select re.resupplyEventId AS pointOfInterestId, sl.lat, sl.lng, sl.shippingLocationId, 'resupply' AS type, NULL as time																																																																											
-				from resupplyEvent re
-				join shippingLocation sl on sl.shippingLocationId = re.shippingLocationId
-				where re.userHikeId = :userHikeId";
-	
+// 		$sql = "select re.resupplyEventId AS pointOfInterestId, sl.lat, sl.lng, sl.shippingLocationId, 'resupply' AS type, NULL as time																																																																											
+// 				from resupplyEvent re
+// 				join shippingLocation sl on sl.shippingLocationId = re.shippingLocationId
+// 				where re.userHikeId = :userHikeId";
+
+		$sql = "select poi.pointOfInterestId, lat, lng, type, time
+				from pointOfInterest poi
+				join pointOfInterestConstraint poic on poic.pointOfInterestId = poi.pointOfInterestId
+				where poi.userHikeId = :userHikeId";
+		
 		if ($stmt = $pdo->prepare($sql))
 		{
 	//		$stmt->bindParam(":userId", $paramUserId, PDO::PARAM_INT);

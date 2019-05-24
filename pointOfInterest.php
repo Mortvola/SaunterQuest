@@ -3,6 +3,9 @@
 require_once "checkLogin.php";
 require_once "config.php";
 
+class pointOfInterest {};
+class pointOfInterestConstraint {};
+
 if ($_SERVER["REQUEST_METHOD"] == "GET")
 {
 	$userHikeId = $_GET["id"];
@@ -21,11 +24,34 @@ if ($_SERVER["REQUEST_METHOD"] == "GET")
 			
 			$stmt->execute ();
 			
-			$output = $stmt->fetchAll (PDO::FETCH_ASSOC);
-			
-			echo json_encode($output);
+			$pointOfInterest = $stmt->fetchAll (PDO::FETCH_CLASS, 'pointOfInterest');
 			
 			unset ($stmt);
+		}
+	
+		if (isset ($pointOfInterest))
+		{
+			foreach ($pointOfInterest as &$poi)
+			{
+				$sql = "select pointOfInterestConstraintId, type, time
+						from pointOfInterestConstraint
+						where pointOfInterestId = :pointOfInterestId";
+				
+				if ($stmt = $pdo->prepare($sql))
+				{
+					$stmt->bindParam(":pointOfInterestId", $paramPointOfInterestId, PDO::PARAM_INT);
+					
+					$paramPointOfInterestId = $poi->pointOfInterestId;
+
+					$stmt->execute ();
+					
+					$poi->constraints = $stmt->fetchAll (PDO::FETCH_CLASS, 'pointOfInterestConstraint');
+					
+					unset ($stmt);
+				}
+			}
+			
+			echo json_encode($pointOfInterest);
 		}
 	}
 	catch(PDOException $e)
@@ -61,9 +87,47 @@ else if ($_SERVER["REQUEST_METHOD"] == "PUT")
  			$stmt->execute ();
 			
  			unset ($stmt);
-			
- 			echo json_encode($pointOfInterest);
  		}
+
+ 		// Delete any constraints and then re-add them, if there are any
+ 		$sql = "delete from pointOfInterestConstraint where pointOfInterestId = :pointOfInterestId";
+ 		
+ 		if ($stmt = $pdo->prepare($sql))
+ 		{
+ 			$stmt->bindParam(":pointOfInterestId", $paramPointOfInterestId, PDO::PARAM_INT);
+
+ 			$paramPointOfInterestId = $pointOfInterest->pointOfInterestId;
+ 			
+ 			$stmt->execute ();
+ 			
+ 			unset ($stmt);
+ 		}
+ 		
+ 		if (isset($pointOfInterest->constraints))
+ 		{
+ 			foreach ($pointOfInterest->constraints as $constraint)
+ 			{
+	 			$sql = "insert into pointOfInterestConstraint (creationDate, modificationDate, pointOfInterestId, type, time)
+						values (now(), now(), :pointOfInterestId, :type, :time)";
+	 			
+	 			if ($stmt = $pdo->prepare($sql))
+	 			{
+	 				$stmt->bindParam(":pointOfInterestId", $paramPointOfInterestId, PDO::PARAM_INT);
+	 				$stmt->bindParam(":type", $paramType, PDO::PARAM_STR);
+	 				$stmt->bindParam(":time", $paramTime, PDO::PARAM_INT);
+	 				
+	 				$paramPointOfInterestId = $pointOfInterest->pointOfInterestId;
+	 				$paramType = $constraint->type;
+	 				$paramTime = $constraint->time;
+	 				
+	 				$stmt->execute ();
+	 				
+	 				unset ($stmt);
+	 			}
+ 			}
+ 		}
+
+ 		echo json_encode($pointOfInterest);
 	}
 	catch(PDOException $e)
 	{
@@ -103,24 +167,29 @@ else if($_SERVER["REQUEST_METHOD"] == "POST")
 			unset ($stmt);
 		}
 	
-// 		if ($pointOfInterestId)
-// 		{
-// 			$sql = "insert into pointOfInterestConstraint (creationDate, modificationDate, pointOfInterestId, type)
-// 	 				values (now(), now(), :pointOfInterestId, :type)";
-			
-// 			if ($stmt = $pdo->prepare($sql))
-// 			{
-// 				$stmt->bindParam(":pointOfInterestId", $paramPointOfInterestId, PDO::PARAM_INT);
-// 				$stmt->bindParam(":type", $paramType, PDO::PARAM_STR);
+		if (isset($pointOfInterest->pointOfInterestId) && isset($pointOfInterest->constraints))
+		{
+			foreach ($pointOfInterest->constraints as $constraint)
+			{
+				$sql = "insert into pointOfInterestConstraint (creationDate, modificationDate, pointOfInterestId, type, time)
+						values (now(), now(), :pointOfInterestId, :type, :time)";
 				
-// 				$paramPointOfInterestId = $pointOfInterestId;
-// 				$paramType = "resupply";
-				
-// 				$stmt->execute ();
-				
-// 				unset ($stmt);
-// 			}
-// 		}
+				if ($stmt = $pdo->prepare($sql))
+				{
+					$stmt->bindParam(":pointOfInterestId", $paramPointOfInterestId, PDO::PARAM_INT);
+					$stmt->bindParam(":type", $paramType, PDO::PARAM_STR);
+					$stmt->bindParam(":time", $paramTime, PDO::PARAM_INT);
+					
+					$paramPointOfInterestId = $pointOfInterest->pointOfInterestId;
+					$paramType = $constraint->type;
+					$paramTime = $constraint->time;
+					
+					$stmt->execute ();
+					
+					unset ($stmt);
+				}
+			}
+		}
 
 		echo json_encode ($pointOfInterest);
 	}

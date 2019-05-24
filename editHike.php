@@ -269,6 +269,9 @@ if ($hikeId)
 						<label>Description:</label>
 						<input type="text" class='form-control' name='description'/>
 						<br/>
+						<label>Hang Out (in minutes)</label>
+						<input type="text" class='form-control' name='hangOut'/>
+						<br />
 					</form>
 				</div>
 				<div class="modal-footer">

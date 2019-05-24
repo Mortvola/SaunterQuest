@@ -50,6 +50,25 @@ function updatePointOfInterest (poiId)
 	pointOfInterest.lat = pointsOfInterest[index].lat;
 	pointOfInterest.lng = pointsOfInterest[index].lng;
 	
+	if (pointOfInterest.constraints != undefined)
+	{
+		for (let c in pointOfInterest.constraints)
+		{
+			if (pointOfInterest.constraints[c].type == 'linger')
+			{
+				pointOfInterest.constraints[c].time = pointOfInterest.hangOut;
+				break;
+			}
+		}
+	}
+	else
+	{
+		pointOfInterest.constraints = [];
+		pointOfInterest.constraints.push({type: 'linger', time: pointOfInterest.hangOut});
+	}
+
+	delete pointOfInterest.hangOut;
+	
 	var xmlhttp = new XMLHttpRequest ();
 	xmlhttp.onreadystatechange = function ()
 	{
@@ -70,6 +89,18 @@ function editPointOfInterest (poiId)
 
 	$("input[name='name']").val(pointsOfInterest[index].name);
 	$("input[name='description']").val(pointsOfInterest[index].description);
+
+	if (pointsOfInterest[index].constraints != undefined)
+	{
+		for (let c in pointsOfInterest[index].constraints)
+		{
+			if (pointsOfInterest[index].constraints[c].type == 'linger')
+			{
+				$("input[name='hangOut']").val(pointsOfInterest[index].constraints[c].time);
+				break;
+			}
+		}
+	}
 	
 	$("#pointOfInterestSaveButton").off('click');
 	$("#pointOfInterestSaveButton").click(function () { updatePointOfInterest(poiId)});
@@ -105,6 +136,10 @@ function insertPointOfInterest (position)
 	pointOfInterest.lng = position.lng ();
 	pointOfInterest.userHikeId = userHikeId;
 	
+	pointOfInterest.constraints = [];
+	pointOfInterest.constraints.push({type: 'linger', time: pointOfInterest.hangOut});
+	delete pointOfInterest.hangOut;
+
 	var xmlhttp = new XMLHttpRequest ();
 	xmlhttp.onreadystatechange = function ()
 	{
@@ -119,7 +154,7 @@ function insertPointOfInterest (position)
 	}
 
 	xmlhttp.open("POST", "pointOfInterest.php", true);
-	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	xmlhttp.setRequestHeader("Content-type", "application/json");
 	xmlhttp.send(JSON.stringify(pointOfInterest));
 }
 

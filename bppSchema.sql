@@ -1,5 +1,5 @@
 create table user (
-	userId int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
 	username varchar(255) NOT NULL,
@@ -7,7 +7,7 @@ create table user (
 	password varchar(255) NOT NULL);
 
 create table trip (
-	tripId int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
 	userId int NOT NULL,
@@ -15,7 +15,7 @@ create table trip (
 	tripStartDate DATE);
 
 create table foodItem (
-	foodItemId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
 	manufacturer VARCHAR (255) NOT NULL,
@@ -33,7 +33,7 @@ create table foodItem (
 	protein INT);
 
 create table foodItemServingSize (
-	foodItemServingSizeId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
 	foodItemId INT NOT NULL,
@@ -41,7 +41,7 @@ create table foodItemServingSize (
 	grams INT NOT NULL);
 
 create table foodItemSource (
-	foodItemSourceId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
 	foodItemId INT NOT NULL,
@@ -50,7 +50,7 @@ create table foodItemSource (
 );
 
 create table foodItemSourceContents (
-	foodItemSourceId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
 	description VARCHAR(255) NOT NULL,
@@ -59,7 +59,7 @@ create table foodItemSourceContents (
 }
 	
 create table foodItemEvent (
-	foodItemEventId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
 	tripId INT NOT NULL,
@@ -69,7 +69,7 @@ create table foodItemEvent (
 	portion FLOAT);
 
 create table dayTemplate (
-	dayTemplateId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
 	name VARCHAR (255),
@@ -77,7 +77,7 @@ create table dayTemplate (
 );
 
 create table dayTemplateFoodItem (
-	dayTemplateFoodItemId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
 	dayTemplateId INT NOT NULL,
@@ -88,14 +88,14 @@ create table dayTemplateFoodItem (
 );
 
 create table hike (
-	hikeId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
 	name VARCHAR (255) NOT NULL,
 	file VARCHAR (255));
 	
 create table userHike (
-	userHikeId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
 	userId INT NOT NULL,
@@ -105,7 +105,7 @@ create table userHike (
 );
 
 create table pointOfInterest (
-	pointOfInterestId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
 	hikeId INT,		-- Either hikeId or userHikeId must be set but not both
@@ -116,7 +116,7 @@ create table pointOfInterest (
 	description VARCHAR (255));
 
 create table pointOfInterestConstraint (
-	pointOfInterestConstraintId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
 	pointOfInterestId INT NOT NULL,
@@ -124,7 +124,7 @@ create table pointOfInterestConstraint (
 	time INT);
 	
 create table shippingLocation (
-	shippingLocationId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
 	hikeId INT,		-- Either hikeId or userHikeId must be set but not both
@@ -140,14 +140,14 @@ create table shippingLocation (
 	zip VARCHAR(255) NOT NULL);
 	
 create table resupplyEvent (
-	resupplyEventId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
 	userHikeId INT NOT NULL,
 	shippingLocationId INT NOT NULL);
 
 create table hikerProfile (
-	hikerProfileId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
 	userId INT NOT NULL,
@@ -160,7 +160,7 @@ create table hikerProfile (
 	breakDuration DECIMAL(4,2));
 	
 create table trailCondition (
-	trailConditionId INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
 	hikeId INT,		-- Either hikeId or userHikeId must be set but not both
