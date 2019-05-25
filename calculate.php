@@ -1,6 +1,6 @@
 <?php 
 
-$commandLine = 0;
+$commandLine = 1;
 
 if ($commandLine == 0)
 {
@@ -138,11 +138,12 @@ function dayStart (&$d, &$dayMeters, &$dayHours, $lat, $lng, $ele, &$dayGain, &$
 }
 
 
-function dayEnd ($d, $dayMeters, $dayGain, $dayLoss)
+function dayEnd ($d, $dayMeters, $dayGain, $dayLoss, $endTime)
 {
 	DayGet ($d)->gain = $dayGain;
 	DayGet ($d)->loss = $dayLoss;
 	DayGet ($d)->distance = $dayMeters;
+	DayGet ($d)->endTime = $endTime;
 }
 
 
@@ -345,12 +346,14 @@ function pointsOfInterestGet ($userId, $userHikeId)
 					
 					//echo "Found segment $s\n";
 
+//					echo "poi time: ", $poi->time, "\n";
+					
 					$segments[$s]->subsegments[strval($segmentPercentage)]->events[] = (object)[
 							"poiId" => $poi->pointOfInterestId,
 							"type" => $poi->type,
 							"lat" => $poi->lat,
 							"lng" => $poi->lng,
-							"shippingLocationId" => $poi->shippingLocationId,
+							//"shippingLocationId" => $poi->shippingLocationId,
 							"time" => $poi->time,
 							"enabled" => true,
 							"segmentPercentage" => $segmentPercentage,
@@ -686,14 +689,18 @@ function activeTrailConditionsGet ($segmentIndex, $segmentPercentage, &$speedFac
 }
 
 
+$lingerHours = 0;
+$currentTime = 0;
+
 function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 {
 	global $hikerProfile, $d, $day, $dayHours, $dayMeters, $dayGain, $dayLoss;
-	global $foodStart, $maxZ, $debug, $trailConditions;
+	global $foodStart, $maxZ, $debug, $trailConditions, $lingerHours;
+	global $currentTime;
 	
 	$trailConditionsSpeedFactor = 1.0;
 	$trailConditionType = 2; // other (no consequence) //todo: should the numbers be reversed (other = 0, no camping = 2)?
-	$lingerHours = 0;
+//	$lingerHours = 0;
 	
 	$metersPerHour = metersPerHourGet ($it->nextSegment()->ele - $it->current()->ele, $it->segmentLength());
 	
@@ -727,10 +734,10 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 		
 		// todo: does this need to be calculated each iteration?
 		$hoursPerDay = ((DayGet ($d)->endTime - DayGet ($d)->startTime) - $hikerProfile->breakDuration);
-		$hoursPerDay -= $lingerHours;
+//		$hoursPerDay = max($hoursPerDay - $lingerHours, 0);
 		$lingerHours = 0;
 		
-		$hoursRemaining = $hoursPerDay - $dayHours;
+		$hoursRemaining = max($hoursPerDay - $dayHours, 0);
 		
 		if (isset($debug))
 		{
@@ -777,6 +784,8 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 			$hoursHiked = $remainingSegmentMeters / ($metersPerHour * $trailConditionsSpeedFactor * ($hikerProfile->speedFactor / 100.0));
 			$dayHours += $hoursHiked;
 			$currentTime = DayGet ($d)->startTime + $dayHours;
+			
+//			echo "$currentTime\n";
 			
 			$eleDelta = $it->nextSegment()->ele - $lastEle;
 			
@@ -909,9 +918,12 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 					{
 						// todo: determine what it means to linger when already stopped.
 						
-						$lingerHours = $event->time;
+						//echo "linger time = ", $event->time, "\n";
 						
-						$remainingHours = ($hoursPerDay - $hoursHiked) - $lingerHours;
+						$lingerHours = $event->time / 60;
+						$dayHours += $lingerHours;
+						
+						$remainingHours = max(($hoursPerDay - $hoursHiked) - $lingerHours, 0);
 						
 						//					echo "linger: hours hiked: $hoursHiked\n";
 						//					echo "linger: delta meters: $remainingSegmentMeters\n";
@@ -922,11 +934,11 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 						
 						if ($remainingHours > 0)
 						{
-							DayGet ($d)->events[] = new Event("linger", $event->poiId, $event->lat, $event->lng, $segmentMeters, $currentTime, "linger for " . $lingerHours . " hour(s);");
+							DayGet ($d)->events[] = new Event("linger", $event->poiId, $event->lat, $event->lng, null, $segmentMeters, $currentTime, "linger for " . $lingerHours . " hour(s);");
 						}
 						else
 						{
-							DayGet ($d)->events[] = new Event("linger", $event->poiId, $event->lat, $event->lng, $segmentMeters, $currentTime, "linger for " . round ($lingerHours + $remainingHours, 1) . " hour(s);");
+							DayGet ($d)->events[] = new Event("linger", $event->poiId, $event->lat, $event->lng, null, $segmentMeters, $currentTime, "linger for " . round ($lingerHours + $remainingHours, 1) . " hour(s);");
 							
 							// todo: Determine what to do here. If we are mid-segment then we should record the day. Otherwise, return back to the caller?
 	// 						if ($nextSegmentIndex < count($segments) - 1)
@@ -1051,7 +1063,7 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 			$lat = ($it->nextSegment()->lat - $it->current()->lat) * $segmentPercent + $it->current()->lat;
 			$lng = ($it->nextSegment()->lng - $it->current()->lng) * $segmentPercent + $it->current()->lng;
 			
-			dayEnd ($d, $dayMeters, $dayGain, $dayLoss);
+			dayEnd ($d, $dayMeters, $dayGain, $dayLoss, $currentTime);
 			dayStart ($d, $dayMeters, $dayHours, $lat, $lng, $currentEle, $dayGain, $dayLoss, $it->key(), $segmentMeters);
 			
 			$lastEle = $currentEle;
@@ -1069,6 +1081,7 @@ function traverseSegments ($it)
 {
 	global $hikerProfile, $d, $day, $dayHours, $dayMeters, $dayLoss, $dayGain;
 	global $foodStart, $maxZ, $debug;
+	global $currentTime;
 	
 	$restart = false;
 	
@@ -1128,7 +1141,7 @@ function traverseSegments ($it)
 		}
 	}
 	
-	dayEnd ($d, $dayMeters, $dayGain, $dayLoss);
+	dayEnd ($d, $dayMeters, $dayGain, $dayLoss, $currentTime);
 	
 	$day[$d]->endLat = $segment->lat;
 	$day[$d]->endLng = $segment->lng;

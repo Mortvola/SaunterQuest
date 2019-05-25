@@ -122,18 +122,21 @@ function assignDistances (&$segments, $startIndex)
 		$segments[$i]->dist = $distance;
 		$segments[$i]->ele = getElevation ($segments[$i]->lat, $segments[$i]->lng);
 		
-		// Find distance to next anchor, either via trail or straight line distance.
-		if ($segments[$i]->trail)
+		if ($i < count($segments) - 1)
 		{
-			$prevLat = $segments[$i]->lat;
-			$prevLng = $segments[$i]->lng;
-			
-			assignTrailDistances ($segments[$i]->trail, $distance, $prevLat, $prevLng);
-			$distance += haversineGreatCircleDistance ($prevLat, $prevLng, $segments[$i + 1]->lat, $segments[$i + 1]->lng);
-		}
-		else
-		{
-			$distance += haversineGreatCircleDistance ($segments[$i]->lat, $segments[$i]->lng, $segments[$i + 1]->lat, $segments[$i + 1]->lng);
+			// Find distance to next anchor, either via trail or straight line distance.
+			if (isset($segments[$i]->trail))
+			{
+				$prevLat = $segments[$i]->lat;
+				$prevLng = $segments[$i]->lng;
+				
+				assignTrailDistances ($segments[$i]->trail, $distance, $prevLat, $prevLng);
+				$distance += haversineGreatCircleDistance ($prevLat, $prevLng, $segments[$i + 1]->lat, $segments[$i + 1]->lng);
+			}
+			else
+			{
+				$distance += haversineGreatCircleDistance ($segments[$i]->lat, $segments[$i]->lng, $segments[$i + 1]->lat, $segments[$i + 1]->lng);
+			}
 		}
 	}
 }
@@ -144,11 +147,14 @@ function readAndSanatizeFile ($fileName)
 	$segments = json_decode(file_get_contents($fileName));
 	
 	// Ensure the array is not an object and is indexed numerically
-	$objectVars = get_object_vars ($segments);
-	
-	if ($objectVars)
+	if (!is_array($segments))
 	{
-		$segments = array_values ($objectVars);
+		$objectVars = get_object_vars ($segments);
+		
+		if ($objectVars)
+		{
+			$segments = array_values ($objectVars);
+		}
 	}
 	
 	return $segments;
