@@ -435,7 +435,7 @@ function trailConditionsGet ($userHikeId)
 								(object)["x" => $segments[$e]->lat, "y" => $segments[$e]->lng],
 								(object)["x" => $segments[$e + 1]->lat, "y" => $segments[$e + 1]->lng]);
 						
-						$segments[$s]->subsegments[strval($endSegmentPercentage)]->events[] = (object)["type" => "trailCondition", "index" => $t];
+						$segments[$e]->subsegments[strval($endSegmentPercentage)]->events[] = (object)["type" => "trailCondition", "index" => $t];
 						$trailConditions[$t]->endSegment = (object)["segment" => $e, "percentage" => $endSegmentPercentage];
 					}
 				}
@@ -754,7 +754,7 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 		
 		if (isset($it->current()->subsegments) && key($it->current()->subsegments) !== null)
 		{
-			$lengthToNextEvent = floatval(key($it->current()->subsegments)) * $it->segmentLength ();
+			$lengthToNextEvent = floatval(key($it->current()->subsegments)) * $it->segmentLength () - $segmentMeters;
 			
 			$events = current($it->current()->subsegments)->events;
 			
@@ -762,7 +762,9 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 		}
 		else
 		{
-			$lengthToNextEvent = $it->segmentLength ();
+			$lengthToNextEvent = $it->segmentLength () - $segmentMeters;
+			
+			unset($events);
 		}
 		
 		if (isset($debug))
@@ -770,36 +772,30 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 			echo "Segment Meters: ", $segmentMeters, ", day meters remaining: ", $dayMetersRemaining, ", Length to next event: ", $lengthToNextEvent, "\n";
 		}
 		
+		// Are there enough "day meters" remaining to hike to the next event. If so, process the events
+		// at that point. If not, then camp.
+		
 		if ($segmentMeters + $dayMetersRemaining >= $lengthToNextEvent)
 		{
+			// There are enough "day meters" remaining to hike to the next event...
+			
 			if (isset($debug))
 			{
 				echo "Day $d, segment meters: $segmentMeters, day hours remaining: $hoursRemaining, day meters remaining: $dayMetersRemaining, meters/hour = $metersPerHour\n";
 			}
 			
-			$remainingSegmentMeters = $it->segmentLength () - $segmentMeters;
-			$segmentMeters = $it->segmentLength ();
+			$segmentMeters += $lengthToNextEvent;
+			$remainingSegmentMeters = max($it->segmentLength () - $segmentMeters, 0);
 			
-			$dayMeters += $remainingSegmentMeters;
-			$hoursHiked = $remainingSegmentMeters / ($metersPerHour * $trailConditionsSpeedFactor * ($hikerProfile->speedFactor / 100.0));
+			$dayMeters += $lengthToNextEvent;
+			$hoursHiked = $lengthToNextEvent / ($metersPerHour * $trailConditionsSpeedFactor * ($hikerProfile->speedFactor / 100.0));
 			$dayHours += $hoursHiked;
 			$currentTime = DayGet ($d)->startTime + $dayHours;
 			
 //			echo "$currentTime\n";
 			
-			$eleDelta = $it->nextSegment()->ele - $lastEle;
+			// Process any events at this point
 			
-			if ($eleDelta > 0)
-			{
-				$dayGain += $eleDelta;
-			}
-			else
-			{
-				$dayLoss += -$eleDelta;
-			}
-			
-			// todo: This should change so that events are processed as we come across them *during* the segment
-			// instead of processing the ones from the next segment.
 //			if (isset($it->nextSegment()->events) && count($it->nextSegment()->events) > 0)
 			if (isset($events) && count($events) > 0)
 			{
@@ -811,6 +807,8 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 				//todo: sort the events
 				foreach ($events as $event)
 				{
+//					echo "key = ", $it->key (), " event type = ", $event->type, " segment meters = ", $segmentMeters, " remaining meters = ", $remainingSegmentMeters, "\n";
+					
 	//				$event = findEvent("arriveBefore", $events);
 					
 					if ($event->type == "trailCondition")
@@ -922,6 +920,7 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 						
 						$lingerHours = $event->time / 60;
 						$dayHours += $lingerHours;
+						$currentTime = DayGet ($d)->startTime + $dayHours;
 						
 						$remainingHours = max(($hoursPerDay - $hoursHiked) - $lingerHours, 0);
 						
@@ -958,12 +957,33 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 				}
 			}
 			
-			if (isset($debug))
+			if ($remainingSegmentMeters <= 0)
 			{
-				echo "Ended segment. Segment Meters = ", $segmentMeters, "\n\n";
+				$eleDelta = $it->nextSegment()->ele - $lastEle;
+				
+				if ($eleDelta > 0)
+				{
+					$dayGain += $eleDelta;
+				}
+				else
+				{
+					$dayLoss += -$eleDelta;
+				}
+				
+				if (isset($debug))
+				{
+					echo "Ended segment. Segment Meters = ", $segmentMeters, "\n\n";
+				}
+				
+				break;
 			}
-			
-			break;
+			else
+			{
+				if (isset($debug))
+				{
+					echo "Continuing segment. Segment Meters = ", $segmentMeters, " Meters Remaining = ", $remainingSegmentMeters, "\n\n";
+				}
+			}
 		}
 		else
 		{
@@ -1031,6 +1051,11 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 			// 				echo "day meters remaining = $dayMetersRemaining\n";
 			$dayMeters += $dayMetersRemaining;
 			$segmentMeters += $dayMetersRemaining;
+			$remainingSegmentMeters = max($it->segmentLength () - $segmentMeters, 0);
+			
+			$hoursHiked = $dayMetersRemaining / ($metersPerHour * $trailConditionsSpeedFactor * ($hikerProfile->speedFactor / 100.0));
+			$dayHours += $hoursHiked;
+			$currentTime = DayGet ($d)->startTime + $dayHours;
 			
 			// We ended the day between the start and end of the current segment.
 			// Determine where in the segment we ended and compute current elevation and
@@ -1057,6 +1082,8 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 			{
 				$dayLoss += -$eleDelta;
 			}
+
+			$lastEle = $currentEle;
 			
 			//todo: This is just a linear computation of lat/lng given the distance. Change this to
 			// use a geodesic computation.
@@ -1065,8 +1092,6 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 			
 			dayEnd ($d, $dayMeters, $dayGain, $dayLoss, $currentTime);
 			dayStart ($d, $dayMeters, $dayHours, $lat, $lng, $currentEle, $dayGain, $dayLoss, $it->key(), $segmentMeters);
-			
-			$lastEle = $currentEle;
 			
 			//echo "Day $d, segment meters: " . DayGet ($d)->segmentMeters . "\n";
 			//				echo "day $d start meters = " . DayGet ($d)->meters . "\n";
