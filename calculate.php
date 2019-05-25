@@ -63,6 +63,7 @@ class Day
 	public $accumWeight = 0;
 	public $startTime;
 	public $endTime;
+	public $hoursHiked = 0;
 	public $notes;
 	public $segment = 0;
 	public $segmentMeters = 0;
@@ -123,7 +124,7 @@ class Day
 
 function dayStart (&$d, &$dayMeters, &$dayHours, $lat, $lng, $ele, &$dayGain, &$dayLoss, $segmentIndex, $segmentMeters)
 {
-	global $segments;
+	global $segments, $currentTime;
 	
 	$d++;
 	
@@ -135,6 +136,7 @@ function dayStart (&$d, &$dayMeters, &$dayHours, $lat, $lng, $ele, &$dayGain, &$
 	$dayHours = 0;
 	$dayGain = 0;
 	$dayLoss = 0;
+	$currentTime = DayGet ($d)->startTime;
 }
 
 
@@ -628,12 +630,17 @@ class segmentIterator implements Iterator
 	{
 		if ($this->direction > 0)
 		{
-			return $this->_array[$this->position + 1]->dist - $this->_array[$this->position]->dist;
+			return $this->nextSegment()->dist - $this->current()->dist;
 		}
 		else
 		{
-			return $this->_array[$this->position]->dist - $this->_array[$this->position - 1]->dist;
+			return $this->current()->dist - $this->nextSegment()->dist;
 		}
+	}
+	
+	public function elevationChange ()
+	{
+		return $this->nextSegment()->ele - $this->current()->ele;
 	}
 
 	public function rewind ()
@@ -698,11 +705,7 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 	global $foodStart, $maxZ, $debug, $trailConditions, $lingerHours;
 	global $currentTime;
 	
-	$trailConditionsSpeedFactor = 1.0;
-	$trailConditionType = 2; // other (no consequence) //todo: should the numbers be reversed (other = 0, no camping = 2)?
-//	$lingerHours = 0;
-	
-	$metersPerHour = metersPerHourGet ($it->nextSegment()->ele - $it->current()->ele, $it->segmentLength());
+	$metersPerHour = metersPerHourGet ($it->elevationChange(), $it->segmentLength());
 	
 	// todo: do we need to call this per segment or should the results just be global and only call this
 	// when reaching a new trail condition point or if starting the segment mid-segment?
@@ -727,34 +730,19 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 			break;
 		}
 		
-		//echo "linger hours: $lingerHours\n";
-		
 		//echo "Day $d, segment meters: " . $segmentMeters . "\n";
 		//echo "Day $d, segment meters: " . DayGet ($d)->segmentMeters . "\n";
 		
-		// todo: does this need to be calculated each iteration?
-		$hoursPerDay = ((DayGet ($d)->endTime - DayGet ($d)->startTime) - $hikerProfile->breakDuration);
-//		$hoursPerDay = max($hoursPerDay - $lingerHours, 0);
-		$lingerHours = 0;
+		$currentMetersPerHour = $metersPerHour * $trailConditionsSpeedFactor * ($hikerProfile->speedFactor / 100.0);
 		
-		$hoursRemaining = max($hoursPerDay - $dayHours, 0);
-		
-		if (isset($debug))
-		{
-			echo "hours remaining: ", $hoursRemaining, ", meters per hour: ", $metersPerHour, ", trail conditions speed factor: ", $trailConditionsSpeedFactor, ", hiker profile speed factor: ", $hikerProfile->speedFactor, "\n";
-		}
-		
-		$dayMetersRemaining = $hoursRemaining * ($metersPerHour * $trailConditionsSpeedFactor * ($hikerProfile->speedFactor / 100.0));
-		
-		// 			echo "Hours/Day = $hoursPerDay\n";
-		// 			echo "Day Hours = $dayHours\n";
 		// 			echo "Meters/hour = $metersPerHour\n";
 		// 			echo "Adjusted Meters/hour = ", ($metersPerHour * $hikerProfile->speedFactor), "\n";
 		// 			echo "Meters/day = $dayMetersRemaining\n";
 		
+		// Determine how far away the next event (either an actual event or the end of the current segment.
 		if (isset($it->current()->subsegments) && key($it->current()->subsegments) !== null)
 		{
-			$lengthToNextEvent = floatval(key($it->current()->subsegments)) * $it->segmentLength () - $segmentMeters;
+			$metersToNextEvent = floatval(key($it->current()->subsegments)) * $it->segmentLength () - $segmentMeters;
 			
 			$events = current($it->current()->subsegments)->events;
 			
@@ -762,34 +750,59 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 		}
 		else
 		{
-			$lengthToNextEvent = $it->segmentLength () - $segmentMeters;
+			$metersToNextEvent = $it->segmentLength () - $segmentMeters;
 			
 			unset($events);
 		}
 		
+		$hoursToNextEvent = $metersToNextEvent / $currentMetersPerHour;
+		
 		if (isset($debug))
 		{
-			echo "Segment Meters: ", $segmentMeters, ", day meters remaining: ", $dayMetersRemaining, ", Length to next event: ", $lengthToNextEvent, "\n";
+			echo "Segment Meters: ", $segmentMeters, " current time: ", $currentTime, ", hours remaining: ", DayGet($d)->endTime - $currentTime, ", Hours to next event: ", $hoursToNextEvent, "\n";
 		}
 		
-		// Are there enough "day meters" remaining to hike to the next event. If so, process the events
+		// If we hike until the next event, will we hike through our afternoon break?
+		// If so, hike until it is time, take the break and continue.
+		if ($currentTime < 12 && $currentTime + $hoursToNextEvent > 12)
+		{
+			// Hike until the afternoon rest time, make adjustments to currentTime
+			// and remaining distance for this segment.
+			
+			$hoursHiked = 12 - $currentTime;
+			$metersHiked = $hoursHiked * $currentMetersPerHour;
+			
+			$segmentMeters += $metersHiked;
+			
+			DayGet ($d)->hoursHiked += $hoursHiked;
+			
+			$dayHours += $hoursHiked + $hikerProfile->breakDuration;
+			$dayMeters += $metersHiked;
+			$currentTime = DayGet ($d)->startTime + $dayHours;
+			
+			$metersToNextEvent -= $metersHiked;
+			$hoursToNextEvent -= $hoursHiked;
+		}
+		else if ($currentTime >= 12 && $currentTime < 12 + $hikerProfile->breakDuration)
+		{
+			$dayHours += 12 + $hikerProfile->breakDuration - $currentTime;
+			$currentTime = DayGet ($d)->startTime + $dayHours;
+		}
+			
+		// Is there enough time remaining to hike to the next event. If so, process the events
 		// at that point. If not, then camp.
 		
-		if ($segmentMeters + $dayMetersRemaining >= $lengthToNextEvent)
+		if ($currentTime + $hoursToNextEvent < DayGet ($d)->endTime)
 		{
-			// There are enough "day meters" remaining to hike to the next event...
+			// There is enough time remaining to hike to the next event...
 			
-			if (isset($debug))
-			{
-				echo "Day $d, segment meters: $segmentMeters, day hours remaining: $hoursRemaining, day meters remaining: $dayMetersRemaining, meters/hour = $metersPerHour\n";
-			}
-			
-			$segmentMeters += $lengthToNextEvent;
+			$segmentMeters += $metersToNextEvent;
 			$remainingSegmentMeters = max($it->segmentLength () - $segmentMeters, 0);
 			
-			$dayMeters += $lengthToNextEvent;
-			$hoursHiked = $lengthToNextEvent / ($metersPerHour * $trailConditionsSpeedFactor * ($hikerProfile->speedFactor / 100.0));
-			$dayHours += $hoursHiked;
+			DayGet ($d)->hoursHiked += $hoursToNextEvent;
+			
+			$dayHours += $hoursToNextEvent;
+			$dayMeters += $metersToNextEvent;
 			$currentTime = DayGet ($d)->startTime + $dayHours;
 			
 //			echo "$currentTime\n";
@@ -916,12 +929,14 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 					{
 						// todo: determine what it means to linger when already stopped.
 						
-						//echo "linger time = ", $event->time, "\n";
+//						echo "linger time = ", $event->time, "\n";
 						
 						$lingerHours = $event->time / 60;
 						$dayHours += $lingerHours;
 						$currentTime = DayGet ($d)->startTime + $dayHours;
+//						echo "Current Time = ", $currentTime, "\n";
 						
+						/*
 						$remainingHours = max(($hoursPerDay - $hoursHiked) - $lingerHours, 0);
 						
 						//					echo "linger: hours hiked: $hoursHiked\n";
@@ -953,6 +968,7 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 	// 							}
 	// 						}
 						}
+						*/
 					}
 				}
 			}
@@ -993,7 +1009,7 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 //			{
 //				echo "trailConditionType = $trailConditionType\n";
 //			}
-			
+			/*
 			for ($i = 0; isset($noCamping) && $i < count($noCamping); $i++)
 			{
 				//echo "no camping start " . $noCamping[i][0] . " stop ". $noCamping
@@ -1005,7 +1021,7 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 					// We are in a no camping area... need to move.
 					//
 					$remainingMeters = $noCamping[$i][1] - ($segmentMeters + $dayMetersRemaining);
-					$hoursNeeded = $remainingMeters / ($metersPerHour * $trailConditionsSpeedFactor * ($hikerProfile->speedFactor / 100.0));
+					$hoursNeeded = $remainingMeters / $currentMetersPerHour;
 					
 					//echo "needed hours: $hoursNeeded\n";
 					
@@ -1047,14 +1063,17 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 					//						break;
 				}
 			}
+			*/
+
+			$hoursHiked = DayGet ($d)->endTime - $currentTime;
+			$metersHiked = $hoursHiked * $currentMetersPerHour;
+
+			$segmentMeters += $metersHiked;
 			
-			// 				echo "day meters remaining = $dayMetersRemaining\n";
-			$dayMeters += $dayMetersRemaining;
-			$segmentMeters += $dayMetersRemaining;
-			$remainingSegmentMeters = max($it->segmentLength () - $segmentMeters, 0);
+			DayGet ($d)->hoursHiked += $hoursHiked;
 			
-			$hoursHiked = $dayMetersRemaining / ($metersPerHour * $trailConditionsSpeedFactor * ($hikerProfile->speedFactor / 100.0));
 			$dayHours += $hoursHiked;
+			$dayMeters += $metersHiked;
 			$currentTime = DayGet ($d)->startTime + $dayHours;
 			
 			// We ended the day between the start and end of the current segment.
@@ -1070,7 +1089,7 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 			// 				echo "numerator = ", ($segmentMeters - $segment->dist), "\n";
 			// 				echo "denominator = ", ($nextSegment->dist - $segment->dist), "\n";
 			
-			$currentEle = ($it->nextSegment()->ele - $it->current()->ele) * $segmentPercent + $it->current()->ele;
+			$currentEle = $it->elevationChange() * $segmentPercent + $it->current()->ele;
 			
 			$eleDelta = $currentEle - $lastEle;
 			
@@ -1093,7 +1112,7 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 			dayEnd ($d, $dayMeters, $dayGain, $dayLoss, $currentTime);
 			dayStart ($d, $dayMeters, $dayHours, $lat, $lng, $currentEle, $dayGain, $dayLoss, $it->key(), $segmentMeters);
 			
-			//echo "Day $d, segment meters: " . DayGet ($d)->segmentMeters . "\n";
+//			echo "Day $d, segment meters: " . DayGet ($d)->segmentMeters . "\n";
 			//				echo "day $d start meters = " . DayGet ($d)->meters . "\n";
 		}
 		
@@ -1278,7 +1297,7 @@ function getRouteFile ()
 	$dayLoss = 0;
 	
 	dayStart ($d, $dayMeters, $dayHours, $segments[0]->lat, $segments[0]->lng, $segments[0]->ele, $dayGain, $dayLoss, 0, 0);
-
+	
 	$foodStart = $d;
 	
 	if (isset($debug))
