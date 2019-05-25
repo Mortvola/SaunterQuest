@@ -74,6 +74,25 @@ function findHikerProfileIndex (hikerProfileId)
 	return -1;
 }
 
+
+function toTimeString (time)
+{
+	var hour = Math.floor (time);
+	if (hour < 10)
+	{
+		hour = "0" + hour;
+	}
+	
+	var minutes = Math.floor((time - Math.floor (time)) * 60);
+	if (minutes < 10)
+	{
+		minutes = "0" + minutes;
+	}
+	
+	return hour + ":" + minutes;
+}
+
+
 function editHikerProfile (hikerProfileId)
 {
 	//
@@ -86,8 +105,9 @@ function editHikerProfile (hikerProfileId)
 		$("input[name='startDay']").val(hikerProfiles[h].startDay);
 		$("input[name='endDay']").val(hikerProfiles[h].endDay);
 		$("input[name='speedFactor']").val(hikerProfiles[h].speedFactor);
-		$("input[name='startTime']").val(hikerProfiles[h].startTime);
-		$("input[name='endTime']").val(hikerProfiles[h].endTime);
+		
+		$("input[name='startTime']").val(toTimeString (hikerProfiles[h].startTime));
+		$("input[name='endTime']").val(toTimeString(hikerProfiles[h].endTime));
 		$("input[name='breakDuration']").val(hikerProfiles[h].breakDuration);
 		
 		$("#hikerProfileSaveButton").off('click');
@@ -111,10 +131,19 @@ function objectifyForm(formArray)
 }
 
 
+function toTimeFloat (time)
+{
+	return parseInt(time.substring (0, 2)) + parseInt(time.substring(3)) / 60.0;
+}
+
+
 function updateHikerProfile (hikerProfileId)
 {
 	var profile = objectifyForm($("#hikerProfileForm").serializeArray());
 	profile.hikerProfileId = hikerProfileId;
+	
+	profile.startTime = toTimeFloat(profile.startTime);
+	profile.endTime = toTimeFloat(profile.endTime);
 	
 	var xmlhttp = new XMLHttpRequest ();
 	xmlhttp.onreadystatechange = function ()
@@ -140,6 +169,9 @@ function insertHikerProfile ()
 {
 	var profile = objectifyForm($("#hikerProfileForm").serializeArray());
 	
+	profile.startTime = toTimeFloat(profile.startTime);
+	profile.endTime = toTimeFloat(profile.endTime);
+
 	var xmlhttp = new XMLHttpRequest ();
 	xmlhttp.onreadystatechange = function ()
 	{

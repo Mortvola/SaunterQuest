@@ -180,11 +180,11 @@ if ($hikeId)
 					<br/>
 					
 					<label>Start Time:</label>
-					<input type="number" class='form-control' name='startTime'/>
+					<input type="time" class='form-control' name='startTime'/>
 					<br/>
 
 					<label>End Time:</label>
-					<input type="number" class='form-control' name='endTime'/>
+					<input type="time" class='form-control' name='endTime'/>
 					<br/>
 					
 					<label>Break Duration:</label>

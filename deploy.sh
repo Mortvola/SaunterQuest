@@ -16,3 +16,8 @@ sudo cp \
 	resupplyPlan.js \
 	resupplyPlan.php \
 	/var/www/html/
+
+sudo cp \
+	hikerProfile/hikerProfile.js \
+	hikerProfile/hikerProfile.php \
+	/var/www/html/hikerProfile/
