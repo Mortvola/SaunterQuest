@@ -418,12 +418,12 @@ if ($hikeId)
 							<table class="table table-condensed">
 							<thead>
 							<tr>
-							<th>Start Day</th>
-							<th>End Day</th>
-							<th>Speed Factor</th>
-							<th>Start Time</th>
-							<th>End Time</th>
-							<th>Break Duration</th>
+							<th style="text-align:right">Start<br/>Day</th>
+							<th style="text-align:right">End<br/>Day</th>
+							<th style="text-align:right">Speed<br/>Factor</th>
+							<th style="text-align:right">Start<br/>Time</th>
+							<th style="text-align:right">End<br/>Time</th>
+							<th style="text-align:right">Break<br/>Duration</th>
 							</tr>
 							</thead>
 							<tbody id="hikerProfilesTable">
@@ -456,7 +456,7 @@ if ($hikeId)
 							<tr>
 							<th>Type</th>
 							<th>Description</th>
-							<th>Speed Factor</th>
+							<th style='text-align:right'>Speed Factor</th>
 							</tr>
 							</thead>
 							<tbody">

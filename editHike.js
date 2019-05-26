@@ -1150,7 +1150,9 @@ function calculate ()
 				}
 				
 				dayMarkers[day].listener = attachInfoWindowMessage(dayMarkers[day],
-					"<div>Day " + dayMarkers[day].day
+					"<div>"
+					+ (day == 0 ? "Start of day " + (dayMarkers[day].day + 1)
+						: "End of day " + dayMarkers[day].day)
 					+ "</div><div>Mile: " + metersToMilesRounded(data[d].meters)
 					+ "</div><div>Elevation: " + metersToFeet(data[d].ele) + "\'</div>");
 				

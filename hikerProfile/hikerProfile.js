@@ -14,12 +14,31 @@ function hikerProfileRowGet (profile)
 	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='editHikerProfile(" + profile.hikerProfileId + ")'><span class='glyphicon glyphicon-pencil'></span></a>";
 	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='removeHikerProfile(" + profile.hikerProfileId + ")'><span class='glyphicon glyphicon-trash'></span></a>";
 	txt += "</span>"
-	txt += nvl(profile.startDay, "") + "</td>";
-	txt += "<td align='right'>" + nvl(profile.endDay, "") + "</td>";
-	txt += "<td align='right'>" + nvl(profile.speedFactor, "") + "</td>";
-	txt += "<td align='right'>" + nvl(profile.startTime, "") + "</td>";
-	txt += "<td align='right'>" + nvl(profile.endTime, "") + "</td>";
-	txt += "<td align='right'>" + nvl(profile.breakDuration, "") + "</td>";
+	
+	// fixup start day.
+	var startDay = nvl(profile.startDay, "");
+	
+	if (startDay != "")
+	{
+		startDay = parseInt(startDay) + 1;
+	}
+	
+	txt += startDay + "</td>";
+
+	// fixup end day
+	var endDay = nvl(profile.endDay, "");
+	
+	if (endDay != "")
+	{
+		endDay = parseInt(endDay) + 1;
+	}
+	
+	txt += "<td style='text-align:right'>" + endDay + "</td>";
+
+	txt += "<td style='text-align:right'>" + nvl(profile.speedFactor, "") + "</td>";
+	txt += "<td style='text-align:right'>" + timeFormat(nvl(profile.startTime, "")) + "</td>";
+	txt += "<td style='text-align:right'>" + timeFormat(nvl(profile.endTime, "")) + "</td>";
+	txt += "<td style='text-align:right'>" + nvl(profile.breakDuration, "") + "</td>";
 
 	txt += "</tr>";
 
@@ -102,8 +121,8 @@ function editHikerProfile (hikerProfileId)
 	
 	if (h > -1)
 	{
-		$("input[name='startDay']").val(hikerProfiles[h].startDay);
-		$("input[name='endDay']").val(hikerProfiles[h].endDay);
+		$("input[name='startDay']").val(hikerProfiles[h].startDay == "" ? hikerProfiles[h].startDay : parseInt(hikerProfiles[h].startDay) + 1);
+		$("input[name='endDay']").val(hikerProfiles[h].endDay == "" ? hikerProfiles[h].endDay : parseInt(hikerProfiles[h].endDay) + 1);
 		$("input[name='speedFactor']").val(hikerProfiles[h].speedFactor);
 		
 		$("input[name='startTime']").val(toTimeString (hikerProfiles[h].startTime));
@@ -142,6 +161,16 @@ function updateHikerProfile (hikerProfileId)
 	var profile = objectifyForm($("#hikerProfileForm").serializeArray());
 	profile.hikerProfileId = hikerProfileId;
 	
+	if (profile.startDay != "")
+	{
+		profile.startDay = parseInt(profile.startDay) - 1;
+	}
+	
+	if (profile.endDay != "")
+	{
+		profile.endDay = parseInt(profile.endDay) - 1;
+	}
+	
 	profile.startTime = toTimeFloat(profile.startTime);
 	profile.endTime = toTimeFloat(profile.endTime);
 	
@@ -168,6 +197,16 @@ function updateHikerProfile (hikerProfileId)
 function insertHikerProfile ()
 {
 	var profile = objectifyForm($("#hikerProfileForm").serializeArray());
+	
+	if (profile.startDay != "")
+	{
+		profile.startDay = parseInt(profile.startDay) - 1;
+	}
+	
+	if (profile.endDay != "")
+	{
+		profile.endDay = parseInt(profile.endDay) - 1;
+	}
 	
 	profile.startTime = toTimeFloat(profile.startTime);
 	profile.endTime = toTimeFloat(profile.endTime);

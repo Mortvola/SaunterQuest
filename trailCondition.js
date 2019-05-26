@@ -95,8 +95,8 @@ function trailConditionRowGet (trailCondition)
 	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='removeTrailCondition(" + trailCondition.trailConditionId + ")'><span class='glyphicon glyphicon-trash'></span></a>";
 	txt += "</span>"
 	txt += trailConditionTypeGet(trailCondition.type) + "</td>";
-	txt += "<td align='left'>" + nvl(trailCondition.description, "") + "</td>";
-	txt += "<td align='right'>" + nvl(trailCondition.speedFactor, 100) + "</td>";
+	txt += "<td style='text-align:left'>" + nvl(trailCondition.description, "") + "</td>";
+	txt += "<td style='text-align:right'>" + nvl(trailCondition.speedFactor, 100) + "</td>";
 
 	txt += "</tr>";
 
