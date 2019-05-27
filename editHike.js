@@ -847,7 +847,15 @@ function displayLocation (object, position)
 //
 function positionMapToDay (d)
 {
-	positionMapToBounds ({lat: data[d].lat, lng: data[d].lng}, {lat: data[d+1].lat, lng: data[d+1].lng});
+	if (d < data.length - 1)
+	{
+		positionMapToBounds (data[d], data[d+1]);
+	}
+	else
+	{
+		positionMapToBounds (data[d], {lat: data[d].endLat, lng: data[d].endLng});
+	}
+
 }
 
 
