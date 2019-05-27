@@ -71,7 +71,7 @@ function loadResupply ()
 }
 
 
-function addResupplyLocation (position)
+function addResupplyLocation (object, position)
 {
 	$("#resupplyLocationSaveButton").off('click');
 	$("#resupplyLocationSaveButton").click(function () { insertResupplyLocation(position); });
@@ -159,9 +159,9 @@ function retrieveResupplyLocations ()
 }
 
 
-function resupplyFromLocation (shippingLocationId)
+function resupplyFromLocation (object, position)
 {
-	let resupplyEvent = {userHikeId: userHikeId, shippingLocationId: shippingLocationId}
+	let resupplyEvent = {userHikeId: userHikeId, shippingLocationId: object.shippingLocationId}
 
 	var xmlhttp = new XMLHttpRequest ();
 	xmlhttp.onreadystatechange = function ()
@@ -191,12 +191,12 @@ function findResupplyLocationIndex (shippingLocationId)
 }
 
 
-function editResupplyLocation (shippingLocationId)
+function editResupplyLocation (object, position)
 {
 	//
 	// Find the resupply location using the shippingLocationId.
 	//
-	let h = findResupplyLocationIndex (shippingLocationId);
+	let h = findResupplyLocationIndex (object.shippingLocationId);
 	
 	if (h > -1)
 	{
@@ -241,6 +241,6 @@ function updateResupplyLocation (shippingLocationId)
 }
 
 
-function deleteResupplyLocation ()
+function deleteResupplyLocation (object, position)
 {
 }

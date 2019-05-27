@@ -168,7 +168,7 @@ function findTrailConditionIndex (trailConditionId)
 
 function addTrailCondition ()
 {
-	setRouteContextMenu (trailConditionMenuGet ());
+	setContextMenu (actualRoutePolyline, trailConditionMenuGet ());
 
 	$("#trailConditionSaveButton").off('click');
 	$("#trailConditionSaveButton").click(function () { insertTrailCondition()});
@@ -221,7 +221,7 @@ function editTrailCondition (trailConditionId)
 		
 		trailConditions[t].polyLine.setMap(null);
 		
-		setRouteContextMenu (trailConditionMenuGet ());
+		setContextMenu (actualRoutePolyline, trailConditionMenuGet ());
 
 		$("#trailConditionForm select[name='type']").val(trailConditions[t].type);
 		$("#trailConditionForm input[name='description']").val(trailConditions[t].description);
@@ -261,7 +261,7 @@ function closeEditTrailConditions ()
 
 	endRouteHighlighting ();
 	
-	setRouteContextMenu (routeContextMenu);
+	setContextMenu (actualRoutePolyline, routeContextMenu);
 }
 
 

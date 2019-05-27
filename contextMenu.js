@@ -1,14 +1,35 @@
 "use strict";
 
+function removeContextMenu (object)
+{
+	if (object.rightClickContextMenu)
+	{
+		google.maps.event.removeListener (object.rightClickContextMenu);
+	}
+	
+	if (object.clickContextMenu)
+	{
+		google.maps.event.removeListener (object.clickContextMenu);
+	}
+}
+
+function setContextMenu (object, contextMenu)
+{
+	removeContextMenu(object);
+
+	object.rightClickContextMenu = object.addListener ("rightclick", function(event) {contextMenu.open (map, event, object);});
+	object.clickContextMenu = object.addListener ("click", function(event) {if (controlDown) { contextMenu.open (map, event, object);}});
+}
+
 function initializeContextMenu ()
 {
 	ContextMenu.prototype = new google.maps.OverlayView ();
 
-	ContextMenu.prototype.open = function (map, event, id)
+	ContextMenu.prototype.open = function (map, event, object)
 	{
 		this.set('position', event.latLng);
 		this.set('vertex', event.vertex);
-		this.set('id', id);
+		this.set('object', object);
 		
 		this.setMap(map);
 		this.draw ();
@@ -68,26 +89,19 @@ function initializeContextMenu ()
 			// If the context menu was for a marker then execute the method
 			// using the id as the parameter. Otherwise, use the
 			// location information as the parameter
-			var id = this.get('id');
+			var object = this.get('object');
 	
-			if (id != undefined)
+			var vertex = this.get ('vertex');
+			
+			if (vertex != undefined)
 			{
-				itemFunction(id);
+				itemFunction (object, vertex);
 			}
 			else
 			{
-				var vertex = this.get ('vertex');
-				
-				if (vertex != undefined)
-				{
-					itemFunction (vertex);
-				}
-				else
-				{
-					var position = this.get('position');
-		
-					itemFunction(position);
-				}
+				var position = this.get('position');
+	
+				itemFunction(object, position);
 			}
 	
 			this.close ();

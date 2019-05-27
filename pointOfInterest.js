@@ -17,15 +17,16 @@ function findPointOfInterestIndex (poiId)
 }
 
 
-function removePointOfInterest (poiId)
+function removePointOfInterest (object, position)
 {
 	var xmlhttp = new XMLHttpRequest ();
 	xmlhttp.onreadystatechange = function ()
 	{
 		if (this.readyState == 4 && this.status == 200)
 		{
-			var index = findPointOfInterestIndex(poiId);
+			var index = findPointOfInterestIndex(object.pointOfInterestId);
 			pointsOfInterest[index].marker.setMap (null);
+			removeContextMenu (pointsOfInterest[index].marker);
 			
 			pointsOfInterest.splice (index);
 			
@@ -35,7 +36,7 @@ function removePointOfInterest (poiId)
 	
 	xmlhttp.open("DELETE", "pointOfInterest.php", true);
 	xmlhttp.setRequestHeader("Content-type", "application/json");
-	xmlhttp.send(JSON.stringify(poiId));
+	xmlhttp.send(JSON.stringify(object.pointOfInterestId));
 }
 
 
@@ -83,9 +84,9 @@ function updatePointOfInterest (poiId)
 	xmlhttp.send(JSON.stringify(pointOfInterest));
 }
 
-function editPointOfInterest (poiId)
+function editPointOfInterest (object, position)
 {
-	var index = findPointOfInterestIndex(poiId);
+	var index = findPointOfInterestIndex(object.pointOfInterestId);
 
 	$("input[name='name']").val(pointsOfInterest[index].name);
 	$("input[name='description']").val(pointsOfInterest[index].description);
@@ -118,7 +119,9 @@ function addPointOfInterest (poi)
 		}
 	});
 
-	poi.marker.addListener ("rightclick", function (event) { pointOfInterestCM.open (map, event, poi.pointOfInterestId); });
+	poi.marker.pointOfInterestId = poi.pointOfInterestId;
+	
+	setContextMenu (poi.marker, pointOfInterestCM);
 	
 	poi.listener = attachInfoWindowMessage(poi,
 		"<div>" + poi.name + "</div>"
@@ -159,7 +162,7 @@ function insertPointOfInterest (position)
 }
 
 
-function showAddPointOfInterest (position)
+function showAddPointOfInterest (object, position)
 {
 	$("#pointOfInterestSaveButton").off('click');
 	$("#pointOfInterestSaveButton").click(function () { insertPointOfInterest(position); });

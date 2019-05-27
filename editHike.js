@@ -7,6 +7,8 @@ var anchors = [];
 var actualRoute = [];
 var actualRoutePolyline;
 
+var controlDown = false;
+
 var mapDragging = false;
 
 var trails = [];
@@ -18,8 +20,6 @@ var currentTrailWeight;
 var editedRoute = [];
 var routeContextMenu;
 var vertexContextMenu;
-var routeContextMenuListener;
-var vertexContextMenuListener;
 var map;
 var bounds = {};
 var data;
@@ -70,13 +70,16 @@ function attachInfoWindowMessage (poi, message)
 	
 	return poi.marker.addListener ("click", function ()
 	{
-		infoWindow.setContent (poi.message);
-		infoWindow.open(map, poi.marker);
+		if (!controlDown)
+		{
+			infoWindow.setContent (poi.message);
+			infoWindow.open(map, poi.marker);
+		}
 	});
 }
 
 
-function addNote (position)
+function addNote (object, position)
 {
 }
 
@@ -474,9 +477,14 @@ function vertexUpdated (index)
 
 function createEditablePolyline ()
 {
-	if (editPolyLine != undefined && editPolyLine.setMap != undefined)
+	if (editPolyLine != undefined)
 	{
-		editPolyLine.setMap(null);
+		if (editPolyLine.setMap != undefined)
+		{
+			editPolyLine.setMap(null);
+		}
+		
+		removeContextMenu(editPolyLine);
 	}
 	
 	editPolyLine = new google.maps.Polyline({
@@ -493,20 +501,15 @@ function createEditablePolyline ()
 	
 	editPolyLine.setMap(map);
 
-	if (vertexContextMenuListener)
-	{
-		google.maps.event.removeListener (vertexContextMenuListener);
-	}
-	
-	vertexContextMenuListener = editPolyLine.addListener ("rightclick", function (event) { if (event.vertex != undefined) { vertexContextMenu.open (map, event); }});
+	setContextMenu (editPolyLine, vertexContextMenu);
 
 	getAndLoadElevationData (0, editedRoute.length, editedRoute);
 }
 
 
-function deleteVertex (index)
+function deleteVertex (object, vertex)
 {
-	deletePoints (index, 1);
+	deletePoints (vertex, 1);
 }
 
 function clearVertices ()
@@ -544,7 +547,7 @@ function clearVertices ()
 }
 
 
-function recalculateDistances ()
+function recalculateDistances (object, position)
 {
 	for (let r in anchors)
 	{
@@ -586,7 +589,7 @@ function measureEndMarkerSet (position, segment)
 	displayRouteElevations (selectStartSegment, selectEndSegment);
 }
 
-function startRouteMeasurement (position)
+function startRouteMeasurement (object, position)
 {
 	setRouteHighlightStartMarker (position, measureStartMarkerSet);
 	setRouteHighlightEndMarker (position, measureEndMarkerSet);
@@ -601,7 +604,7 @@ function startRouteMeasurement (position)
 }
 
 
-function toggleEdit (position)
+function toggleEdit (object, position)
 {
 	editedRoute = [];
 
@@ -814,7 +817,7 @@ function findNearestSegment (position, anchors)
 }
 
 
-function displayLocation (position)
+function displayLocation (object, position)
 {
 	$("#modalTitle").html("Location");
 	$("#modalBody").html("Lat: " + position.lat() + " Lng: " + position.lng());
@@ -875,17 +878,6 @@ function positionMapToBounds (p1, p2)
 	}
 
 	map.fitBounds(bounds);
-}
-
-
-function setRouteContextMenu (contextMenu)
-{
-	if (routeContextMenuListener)
-	{
-		google.maps.event.removeListener (routeContextMenuListener);
-	}
-	
-	routeContextMenuListener = actualRoutePolyline.addListener ("rightclick", function (event) {contextMenu.open (map, event); });
 }
 
 
@@ -956,6 +948,8 @@ function drawRoute ()
 		if (actualRoutePolyline != undefined)
 		{
 			actualRoutePolyline.setMap(null);
+			
+			removeContextMenu(actualRoutePolyline);
 		}
 		
 		actualRoutePolyline = new google.maps.Polyline({
@@ -969,10 +963,7 @@ function drawRoute ()
 
 		actualRoutePolyline.setMap(map);
 		
-//		google.maps.event.addListener(actualRoutePolyline.getPath(), "insert_at", actualRouteVertexInserted);
-//		google.maps.event.addListener(actualRoutePolyline.getPath(), "set_at", actualRouteVertexUpdated);
-
-		setRouteContextMenu (routeContextMenu);
+		setContextMenu (actualRoutePolyline, routeContextMenu);
 	}
 }
 
@@ -988,6 +979,16 @@ function myMap()
 	};
 	
 	map = new google.maps.Map(document.getElementById("googleMap"), mapProp);
+
+	window.onkeydown = function(e)
+	{
+		controlDown = ((e.keyIdentifier == 'Control') || (e.ctrlKey == true));
+	}
+	
+	window.onkeyup = function(e)
+	{
+		controlDown = false;
+	}
 
 	initializeContextMenu ();
 
@@ -1005,7 +1006,7 @@ function myMap()
 		{title:"Edit Resupply Location", func:editResupplyLocation},
 		{title:"Delete Resupply Location", func:deleteResupplyLocation}]);
 
-	map.addListener ("rightclick", function(event) {mapContextMenu.open (map, event);});
+	setContextMenu (map, mapContextMenu);
 	map.addListener ("dragstart", function () { mapDragging = true;})
 	map.addListener ("dragend", function () { mapDragging = false; updateTrails (); });
 	map.addListener ("bounds_changed", function () { if (!mapDragging) { updateTrails (); }})

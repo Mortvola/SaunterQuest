@@ -80,7 +80,10 @@ function moveRouteHighlightMarkerToTrail (marker, listener)
 
 	highlightBetweenMarkers ();
 
-	listener (p, segment);
+	if (listener != undefined)
+	{
+		listener (p, segment);
+	}
 }
 
 

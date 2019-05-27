@@ -15,6 +15,7 @@ sudo cp \
 	pointOfInterest.php \
 	resupplyPlan.js \
 	resupplyPlan.php \
+	contextMenu.js \
 	/var/www/html/
 
 sudo cp \
