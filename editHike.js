@@ -162,8 +162,15 @@ function moveAnchor (index, vertex)
 
 			let anchorIndex = startSegment + index;
 			let anchor = anchors[anchorIndex];
-			let prevAnchor = anchors[anchorIndex - 1];
-	
+			let prevAnchor;
+			
+			let updatedLatLng = new google.maps.LatLng({lat: updatedVertex.point.lat, lng: updatedVertex.point.lng});
+			
+			if (anchorIndex > 0)
+			{
+				prevAnchor = anchors[anchorIndex - 1];
+			}
+			
 			actualRoute[anchor.actualRouteIndex].lat = updatedVertex.point.lat;
 			actualRoute[anchor.actualRouteIndex].lng = updatedVertex.point.lng;
 			actualRoute[anchor.actualRouteIndex].ele = updatedVertex.point.ele;
@@ -178,22 +185,24 @@ function moveAnchor (index, vertex)
 			editedRoute[index].lng = updatedVertex.point.lng;
 	
 			var path = editPolyLine.getPath ();
-			vertex = new google.maps.LatLng({lat: editedRoute[index].lat, lng: editedRoute[index].lng});
-			vertex.moved = true;
-			path.setAt(index, vertex);
+			updatedLatLng.moved = true;
+			path.setAt(index, updatedLatLng);
 
 			// Set the vertex that moved
 			path = actualRoutePolyline.getPath ();
-			path.setAt (anchor.actualRouteIndex, new google.maps.LatLng({lat: updatedVertex.point.lat, lng: updatedVertex.point.lng}));
+			path.setAt (anchor.actualRouteIndex, updatedLatLng);
 
-			if (prevAnchor.trail != undefined)
+			if (prevAnchor != undefined)
 			{
-				removePointsFromRoute (prevAnchor, anchorIndex - 1);
-			}
-
-			if (updatedVertex.previousTrail != undefined)
-			{
-				addPointsToRoute (prevAnchor, anchorIndex - 1, updatedVertex.previousTrail);
+				if (prevAnchor.trail != undefined)
+				{
+					removePointsFromRoute (prevAnchor, anchorIndex - 1);
+				}
+	
+				if (updatedVertex.previousTrail != undefined)
+				{
+					addPointsToRoute (prevAnchor, anchorIndex - 1, updatedVertex.previousTrail);
+				}
 			}
 
 			if (anchor.trail != undefined)
@@ -204,6 +213,15 @@ function moveAnchor (index, vertex)
 			if (updatedVertex.nextTrail != undefined)
 			{
 				addPointsToRoute (anchor, anchorIndex, updatedVertex.nextTrail);
+			}
+			
+			if (anchorIndex == 0)
+			{
+				dayMarkers[0].marker.setPosition (updatedLatLng);
+			}
+			else if (anchorIndex == anchors.length - 1)
+			{
+				endOfTrailMarker.marker.setPosition (updatedLatLng);
 			}
 		}
 	}
@@ -975,6 +993,69 @@ function drawRoute ()
 	}
 }
 
+
+function addNewRoute (position)
+{
+	var xmlhttp = new XMLHttpRequest ();
+	xmlhttp.onreadystatechange = function ()
+	{
+		if (this.readyState == 4 && this.status == 200)
+		{
+			retrieveRoute ();
+			calculate ();
+		}
+	}
+	
+	var route = {};
+	
+	route.userHikeId = userHikeId;
+	route.anchors = [];
+	
+	route.anchors.push({lat: position.lat (), lng: position.lng ()});
+	route.anchors.push({lat: position.lat (), lng: position.lng ()});
+	
+	xmlhttp.open("POST", "route.php", true);
+	xmlhttp.setRequestHeader("Content-type", "application/json");
+	xmlhttp.send(JSON.stringify(route));
+}
+
+
+function setStartLocation (object, position)
+{
+	// If there is no start or end location then
+	// add them both
+	if (anchors.length == 0)
+	{
+		addNewRoute (position);
+	}
+	else
+	{
+		toggleEdit (object, position);
+		
+		var path = editPolyLine.getPath ();
+		var vertex = path.setAt(0, position);
+	}
+}
+
+
+function setEndLocation (object, position)
+{
+	// If there is no start or end location then
+	// add them both
+	if (anchors.length == 0)
+	{
+		addNewRoute (position);
+	}
+	else
+	{
+		toggleEdit (object, position);
+		
+		var path = editPolyLine.getPath ();
+		var vertex = path.setAt(path.length - 1, position);
+	}
+}
+
+
 function myMap()
 {
 	var mapProp =
@@ -1003,7 +1084,9 @@ function myMap()
 	var mapContextMenu = new ContextMenu ([
 		{title:"Add Point of Interest", func:showAddPointOfInterest},
 		{title:"Create Resupply Location", func:addResupplyLocation},
-		{title:"Display Location", func:displayLocation}]);
+		{title:"Display Location", func:displayLocation},
+		{title:"Set Start Location", func:setStartLocation},
+		{title:"Set End Location", func:setEndLocation}]);
 
 	pointOfInterestCM = new ContextMenu ([
 		{title:"Edit Point of Interest", func:editPointOfInterest},

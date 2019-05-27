@@ -16,6 +16,9 @@ sudo cp \
 	resupplyPlan.js \
 	resupplyPlan.php \
 	contextMenu.js \
+	welcome.php \
+	userHike.php \
+	utilities.js \
 	/var/www/html/
 
 sudo cp \

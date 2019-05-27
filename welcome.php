@@ -18,6 +18,32 @@ require_once "checkLogin.php";
 	</style>
 </head>
 <body>
+	<!-- Modal -->
+	<div class="modal fade" id="addUserHike" role="dialog">
+		<div class="modal-dialog">
+		
+			<!-- Modal content-->
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Name Your Hike</h4>
+				</div>
+				<div class="modal-body">
+					<form id='userHikeForm'>
+						<label>Name:</label>
+						<input type="text" class='form-control' name='name'/>
+					<br/>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn" data-dismiss="modal">Cancel</button>
+					<button id='addUserHikeSaveButton' type="button" class="btn btn-default" data-dismiss="modal">Save</button>
+				</div>
+			</div>
+			
+		</div>
+	</div> <!--  Modal -->
+
 	<div class="page-header" style=" text-align: center;">
 		<h1>Backpacker's Planner</h1>
 	</div>
@@ -105,6 +131,11 @@ require_once "checkLogin.php";
 						echo "</tr>";
 					}
 					
+					echo "<tr id='userHikeLastRow'>";
+					echo "<td><a class='btn btn-sm' onclick='addUserHike()'><span class='glyphicon glyphicon-plus'></span></a></td>";
+					echo "<td/><td/><td/><td/>";
+					echo "</tr>";
+					
 					unset ($stmt);
 				}
 			?>
@@ -113,9 +144,10 @@ require_once "checkLogin.php";
 			</div>
 		</div>
 	</div>
+	<script src="/utilities.js"></script>
 	<script>
 	"use strict";
-
+	
 	function deleteHike (userHikeId)
 	{
 		var xmlhttp = new XMLHttpRequest ();
@@ -127,10 +159,42 @@ require_once "checkLogin.php";
  	 			userHike.parentElement.removeChild(userHike);
 			}
 		}
+
+		var userHike = {}
+
+		userHike.userHikeId = userHikeId;
 		
-		xmlhttp.open("POST", "DeleteUserHike.php", true);
-		xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-		xmlhttp.send("id=" + userHikeId);
+		xmlhttp.open("DELETE", "userHike.php", true);
+		xmlhttp.setRequestHeader("Content-type", "application/json");
+		xmlhttp.send(JSON.stringify(userHike));
+	}
+
+	function insertUserHike ()
+	{
+		var userHike = objectifyForm($("#userHikeForm").serializeArray());
+		
+		var xmlhttp = new XMLHttpRequest ();
+		xmlhttp.onreadystatechange = function ()
+		{
+			if (this.readyState == 4 && this.status == 200)
+			{
+				userHike = JSON.parse(this.responseText);
+
+				document.location.href = "/editHike.php?id=" + userHike.userHikeId;
+			}
+		}
+		
+		xmlhttp.open("POST", "userHike.php", true);
+		xmlhttp.setRequestHeader("Content-type", "application/json");
+		xmlhttp.send(JSON.stringify(userHike));
+	}
+		
+	function addUserHike ()
+	{
+		$("#addUserHikeSaveButton").off('click');
+		$("#addUserHikeSaveButton").click(insertUserHike);
+
+		$("#addUserHike").modal ('show');
 	}
 	</script>
 </body>

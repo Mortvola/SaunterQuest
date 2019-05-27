@@ -4,44 +4,6 @@ require_once "config.php";
 require_once "coordinates.php";
 require_once "routeFile.php";
 
-class hike {};
-
-function getFileName ($userHikeId)
-{
-	global $pdo;
-	
-	try
-	{
-		$sql = "select h.file
-			from userHike uh
-			join hike h on h.hikeId = uh.hikeId
-			where uh.userHikeId = :userHikeId";
-		
-		if ($stmt = $pdo->prepare($sql))
-		{
-			$stmt->bindParam(":userHikeId", $paramUserHikeId, PDO::PARAM_INT);
-			
-			$paramUserHikeId = $userHikeId;
-			
-			$stmt->execute ();
-			
-			$hike = $stmt->fetchAll (PDO::FETCH_CLASS, 'hike');
-			
-			$fileName = "data/" . $hike[0]->file;
-			
-			unset($stmt);
-		}
-	}
-	catch(PDOException $e)
-	{
-		http_response_code (500);
-		echo $e->getMessage();
-		throw $e;
-	}
-	
-	return $fileName;
-}
-
 
 function findTrail (&$point, &$trailName, &$trailIndex, &$route)
 {
@@ -68,8 +30,8 @@ function findTrail (&$point, &$trailName, &$trailIndex, &$route)
 			$trail = json_decode($jsonString);
 			
 			if (isset($trail) && isset($trail->route)
-			 && $point->lng >= $trail->minLng && $point->lng <= $trail->maxLng
-			 && $point->lat >= $trail->minLat && $point->lat <= $trail->maxLat)
+					&& $point->lng >= ($trail->minLng - 0.00027027) && $point->lng <= ($trail->maxLng + 0.00027027)
+					&& $point->lat >= ($trail->minLat - 0.00027027) && $point->lat <= ($trail->maxLat + 0.00027027))
 			{
 				$newPoint = (object)[];
 				
@@ -81,7 +43,9 @@ function findTrail (&$point, &$trailName, &$trailIndex, &$route)
 					
 					$shortestDistance = $distance;
 					$trailName = $trail->type . ":" . $trail->feature;
-					$trailIndex = $index;
+					// The new point is on the closest segment found on the trail. Therefore, the trail
+					// route will start at the next segment.
+					$trailIndex = $index + 1; 
 					$route = $trail->route;
 					
 					$adjustedPoint = (object)["lat" => $newPoint->x, "lng" => $newPoint->y];
@@ -170,22 +134,50 @@ if ($_SERVER["REQUEST_METHOD"] == "GET")
 	$userId = $_SESSION["userId"];
 	$userHikeId = $_GET["id"];
 	
-	$fileName = getFileName ($userHikeId);
+	$fileName = getRouteFile ($userHikeId);
 
 	$segments = getRouteFromFile ($fileName);
 	
+	if ($segments == null)
+	{
+		$segments = [];
+	}
+	
 	echo json_encode($segments);
+}
+else if ($_SERVER["REQUEST_METHOD"] == "POST")
+{
+	$route = json_decode(file_get_contents("php://input"));
+	
+	$fileName = getRouteFile ($route->userHikeId);
+	
+	$distance = 0;
+	
+	for ($index = 0; $index < count($route->anchors); $index++)
+	{
+		$route->anchors[$index]->ele = getElevation ($route->anchors[$index]->lat, $route->anchors[$index]->lng);
+		$route->anchors[$index]->dist = $distance;
+		
+		if ($index < count($route->anchors) - 1)
+		{
+			$distance += haversineGreatCircleDistance (
+					$route->anchors[$index]->lat, $route->anchors[$index]->lng,
+					$route->anchors[$index + 1]->lat, $route->anchors[$index + 1]->lng);
+		}
+	}
+	
+	$result = file_put_contents ($fileName, json_encode($route->anchors));
 }
 else if ($_SERVER["REQUEST_METHOD"] == "PUT")
 {
 	$routeUpdate = json_decode(file_get_contents("php://input"));
 
-	$fileName = getFileName ($routeUpdate->userHikeId);
+	$fileName = getRouteFile ($routeUpdate->userHikeId);
 	
 	if ($fileName)
 	{
 		// Read the data from the file.
-		$segments = readAndSanatizeFile ($fileName);
+		$segments = readAndSanitizeFile ($fileName);
 		
 		if ($routeUpdate->mode == "update")
 		{

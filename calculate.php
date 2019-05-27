@@ -1,6 +1,6 @@
 <?php 
 
-$commandLine = 1;
+$commandLine = 0;
 
 if ($commandLine == 0)
 {
@@ -1223,49 +1223,11 @@ function userHikeDataStore ($jsonHikeData)
 }
 
 
-function getRouteFile ()
-{
-	global $userHikeId, $pdo;
-
-	class hike {};
-	
-	try
-	{
-		$sql = "select h.file
-			from userHike uh
-			join hike h on h.hikeId = uh.hikeId
-			where uh.userHikeId = :userHikeId";
-		
-		if ($stmt = $pdo->prepare($sql))
-		{
-			$stmt->bindParam(":userHikeId", $paramUserHikeId, PDO::PARAM_INT);
-			
-			$paramUserHikeId = $userHikeId;
-			
-			$stmt->execute ();
-			
-			$hike = $stmt->fetchAll (PDO::FETCH_CLASS, 'hike');
-			
-			$fileName = $hike[0]->file;
-			
-			unset($stmt);
-		}
-	}
-	catch(PDOException $e)
-	{
-		http_response_code (500);
-		echo $e->getMessage();
-		throw $e;
-	}
-	
-	return "data/" . $fileName;
-}
-
 // Main routine
 {
 	$segments = [];
 
-	$fileName = getRouteFile ();
+	$fileName = getRouteFile ($userHikeId);
 	$route = getRouteFromFile($fileName);
 	
 	foreach ($route as $r)

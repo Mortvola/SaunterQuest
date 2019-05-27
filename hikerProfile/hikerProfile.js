@@ -137,19 +137,6 @@ function editHikerProfile (hikerProfileId)
 }
 
 
-function objectifyForm(formArray)
-{
-	var returnObject = {};
-	
-	for (let i in formArray)
-	{
-		returnObject[formArray[i]['name']] = formArray[i]['value'];
-	}
-	
-	return returnObject;
-}
-
-
 function toTimeFloat (time)
 {
 	return parseInt(time.substring (0, 2)) + parseInt(time.substring(3)) / 60.0;

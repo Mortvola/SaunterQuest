@@ -142,7 +142,7 @@ function assignDistances (&$segments, $startIndex)
 }
 
 
-function readAndSanatizeFile ($fileName)
+function readAndSanitizeFile ($fileName)
 {
 	$segments = json_decode(file_get_contents($fileName));
 	
@@ -165,14 +165,14 @@ function getRouteFromFile ($fileName)
 {
 	if (isset($fileName) && $fileName != "")
 	{
-		$segments = readAndSanatizeFile ($fileName);
+		$segments = readAndSanitizeFile ($fileName);
 		
 		for ($s = 0; $s < count($segments) - 1; $s++)
 		{
 			// If this segment and the next start on the same trail then
 			// find the route along the trail.
-			if (isset($segments[$s]->trailName) && isset($segments[$s + 1]->trailName)
-					&& $segments[$s]->trailName == $segments[$s + 1]->trailName)
+			if (isset($segments[$s]->trailName) && isset($segments[$s + 1]->trailName) &&
+				$segments[$s]->trailName == $segments[$s + 1]->trailName)
 			{
 				$trail = getTrail ($segments[$s]->lat, $segments[$s]->lng, $segments[$s]->trailName, $segments[$s]->trailIndex, $segments[$s + 1]->trailIndex);
 				
