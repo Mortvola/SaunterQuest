@@ -129,6 +129,85 @@ function modifyPoint (&$segments, $routeUpdate)
 }
 
 
+function deletePoints (&$segments, $routeUpdate)
+{
+	// Remove the specified points
+	array_splice ($segments, $routeUpdate->index, $routeUpdate->length);
+	$segments = array_values($segments);
+	
+	$prevSegment = $segments[$routeUpdate->index - 1];
+	$nextSegment = $segments[$routeUpdate->index];
+	
+	// Are the previous point and the next point on the same trail? If so, then send all
+	// of the points between the previous point and the next point.
+	if ($routeUpdate->index > 0 && $routeUpdate->index < count($segments)
+			&& isset ($prevSegment->trailName) && isset($nextSegment->trailName)
+			&& $prevSegment->trailName == $nextSegment->trailName)
+	{
+		$result = getTrail($prevSegment->lat, $prevSegment->lng,
+				$prevSegment->trailName, $prevSegment->trailIndex,
+				$nextSegment->trailIndex);
+		
+		if (isset($result) && count($result) > 0)
+		{
+			$prevLat = $prevSegment->lat;
+			$prevLng = $prevSegment->lng;
+			$distance = $prevSegment->dist;
+			
+			assignTrailDistances ($result, $distance, $prevLat, $prevLng);
+		}
+	}
+	
+	// Adjust distances now that vertices have been removed.
+	if ($routeUpdate->index < count($segments))
+	{
+		assignDistances ($segments, $routeUpdate->index - 1);
+	}
+	
+	echo json_encode($result);
+}
+
+
+function addTrail (&$segments, $routeUpdate)
+{
+	$trailName = $routeUpdate->type . ":" . $routeUpdate->feature;
+	
+	$route = getFullTrail ($routeUpdate->point->lat, $routeUpdate->point->lng, $trailName);
+
+	if (isset ($route))
+	{
+		$s = nearestSegmentFind ($route[0]->lat, $route[0]->lng, $segments);
+	
+		if ($s != -1)
+		{
+			$anchor1 = (object)[];
+			
+			$anchor1->trailName = $trailName;
+			$anchor1->trailIndex = 0;
+			$anchor1->lat = $route[0]->lat;
+			$anchor1->lng = $route[0]->lng;
+			$anchor1->ele = getElevation ($anchor1->lat, $anchor1->lng);
+	
+			var_dump ($anchor1);
+			
+			array_push($segments, $anchor1);
+	
+			$anchor2 = (object)[];
+			
+			$anchor2->trailName = $trailName;
+			$anchor2->trailIndex = count($route) - 1;
+			$anchor2->lat = $route[$anchor2->trailIndex]->lat;
+			$anchor2->lng = $route[$anchor2->trailIndex]->lng;
+			$anchor2->ele = getElevation ($anchor2->lat, $anchor2->lng);
+	
+			var_dump ($anchor2);
+			
+			array_push($segments, $anchor2);
+		}
+	}
+}
+
+
 if ($_SERVER["REQUEST_METHOD"] == "GET")
 {
 	$userId = $_SESSION["userId"];
@@ -192,44 +271,16 @@ else if ($_SERVER["REQUEST_METHOD"] == "PUT")
 		}
 		else if ($routeUpdate->mode == "delete")
 		{
-			 // Remove the specified points
-			array_splice ($segments, $routeUpdate->index, $routeUpdate->length);
-			$segments = array_values($segments);
-			
-			$prevSegment = $segments[$routeUpdate->index - 1];
-			$nextSegment = $segments[$routeUpdate->index];
-			
-			// Are the previous point and the next point on the same trail? If so, then send all
-			// of the points between the previous point and the next point.
-			if ($routeUpdate->index > 0 && $routeUpdate->index < count($segments)
-				&& isset ($prevSegment->trailName) && isset($nextSegment->trailName)
-				&& $prevSegment->trailName == $nextSegment->trailName)
-			{
-				$result = getTrail($prevSegment->lat, $prevSegment->lng,
-						$prevSegment->trailName, $prevSegment->trailIndex,
-						$nextSegment->trailIndex);
-				
-				if (isset($result) && count($result) > 0)
-				{
-					$prevLat = $prevSegment->lat;
-					$prevLng = $prevSegment->lng;
-					$distance = $prevSegment->dist;
-					
-					assignTrailDistances ($result, $distance, $prevLat, $prevLng);
-				}
-			}
-
-			// Adjust distances now that vertices have been removed.
-			if ($routeUpdate->index < count($segments))
-			{
-				assignDistances ($segments, $routeUpdate->index - 1);
-			}
-				
-			echo json_encode($result);
+			deletePoints ($segments, $routeUpdate);
 		}
+		else if ($routeUpdate->mode == "addTrail")
+		{
+			addTrail ($segments, $routeUpdate);
+		}
+			
 		
 		// Write the data to the file.
-		$result = file_put_contents ($fileName, json_encode($segments));
+		file_put_contents ($fileName, json_encode($segments));
 	}
 }
 ?>

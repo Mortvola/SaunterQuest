@@ -37,9 +37,9 @@ if ($_SERVER["REQUEST_METHOD"] == "GET")
 			
 			if (isset($trail))
 			{
-				if (isset($trail->route))
+				if (isset($trail->routes))
 				{
-					$t = (object)[ "type" => $trail->type, "route" => $trail->route];
+					$t = (object)[ "type" => $trail->type, "cn" => $trail->cn, "name" => $trail->name, "routes" => $trail->routes];
 	
 					if (!$first)
 					{
@@ -60,7 +60,26 @@ if ($_SERVER["REQUEST_METHOD"] == "GET")
 		fclose ($handle);
 	}
 	
-	echo "]}";
+	echo "],";
+
+	echo '"intersections":';
+	
+	$handle = fopen ("trails/N405W1095.inter.json", "rb");
+	
+	if ($handle)
+	{
+		$jsonString = fgets ($handle);
+		
+		echo $jsonString;
+		
+		fclose ($handle);
+	}
+	else
+	{
+		echo "[]";
+	}
+	
+	echo "}";
 }
 else if ($_SERVER["REQUEST_METHOD"] == "PUT")
 {

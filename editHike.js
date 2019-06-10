@@ -17,6 +17,8 @@ var trailCoords = {};
 var currentTrailBounds;
 var currentTrailWeight;
 
+var trailContextMenu;
+
 var editedRoute = [];
 var routeContextMenu;
 var vertexContextMenu;
@@ -1088,6 +1090,14 @@ function myMap()
 		{title:"Set Start Location", func:setStartLocation},
 		{title:"Set End Location", func:setEndLocation}]);
 
+	trailContextMenu = new ContextMenu ([
+		{title:"Add Point of Interest", func:showAddPointOfInterest},
+		{title:"Create Resupply Location", func:addResupplyLocation},
+		{title:"Display Location", func:displayLocation},
+		{title:"Add trail to route", func:addTrailToRoute},
+		{title:"Set Start Location", func:setStartLocation},
+		{title:"Set End Location", func:setEndLocation}]);
+
 	pointOfInterestCM = new ContextMenu ([
 		{title:"Edit Point of Interest", func:editPointOfInterest},
 		{title:"Remove Point of Interest", func:removePointOfInterest}]);
@@ -1353,6 +1363,7 @@ function releaseTrails ()
 {
 	for (let t in trails)
 	{
+		removeContextMenu(trails[t]);
 		trails[t].setMap(null);
 	}
 	
@@ -1380,6 +1391,30 @@ function getTrailWeight ()
 	}
 }
 
+
+function addTrailToRoute (object, position)
+{
+	console.log (trailCoords.trails[object.trailCoordsIndex].name);
+	
+//	var xmlhttp = new XMLHttpRequest ();
+//	xmlhttp.onreadystatechange = function ()
+//	{
+//		if (this.readyState == 4 && this.status == 200)
+//		{
+//		}
+//	}
+//	
+//	var routeUpdate = {userHikeId: userHikeId, mode: "addTrail",
+//						type: trailCoords.trails[object.trailCoordsIndex].type,
+//						feature: trailCoords.trails[object.trailCoordsIndex].feature,
+//						point: {lat: position.lat (), lng: position.lng ()}};
+//	
+//	xmlhttp.open("PUT", "route.php", true);
+//	xmlhttp.setRequestHeader("Content-type", "application/json");
+//	xmlhttp.send(JSON.stringify(routeUpdate));
+}
+
+
 function drawTrails ()
 {
 	if (map && trailCoords.trails.length > 0)
@@ -1388,18 +1423,25 @@ function drawTrails ()
 		
 		for (let t in trailCoords.trails)
 		{
-			let trail = new google.maps.Polyline({
-				path: trailCoords.trails[t].route,
-				editable: false,
-				geodesic: true,
-				strokeColor: trailCoords.trails[t].type == "trail" ? '#704513' : "#404040",
-				strokeOpacity: 1.0,
-				strokeWeight: currentTrailWeight,
-				zIndex: 15});
-	
-			trail.setMap(map);
-			
-			trails.push(trail);
+			for (let r in trailCoords.trails[t].routes)
+			{
+				let trail = new google.maps.Polyline({
+					path: trailCoords.trails[t].routes[r].route,
+					editable: false,
+					geodesic: true,
+					strokeColor: trailCoords.trails[t].type == "trail" ? '#704513' : "#404040",
+					strokeOpacity: 1.0,
+					strokeWeight: currentTrailWeight,
+					zIndex: 15});
+		
+				trail.setMap(map);
+				
+				trail.trailCoordsIndex = parseInt(t);
+				
+				setContextMenu (trail, trailContextMenu);
+				
+				trails.push(trail);
+			}
 		}
 	}
 }
@@ -1427,6 +1469,17 @@ function retrieveTrails ()
 					{lat: trailCoords.bounds[2], lng: trailCoords.bounds[3]});
 			
 			drawTrails ();
+			
+			for (let i in trailCoords.intersections)
+			{
+				new google.maps.Marker({
+					position: trailCoords.intersections[i],
+					map: map,
+					icon: {
+						url: endPointUrl
+					},
+				});
+			}
 		}
 	}
 	

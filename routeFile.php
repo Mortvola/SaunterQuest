@@ -30,7 +30,7 @@ function trimRoute ($route, $startIndex, $endIndex)
 }
 
 
-function getTrail ($lat, $lng, $trailName, $startIndex, $endIndex)
+function getFullTrail ($lat, $lng, $trailName)
 {
 	if (strpos ($trailName, ":") !== false)
 	{
@@ -63,7 +63,7 @@ function getTrail ($lat, $lng, $trailName, $startIndex, $endIndex)
 					}
 				}
 			}
-				
+			
 			fclose ($handle);
 		}
 	}
@@ -71,7 +71,15 @@ function getTrail ($lat, $lng, $trailName, $startIndex, $endIndex)
 	{
 		$route = json_decode(file_get_contents($trailName));
 	}
+	
+	return $route;
+}
 
+
+function getTrail ($lat, $lng, $trailName, $startIndex, $endIndex)
+{
+	$route = getFullTrail ($lat, $lng, $trailName);
+	
 	return trimRoute ($route, $startIndex, $endIndex);
 }
 
