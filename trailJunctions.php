@@ -339,12 +339,91 @@ function withinBounds ($point, $bounds)
 	 && $point->lng <= $bounds[3];
 }
 
-function findJunctions ($trail, $handle)
+
+function findJunctions2 ($r, $routes, $startIndex, &$intersections)
 {
-	global $allIntersections, $intersectionCount;
 	global $duplicatePointCount;
 	global $overlappingTrailRectscount;
 	global $totalIntersectionsCount;
+	
+	for ($k = $startIndex; $k < count($routes); $k++)
+	{
+		$r2 = $routes[$k];
+		
+		$prevPoint = $r->route[0];
+		$junctionCount = 0;
+		$contiguousJunctionCount = 0;
+		$prevHadJunction = false;
+		
+		for ($i = 1; $i < count($r->route); $i++)
+		{
+			if ($prevPoint->lat != $r->route[$i]->lat
+					&& $prevPoint->lng != $r->route[$i]->lng)
+			{
+				if (count($r2->bounds) == 0 ||
+						withinBounds ($prevPoint, $r2->bounds) ||
+						withinBounds ($r->route[$i], $r2->bounds))
+				{
+					$overlappingTrailRectscount++;
+					
+					$newIntersections = [];
+					
+					segmentCrossesTrail ($prevPoint,
+							$r->route[$i],
+							$r2->route, $newIntersections);
+					
+					if (count($newIntersections) > 0)
+					{
+						$totalIntersectionsCount++;
+						
+						if (count($newIntersections) > 1)
+						{
+							//										echo "new intersections = ", count($newIntersections), "\n";
+						}
+						
+						$junctionCount += count($newIntersections);
+						
+						if ($prevHadJunction)
+						{
+							$contiguousJunctionCount++;
+						}
+						else
+						{
+							array_splice ($intersections, count($intersections), 0, $newIntersections);
+						}
+						
+						$prevHadJunction = true;
+					}
+					else
+					{
+						if ($contiguousJunctionCount > 0)
+						{
+							error_log("longest contiguous junctions: $contiguousJunctionCount");
+						}
+						
+						$contiguousJunctionCount = 0;
+						$prevHadJunction = false;
+					}
+				}
+				else
+				{
+					$prevHadJunction = false;
+				}
+				
+				$prevPoint = $r->route[$i];
+			}
+			else
+			{
+				$duplicatePointCount++;
+			}
+		}
+	}
+}
+
+
+function findJunctions ($trail, $handle)
+{
+	global $allIntersections;
 	
 //	echo "++++++\n";
 	
@@ -366,74 +445,7 @@ function findJunctions ($trail, $handle)
 			{
 				$r = $trail->routes[$j];
 
-				for ($k = $j + 1; $k < count($trail->routes); $k++)
-				{
-					$r2 = $trail->routes[$k];
-					
-					$prevPoint = $r->route[0];
-					$junctionCount = 0;
-					$contiguousJunctionCount = 0;
-					$prevHadJunction = false;
-					
-					for ($i = 1; $i < count($r->route); $i++)
-					{
-						if ($prevPoint->lat != $r->route[$i]->lat
-								&& $prevPoint->lng != $r->route[$i]->lng)
-						{
-							if (count($r2->bounds) == 0 ||
-									withinBounds ($prevPoint, $r2->bounds) ||
-									withinBounds ($r->route[$i], $r2->bounds))
-							{
-								$newIntersections = [];
-								
-								segmentCrossesTrail ($prevPoint,
-										$r->route[$i],
-										$r2->route, $newIntersections);
-								
-								if (count($newIntersections) > 0)
-								{
-									if (count($newIntersections) > 1)
-									{
-//										echo "new intersections = ", count($newIntersections), "\n";
-									}
-									
-									$junctionCount += count($newIntersections);
-									
-									if ($prevHadJunction)
-									{
-										$contiguousJunctionCount++;
-									}
-									else
-									{
-										array_splice ($intersections, count($intersections), 0, $newIntersections);
-									}
-									
-									$prevHadJunction = true;
-								}
-								else
-								{
-									if ($contiguousJunctionCount > 0)
-									{
-										error_log("longest contiguous junctions: $contiguousJunctionCount");
-									}
-									
-									$contiguousJunctionCount = 0;
-									$prevHadJunction = false;
-								}
-							}
-							else
-							{
-								$prevHadJunction = false;
-							}
-							
-							$prevPoint = $r->route[$i];
-						}
-						else
-						{
-							$duplicatePointCount++;
-						}
-					}
-				}
+				findJunctions2 ($r, $trail->routes, $j + 1, $intersections);
 
 				for (;;)
 				{
@@ -450,83 +462,7 @@ function findJunctions ($trail, $handle)
 					
 					error_log("count of other trail routes: ". count($otherTrail->routes));
 					
-					foreach ($otherTrail->routes as $r2)
-					{
-						$prevPoint = $r->route[0];
-						$junctionCount = 0;
-						$contiguousJunctionCount = 0;
-						$prevHadJunction = false;
-						
-						for ($i = 1; $i < count($r->route); $i++)
-						{
-							if ($prevPoint->lat != $r->route[$i]->lat
-								&& $prevPoint->lng != $r->route[$i]->lng)
-							{
-								if (count($r2->bounds) == 0 ||
-									withinBounds ($prevPoint, $r2->bounds) ||
-									withinBounds ($r->route[$i], $r2->bounds))
-								{
-									$overlappingTrailRectscount++;
-									
-									$newIntersections = [];
-									
-									segmentCrossesTrail ($prevPoint,
-											$r->route[$i],
-											$r2->route, $newIntersections);
-									
-									if (count($newIntersections) > 0)
-									{
-										$totalIntersectionsCount++;
-										
-										if (count($newIntersections) > 1)
-										{
-	//										echo "new intersections = ", count($newIntersections), "\n";
-										}
-										
-										$junctionCount += count($newIntersections);
-										
-										if ($prevHadJunction)
-										{
-											$contiguousJunctionCount++;
-										}
-										else
-										{
-											array_splice ($intersections, count($intersections), 0, $newIntersections);
-										}
-										
-										$prevHadJunction = true;
-									}
-									else
-									{
-										if ($contiguousJunctionCount > 0)
-										{
-											error_log("longest contiguous junctions: $contiguousJunctionCount");
-										}
-										
-										$contiguousJunctionCount = 0;
-										$prevHadJunction = false;
-									}
-								}
-								else
-								{
-									$prevHadJunction = false;
-								}
-								
-								$prevPoint = $r->route[$i];
-							}
-							else
-							{
-								$duplicatePointCount++;
-							}
-						}
-						
-	//					var_dump ($p);
-					}
-	
-					if ($junctionCount > 0)
-					{
-	//					echo "Trail ", $trail->cn, " has ", $junctionCount, " junctions with ", $otherTrail->cn, "  and conincides ", $contiguousJunctionCount, " times\n";
-					}
+					findJunctions2 ($r, $otherTrail->routes, 0, $intersections);
 				}
 				
 				fseek ($handle, $startPos);
