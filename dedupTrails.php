@@ -534,6 +534,8 @@ function removeDuplicates ($trail, $handle)
 	
 //	echo "Here ****************\n";
 	
+	$startPos = ftell($handle);
+	
 	if (isset($trail))
 	{
 		if (isset($trail->routes) && count($trail->routes) > 0)
@@ -618,11 +620,17 @@ function removeDuplicates ($trail, $handle)
 							var_dump ($newDedupedRoutes);
 						}
 					}
+					
+					fseek ($handle, $startPos);
 				
 					if (count($newDedupedRoutes) > 0)
 					{
 						array_splice ($dedupedRoutes, count($dedupedRoutes), 0, $newDedupedRoutes);
 					}
+				}
+				else
+				{
+					error_log ("empty route");
 				}
 			}
 			
@@ -662,6 +670,8 @@ function parseJSON ($inputFile)
 			{
 				break;
 			}
+			
+			$countOfOriginalTrails++;
 			
 			$startPos = ftell($handle);
 			
@@ -710,6 +720,7 @@ function parseJSON ($inputFile)
 		fclose ($handle);
 	}
 
+	error_log ("original trail count = " . $countOfOriginalTrails);
 	error_log ("stored trails = " . $storedTrailCount);
 	error_log ("trails removed = " . $removedTrailcount);
 	error_log("junctions removed = " . $totalJunctionsRemoved);
@@ -726,6 +737,6 @@ function parseJSON ($inputFile)
 
 // var_dump ($intersection);
 
-parseJSON ("N405W1095.trails.test");
+parseJSON ("N405W1095.trails");
 
 ?>

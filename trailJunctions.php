@@ -10,6 +10,8 @@ $pointCount = 0;
 $duplicatePointCount = 0;
 $closeIntersectionCount = 0;
 $allIntersections = [];
+$overlappingTrailRectscount = 0;
+$totalIntersectionsCount = 0;
 
 function vector ($p1, $p2)
 {
@@ -341,8 +343,12 @@ function findJunctions ($trail, $handle)
 {
 	global $allIntersections, $intersectionCount;
 	global $duplicatePointCount;
+	global $overlappingTrailRectscount;
+	global $totalIntersectionsCount;
 	
 //	echo "++++++\n";
+	
+	$startPos = ftell($handle);
 	
 	if (isset($trail))
 	{
@@ -415,6 +421,10 @@ function findJunctions ($trail, $handle)
 									$prevHadJunction = false;
 								}
 							}
+							else
+							{
+								$prevHadJunction = false;
+							}
 							
 							$prevPoint = $r->route[$i];
 						}
@@ -456,6 +466,8 @@ function findJunctions ($trail, $handle)
 									withinBounds ($prevPoint, $r2->bounds) ||
 									withinBounds ($r->route[$i], $r2->bounds))
 								{
+									$overlappingTrailRectscount++;
+									
 									$newIntersections = [];
 									
 									segmentCrossesTrail ($prevPoint,
@@ -464,6 +476,8 @@ function findJunctions ($trail, $handle)
 									
 									if (count($newIntersections) > 0)
 									{
+										$totalIntersectionsCount++;
+										
 										if (count($newIntersections) > 1)
 										{
 	//										echo "new intersections = ", count($newIntersections), "\n";
@@ -493,6 +507,10 @@ function findJunctions ($trail, $handle)
 										$prevHadJunction = false;
 									}
 								}
+								else
+								{
+									$prevHadJunction = false;
+								}
 								
 								$prevPoint = $r->route[$i];
 							}
@@ -510,6 +528,8 @@ function findJunctions ($trail, $handle)
 	//					echo "Trail ", $trail->cn, " has ", $junctionCount, " junctions with ", $otherTrail->cn, "  and conincides ", $contiguousJunctionCount, " times\n";
 					}
 				}
+				
+				fseek ($handle, $startPos);
 			}
 			
 			if (count ($intersections) > 0)
@@ -536,6 +556,8 @@ function parseJSON ($inputFile)
 {
 	global $allIntersections;
 	global $intersectionCount, $overlapCount, $pointCount, $duplicatePointCount, $closeIntersectionCount;
+	global $overlappingTrailRectscount;
+	global $totalIntersectionsCount;
 	
 	$handle = fopen($inputFile, "rb");
 	
@@ -573,11 +595,12 @@ function parseJSON ($inputFile)
 	}
 
 	error_log("intersect count = " . $intersectionCount);
+	error_log("total intersections = " . $totalIntersectionsCount);
+	error_log("overlapping trail bounds = " . $overlappingTrailRectscount);
 	error_log("close intersect count = " . $closeIntersectionCount);
 	error_log("overlap count = " . $overlapCount);
 	error_log("point count = " . $pointCount);
 	error_log("duplicate point count = " . $duplicatePointCount);
-	
 	echo json_encode(array_values ($allIntersections));
 }
 
