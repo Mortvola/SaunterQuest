@@ -289,6 +289,8 @@ function segmentsIntersection ($coord1, $coord2, $coord3, $coord4)
 
 function segmentCrossesTrail ($coord1, $coord2, $route)
 {
+	global $duplicatePointCount;
+	
 	$intersections = [];
 	
 	$prevPoint = $route[0];
@@ -318,6 +320,8 @@ function segmentCrossesTrail ($coord1, $coord2, $route)
 // 						error_log(var_dump_ret($prevIntersection->lng - $intersection->lng));
 // 					}
 					
+					$intersection->index = $i;
+					
 					array_push($intersections, $intersection);
 					
 					$prevIntersection = $intersection;
@@ -325,6 +329,10 @@ function segmentCrossesTrail ($coord1, $coord2, $route)
 			}
 			
 			$prevPoint = $route[$i];
+		}
+		else
+		{
+			$duplicatePointCount++;
 		}
 	}
 	
@@ -358,11 +366,13 @@ function var_dump_ret($mixed = null)
 	return $content;
 }
 
-function findJunctions2 ($r, $routes, $startIndex, &$intersections)
+function findJunctions2 ($r, $routes, $startIndex)
 {
 	global $duplicatePointCount;
 	global $overlappingTrailRectscount;
 	global $totalIntersectionsCount;
+	
+	$intersections = [];
 	
 	for ($k = $startIndex; $k < count($routes); $k++)
 	{
@@ -409,22 +419,19 @@ function findJunctions2 ($r, $routes, $startIndex, &$intersections)
 							}
 							else
 							{
-								if (count($intersections) > 0
-										&& $intersections[count($intersections) - 1]->lat == $newIntersections[0]->lat
-										&& $intersections[count($intersections) - 1]->lng == $newIntersections[0]->lng)
+								foreach ($newIntersections as $intersection)
 								{
-									// The last point in the All Intersections array is the same as the first point
-									// in the New Intersections array. Splice it out and add any remaining New Intersection
-									// points to the All Intersections array.
-									if (count($newIntersections) > 1)
+									if (count($intersections) == 0
+										|| ($intersections[count($intersections) - 1]->lat != $intersection->lat
+											&& $intersections[count($intersections) - 1]->lng != $intersection->lng))
 									{
-										array_splice ($newIntersections, 0, 1);
-										array_splice ($intersections, count($intersections), 0, $newIntersections);
+										array_push ($intersections, (object)[
+												"lat" => $intersection->lat,
+												"lng" => $intersection->lng,
+												"route1Index" => $i,
+												"route2Index" => $k,
+												"route2routeIndex" => $intersection->index]);
 									}
-								}
-								else
-								{
-									array_splice ($intersections, count($intersections), 0, $newIntersections);
 								}
 							}
 							
@@ -455,13 +462,50 @@ function findJunctions2 ($r, $routes, $startIndex, &$intersections)
 			}
 		}
 	}
+	
+	return $intersections;
+}
+
+
+function addIntersections (
+	$intersections,
+	$trail1CN,
+	$trail1Index,
+	$trail2CN)
+{
+	global $allIntersections;
+	
+	if (count ($intersections) > 0)
+	{
+		foreach ($intersections as $intersection)
+		{
+			$i = (object)[
+				"lat" => $intersection->lat,
+				"lng" => $intersection->lng
+			];
+			
+			$i->routes = [];
+
+			array_push($i->routes, (object)[
+				"cn" => $trail1CN,
+				"routeIndex" => $intersection->route1Index,
+				"index" => $trail1Index
+			]);
+
+			array_push($i->routes, (object)[
+					"cn" => $trail2CN,
+					"routeIndex" => $intersection->route2routeIndex,
+					"index" => $intersection->route2Index
+			]);
+			
+			array_push($allIntersections, $i);
+		}
+	}
 }
 
 
 function findJunctions ($trail, $handle)
 {
-	global $allIntersections;
-	
 //	echo "++++++\n";
 	
 	$startPos = ftell($handle);
@@ -472,8 +516,6 @@ function findJunctions ($trail, $handle)
 		{
 	//		echo "*****\n";
 			
-			$intersections = [];
-			
 			$maxContiguousCount = 0;
 			
 //			error_log("count of trail routes: ". count($trail->routes));
@@ -482,8 +524,10 @@ function findJunctions ($trail, $handle)
 			{
 				$r = $trail->routes[$j];
 
-				findJunctions2 ($r, $trail->routes, $j + 1, $intersections);
+				$intersections = findJunctions2 ($r, $trail->routes, $j + 1);
 
+				addIntersections ($intersections, $trail->cn, $j, $trail->cn);
+				
 				for (;;)
 				{
 					$jsonString = fgets ($handle);
@@ -499,16 +543,12 @@ function findJunctions ($trail, $handle)
 					
 //					error_log("count of other trail routes: ". count($otherTrail->routes));
 					
-					findJunctions2 ($r, $otherTrail->routes, 0, $intersections);
+					$intersections = findJunctions2 ($r, $otherTrail->routes, 0);
+
+					addIntersections ($intersections, $trail->cn, $j, $otherTrail->cn);
 				}
 				
 				fseek ($handle, $startPos);
-			}
-			
-			if (count ($intersections) > 0)
-			{
-				array_splice($allIntersections, count($allIntersections), 0, $intersections);
-//				echo "total intersections ", count($allIntersections), "\n";
 			}
 		}
 		else
@@ -521,6 +561,89 @@ function findJunctions ($trail, $handle)
 	{
 		error_log ("JSON not decodable:");
 		error_log ($jsonString);
+	}
+}
+
+
+function findEdges ()
+{
+	global $allIntersections;
+	
+	for ($i = 0; $i < count($allIntersections); $i++)
+	{
+		$node1 = $allIntersections[$i];
+		
+		for ($k = 0; $k < count($node1->routes); $k++)
+		{
+			if (!isset($node1->routes[$k]->prevConnected) || $node1->routes[$k]->prevConnected == false
+				|| !isset($node1->routes[$k]->nextConnected) || $node1->routes[$k]->nextConnected == false)
+			{
+				error_log ("search for other junction to match " . $node1->routes[$k]->cn . ", route " . $node1->routes[$k]->index . ", routeIndex " . $node1->routes[$k]->routeIndex);
+				
+				unset($foundPrevTerminus);
+				unset($foundNextTerminus);
+				
+				for ($j = $i + 1; $j < count($allIntersections); $j++)
+				{
+					$node2 = $allIntersections[$j];
+				
+					for ($l = 0; $l < count($node2->routes); $l++)
+					{
+						if ($node1->routes[$k]->cn == $node2->routes[$l]->cn && $node1->routes[$k]->index == $node2->routes[$l]->index)
+						{
+							error_log ("consider " . $node2->routes[$l]->routeIndex);
+							
+							if ((!isset($node1->routes[$k]->prevConnected))
+								&& $node1->routes[$k]->routeIndex > $node2->routes[$l]->routeIndex
+								&& (!isset($foundPrevTerminus)
+								|| ($node2->routes[$l]->routeIndex > $foundPrevTerminus->routeIndex)))
+							{
+								$foundPrevTerminus = &$node2->routes[$l];
+								$foundPrevNodeIndex = $j;
+								$foundPrevRouteIndex = $l;
+							}
+							
+							if ((!isset($node1->routes[$k]->nextConnected))
+								&& $node1->routes[$k]->routeIndex < $node2->routes[$l]->routeIndex
+								&& (!isset($foundNextTerminus)
+								|| ($node2->routes[$l]->routeIndex < $foundNextTerminus->routeIndex)))
+							{
+								$foundNextTerminus = &$node2->routes[$l];
+								$foundNextNodeIndex = $j;
+								$foundNextRouteIndex = $l;
+							}
+						}
+					}
+				}
+				
+				if (isset($foundPrevTerminus))
+				{
+					$foundPrevTerminus->nextConnectedNodeIndex = $i;
+					$foundPrevTerminus->nextConnectedRouteIndex = $k;
+					
+					$node1->routes[$k]->prevConnectedNodeIndex = $foundPrevNodeIndex;
+					$node1->routes[$k]->prevConnectedRouteIndex = $foundPrevRouteIndex;
+					
+					error_log ("*** found edge ***\n" . var_dump_ret($node1->routes[$k]) . "\n" . var_dump_ret($foundPrevTerminus));
+				}
+				
+				if (isset($foundNextTerminus))
+				{
+					$foundNextTerminus->prevConnectedNodeIndex = $i;
+					$foundNextTerminus->prevConnectedRouteIndex = $k;
+					
+					$node1->routes[$k]->nextConnectedNodeIndex = $foundNextNodeIndex;
+					$node1->routes[$k]->nextConnectedRouteIndex = $foundNextRouteIndex;
+					
+					error_log ("*** found edge ***\n" . var_dump_ret($node1->routes[$k]) . "\n" . var_dump_ret($foundNextTerminus));
+				}
+				
+				if (!isset($foundPrevTerminus) && !isset($foundNextTerminus))
+				{
+					error_log ("No edge terminus");
+				}
+			}
+		}
 	}
 }
 
@@ -567,6 +690,8 @@ function parseJSON ($inputFile)
 		fclose ($handle);
 	}
 
+	findEdges ();
+	
 	error_log("intersect count = " . $intersectionCount);
 	error_log("total intersections = " . $totalIntersectionsCount);
 	error_log("intersections stored = " . count($allIntersections));
@@ -575,6 +700,7 @@ function parseJSON ($inputFile)
 	error_log("overlap count = " . $overlapCount);
 	error_log("point count = " . $pointCount);
 	error_log("duplicate point count = " . $duplicatePointCount);
+	
 	echo json_encode(array_values ($allIntersections));
 }
 
