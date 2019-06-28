@@ -173,7 +173,7 @@ function pointOnPath ($lat, $lng, &$segments, $tolerance, &$index, &$distance, &
 		}
 	}
 	
-	return closestEdge;
+	return $closestEdge;
 }
 
 
@@ -336,6 +336,78 @@ function getElevation ($lat, $lng)
 	
 		return round(findPoint ($ele, $lng, $lat));
 	}
+}
+
+
+function withinBounds ($point, $bounds, $inflation)
+{
+	return $point->lat >= $bounds[0] - $inflation
+	&& $point->lng >= $bounds[1] - $inflation
+	&& $point->lat <= $bounds[2] + $inflation
+	&& $point->lng <= $bounds[3] + $inflation;
+}
+
+
+function findTrail (&$point, &$trailName, &$trailIndex, &$route, &$routeIndex)
+{
+	$trails = [];
+	$closestTrail = -1;
+	$adjustedPoint = $point;
+	$first = true;
+	
+	$fileName = "trails/" . getTrailFileName ($point->lat, $point->lng);
+	
+	$handle = fopen ($fileName, "rb");
+	
+	if ($handle)
+	{
+		for (;;)
+		{
+			$jsonString = fgets ($handle);
+			
+			if (!$jsonString)
+			{
+				break;
+			}
+			
+			$trail = json_decode($jsonString);
+			
+			if (isset($trail) && isset($trail->routes))
+			{
+				for ($i = 0; $i < count($trail->routes); $i++)
+				{
+					if (!isset($trail->routes[$i]->bounds) || withinBounds ($point, $trail->routes[$i]->bounds, 0.00027027))
+					{
+						$newPoint = (object)[];
+						
+						pointOnPath ($point->lat, $point->lng, $trail->routes[$i]->route, 30, $index, $distance, $newPoint);
+						
+						if ($index != -1 && ($first || $distance < $shortestDistance))
+						{
+							$first = false;
+							
+							$shortestDistance = $distance;
+							$trailName = $trail->type . ":" . $trail->cn . ":" . $i;
+							// The new point is on the closest segment found on the trail. Therefore, the trail
+							// route will start at the next segment.
+							$trailIndex = $i;
+							$routeIndex = $index + 1;
+							$route = $trail->routes[$i]->route;
+							
+							$adjustedPoint = (object)["lat" => $newPoint->x, "lng" => $newPoint->y];
+						}
+					}
+				
+				}
+			}
+		}
+		
+		fclose ($handle);
+	}
+	
+	
+	$point->lat = $adjustedPoint->lat;
+	$point->lng = $adjustedPoint->lng;
 }
 
 ?>

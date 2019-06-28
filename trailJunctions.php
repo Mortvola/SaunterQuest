@@ -10,6 +10,7 @@ $pointCount = 0;
 $duplicatePointCount = 0;
 $closeIntersectionCount = 0;
 $allIntersections = [];
+$edges = [];
 $overlappingTrailRectscount = 0;
 $totalIntersectionsCount = 0;
 
@@ -340,15 +341,6 @@ function segmentCrossesTrail ($coord1, $coord2, $route)
 }
 
 
-function withinBounds ($point, $bounds)
-{
-	return $point->lat >= $bounds[0]
-	 && $point->lng >= $bounds[1]
-	 && $point->lat <= $bounds[2]
-	 && $point->lng <= $bounds[3];
-}
-
-
 function boundsIntersect ($b1, $b2)
 {
 	return ($b1[0] <= $b2[2]
@@ -391,8 +383,8 @@ function findJunctions2 ($r, $routes, $startIndex)
 						&& $prevPoint->lng != $r->route[$i]->lng)
 				{
 					if (count($r2->bounds) == 0 ||
-							withinBounds ($prevPoint, $r2->bounds) ||
-							withinBounds ($r->route[$i], $r2->bounds))
+							withinBounds ($prevPoint, $r2->bounds, 0) ||
+							withinBounds ($r->route[$i], $r2->bounds, 0))
 					{
 						$overlappingTrailRectscount++;
 						
@@ -469,8 +461,10 @@ function findJunctions2 ($r, $routes, $startIndex)
 
 function addIntersections (
 	$intersections,
+	$trailType,
 	$trail1CN,
 	$trail1Index,
+	$trail2Type,
 	$trail2CN)
 {
 	global $allIntersections;
@@ -487,12 +481,14 @@ function addIntersections (
 			$i->routes = [];
 
 			array_push($i->routes, (object)[
+				"type" => $trailType,
 				"cn" => $trail1CN,
 				"routeIndex" => $intersection->route1Index,
 				"index" => $trail1Index
 			]);
 
 			array_push($i->routes, (object)[
+					"type" => $trail2Type,
 					"cn" => $trail2CN,
 					"routeIndex" => $intersection->route2routeIndex,
 					"index" => $intersection->route2Index
@@ -526,7 +522,7 @@ function findJunctions ($trail, $handle)
 
 				$intersections = findJunctions2 ($r, $trail->routes, $j + 1);
 
-				addIntersections ($intersections, $trail->cn, $j, $trail->cn);
+				addIntersections ($intersections, $trail->type, $trail->cn, $j, $trail->type, $trail->cn);
 				
 				for (;;)
 				{
@@ -545,7 +541,7 @@ function findJunctions ($trail, $handle)
 					
 					$intersections = findJunctions2 ($r, $otherTrail->routes, 0);
 
-					addIntersections ($intersections, $trail->cn, $j, $otherTrail->cn);
+					addIntersections ($intersections, $trail->type, $trail->cn, $j, $otherTrail->type, $otherTrail->cn);
 				}
 				
 				fseek ($handle, $startPos);
@@ -564,10 +560,12 @@ function findJunctions ($trail, $handle)
 	}
 }
 
+// 223010391
 
 function findEdges ()
 {
 	global $allIntersections;
+	global $edges;
 	
 	for ($i = 0; $i < count($allIntersections); $i++)
 	{
@@ -575,10 +573,13 @@ function findEdges ()
 		
 		for ($k = 0; $k < count($node1->routes); $k++)
 		{
-			if (!isset($node1->routes[$k]->prevConnected) || $node1->routes[$k]->prevConnected == false
-				|| !isset($node1->routes[$k]->nextConnected) || $node1->routes[$k]->nextConnected == false)
+			if (!isset($node1->routes[$k]->prevConnected) || !isset($node1->routes[$k]->nextConnected))
 			{
-				error_log ("search for other junction to match " . $node1->routes[$k]->cn . ", route " . $node1->routes[$k]->index . ", routeIndex " . $node1->routes[$k]->routeIndex);
+				if ($node1->routes[$k]->cn == "223010391")
+				{
+					error_log ("Node: " . json_encode ($node1));
+					error_log ("search for other junction to match " . $node1->routes[$k]->cn . ", route " . $node1->routes[$k]->index . ", routeIndex " . $node1->routes[$k]->routeIndex);
+				}
 				
 				unset($foundPrevTerminus);
 				unset($foundNextTerminus);
@@ -591,59 +592,162 @@ function findEdges ()
 					{
 						if ($node1->routes[$k]->cn == $node2->routes[$l]->cn && $node1->routes[$k]->index == $node2->routes[$l]->index)
 						{
-							error_log ("consider " . $node2->routes[$l]->routeIndex);
+							if ($node1->routes[$k]->cn == "223010391")
+							{
+								error_log ("consider " . $node2->routes[$l]->routeIndex);
+							}
 							
-							if ((!isset($node1->routes[$k]->prevConnected))
+							if (!isset($node1->routes[$k]->prevConnected)
 								&& $node1->routes[$k]->routeIndex > $node2->routes[$l]->routeIndex
 								&& (!isset($foundPrevTerminus)
 								|| ($node2->routes[$l]->routeIndex > $foundPrevTerminus->routeIndex)))
 							{
 								$foundPrevTerminus = &$node2->routes[$l];
 								$foundPrevNodeIndex = $j;
-								$foundPrevRouteIndex = $l;
+								$foundPrevRouteIndex = $node2->routes[$l]->routeIndex;
 							}
 							
-							if ((!isset($node1->routes[$k]->nextConnected))
+							if (!isset($node1->routes[$k]->nextConnected)
 								&& $node1->routes[$k]->routeIndex < $node2->routes[$l]->routeIndex
 								&& (!isset($foundNextTerminus)
 								|| ($node2->routes[$l]->routeIndex < $foundNextTerminus->routeIndex)))
 							{
 								$foundNextTerminus = &$node2->routes[$l];
 								$foundNextNodeIndex = $j;
-								$foundNextRouteIndex = $l;
+								$foundNextRouteIndex = $node2->routes[$l]->routeIndex;
 							}
 						}
 					}
 				}
 				
-				if (isset($foundPrevTerminus))
+				// Add the edge that precedes this node.
+				
+				if (!isset($node1->routes[$k]->prevConnected))
 				{
-					$foundPrevTerminus->nextConnectedNodeIndex = $i;
-					$foundPrevTerminus->nextConnectedRouteIndex = $k;
+					$edge = (object)[];
 					
-					$node1->routes[$k]->prevConnectedNodeIndex = $foundPrevNodeIndex;
-					$node1->routes[$k]->prevConnectedRouteIndex = $foundPrevRouteIndex;
+					$edge->type = $node1->routes[$k]->type;
+					$edge->cn = $node1->routes[$k]->cn;
+					$edge->route = $node1->routes[$k]->index;
 					
-					error_log ("*** found edge ***\n" . var_dump_ret($node1->routes[$k]) . "\n" . var_dump_ret($foundPrevTerminus));
+					$edge->next = (object)[];
+					$edge->next->nodeIndex = $i;
+					$edge->next->routeIndex = $node1->routes[$k]->routeIndex;
+					
+					if (!isset ($node1->edges))
+					{
+						$node1->edges = [];
+					}
+					
+					$node1->routes[$k]->prevConnected = true;
+					
+					if (isset($foundPrevTerminus))
+					{
+						$edge->prev = (object)[];
+						$edge->prev->nodeIndex = $foundPrevNodeIndex;
+						$edge->prev->routeIndex = $foundPrevRouteIndex;
+						
+						if ($node1->routes[$k]->cn == "223010391")
+						{
+							error_log ("Prev Edge: " . json_encode($edge));
+						}
+						
+						array_push($edges, $edge);
+						
+						array_push ($node1->edges, count($edges) - 1);
+		
+						if (!isset ($allIntersections[$foundPrevNodeIndex]->edges))
+						{
+							$allIntersections[$foundPrevNodeIndex]->edges = [];
+						}
+						
+						array_push ($allIntersections[$foundPrevNodeIndex]->edges, count($edges) - 1);
+						
+						$foundPrevTerminus->nextConnected = true;
+						
+						if ($node1->routes[$k]->cn == "223010391")
+						{
+							error_log ("*** found 'prev' edge ***\n" . var_dump_ret($node1->routes[$k]) . "\n" . var_dump_ret($foundPrevTerminus));
+						}
+					}
+					else
+					{
+						if ($node1->routes[$k]->cn == "223010391")
+						{
+							error_log ("Prev Edge: " . json_encode($edge));
+						}
+						
+						array_push($edges, $edge);
+						
+						array_push ($node1->edges, count($edges) - 1);
+					}
 				}
 				
-				if (isset($foundNextTerminus))
+				// Add the edge that follows this node
+				if (!isset($node1->routes[$k]->nextConnected))
 				{
-					$foundNextTerminus->prevConnectedNodeIndex = $i;
-					$foundNextTerminus->prevConnectedRouteIndex = $k;
+					$edge = (object)[];
 					
-					$node1->routes[$k]->nextConnectedNodeIndex = $foundNextNodeIndex;
-					$node1->routes[$k]->nextConnectedRouteIndex = $foundNextRouteIndex;
+					$edge->type = $node1->routes[$k]->type;
+					$edge->cn = $node1->routes[$k]->cn;
+					$edge->route = $node1->routes[$k]->index;
 					
-					error_log ("*** found edge ***\n" . var_dump_ret($node1->routes[$k]) . "\n" . var_dump_ret($foundNextTerminus));
-				}
-				
-				if (!isset($foundPrevTerminus) && !isset($foundNextTerminus))
-				{
-					error_log ("No edge terminus");
+					$edge->prev = (object)[];
+					$edge->prev->nodeIndex = $i;
+					$edge->prev->routeIndex = $node1->routes[$k]->routeIndex;
+					
+					if (!isset ($node1->edges))
+					{
+						$node1->edges = [];
+					}
+					
+					$node1->routes[$k]->nextConnected = true;
+					
+					if (isset($foundNextTerminus))
+					{
+						$edge->next = (object)[];
+						$edge->next->nodeIndex = $foundNextNodeIndex;
+						$edge->next->routeIndex = $foundNextRouteIndex;
+						
+						if ($node1->routes[$k]->cn == "223010391")
+						{
+							error_log ("Next Edge: " . json_encode($edge));
+						}
+						
+						array_push($edges, $edge);
+						
+						array_push ($node1->edges, count($edges) - 1);
+						
+						if (!isset ($allIntersections[$foundNextNodeIndex]->edges))
+						{
+							$allIntersections[$foundNextNodeIndex]->edges = [];
+						}
+						
+						array_push ($allIntersections[$foundNextNodeIndex]->edges, count($edges) - 1);
+						
+						$foundNextTerminus->prevConnected = true;
+						
+						if ($node1->routes[$k]->cn == "223010391")
+						{
+							error_log ("*** found 'next' edge ***\n" . var_dump_ret($node1->routes[$k]) . "\n" . var_dump_ret($foundNextTerminus));
+						}
+					}
+					else
+					{
+						if ($node1->routes[$k]->cn == "223010391")
+						{
+							error_log ("Next Edge: " . json_encode($edge));
+						}
+						
+						array_push($edges, $edge);
+						
+						array_push ($node1->edges, count($edges) - 1);
+					}
 				}
 			}
 		}
+		
+		unset($node1->routes);
 	}
 }
 
@@ -654,6 +758,7 @@ function parseJSON ($inputFile)
 	global $intersectionCount, $overlapCount, $pointCount, $duplicatePointCount, $closeIntersectionCount;
 	global $overlappingTrailRectscount;
 	global $totalIntersectionsCount;
+	global $edges;
 	
 	$handle = fopen($inputFile, "rb");
 	
@@ -700,8 +805,14 @@ function parseJSON ($inputFile)
 	error_log("overlap count = " . $overlapCount);
 	error_log("point count = " . $pointCount);
 	error_log("duplicate point count = " . $duplicatePointCount);
+	error_log("edge count = " . count($edges));
 	
-	echo json_encode(array_values ($allIntersections));
+	$graph = (object)[];
+	
+	$graph->nodes = array_values ($allIntersections);
+	$graph->edges = $edges;
+	
+	echo json_encode($graph);
 }
 
 // $intersection = segmentsIntersection (

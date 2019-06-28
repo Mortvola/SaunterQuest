@@ -5,61 +5,6 @@ require_once "coordinates.php";
 require_once "routeFile.php";
 
 
-function findTrail (&$point, &$trailName, &$trailIndex, &$route)
-{
-	$trails = [];
-	$closestTrail = -1;
-	$adjustedPoint = $point;
-	$first = true;
-	
-	$fileName = "trails/" . getTrailFileName ($point->lat, $point->lng);
-	
-	$handle = fopen ($fileName, "rb");
-	
-	if ($handle)
-	{
-		for (;;)
-		{
-			$jsonString = fgets ($handle);
-			
-			if (!$jsonString)
-			{
-				break;
-			}
-			
-			$trail = json_decode($jsonString);
-			
-			if (isset($trail) && isset($trail->route)
-					&& $point->lng >= ($trail->minLng - 0.00027027) && $point->lng <= ($trail->maxLng + 0.00027027)
-					&& $point->lat >= ($trail->minLat - 0.00027027) && $point->lat <= ($trail->maxLat + 0.00027027))
-			{
-				$newPoint = (object)[];
-				
-				pointOnPath ($point->lat, $point->lng, $trail->route, 30, $index, $distance, $newPoint);
-				
-				if ($index != -1 && ($first || $distance < $shortestDistance))
-				{
-					$first = false;
-					
-					$shortestDistance = $distance;
-					$trailName = $trail->type . ":" . $trail->feature;
-					// The new point is on the closest segment found on the trail. Therefore, the trail
-					// route will start at the next segment.
-					$trailIndex = $index + 1; 
-					$route = $trail->route;
-					
-					$adjustedPoint = (object)["lat" => $newPoint->x, "lng" => $newPoint->y];
-				}
-			}
-		}
-		
-		fclose ($handle);
-	}
-	
-	$point = $adjustedPoint;
-}
-
-
 function modifyPoint (&$segments, $routeUpdate)
 {
 	$trailName = "";
@@ -170,7 +115,7 @@ function deletePoints (&$segments, $routeUpdate)
 
 function addTrail (&$segments, $routeUpdate)
 {
-	$trailName = $routeUpdate->type . ":" . $routeUpdate->feature;
+	$trailName = $routeUpdate->type . ":" . $routeUpdate->cn;
 	
 	$route = getFullTrail ($routeUpdate->point->lat, $routeUpdate->point->lng, $trailName);
 
@@ -276,6 +221,76 @@ else if ($_SERVER["REQUEST_METHOD"] == "PUT")
 		else if ($routeUpdate->mode == "addTrail")
 		{
 			addTrail ($segments, $routeUpdate);
+		}
+		else if ($routeUpdate->mode == "setStart")
+		{
+			if (!isset($segments) || count($segments) == 0)
+			{
+				$segments = [];
+				
+				array_push($segments, (object)[
+					"lat" => $routeUpdate->point->lat,
+					"lng" => $routeUpdate->point->lng,
+					"dist" => 0,
+					"ele" => getElevation ($routeUpdate->point->lat, $routeUpdate->point->lng),
+					"type" => "start"
+				]);
+			}
+			else if (count($segments) == 1)
+			{
+				if (isset ($segments[0]->type) && $segments[0]->type == "start")
+				{
+					$segments[0]->lat = $routeUpdate->point->lat;
+					$segments[0]->lng = $routeUpdate->point->lng;
+					$segments[0]->dist = 0;
+					$segments[0]->ele = getElevation ($routeUpdate->point->lat, $routeUpdate->point->lng);
+				}
+				else
+				{
+					array_push($segments, (object)[
+							"lat" => $routeUpdate->point->lat,
+							"lng" => $routeUpdate->point->lng,
+							"dist" => 0,
+							"ele" => getElevation ($routeUpdate->point->lat, $routeUpdate->point->lng),
+							"type" => "start"
+					]);
+				}
+			}
+		}
+		else if ($routeUpdate->mode == "setEnd")
+		{
+			if (!isset($segments) || count($segments) == 0)
+			{
+				$segments = [];
+				
+				array_push($segments, (object)[
+						"lat" => $routeUpdate->point->lat,
+						"lng" => $routeUpdate->point->lng,
+						"dist" => 0,
+						"ele" => getElevation ($routeUpdate->point->lat, $routeUpdate->point->lng),
+						"type" => "end"
+				]);
+			}
+			else if (count($segments) == 1)
+			{
+				if (isset ($segments[0]->type) && $segments[0]->type == "end")
+				{
+					$segments[0]->lat = $routeUpdate->point->lat;
+					$segments[0]->lng = $routeUpdate->point->lng;
+					$segments[0]->dist = 0;
+					$segments[0]->ele = getElevation ($routeUpdate->point->lat, $routeUpdate->point->lng);
+				}
+				else
+				{
+					array_push($segments, (object)[
+							"lat" => $routeUpdate->point->lat,
+							"lng" => $routeUpdate->point->lng,
+							"dist" => 0,
+							"ele" => getElevation ($routeUpdate->point->lat, $routeUpdate->point->lng),
+							"type" => "end"
+					]);
+				}
+			}
 		}
 			
 		

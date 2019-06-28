@@ -1,6 +1,7 @@
 <?php
 
 require_once "coordinates.php";
+require_once "utilities.php";
 
 $closeIntersectThreshold = 1;
 
@@ -377,23 +378,6 @@ function getBounds ($route)
 	return [$minLat, $minLng, $maxLat, $maxLng];
 }
 
-function withinBounds ($point, $bounds)
-{
-	return $point->lat >= $bounds[0]
-	 && $point->lng >= $bounds[1]
-	 && $point->lat <= $bounds[2]
-	 && $point->lng <= $bounds[3];
-}
-
-
-function var_dump_ret($mixed = null) {
-	ob_start();
-	var_dump($mixed);
-	$content = ob_get_contents();
-	ob_end_clean();
-	return $content;
-}
-
 function removeDuplicates2 (&$routes, $otherRoutes, $startingIndex)
 {
 	global $allIntersections, $intersectionCount;
@@ -425,8 +409,8 @@ function removeDuplicates2 (&$routes, $otherRoutes, $startingIndex)
 							&& $prevPoint->lng != $r->route[$i]->lng)
 					{
 						if (count($r2->bounds) == 0 ||
-								withinBounds ($prevPoint, $r2->bounds) ||
-								withinBounds ($r->route[$i], $r2->bounds))
+								withinBounds ($prevPoint, $r2->bounds, 0) ||
+								withinBounds ($r->route[$i], $r2->bounds, 0))
 						{
 							$newIntersections = [];
 							

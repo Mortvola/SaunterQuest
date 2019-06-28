@@ -53,18 +53,26 @@ function getFullTrail ($lat, $lng, $trailName)
 				
 				$trail = json_decode($jsonString);
 				
-				if (isset($trail) && isset($trail->route))
+				if (isset($trail) && isset($trail->routes))
 				{
-					if ($parts[0] == $trail->type && $parts[1] == $trail->feature)
+					if ($parts[0] == $trail->type && $parts[1] == $trail->cn)
 					{
-						$route = $trail->route;
+						$route = $trail->routes[$parts[2]]->route;
 						
 						break;
 					}
 				}
+				else
+				{
+					error_log ("No routes");
+				}
 			}
 			
 			fclose ($handle);
+		}
+		else
+		{
+			error_log ("Unable to open file " . $fileName);
 		}
 	}
 	else
@@ -182,7 +190,7 @@ function getRouteFromFile ($fileName)
 			if (isset($segments[$s]->trailName) && isset($segments[$s + 1]->trailName) &&
 				$segments[$s]->trailName == $segments[$s + 1]->trailName)
 			{
-				$trail = getTrail ($segments[$s]->lat, $segments[$s]->lng, $segments[$s]->trailName, $segments[$s]->trailIndex, $segments[$s + 1]->trailIndex);
+				$trail = getTrail ($segments[$s]->lat, $segments[$s]->lng, $segments[$s]->trailName, $segments[$s]->routeIndex, $segments[$s + 1]->routeIndex);
 				
 				//				array_splice ($segments, $s + 1, 0, $trail);
 				//				$s += count($trail);

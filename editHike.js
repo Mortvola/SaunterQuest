@@ -1,6 +1,7 @@
 "use strict";
 
 var dayMarkers = [];
+var startOfTrailMarker = {};
 var endOfTrailMarker = {};
 var resupplyLocations = [];
 var anchors = [];
@@ -41,6 +42,7 @@ var editPolyLine = {};
 var startPointUrl = "http://maps.google.com/mapfiles/ms/micons/green-dot.png";
 var campUrl = "http://maps.google.com/mapfiles/ms/micons/campground.png";
 var endPointUrl = "http://maps.google.com/mapfiles/ms/micons/red-dot.png";
+var junctionUrl = "http://maps.google.com/mapfiles/ms/micons/lightblue.png";
 
 const routeStrokeWeight = 6;
 const routeHighlightStrokePadding = 4;
@@ -219,7 +221,7 @@ function moveAnchor (index, vertex)
 			
 			if (anchorIndex == 0)
 			{
-				dayMarkers[0].marker.setPosition (updatedLatLng);
+				startOfTrailMarker.marker.setPosition (updatedLatLng);
 			}
 			else if (anchorIndex == anchors.length - 1)
 			{
@@ -996,7 +998,7 @@ function drawRoute ()
 }
 
 
-function addNewRoute (position)
+function setRouteStart (position)
 {
 	var xmlhttp = new XMLHttpRequest ();
 	xmlhttp.onreadystatechange = function ()
@@ -1004,21 +1006,33 @@ function addNewRoute (position)
 		if (this.readyState == 4 && this.status == 200)
 		{
 			retrieveRoute ();
-			calculate ();
 		}
 	}
 	
-	var route = {};
+	var routeUpdate = {userHikeId: userHikeId, mode: "setStart", point: {lat: position.lat (), lng: position.lng ()}};
 	
-	route.userHikeId = userHikeId;
-	route.anchors = [];
-	
-	route.anchors.push({lat: position.lat (), lng: position.lng ()});
-	route.anchors.push({lat: position.lat (), lng: position.lng ()});
-	
-	xmlhttp.open("POST", "route.php", true);
+	xmlhttp.open("PUT", "route.php", true);
 	xmlhttp.setRequestHeader("Content-type", "application/json");
-	xmlhttp.send(JSON.stringify(route));
+	xmlhttp.send(JSON.stringify(routeUpdate));
+}
+
+
+function setRouteEnd (position)
+{
+	var xmlhttp = new XMLHttpRequest ();
+	xmlhttp.onreadystatechange = function ()
+	{
+		if (this.readyState == 4 && this.status == 200)
+		{
+			retrieveRoute ();
+		}
+	}
+	
+	var routeUpdate = {userHikeId: userHikeId, mode: "setEnd", point: {lat: position.lat (), lng: position.lng ()}};
+	
+	xmlhttp.open("PUT", "route.php", true);
+	xmlhttp.setRequestHeader("Content-type", "application/json");
+	xmlhttp.send(JSON.stringify(routeUpdate));
 }
 
 
@@ -1026,17 +1040,17 @@ function setStartLocation (object, position)
 {
 	// If there is no start or end location then
 	// add them both
-	if (anchors.length == 0)
+//	if (anchors.length == 0)
 	{
-		addNewRoute (position);
+		setRouteStart (position);
 	}
-	else
-	{
-		toggleEdit (object, position);
-		
-		var path = editPolyLine.getPath ();
-		var vertex = path.setAt(0, position);
-	}
+//	else
+//	{
+//		toggleEdit (object, position);
+//		
+//		var path = editPolyLine.getPath ();
+//		var vertex = path.setAt(0, position);
+//	}
 }
 
 
@@ -1044,17 +1058,17 @@ function setEndLocation (object, position)
 {
 	// If there is no start or end location then
 	// add them both
-	if (anchors.length == 0)
+//	if (anchors.length == 0)
 	{
-		addNewRoute (position);
+		setRouteEnd (position);
 	}
-	else
-	{
-		toggleEdit (object, position);
-		
-		var path = editPolyLine.getPath ();
-		var vertex = path.setAt(path.length - 1, position);
-	}
+//	else
+//	{
+//		toggleEdit (object, position);
+//		
+//		var path = editPolyLine.getPath ();
+//		var vertex = path.setAt(path.length - 1, position);
+//	}
 }
 
 
@@ -1107,6 +1121,17 @@ function myMap()
 		{title:"Edit Resupply Location", func:editResupplyLocation},
 		{title:"Delete Resupply Location", func:deleteResupplyLocation}]);
 
+	routeContextMenu = new ContextMenu ([
+		{title: "Add Point of Interest", func: showAddPointOfInterest},
+		{title: "Select route segment", func: startRouteMeasurement},
+		{title: "Add Note", func: addNote},
+		{title: "Recalculate distances", func: recalculateDistances},
+		{title: "Edit", func: toggleEdit}
+	]);
+
+	vertexContextMenu = new ContextMenu ([
+		{title:"Delete", func:deleteVertex}]);
+	
 	setContextMenu (map, mapContextMenu);
 	map.addListener ("dragstart", function () { mapDragging = true;})
 	map.addListener ("dragend", function () { mapDragging = false; updateTrails (); });
@@ -1118,7 +1143,6 @@ function myMap()
 	retrievePointsOfInterest ();
 	retrieveResupplyLocations ();
 	retrieveHikerProfiles (); //todo: only do this when visiting the tab of hiker profiles
-	calculate ();
 } 
 
 function metersToMilesRounded (meters)
@@ -1232,13 +1256,16 @@ function calculate ()
 				{
 					dayMarkers.push({lat: parseFloat(data[d].lat), lng: parseFloat(data[d].lng), day:parseInt(d)});
 
-					dayMarkers[day].marker = new google.maps.Marker({
-						position: dayMarkers[day],
-						map: map,
-						icon: {
-							url: day == 0 ? startPointUrl : campUrl
-						},
-					});
+					if (day > 0)
+					{
+						dayMarkers[day].marker = new google.maps.Marker({
+							position: dayMarkers[day],
+							map: map,
+							icon: {
+								url: day == 0 ? startPointUrl : campUrl
+							},
+						});
+					}
 				}
 				else
 				{
@@ -1246,40 +1273,53 @@ function calculate ()
 					dayMarkers[day].lng = parseFloat(data[d].lng);
 					dayMarkers[day].day = day;
 					
-					dayMarkers[day].marker.setPosition(dayMarkers[day]);
+					if (day > 0)
+					{
+						dayMarkers[day].marker.setPosition(dayMarkers[day]);
 
-					google.maps.event.removeListener (dayMarkers[day].listener);
+						google.maps.event.removeListener (dayMarkers[day].listener);
+					}
 				}
 				
-				dayMarkers[day].listener = attachInfoWindowMessage(dayMarkers[day],
-					"<div>"
-					+ (day == 0 ? "Start of day " + (dayMarkers[day].day + 1)
-						: "End of day " + dayMarkers[day].day)
-					+ "</div><div>Mile: " + metersToMilesRounded(data[d].meters)
-					+ "</div><div>Elevation: " + metersToFeet(data[d].ele) + "\'</div>");
+				if (day == 0)
+				{
+					if (startOfTrailMarker.listener != undefined)
+					{
+						google.maps.event.removeListener (startOfTrailMarker.listener);
+					}
+						
+					if (startOfTrailMarker.marker != undefined)
+					{
+						startOfTrailMarker.listener = attachInfoWindowMessage(startOfTrailMarker,
+							"<div>"
+							+ "Start of day 1"
+							+ "</div><div>Mile: " + metersToMilesRounded(data[d].meters)
+							+ "</div><div>Elevation: " + metersToFeet(data[d].ele) + "\'</div>");
+					}
+				}
+				else
+				{
+					dayMarkers[day].listener = attachInfoWindowMessage(dayMarkers[day],
+						"<div>"
+						+ "End of day " + dayMarkers[day].day
+						+ "</div><div>Mile: " + metersToMilesRounded(data[d].meters)
+						+ "</div><div>Elevation: " + metersToFeet(data[d].ele) + "\'</div>");
+				}
 				
 				day++;
 			}
 
-			//
-			// Add end of trail marker
-			//
-			endOfTrailMarker.lat = parseFloat(data[d].endLat);
-			endOfTrailMarker.lng = parseFloat(data[d].endLng);
-
-			endOfTrailMarker.marker = new google.maps.Marker({
-				position: endOfTrailMarker,
-				map: map,
-				icon: {
-					url: endPointUrl
-				},
-			});
-
-			google.maps.event.removeListener (endOfTrailMarker.listener);
+			if (endOfTrailMarker.listener != undefined)
+			{
+				google.maps.event.removeListener (endOfTrailMarker.listener);
+			}
 		
-			endOfTrailMarker.listener = attachInfoWindowMessage(endOfTrailMarker,
-				"<div>Mile: " + metersToMilesRounded(data[d].endMeters)
-				+ "</div><div>Elevation: " + metersToFeet(data[d].endEle) + "\'</div>");
+			if (endOfTrailMarker.marker != undefined)
+			{
+				endOfTrailMarker.listener = attachInfoWindowMessage(endOfTrailMarker,
+					"<div>Mile: " + metersToMilesRounded(data[d].endMeters)
+					+ "</div><div>Elevation: " + metersToFeet(data[d].endEle) + "\'</div>");
+			}
 			
 			document.getElementById ("schedule").innerHTML = txt;
 
@@ -1318,6 +1358,29 @@ function calculate ()
 	xmlhttp.send();
 }
 
+
+function setTrailMarker (trailMarker, position, iconUrl)
+{
+	trailMarker.lat = parseFloat(position.lat);
+	trailMarker.lng = parseFloat(position.lng);
+
+	if (trailMarker.marker != undefined)
+	{
+		trailMarker.marker.setPosition (trailMarker);
+	}
+	else
+	{
+		trailMarker.marker = new google.maps.Marker({
+			position: trailMarker,
+			map: map,
+			icon: {
+				url: iconUrl
+			},
+		});
+	}
+}
+
+
 function retrieveRoute ()
 {
 	var xmlhttp = new XMLHttpRequest ();
@@ -1329,21 +1392,37 @@ function retrieveRoute ()
 
 			if (anchors.length > 0)
 			{
+				//
+				// Add start of trail marker
+				//
+				if (anchors[0].type == "start")
+				{
+					setTrailMarker (startOfTrailMarker, anchors[0], startPointUrl);
+				}
+				else if (anchors[anchors.length - 1].type == "start")
+				{
+					setTrailMarker (startOfTrailMarker, anchors[anchors.length - 1], startPointUrl);
+				}
+
+				//
+				// Add end of trail marker
+				//
+				if (anchors[0].type == "end")
+				{
+					setTrailMarker (endOfTrailMarker, anchors[0], endPointUrl);
+				}
+				else if (anchors[anchors.length - 1].type == "end")
+				{
+					setTrailMarker (endOfTrailMarker, anchors[anchors.length - 1], endPointUrl);
+				}
+			}
+			
+			if (anchors.length > 1)
+			{
 				retrieveTrailConditions ();
 
 				if (map)
 				{
-					routeContextMenu = new ContextMenu ([
-						{title: "Add Point of Interest", func: showAddPointOfInterest},
-						{title: "Select route segment", func: startRouteMeasurement},
-						{title: "Add Note", func: addNote},
-						{title: "Recalculate distances", func: recalculateDistances},
-						{title: "Edit", func: toggleEdit}
-					]);
-	
-					vertexContextMenu = new ContextMenu ([
-						{title:"Delete", func:deleteVertex}]);
-	
 					drawRoute ();
 	
 					map.fitBounds(bounds);
@@ -1351,6 +1430,8 @@ function retrieveRoute ()
 				
 				getAndLoadElevationData (0, actualRoute.length, actualRoute);
 			}
+			
+			calculate ();
 		}
 	}
 	
@@ -1476,7 +1557,7 @@ function retrieveTrails ()
 					position: trailCoords.intersections[i],
 					map: map,
 					icon: {
-						url: endPointUrl
+						url: junctionUrl
 					},
 				});
 			}
