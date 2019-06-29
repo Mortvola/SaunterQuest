@@ -3,6 +3,7 @@ require_once "checkLogin.php";
 require_once "config.php";
 require_once "coordinates.php";
 require_once "routeFile.php";
+require_once "routeFind.php";
 
 
 function modifyPoint (&$segments, $routeUpdate)
@@ -271,17 +272,40 @@ else if ($_SERVER["REQUEST_METHOD"] == "PUT")
 						"type" => "end"
 				]);
 			}
-			else if (count($segments) == 1)
+			else
 			{
-				if (isset ($segments[0]->type) && $segments[0]->type == "end")
+				// Find "end"
+				for ($i = 0; $i < count ($segments); $i++)
 				{
-					$segments[0]->lat = $routeUpdate->point->lat;
-					$segments[0]->lng = $routeUpdate->point->lng;
-					$segments[0]->dist = 0;
-					$segments[0]->ele = getElevation ($routeUpdate->point->lat, $routeUpdate->point->lng);
+					if (isset($segments[$i]->type))
+					{
+						if ($segments[$i]->type == "end")
+						{
+							$endIndex = $i;
+							
+							break;
+						}
+						else if ($segments[$i]->type == "start")
+						{
+							$startIndex = $i;
+						}
+					}
+				}
+				
+				if (isset($endIndex))
+				{
+					// End exists, update it.
+					
+					$segments[$endIndex]->lat = $routeUpdate->point->lat;
+					$segments[$endIndex]->lng = $routeUpdate->point->lng;
+					$segments[$endIndex]->dist = 0;
+					$segments[$endIndex]->ele = getElevation ($routeUpdate->point->lat, $routeUpdate->point->lng);
 				}
 				else
 				{
+					// End doesn't exist, add it
+					// todo: determine which end of the array to add it to.
+					
 					array_push($segments, (object)[
 							"lat" => $routeUpdate->point->lat,
 							"lng" => $routeUpdate->point->lng,
@@ -289,10 +313,16 @@ else if ($_SERVER["REQUEST_METHOD"] == "PUT")
 							"ele" => getElevation ($routeUpdate->point->lat, $routeUpdate->point->lng),
 							"type" => "end"
 					]);
+					
+					$endIndex = count($segments) - 1;
+				}
+			
+				if (isset($startIndex) && isset($endIndex))
+				{
+					$segments = findPath ($segments[$startIndex], $segments[$endIndex]);
 				}
 			}
 		}
-			
 		
 		// Write the data to the file.
 		file_put_contents ($fileName, json_encode($segments));

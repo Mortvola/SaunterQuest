@@ -1475,7 +1475,7 @@ function getTrailWeight ()
 
 function addTrailToRoute (object, position)
 {
-	console.log (trailCoords.trails[object.trailCoordsIndex].name);
+	console.log (trailCoords.trails[object.trailCoordsIndex].cn);
 	
 //	var xmlhttp = new XMLHttpRequest ();
 //	xmlhttp.onreadystatechange = function ()

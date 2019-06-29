@@ -420,9 +420,11 @@ function findJunctions2 ($r, $routes, $startIndex)
 										array_push ($intersections, (object)[
 												"lat" => $intersection->lat,
 												"lng" => $intersection->lng,
-												"route1Index" => $i,
+												"route1routeIndex" => $i,
+												"route1routeIndexMax" => count($r->route),
 												"route2Index" => $k,
-												"route2routeIndex" => $intersection->index]);
+												"route2routeIndex" => $intersection->index,
+												"route2routeIndexMax" => count($r2->route)]);
 									}
 								}
 							}
@@ -483,7 +485,8 @@ function addIntersections (
 			array_push($i->routes, (object)[
 				"type" => $trailType,
 				"cn" => $trail1CN,
-				"routeIndex" => $intersection->route1Index,
+				"routeIndex" => $intersection->route1routeIndex,
+				"routeIndexMax" => $intersection->route1routeIndexMax,
 				"index" => $trail1Index
 			]);
 
@@ -491,6 +494,7 @@ function addIntersections (
 					"type" => $trail2Type,
 					"cn" => $trail2CN,
 					"routeIndex" => $intersection->route2routeIndex,
+					"routeIndexMax" => $intersection->route2routeIndexMax,
 					"index" => $intersection->route2Index
 			]);
 			
@@ -622,10 +626,10 @@ function findEdges ()
 				
 				// Add the edge that precedes this node.
 				
+				$edge = (object)[];
+				
 				if (!isset($node1->routes[$k]->prevConnected))
 				{
-					$edge = (object)[];
-					
 					$edge->type = $node1->routes[$k]->type;
 					$edge->cn = $node1->routes[$k]->cn;
 					$edge->route = $node1->routes[$k]->index;
@@ -641,9 +645,10 @@ function findEdges ()
 					
 					$node1->routes[$k]->prevConnected = true;
 					
+					$edge->prev = (object)[];
+					
 					if (isset($foundPrevTerminus))
 					{
-						$edge->prev = (object)[];
 						$edge->prev->nodeIndex = $foundPrevNodeIndex;
 						$edge->prev->routeIndex = $foundPrevRouteIndex;
 						
@@ -672,6 +677,8 @@ function findEdges ()
 					}
 					else
 					{
+						$edge->prev->routeIndex = 0;
+						
 						if ($node1->routes[$k]->cn == "223010391")
 						{
 							error_log ("Prev Edge: " . json_encode($edge));
@@ -703,9 +710,10 @@ function findEdges ()
 					
 					$node1->routes[$k]->nextConnected = true;
 					
+					$edge->next = (object)[];
+					
 					if (isset($foundNextTerminus))
 					{
-						$edge->next = (object)[];
 						$edge->next->nodeIndex = $foundNextNodeIndex;
 						$edge->next->routeIndex = $foundNextRouteIndex;
 						
@@ -734,6 +742,8 @@ function findEdges ()
 					}
 					else
 					{
+						$edge->next->routeIndex = $node1->routes[$k]->routeIndexMax;
+						
 						if ($node1->routes[$k]->cn == "223010391")
 						{
 							error_log ("Next Edge: " . json_encode($edge));
