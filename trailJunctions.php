@@ -13,6 +13,8 @@ $allIntersections = [];
 $edges = [];
 $overlappingTrailRectscount = 0;
 $totalIntersectionsCount = 0;
+$connectorCount = 0;
+$connectors = (object)[ "type" => "connector", "cn" => "connector", "routes" => []];
 
 function vector ($p1, $p2)
 {
@@ -341,6 +343,40 @@ function segmentCrossesTrail ($coord1, $coord2, $route)
 }
 
 
+function addConnector ($coord, $route)
+{
+	global $connectorCount;
+	global $connectors;
+	
+	$result = pointOnPath ($coord, $route, 30);
+	
+	if (isset($result))
+	{
+		$route = (object)["route" => []];
+		array_push ($route->route, (object)["lat" => $coord->lat, "lng" => $coord->lng]);
+		array_push ($route->route, $result->point);
+		
+		array_push($connectors->routes, $route);
+		
+		$connectorCount++;
+		
+		$intersection = (object)[];
+		
+		$intersection->connectorIndex = count($connectors->routes);
+		$intersection->index = $result->index;
+		$intersection->lat = $result->point->lat;
+		$intersection->lng = $result->point->lng;
+	}
+
+	if (isset($intersection))
+	{
+		return $intersection;
+	}
+}
+
+	
+
+
 function boundsIntersect ($b1, $b2)
 {
 	return ($b1[0] <= $b2[2]
@@ -358,7 +394,7 @@ function var_dump_ret($mixed = null)
 	return $content;
 }
 
-function findJunctions2 ($r, $routes, $startIndex)
+function findJunctions2 ($trail1, $index, $trail2, $startIndex)
 {
 	global $duplicatePointCount;
 	global $overlappingTrailRectscount;
@@ -366,9 +402,11 @@ function findJunctions2 ($r, $routes, $startIndex)
 	
 	$intersections = [];
 	
-	for ($k = $startIndex; $k < count($routes); $k++)
+	$r = $trail1->routes[$index];
+	
+	for ($k = $startIndex; $k < count($trail2->routes); $k++)
 	{
-		$r2 = $routes[$k];
+		$r2 = $trail2->routes[$k];
 		
 		if (count($r->bounds) == 0 || count($r2->bounds) == 0 || boundsIntersect ($r->bounds, $r2->bounds))
 		{
@@ -418,13 +456,11 @@ function findJunctions2 ($r, $routes, $startIndex)
 											&& $intersections[count($intersections) - 1]->lng != $intersection->lng))
 									{
 										array_push ($intersections, (object)[
-												"lat" => $intersection->lat,
-												"lng" => $intersection->lng,
-												"route1routeIndex" => $i,
-												"route1routeIndexMax" => count($r->route),
-												"route2Index" => $k,
-												"route2routeIndex" => $intersection->index,
-												"route2routeIndexMax" => count($r2->route)]);
+											"lat" => $intersection->lat,
+											"lng" => $intersection->lng,
+											"route" => [
+												(object)["type" => $trail1->type, "cn" => $trail1->cn, "index" => $index, "routeIndex" => $i, "routeIndexMax" => count($r->route) - 1,],
+												(object)["type" => $trail2->type, "cn" => $trail2->cn, "index" => $k, "routeIndex" => $intersection->index, "routeIndexMax" => count($r2->route) - 1]]]);
 									}
 								}
 							}
@@ -433,6 +469,71 @@ function findJunctions2 ($r, $routes, $startIndex)
 						}
 						else
 						{
+							// If this was the first segment in the route check to see if there are any near by
+							// segments in the other route. We may want to add a connector if close enough.
+							if ($i == 1)
+							{
+								$newIntersection = addConnector ($prevPoint, $r2->route);
+
+								if (isset($newIntersection))
+								{
+									array_push ($intersections, (object)[
+											"lat" => $prevPoint->lat,
+											"lng" => $prevPoint->lng,
+											"route" => [
+													(object)["type" => $trail1->type, "cn" => $trail1->cn, "index" => $index, "routeIndex" => 0, "routeIndexMax" => count($r->route) - 1,],
+													(object)["type" => "connector", "cn" => "connector", "index" => $newIntersection->connectorIndex, "routeIndex" => 0, "routeIndexMax" => 1]]]);
+
+									if ($trail1->cn == "440010391")
+									{
+										error_log (json_encode ($intersections[count($intersections) - 1]));
+									}
+									
+									array_push ($intersections, (object)[
+											"lat" => $newIntersection->lat,
+											"lng" => $newIntersection->lng,
+											"route" => [
+												(object)["type" => "connector", "cn" => "connector", "index" => $newIntersection->connectorIndex, "routeIndex" => 1, "routeIndexMax" => 1,],
+													(object)["type" => $trail2->type, "cn" => $trail2->cn, "index" => $k, "routeIndex" => $newIntersection->index, "routeIndexMax" => count($r2->route) - 1]]]);
+
+									if ($trail1->cn == "440010391")
+									{
+										error_log (json_encode ($intersections[count($intersections) - 1]));
+									}
+								}
+							}
+							else if ($i == count($r->route) - 1)
+							{
+								$newIntersection = addConnector ($r->route[$i], $r2->route);
+								
+								if (isset($newIntersection))
+								{
+									array_push ($intersections, (object)[
+											"lat" => $r->route[$i]->lat,
+											"lng" => $r->route[$i]->lng,
+											"route" => [
+												(object)["type" => $trail1->type, "cn" => $trail1->cn, "index" => $index, "routeIndex" => count($r->route) - 1, "routeIndexMax" => count($r->route) - 1,],
+												(object)["type" => "connector", "cn" => "connector", "index" => $newIntersection->connectorIndex, "routeIndex" => 0, "routeIndexMax" => 1]]]);
+									
+									if ($trail1->cn == "440010391")
+									{
+										error_log (json_encode ($intersections[count($intersections) - 1]));
+									}
+									
+									array_push ($intersections, (object)[
+											"lat" => $newIntersection->lat,
+											"lng" => $newIntersection->lng,
+											"route" => [
+												(object)["type" => "connector", "cn" => "connector", "index" => $newIntersection->connectorIndex, "routeIndex" => 1, "routeIndexMax" => 1,],
+													(object)["type" => $trail2->type, "cn" => $trail2->cn, "index" => $k, "routeIndex" => $newIntersection->index, "routeIndexMax" => count($r2->route) - 1]]]);
+
+									if ($trail1->cn == "440010391")
+									{
+										error_log (json_encode ($intersections[count($intersections) - 1]));
+									}
+								}
+							}
+							
 							if ($contiguousJunctionCount > 0)
 							{
 								error_log("longest contiguous junctions: $contiguousJunctionCount");
@@ -462,12 +563,7 @@ function findJunctions2 ($r, $routes, $startIndex)
 
 
 function addIntersections (
-	$intersections,
-	$trailType,
-	$trail1CN,
-	$trail1Index,
-	$trail2Type,
-	$trail2CN)
+	$intersections)
 {
 	global $allIntersections;
 	
@@ -482,21 +578,16 @@ function addIntersections (
 			
 			$i->routes = [];
 
-			array_push($i->routes, (object)[
-				"type" => $trailType,
-				"cn" => $trail1CN,
-				"routeIndex" => $intersection->route1routeIndex,
-				"routeIndexMax" => $intersection->route1routeIndexMax,
-				"index" => $trail1Index
-			]);
-
-			array_push($i->routes, (object)[
-					"type" => $trail2Type,
-					"cn" => $trail2CN,
-					"routeIndex" => $intersection->route2routeIndex,
-					"routeIndexMax" => $intersection->route2routeIndexMax,
-					"index" => $intersection->route2Index
-			]);
+			foreach ($intersection->route as $route)
+			{
+				array_push($i->routes, (object)[
+					"type" => $route->type,
+					"cn" => $route->cn,
+					"index" => $route->index,
+					"routeIndex" => $route->routeIndex,
+					"routeIndexMax" => $route->routeIndexMax
+				]);
+			}
 			
 			array_push($allIntersections, $i);
 		}
@@ -524,9 +615,9 @@ function findJunctions ($trail, $handle)
 			{
 				$r = $trail->routes[$j];
 
-				$intersections = findJunctions2 ($r, $trail->routes, $j + 1);
+				$intersections = findJunctions2 ($trail, $j, $trail, $j + 1);
 
-				addIntersections ($intersections, $trail->type, $trail->cn, $j, $trail->type, $trail->cn);
+				addIntersections ($intersections);
 				
 				for (;;)
 				{
@@ -541,11 +632,14 @@ function findJunctions ($trail, $handle)
 					
 					$otherTrail = json_decode($jsonString);
 					
-//					error_log("count of other trail routes: ". count($otherTrail->routes));
+					if ($otherTrail->type != "connector")
+					{
+//						error_log("count of other trail routes: ". count($otherTrail->routes));
 					
-					$intersections = findJunctions2 ($r, $otherTrail->routes, 0);
+						$intersections = findJunctions2 ($trail, $j, $otherTrail, 0);
 
-					addIntersections ($intersections, $trail->type, $trail->cn, $j, $otherTrail->type, $otherTrail->cn);
+						addIntersections ($intersections);
+					}
 				}
 				
 				fseek ($handle, $startPos);
@@ -564,7 +658,7 @@ function findJunctions ($trail, $handle)
 	}
 }
 
-// 223010391
+// 440010391
 
 function findEdges ()
 {
@@ -575,13 +669,27 @@ function findEdges ()
 	{
 		$node1 = $allIntersections[$i];
 		
+		$debug = false;
+		foreach ($node1->routes as $route)
+		{
+			if ($route->cn == "440010391")
+			{
+				$debug = true;
+				break;
+			}
+		}
+
+		if ($debug)
+		{
+			error_log ("Node: " . json_encode ($node1));
+		}
+		
 		for ($k = 0; $k < count($node1->routes); $k++)
 		{
 			if (!isset($node1->routes[$k]->prevConnected) || !isset($node1->routes[$k]->nextConnected))
 			{
-				if ($node1->routes[$k]->cn == "223010391")
+				if ($debug)
 				{
-					error_log ("Node: " . json_encode ($node1));
 					error_log ("search for other junction to match " . $node1->routes[$k]->cn . ", route " . $node1->routes[$k]->index . ", routeIndex " . $node1->routes[$k]->routeIndex);
 				}
 				
@@ -596,11 +704,6 @@ function findEdges ()
 					{
 						if ($node1->routes[$k]->cn == $node2->routes[$l]->cn && $node1->routes[$k]->index == $node2->routes[$l]->index)
 						{
-							if ($node1->routes[$k]->cn == "223010391")
-							{
-								error_log ("consider " . $node2->routes[$l]->routeIndex);
-							}
-							
 							if (!isset($node1->routes[$k]->prevConnected)
 								&& $node1->routes[$k]->routeIndex > $node2->routes[$l]->routeIndex
 								&& (!isset($foundPrevTerminus)
@@ -652,7 +755,7 @@ function findEdges ()
 						$edge->prev->nodeIndex = $foundPrevNodeIndex;
 						$edge->prev->routeIndex = $foundPrevRouteIndex;
 						
-						if ($node1->routes[$k]->cn == "223010391")
+						if ($debug)
 						{
 							error_log ("Prev Edge: " . json_encode($edge));
 						}
@@ -670,23 +773,26 @@ function findEdges ()
 						
 						$foundPrevTerminus->nextConnected = true;
 						
-						if ($node1->routes[$k]->cn == "223010391")
+						if ($debug)
 						{
 							error_log ("*** found 'prev' edge ***\n" . var_dump_ret($node1->routes[$k]) . "\n" . var_dump_ret($foundPrevTerminus));
 						}
 					}
 					else
 					{
-						$edge->prev->routeIndex = 0;
-						
-						if ($node1->routes[$k]->cn == "223010391")
+						if ($edge->next->routeIndex != 0)
 						{
-							error_log ("Prev Edge: " . json_encode($edge));
+							$edge->prev->routeIndex = 0;
+						
+							if ($debug)
+							{
+								error_log ("Prev Edge: " . json_encode($edge));
+							}
+							
+							array_push($edges, $edge);
+							
+							array_push ($node1->edges, count($edges) - 1);
 						}
-						
-						array_push($edges, $edge);
-						
-						array_push ($node1->edges, count($edges) - 1);
 					}
 				}
 				
@@ -717,7 +823,7 @@ function findEdges ()
 						$edge->next->nodeIndex = $foundNextNodeIndex;
 						$edge->next->routeIndex = $foundNextRouteIndex;
 						
-						if ($node1->routes[$k]->cn == "223010391")
+						if ($debug)
 						{
 							error_log ("Next Edge: " . json_encode($edge));
 						}
@@ -735,23 +841,26 @@ function findEdges ()
 						
 						$foundNextTerminus->prevConnected = true;
 						
-						if ($node1->routes[$k]->cn == "223010391")
+						if ($debug)
 						{
 							error_log ("*** found 'next' edge ***\n" . var_dump_ret($node1->routes[$k]) . "\n" . var_dump_ret($foundNextTerminus));
 						}
 					}
 					else
 					{
-						$edge->next->routeIndex = $node1->routes[$k]->routeIndexMax;
-						
-						if ($node1->routes[$k]->cn == "223010391")
+						if ($edge->prev->routeIndex != $node1->routes[$k]->routeIndexMax)
 						{
-							error_log ("Next Edge: " . json_encode($edge));
+							$edge->next->routeIndex = $node1->routes[$k]->routeIndexMax;
+							
+							if ($debug)
+							{
+								error_log ("Next Edge: " . json_encode($edge));
+							}
+							
+							array_push($edges, $edge);
+							
+							array_push ($node1->edges, count($edges) - 1);
 						}
-						
-						array_push($edges, $edge);
-						
-						array_push ($node1->edges, count($edges) - 1);
 					}
 				}
 			}
@@ -769,6 +878,8 @@ function parseJSON ($inputFile)
 	global $overlappingTrailRectscount;
 	global $totalIntersectionsCount;
 	global $edges;
+	global $connectorCount;
+	global $connectors;
 	
 	$handle = fopen($inputFile, "rb");
 	
@@ -776,6 +887,8 @@ function parseJSON ($inputFile)
 	{
 		for (;;)
 		{
+			$trailStartPos = ftell ($handle);
+			
 			$jsonString = fgets ($handle);
 			
 			if (!$jsonString)
@@ -789,7 +902,14 @@ function parseJSON ($inputFile)
 			
 			$trail = json_decode($jsonString);
 			
-			findJunctions ($trail, $handle);
+			if ($trail->type == "connector")
+			{
+				$connectorOffset = $trailStartPos;
+			}
+			else 
+			{
+				findJunctions ($trail, $handle);
+			}
 			
 			fseek ($handle, $startPos);
 
@@ -816,6 +936,7 @@ function parseJSON ($inputFile)
 	error_log("point count = " . $pointCount);
 	error_log("duplicate point count = " . $duplicatePointCount);
 	error_log("edge count = " . count($edges));
+	error_log("connector count = " . $connectorCount);
 	
 	$graph = (object)[];
 	
@@ -823,6 +944,28 @@ function parseJSON ($inputFile)
 	$graph->edges = $edges;
 	
 	echo json_encode($graph);
+	
+	if (count($connectors) > 0)
+	{
+		$handle = fopen($inputFile, "cb");
+		
+		if ($handle)
+		{
+			if (isset($connectorOffset))
+			{
+				fseek ($handle, $connectorOffset);
+			}
+			else
+			{
+				fseek ($handle, 0, SEEK_END);
+			}
+			
+			$jsonString = json_encode($connectors) . "\n";
+			
+			fwrite ($handle, $jsonString);
+			fclose ($handle);
+		}
+	}
 }
 
 // $intersection = segmentsIntersection (

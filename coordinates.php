@@ -132,11 +132,8 @@ function distToSegmentSquared($p, $v, $w)
 }
 
 
-function pointOnPath ($lat, $lng, &$segments, $tolerance, &$index, &$distance, &$point)
+function pointOnPath ($point, &$segments, $tolerance)
 {
-	$closestEdge = -1;
-	$index = -1;
-	
 	//
 	// There has to be at least two points in the array. Otherwise, we wouldn't have any edges.
 	//
@@ -145,21 +142,21 @@ function pointOnPath ($lat, $lng, &$segments, $tolerance, &$index, &$distance, &
 		for ($s = 0; $s < count($segments) - 1; $s++)
 		{
 			$p = nearestPointOnSegment(
-			(object)["x" => $lat, "y" => $lng],
+			(object)["x" => $point->lat, "y" => $point->lng],
 				(object)["x" => $segments[$s]->lat, "y" => $segments[$s]->lng],
 				(object)["x" => $segments[$s + 1]->lat, "y" => $segments[$s + 1]->lng]);
 			
-			$d = distSquared ((object)["x" => $lat, "y" => $lng], $p);
+			$d = distSquared ((object)["x" => $point->lat, "y" => $point->lng], $p);
 			
 			if ($s == 0 || $d < $shortestDistance)
 			{
 				$shortestDistance = $d;
 				$closestEdge = $s;
-				$closestPoint = $p;
+				$closestPoint = (object)["lat" => $p->x, "lng" => $p->y];
 			}
 		}
 		
-		$shortestDistance = haversineGreatCircleDistance ($lat, $lng, $closestPoint->x, $closestPoint->y);
+		$shortestDistance = haversineGreatCircleDistance ($point->lat, $point->lng, $closestPoint->lat, $closestPoint->lng);
 		//$shortestDistance = haversineGreatCircleDistance (40.159708252, -111.24445577, 40.158448612326, -111.22906855015);
 		
 // 		echo $shortestDistance, " lat: ", $closestPoint->x, " lng: ", $closestPoint->y, "\n";
@@ -167,13 +164,18 @@ function pointOnPath ($lat, $lng, &$segments, $tolerance, &$index, &$distance, &
 		
 		if ($shortestDistance <= $tolerance)
 		{
-			$index = $closestEdge;
-			$point = $closestPoint;
-			$distance = $shortestDistance;
+			$result = (object)[];
+			
+			$result->index = $closestEdge;
+			$result->point = $closestPoint;
+			$result->distance = $shortestDistance;
 		}
 	}
 	
-	return $closestEdge;
+	if (isset($result))
+	{
+		return $result;
+	}
 }
 
 
@@ -378,23 +380,21 @@ function findTrail (&$point, &$trailName, &$trailIndex, &$route, &$routeIndex)
 				{
 					if (!isset($trail->routes[$i]->bounds) || withinBounds ($point, $trail->routes[$i]->bounds, 0.00027027))
 					{
-						$newPoint = (object)[];
+						$result = pointOnPath ($point, $trail->routes[$i]->route, 30);
 						
-						pointOnPath ($point->lat, $point->lng, $trail->routes[$i]->route, 30, $index, $distance, $newPoint);
-						
-						if ($index != -1 && ($first || $distance < $shortestDistance))
+						if (isset($result) && ($first || $result->distance < $shortestDistance))
 						{
 							$first = false;
 							
-							$shortestDistance = $distance;
+							$shortestDistance = $result->distance;
 							$trailName = $trail->type . ":" . $trail->cn . ":" . $i;
 							// The new point is on the closest segment found on the trail. Therefore, the trail
 							// route will start at the next segment.
 							$trailIndex = $i;
-							$routeIndex = $index + 1;
+							$routeIndex = $result->index + 1;
 							$route = $trail->routes[$i]->route;
 							
-							$adjustedPoint = (object)["lat" => $newPoint->x, "lng" => $newPoint->y];
+							$adjustedPoint = $result->point;
 						}
 					}
 				

@@ -71,19 +71,30 @@ function dumpGraph ($graph)
 		{
 			$edge = $graph->edges[$i];
 			
+			if ($edge->type == "connector")
+			{
+				$color = ",color=red";
+			}
+			else
+			{
+				$color = "";
+			}
+			
+			$label = "label = " . $edge->cn;
+			
 			if (isset($edge->prev->nodeIndex) && isset($edge->next->nodeIndex))
 			{
-				fwrite ($handle, "n" . $edge->prev->nodeIndex . " -- n" . $edge->next->nodeIndex . " [ label = " . $edge->cn . "];\n");
+				fwrite ($handle, "n" . $edge->prev->nodeIndex . " -- n" . $edge->next->nodeIndex . " [ " . $label . $color . "];\n");
 			}
 			else if (isset($edge->prev->nodeIndex))
 			{
 				$deadEndCount++;
-				fwrite ($handle, "n" . $edge->prev->nodeIndex . " -- DE" . $deadEndCount . " [ label = " . $edge->cn . "];\n");
+				fwrite ($handle, "n" . $edge->prev->nodeIndex . " -- DE" . $deadEndCount . " [ " . $label . $color . "];\n");
 			}
 			else if (isset($edge->next->nodeIndex))
 			{
 				$deadEndCount++;
-				fwrite ($handle, "n" . $edge->next->nodeIndex . " -- DE" . $deadEndCount . " [ label = " . $edge->cn . "];\n");
+				fwrite ($handle, "n" . $edge->next->nodeIndex . " -- DE" . $deadEndCount . " [ " . $label . $color . "];\n");
 			}
 		}
 		
@@ -370,31 +381,39 @@ function findPath ($start, $end)
 				
 				$segment->trailName = $trailName;
 				
-				if (isset($edge->prev->nodeIndex) && $edge->prev->nodeIndex == $nodeIndex)
+				if ($edge->cn == $startCN
+					&& ($startRouteIndex >= $edge->prev->routeIndex && $startRouteIndex <= $edge->next->routeIndex))
 				{
-					$segment->routeIndex = $edge->prev->routeIndex;
-				}
-				else if (isset($edge->next->nodeIndex) && $edge->next->nodeIndex == $nodeIndex)
-				{
-					$segment->routeIndex = $edge->next->routeIndex;
-				}
-				
-				// Get the next node index
-				if (isset($edge->prev->nodeIndex) && $edge->prev->nodeIndex != $nodeIndex)
-				{
-					if ($handle) fwrite ($handle, $edge->prev->nodeIndex . " -> " . $nodeIndex . ";\n");
-					
-					$nodeIndex = $edge->prev->nodeIndex;
-				}
-				else if (isset($edge->next->nodeIndex) && $edge->next->nodeIndex != $nodeIndex)
-				{
-					if ($handle) fwrite ($handle, $edge->next->nodeIndex . " -> " . $nodeIndex . ";\n");
-	
-					$nodeIndex = $edge->next->nodeIndex;
+					unset($nodeIndex);
 				}
 				else
 				{
-					unset($nodeIndex);
+					if (isset($edge->prev->nodeIndex) && $edge->prev->nodeIndex == $nodeIndex)
+					{
+						$segment->routeIndex = $edge->prev->routeIndex;
+					}
+					else if (isset($edge->next->nodeIndex) && $edge->next->nodeIndex == $nodeIndex)
+					{
+						$segment->routeIndex = $edge->next->routeIndex;
+					}
+					
+					// Get the next node index
+					if (isset($edge->prev->nodeIndex) && $edge->prev->nodeIndex != $nodeIndex)
+					{
+						if ($handle) fwrite ($handle, $edge->prev->nodeIndex . " -> " . $nodeIndex . ";\n");
+						
+						$nodeIndex = $edge->prev->nodeIndex;
+					}
+					else if (isset($edge->next->nodeIndex) && $edge->next->nodeIndex != $nodeIndex)
+					{
+						if ($handle) fwrite ($handle, $edge->next->nodeIndex . " -> " . $nodeIndex . ";\n");
+		
+						$nodeIndex = $edge->next->nodeIndex;
+					}
+					else
+					{
+						unset($nodeIndex);
+					}
 				}
 			}
 			else
@@ -413,11 +432,12 @@ function findPath ($start, $end)
 		
 		error_log (json_encode($start));
 		//array_push ($newSegments, $start);
-		array_splice ($newSegments, 0, 0, array($start));
+		
+		addNewSegment ($newSegments, $start);
 		
 	//	error_log(json_encode($newSegments));
 	}
-	else
+	else if (isset($noNodeSegments))
 	{
 		$newSegments = $noNodeSegments;
 	}

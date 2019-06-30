@@ -1508,11 +1508,26 @@ function drawTrails ()
 		{
 			for (let r in trailCoords.trails[t].routes)
 			{
+				var color;
+				
+				if (trailCoords.trails[t].type == "trail")
+				{
+					color = '#704513'
+				}
+				else if (trailCoords.trails[t].type == "road")
+				{
+					color = "#404040";
+				}
+				else
+				{
+					color = "#FF0000";
+				}
+				
 				let trail = new google.maps.Polyline({
 					path: trailCoords.trails[t].routes[r].route,
 					editable: false,
 					geodesic: true,
-					strokeColor: trailCoords.trails[t].type == "trail" ? '#704513' : "#404040",
+					strokeColor: color,
 					strokeOpacity: 1.0,
 					strokeWeight: currentTrailWeight,
 					zIndex: 15});
