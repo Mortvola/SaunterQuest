@@ -1388,6 +1388,8 @@ function retrieveRoute ()
 	{
 		if (this.readyState == 4 && this.status == 200)
 		{
+			actualRoute = [];
+			
 			anchors = JSON.parse(this.responseText);
 
 			if (anchors.length > 0)
@@ -1551,16 +1553,16 @@ function retrieveTrails ()
 			
 			drawTrails ();
 			
-			for (let i in trailCoords.intersections)
-			{
-				new google.maps.Marker({
-					position: trailCoords.intersections[i],
-					map: map,
-					icon: {
-						url: junctionUrl
-					},
-				});
-			}
+//			for (let i in trailCoords.intersections)
+//			{
+//				new google.maps.Marker({
+//					position: trailCoords.intersections[i],
+//					map: map,
+//					icon: {
+//						url: junctionUrl
+//					},
+//				});
+//			}
 		}
 	}
 	

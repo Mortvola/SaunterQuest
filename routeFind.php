@@ -9,41 +9,44 @@ $handle = null;
 
 function dump_node ($nodeIndex, $graph)
 {
-	error_log ("---------------");
-	error_log ("Node Index: " . $nodeIndex);
-	
-	$node = &$graph->nodes[$nodeIndex];
-	
-	error_log ("Number of edges: " . count($node->edges));
-	
-	for ($i = 0; $i < count($node->edges); $i++)
+	if (isset($nodeIndex))
 	{
-		$edge = &$graph->edges[$node->edges[$i]];
+		error_log ("---------------");
+		error_log ("Node Index: " . $nodeIndex);
 		
-		if (!isset($edge->prev->nodeIndex))
-		{
-			error_log ("edge index: " . $node->edges[$i] . ", route " . $edge->cn . " to no node. " . isset($edge->visited));
-		}
-		else if ($edge->prev->nodeIndex != $nodeIndex)
-		{
-			error_log ("edge index: " . $node->edges[$i] . ", route " . $edge->cn . " to " . $edge->prev->nodeIndex . ". " . isset($edge->visited));
-		}
+		$node = &$graph->nodes[$nodeIndex];
 		
-		if (!isset($edge->next->nodeIndex))
-		{
-			error_log ("edge index: " . $node->edges[$i] . ", route " . $edge->cn . " to no node. " . isset($edge->visited));
-		}
-		else if ($edge->next->nodeIndex != $nodeIndex)
-		{
-			error_log ("edge index: " . $node->edges[$i] . ", route " . $edge->cn . " to " . $edge->next->nodeIndex . ". " . isset($edge->visited));
-		}
+		error_log ("Number of edges: " . count($node->edges));
 		
-		if (!isset($edge->next->nodeIndex) && !isset($edge->prev->nodeIndex))
+		for ($i = 0; $i < count($node->edges); $i++)
 		{
-			error_log ("edge index: " . $node->edges[$i] . ", no route" );
+			$edge = &$graph->edges[$node->edges[$i]];
+			
+			if (!isset($edge->prev->nodeIndex))
+			{
+				error_log ("edge index: " . $node->edges[$i] . ", route " . $edge->cn . " to no node. " . isset($edge->visited));
+			}
+			else if ($edge->prev->nodeIndex != $nodeIndex)
+			{
+				error_log ("edge index: " . $node->edges[$i] . ", route " . $edge->cn . " to " . $edge->prev->nodeIndex . ". " . isset($edge->visited));
+			}
+			
+			if (!isset($edge->next->nodeIndex))
+			{
+				error_log ("edge index: " . $node->edges[$i] . ", route " . $edge->cn . " to no node. " . isset($edge->visited));
+			}
+			else if ($edge->next->nodeIndex != $nodeIndex)
+			{
+				error_log ("edge index: " . $node->edges[$i] . ", route " . $edge->cn . " to " . $edge->next->nodeIndex . ". " . isset($edge->visited));
+			}
+			
+			if (!isset($edge->next->nodeIndex) && !isset($edge->prev->nodeIndex))
+			{
+				error_log ("edge index: " . $node->edges[$i] . ", no route" );
+			}
 		}
+		error_log ("---------------");
 	}
-	error_log ("---------------");
 }
 
 
@@ -98,10 +101,10 @@ function addNewSegment (&$newSegments, $segment)
 			|| $segment->trailName != $newSegments[0]->trailName)
 	{
 		if (count($newSegments) > 1
-				&& $segment->trailName == $newSegments[0]->trailName
-				&& $newSegments[0]->trailName == $newSegments[1]->trailName
-				&& (($segment->routeIndex > $newSegments[0]->routeIndex && $newSegments[0]->routeIndex > $newSegments[1]->routeIndex)
-						|| ($segment->routeIndex < $newSegments[0]->routeIndex && $newSegments[0]->routeIndex < $newSegments[1]->routeIndex)))
+			&& $segment->trailName == $newSegments[0]->trailName
+			&& $newSegments[0]->trailName == $newSegments[1]->trailName
+			&& (($segment->routeIndex > $newSegments[0]->routeIndex && $newSegments[0]->routeIndex > $newSegments[1]->routeIndex)
+				|| ($segment->routeIndex < $newSegments[0]->routeIndex && $newSegments[0]->routeIndex < $newSegments[1]->routeIndex)))
 		{
 			$newSegments[0] = $segment;
 		}
@@ -126,18 +129,21 @@ function findPath ($start, $end)
 	
 	error_log(json_encode($start));
 	
-	var_dump ($trailName);
-	var_dump ($startTrailIndex);
-	var_dump ($startRouteIndex);
+// 	var_dump ($trailName);
+// 	var_dump ($startTrailIndex);
+// 	var_dump ($startRouteIndex);
 	
 	$startCN = explode(":", $trailName)[1];
 	
 	findTrail ($end, $trailName, $endTrailIndex, $endRoute, $endRouteIndex);
 	
 	$end->trailName = $trailName;
-	var_dump ($trailName);
-	var_dump ($endTrailIndex);
-	var_dump ($endRouteIndex);
+
+	error_log(json_encode($end));
+	
+// 	var_dump ($trailName);
+// 	var_dump ($endTrailIndex);
+// 	var_dump ($endRouteIndex);
 	
 	$endCN = explode(":", $trailName)[1];
 
@@ -154,37 +160,74 @@ function findPath ($start, $end)
 	{
 		$edge = &$graph->edges[$i];
 		
-		if ($edge->cn == $startCN)
+		if ($edge->cn == $startCN
+		 && ($edge->prev->routeIndex < $startRouteIndex)
+		 && ($edge->next->routeIndex > $startRouteIndex))
 		{
-			if (($edge->prev->routeIndex < $startRouteIndex)
-			 && ($edge->next->routeIndex > $startRouteIndex))
+			if ($edge->cn == $endCN
+					&& ($edge->prev->routeIndex < $endRouteIndex)
+					&& ($edge->next->routeIndex > $endRouteIndex))
 			{
-				if (isset($edge->prev->nodeIndex))
+				if ($startRouteIndex > $endRouteIndex)
 				{
-					$graph->nodes[$edge->prev->nodeIndex]->bestEdge = $i;
-					$graph->nodes[$edge->prev->nodeIndex]->cost = 0;
-					array_push ($nodes, $edge->prev->nodeIndex);
+					if (isset ($edge->next->nodeIndex))
+					{
+						$graph->nodes[$edge->next->nodeIndex]->bestEdge = $i;
+						$graph->nodes[$edge->next->nodeIndex]->cost = 0;
+						array_push ($nodes, $edge->next->nodeIndex);
 					
-					if ($handle) fwrite ($handle, "S -> " . $edge->prev->nodeIndex . ";\n");
-
-					dump_node($edge->prev->nodeIndex, $graph);
+						if ($handle) fwrite ($handle, "S -> " . $edge->next->nodeIndex . ";\n");
+					
+						dump_node($edge->next->nodeIndex, $graph);
+					}
+				}
+				else if ($startRouteIndex < $endRouteIndex)
+				{
+					if (isset ($edge->prev->nodeIndex))
+					{
+						$graph->nodes[$edge->prev->nodeIndex]->bestEdge = $i;
+						$graph->nodes[$edge->prev->nodeIndex]->cost = 0;
+						array_push ($nodes, $edge->prev->nodeIndex);
+						
+						if ($handle) fwrite ($handle, "S -> " . $edge->prev->nodeIndex . ";\n");
+						
+						dump_node($edge->prev->nodeIndex, $graph);
+					}
 				}
 				
-				if (isset($edge->next->nodeIndex))
-				{
-					$graph->nodes[$edge->next->nodeIndex]->bestEdge = $i;
-					$graph->nodes[$edge->next->nodeIndex]->cost = 0;
-					array_push ($nodes, $edge->next->nodeIndex);
-
-					if ($handle) fwrite ($handle, "S -> " . $edge->next->nodeIndex . ";\n");
-					
-					dump_node($edge->next->nodeIndex, $graph);
-				}
+				$noNodeSegments = [];
 				
-				$edge->visited = true;
+				$start->routeIndex = $startRouteIndex;
+				$end->routeIndex = $endRouteIndex;
 				
-				break;
+				array_push ($noNodeSegments, $start);
+				array_push ($noNodeSegments, $end);
 			}
+			else if (isset($edge->prev->nodeIndex))
+			{
+				$graph->nodes[$edge->prev->nodeIndex]->bestEdge = $i;
+				$graph->nodes[$edge->prev->nodeIndex]->cost = 0;
+				array_push ($nodes, $edge->prev->nodeIndex);
+				
+				if ($handle) fwrite ($handle, "S -> " . $edge->prev->nodeIndex . ";\n");
+
+				dump_node($edge->prev->nodeIndex, $graph);
+			}
+			
+			if (isset($edge->next->nodeIndex))
+			{
+				$graph->nodes[$edge->next->nodeIndex]->bestEdge = $i;
+				$graph->nodes[$edge->next->nodeIndex]->cost = 0;
+				array_push ($nodes, $edge->next->nodeIndex);
+
+				if ($handle) fwrite ($handle, "S -> " . $edge->next->nodeIndex . ";\n");
+				
+				dump_node($edge->next->nodeIndex, $graph);
+			}
+			
+			$edge->visited = true;
+			
+			break;
 		}
 	}
 	
@@ -374,6 +417,10 @@ function findPath ($start, $end)
 		
 	//	error_log(json_encode($newSegments));
 	}
+	else
+	{
+		$newSegments = $noNodeSegments;
+	}
 
 	if ($handle)
 	{
@@ -402,8 +449,6 @@ function test ($fileName)
 				if ($segments[$i]->type == "end")
 				{
 					$endIndex = $i;
-					
-					break;
 				}
 				else if ($segments[$i]->type == "start")
 				{

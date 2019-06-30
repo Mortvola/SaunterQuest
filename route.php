@@ -230,31 +230,64 @@ else if ($_SERVER["REQUEST_METHOD"] == "PUT")
 				$segments = [];
 				
 				array_push($segments, (object)[
-					"lat" => $routeUpdate->point->lat,
-					"lng" => $routeUpdate->point->lng,
-					"dist" => 0,
-					"ele" => getElevation ($routeUpdate->point->lat, $routeUpdate->point->lng),
-					"type" => "start"
+						"lat" => $routeUpdate->point->lat,
+						"lng" => $routeUpdate->point->lng,
+						"dist" => 0,
+						"ele" => getElevation ($routeUpdate->point->lat, $routeUpdate->point->lng),
+						"type" => "start"
 				]);
 			}
-			else if (count($segments) == 1)
+			else
 			{
-				if (isset ($segments[0]->type) && $segments[0]->type == "start")
+				// Find "start" and "end"
+				for ($i = 0; $i < count ($segments); $i++)
 				{
-					$segments[0]->lat = $routeUpdate->point->lat;
-					$segments[0]->lng = $routeUpdate->point->lng;
-					$segments[0]->dist = 0;
-					$segments[0]->ele = getElevation ($routeUpdate->point->lat, $routeUpdate->point->lng);
+					if (isset($segments[$i]->type))
+					{
+						if ($segments[$i]->type == "end")
+						{
+							$endIndex = $i;
+						}
+						else if ($segments[$i]->type == "start")
+						{
+							$startIndex = $i;
+						}
+					}
+				}
+				
+				if (isset($startIndex))
+				{
+					// End exists, update it.
+					
+					$segments[$startIndex]->lat = $routeUpdate->point->lat;
+					$segments[$startIndex]->lng = $routeUpdate->point->lng;
+					$segments[$startIndex]->dist = 0;
+					$segments[$startIndex]->ele = getElevation ($routeUpdate->point->lat, $routeUpdate->point->lng);
 				}
 				else
 				{
-					array_push($segments, (object)[
+					// Start doesn't exist, add it
+					
+					array_splice($segments, 0, 0, (object)[
 							"lat" => $routeUpdate->point->lat,
 							"lng" => $routeUpdate->point->lng,
 							"dist" => 0,
 							"ele" => getElevation ($routeUpdate->point->lat, $routeUpdate->point->lng),
 							"type" => "start"
 					]);
+					
+					$startIndex = 0;
+					$endIndex = count($segments) - 1;
+				}
+				
+				if (isset($startIndex) && isset($endIndex))
+				{
+					$newSegments = findPath ($segments[$startIndex], $segments[$endIndex]);
+					
+					if (isset($newSegments) && count ($newSegments) > 0)
+					{
+						$segments = $newSegments;
+					}
 				}
 			}
 		}
@@ -304,7 +337,6 @@ else if ($_SERVER["REQUEST_METHOD"] == "PUT")
 				else
 				{
 					// End doesn't exist, add it
-					// todo: determine which end of the array to add it to.
 					
 					array_push($segments, (object)[
 							"lat" => $routeUpdate->point->lat,
@@ -319,7 +351,12 @@ else if ($_SERVER["REQUEST_METHOD"] == "PUT")
 			
 				if (isset($startIndex) && isset($endIndex))
 				{
-					$segments = findPath ($segments[$startIndex], $segments[$endIndex]);
+					$newSegments = findPath ($segments[$startIndex], $segments[$endIndex]);
+					
+					if (isset($newSegments) && count ($newSegments) > 0)
+					{
+						$segments = $newSegments;
+					}
 				}
 			}
 		}
