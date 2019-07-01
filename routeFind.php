@@ -139,12 +139,13 @@ function findPath ($start, $end)
 	$start->trailName = $trailName;
 	
 	error_log(json_encode($start));
-	
-// 	var_dump ($trailName);
-// 	var_dump ($startTrailIndex);
-// 	var_dump ($startRouteIndex);
+
+	error_log("Start Route Index: " . json_encode($startRouteIndex));
+	error_log ("Number of Points: " . count($startRoute));
 	
 	$startCN = explode(":", $trailName)[1];
+	
+	error_log ("Start CN: " . $startCN);
 	
 	findTrail ($end, $trailName, $endTrailIndex, $endRoute, $endRouteIndex);
 	
@@ -175,9 +176,12 @@ function findPath ($start, $end)
 		 && ($edge->prev->routeIndex < $startRouteIndex)
 		 && ($edge->next->routeIndex > $startRouteIndex))
 		{
+			error_log(json_encode($edge));
+			
+			// If the end is also on this same edge...
 			if ($edge->cn == $endCN
-					&& ($edge->prev->routeIndex < $endRouteIndex)
-					&& ($edge->next->routeIndex > $endRouteIndex))
+				&& ($edge->prev->routeIndex < $endRouteIndex)
+				&& ($edge->next->routeIndex > $endRouteIndex))
 			{
 				if ($startRouteIndex > $endRouteIndex)
 				{
@@ -214,7 +218,8 @@ function findPath ($start, $end)
 				array_push ($noNodeSegments, $start);
 				array_push ($noNodeSegments, $end);
 			}
-			else if (isset($edge->prev->nodeIndex))
+
+			if (isset($edge->prev->nodeIndex))
 			{
 				$graph->nodes[$edge->prev->nodeIndex]->bestEdge = $i;
 				$graph->nodes[$edge->prev->nodeIndex]->cost = 0;
@@ -381,6 +386,15 @@ function findPath ($start, $end)
 				
 				$segment->trailName = $trailName;
 				
+				if (isset($edge->prev->nodeIndex) && $edge->prev->nodeIndex == $nodeIndex)
+				{
+					$segment->routeIndex = $edge->prev->routeIndex;
+				}
+				else if (isset($edge->next->nodeIndex) && $edge->next->nodeIndex == $nodeIndex)
+				{
+					$segment->routeIndex = $edge->next->routeIndex;
+				}
+				
 				if ($edge->cn == $startCN
 					&& ($startRouteIndex >= $edge->prev->routeIndex && $startRouteIndex <= $edge->next->routeIndex))
 				{
@@ -388,15 +402,6 @@ function findPath ($start, $end)
 				}
 				else
 				{
-					if (isset($edge->prev->nodeIndex) && $edge->prev->nodeIndex == $nodeIndex)
-					{
-						$segment->routeIndex = $edge->prev->routeIndex;
-					}
-					else if (isset($edge->next->nodeIndex) && $edge->next->nodeIndex == $nodeIndex)
-					{
-						$segment->routeIndex = $edge->next->routeIndex;
-					}
-					
 					// Get the next node index
 					if (isset($edge->prev->nodeIndex) && $edge->prev->nodeIndex != $nodeIndex)
 					{

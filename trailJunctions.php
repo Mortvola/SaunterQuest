@@ -362,7 +362,7 @@ function addConnector ($coord, $route)
 		
 		$intersection = (object)[];
 		
-		$intersection->connectorIndex = count($connectors->routes);
+		$intersection->connectorIndex = count($connectors->routes) - 1;
 		$intersection->index = $result->index;
 		$intersection->lat = $result->point->lat;
 		$intersection->lng = $result->point->lng;
@@ -902,6 +902,11 @@ function parseJSON ($inputFile)
 			
 			$trail = json_decode($jsonString);
 			
+			if ($trail->cn == "440010391")
+			{
+				error_log ("***** Number of Points: " . count($trail->routes[0]->route));
+			}
+			
 			if ($trail->type == "connector")
 			{
 				$connectorOffset = $trailStartPos;
@@ -976,6 +981,6 @@ function parseJSON ($inputFile)
 
 // var_dump ($intersection);
 
-parseJSON ("N405W1095.json.deduped");
+parseJSON ("trails/N405W1095.json.deduped");
 
 ?>

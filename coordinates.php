@@ -391,7 +391,7 @@ function findTrail (&$point, &$trailName, &$trailIndex, &$route, &$routeIndex)
 							// The new point is on the closest segment found on the trail. Therefore, the trail
 							// route will start at the next segment.
 							$trailIndex = $i;
-							$routeIndex = $result->index + 1;
+							$routeIndex = $result->index;
 							$route = $trail->routes[$i]->route;
 							
 							$adjustedPoint = $result->point;
