@@ -350,6 +350,16 @@ function withinBounds ($point, $bounds, $inflation)
 }
 
 
+function boundsIntersect ($b1, $b2, $inflation)
+{
+	return ($b1[0] - $inflation <= $b2[2] + $inflation
+			&& $b1[2] + $inflation >= $b2[0] - $inflation
+			&& $b1[1] - $inflation <= $b2[3] + $inflation
+			&& $b1[3] + $inflation >= $b2[1] - $inflation);
+}
+
+
+
 function findTrail (&$point, &$trailName, &$trailIndex, &$route, &$routeIndex)
 {
 	$trails = [];

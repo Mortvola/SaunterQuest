@@ -50,62 +50,6 @@ function dump_node ($nodeIndex, $graph)
 }
 
 
-function dumpGraph ($graph)
-{
-	$handle = fopen ("graph.dot", "wb");
-	
-	if ($handle)
-	{
-		$deadEndCount = 0;
-		
-		fwrite ($handle, "graph G {\n");
-		
-// 		for ($i = 0; $i < count($graph->nodes); $i++)
-// 		{
-// 			$node = $graph->nodes[$i];
-			
-// 			fwrite ($handle, "n" . $i . " [ pos = \"" . $node->lng * 400 . "," . $node->lat * 400 . "!\" ];\n");
-// 		}
-		
-		for ($i = 0; $i < count($graph->edges); $i++)
-		{
-			$edge = $graph->edges[$i];
-			
-			if ($edge->type == "connector")
-			{
-				$color = ",color=red";
-			}
-			else
-			{
-				$color = "";
-			}
-			
-			$label = "label = " . $edge->cn;
-			
-			if (isset($edge->prev->nodeIndex) && isset($edge->next->nodeIndex))
-			{
-				fwrite ($handle, "n" . $edge->prev->nodeIndex . " -- n" . $edge->next->nodeIndex . " [ " . $label . $color . "];\n");
-			}
-			else if (isset($edge->prev->nodeIndex))
-			{
-				$deadEndCount++;
-				fwrite ($handle, "n" . $edge->prev->nodeIndex . " -- DE" . $deadEndCount . " [ " . $label . $color . "];\n");
-			}
-			else if (isset($edge->next->nodeIndex))
-			{
-				$deadEndCount++;
-				fwrite ($handle, "n" . $edge->next->nodeIndex . " -- DE" . $deadEndCount . " [ " . $label . $color . "];\n");
-			}
-		}
-		
-		fwrite ($handle, "}\n");
-		
-		fclose ($handle);
-	}
-	
-}
-
-
 function addNewSegment (&$newSegments, $segment)
 {
 	if ($segment->lat != $newSegments[0]->lat || $segment->lng != $newSegments[0]->lng
@@ -143,9 +87,11 @@ function findPath ($start, $end)
 	error_log("Start Route Index: " . json_encode($startRouteIndex));
 	error_log ("Number of Points: " . count($startRoute));
 	
-	$startCN = explode(":", $trailName)[1];
+	$parts = explode(":", $trailName);
+	$startCN = $parts[1];
+	$startRoute = $parts[2];
 	
-	error_log ("Start CN: " . $startCN);
+	error_log ("Start CN/Route: " . $startCN . "/" . $startRoute);
 	
 	findTrail ($end, $trailName, $endTrailIndex, $endRoute, $endRouteIndex);
 	
@@ -157,11 +103,13 @@ function findPath ($start, $end)
 // 	var_dump ($endTrailIndex);
 // 	var_dump ($endRouteIndex);
 	
-	$endCN = explode(":", $trailName)[1];
+	$parts = explode(":", $trailName);
+	$endCN = $parts[1];
+	$endRoute = $parts[2];
 
-	$graph = json_decode(file_get_contents("trails/N405W1095.inter.json"));
+	error_log ("End CN/Route: " . $endCN . "/" . $endRoute);
 	
-	if ($handle) dumpGraph ($graph);
+	$graph = json_decode(file_get_contents("trails/N405W1095.inter.json"));
 	
 	if ($handle) fwrite ($handle, "digraph G {\n");
 	
@@ -172,14 +120,21 @@ function findPath ($start, $end)
 	{
 		$edge = &$graph->edges[$i];
 		
-		if ($edge->cn == $startCN
-		 && ($edge->prev->routeIndex < $startRouteIndex)
-		 && ($edge->next->routeIndex > $startRouteIndex))
+		if ($edge->cn == $startCN && $edge->route == $startRoute)
+		{
+			error_log ("Start Route Index: " . $startRouteIndex);
+			error_log ("Edge start route index: " . $edge->prev->routeIndex);
+			error_log ("Edge end route index: " . $edge->next->routeIndex);
+		}
+			
+		if ($edge->cn == $startCN && $edge->route == $startRoute
+		 && ($edge->prev->routeIndex <= $startRouteIndex)
+		 && ($edge->next->routeIndex >= $startRouteIndex))
 		{
 			error_log(json_encode($edge));
 			
 			// If the end is also on this same edge...
-			if ($edge->cn == $endCN
+			if ($edge->cn == $endCN && $edge->route == $endRoute
 				&& ($edge->prev->routeIndex < $endRouteIndex)
 				&& ($edge->next->routeIndex > $endRouteIndex))
 			{
@@ -247,6 +202,17 @@ function findPath ($start, $end)
 		}
 	}
 	
+	if (count($nodes) == 0)
+	{
+		error_log ("**** Start edge and nodes not found!");
+	}
+	
+	
+	if (count($noNodeSegments) > 0)
+	{
+		error_log ("No Node Segments: " . json_encode($noNodeSegments));
+	}
+	
 	//todo: get cost of trail to first nodes
 	
 	$foundEnd = false;
@@ -283,7 +249,7 @@ function findPath ($start, $end)
 				var_dump ($endCN);
 				var_dump ($edge);
 				
-				if ($edge->cn == $endCN
+				if ($edge->cn == $endCN && $edge->route == $endRoute
 					&& ($endRouteIndex >= $edge->prev->routeIndex && $endRouteIndex <= $edge->next->routeIndex))
 				{
 					error_log("Found end. Last edge ". $edgeIndex);
@@ -395,7 +361,7 @@ function findPath ($start, $end)
 					$segment->routeIndex = $edge->next->routeIndex;
 				}
 				
-				if ($edge->cn == $startCN
+				if ($edge->cn == $startCN && $edge->route == $startRoute
 					&& ($startRouteIndex >= $edge->prev->routeIndex && $startRouteIndex <= $edge->next->routeIndex))
 				{
 					unset($nodeIndex);
