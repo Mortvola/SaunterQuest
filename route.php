@@ -257,7 +257,7 @@ else if ($_SERVER["REQUEST_METHOD"] == "PUT")
 				
 				if (isset($startIndex))
 				{
-					// End exists, update it.
+					// Start exists, update it.
 					
 					$segments[$startIndex]->lat = $routeUpdate->point->lat;
 					$segments[$startIndex]->lng = $routeUpdate->point->lng;
@@ -307,7 +307,7 @@ else if ($_SERVER["REQUEST_METHOD"] == "PUT")
 			}
 			else
 			{
-				// Find "end"
+				// Find "start" and "end"
 				for ($i = 0; $i < count ($segments); $i++)
 				{
 					if (isset($segments[$i]->type))

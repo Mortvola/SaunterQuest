@@ -322,7 +322,7 @@ function segmentCrossesTrail ($coord1, $coord2, $route)
 // 						error_log(var_dump_ret($prevIntersection->lng - $intersection->lng));
 // 					}
 					
-					$intersection->index = $i;
+					$intersection->index = $i - 1;
 					
 					array_push($intersections, $intersection);
 					

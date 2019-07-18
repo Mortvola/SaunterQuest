@@ -60,24 +60,24 @@ if ($_SERVER["REQUEST_METHOD"] == "GET")
 		fclose ($handle);
 	}
 	
-	echo "],";
+	echo "]";
 
-	echo '"intersections":';
+// 	echo '"intersections":';
 	
-	$handle = fopen ("trails/N405W1095.inter.json", "rb");
+// 	$handle = fopen ("trails/N405W1095.inter.json", "rb");
 	
-	if ($handle)
-	{
-		$jsonString = fgets ($handle);
+// 	if ($handle)
+// 	{
+// 		$jsonString = fgets ($handle);
 		
-		echo $jsonString;
+// 		echo $jsonString;
 		
-		fclose ($handle);
-	}
-	else
-	{
-		echo "[]";
-	}
+// 		fclose ($handle);
+// 	}
+// 	else
+// 	{
+// 		echo "[]";
+// 	}
 	
 	echo "}";
 }

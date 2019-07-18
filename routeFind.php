@@ -98,7 +98,9 @@ function findPath ($start, $end)
 	$end->trailName = $trailName;
 
 	error_log(json_encode($end));
-	
+	error_log ("end trailName: " . $trailName);
+	error_log ("end trailIndex: " . $endTrailIndex);
+	error_log ("end routeIndex: " . $endRouteIndex);
 // 	var_dump ($trailName);
 // 	var_dump ($endTrailIndex);
 // 	var_dump ($endRouteIndex);
@@ -129,13 +131,13 @@ function findPath ($start, $end)
 			
 		if ($edge->cn == $startCN && $edge->route == $startRoute
 		 && ($edge->prev->routeIndex <= $startRouteIndex)
-		 && ($edge->next->routeIndex >= $startRouteIndex))
+		 && ($edge->next->routeIndex > $startRouteIndex))
 		{
 			error_log(json_encode($edge));
 			
 			// If the end is also on this same edge...
 			if ($edge->cn == $endCN && $edge->route == $endRoute
-				&& ($edge->prev->routeIndex < $endRouteIndex)
+				&& ($edge->prev->routeIndex <= $endRouteIndex)
 				&& ($edge->next->routeIndex > $endRouteIndex))
 			{
 				if ($startRouteIndex > $endRouteIndex)
@@ -208,7 +210,7 @@ function findPath ($start, $end)
 	}
 	
 	
-	if (count($noNodeSegments) > 0)
+	if (isset($noNodeSegments) && count($noNodeSegments) > 0)
 	{
 		error_log ("No Node Segments: " . json_encode($noNodeSegments));
 	}
@@ -233,6 +235,8 @@ function findPath ($start, $end)
 		var_dump ($nodeIndex);
 		
 		$node = &$graph->nodes[$nodeIndex];
+		
+		error_log ("node: " . json_encode ($node));
 		
 		error_log ("Best edge:");
 		var_dump ($node->bestEdge);

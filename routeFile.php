@@ -10,7 +10,7 @@ function trimRoute ($route, $startIndex, $endIndex)
 		
 		if ($startIndex < $endIndex)
 		{
-			array_splice ($route, $endIndex);
+			array_splice ($route, $endIndex + 1);
 			array_splice ($route, 0, $startIndex);
 			$route = array_values ($route);
 			
@@ -18,13 +18,19 @@ function trimRoute ($route, $startIndex, $endIndex)
 		}
 		else if ($startIndex > $endIndex)
 		{
-			array_splice ($route, $startIndex);
+			array_splice ($route, $startIndex + 1);
 			array_splice ($route, 0, $endIndex);
+			
+			error_log ("new route length: " . count($route));
 			
 			$route = array_reverse($route);
 			$route = array_values ($route);
 		
 			return $route;
+		}
+		else
+		{
+			return array($route[$startIndex]);
 		}
 	}
 }
@@ -57,6 +63,8 @@ function getFullTrail ($lat, $lng, $trailName)
 				{
 					if ($parts[0] == $trail->type && $parts[1] == $trail->cn)
 					{
+						error_log ("number of routes: " . count($trail->routes));
+						
 						$route = $trail->routes[$parts[2]]->route;
 						
 						break;
@@ -87,6 +95,8 @@ function getFullTrail ($lat, $lng, $trailName)
 function getTrail ($lat, $lng, $trailName, $startIndex, $endIndex)
 {
 	$route = getFullTrail ($lat, $lng, $trailName);
+	
+	error_log ("trim route to " . $startIndex . " and " . $endIndex . " of " . count($route));
 	
 	return trimRoute ($route, $startIndex, $endIndex);
 }
@@ -188,9 +198,19 @@ function getRouteFromFile ($fileName)
 			// If this segment and the next start on the same trail then
 			// find the route along the trail.
 			if (isset($segments[$s]->trailName) && isset($segments[$s + 1]->trailName) &&
-				$segments[$s]->trailName == $segments[$s + 1]->trailName)
+				$segments[$s]->trailName == $segments[$s + 1]->trailName &&
+				$segments[$s]->routeIndex != $segments[$s + 1]->routeIndex)
 			{
-				$trail = getTrail ($segments[$s]->lat, $segments[$s]->lng, $segments[$s]->trailName, $segments[$s]->routeIndex, $segments[$s + 1]->routeIndex);
+				error_log ("Points on same trail" . $segments[$s]->trailName);
+				
+				if ($segments[$s]->routeIndex < $segments[$s + 1]->routeIndex)
+				{
+					$trail = getTrail ($segments[$s]->lat, $segments[$s]->lng, $segments[$s]->trailName, $segments[$s]->routeIndex + 1, $segments[$s + 1]->routeIndex);
+				}
+				else
+				{
+					$trail = getTrail ($segments[$s]->lat, $segments[$s]->lng, $segments[$s]->trailName, $segments[$s]->routeIndex, $segments[$s + 1]->routeIndex + 1);
+				}
 				
 				//				array_splice ($segments, $s + 1, 0, $trail);
 				//				$s += count($trail);
