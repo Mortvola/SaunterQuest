@@ -69,7 +69,7 @@ function parseJSON ($inputFile)
 								$maxLng = max($maxLng, $trail->route[$t]->lng);
 							}
 							
-							$fileName = getTrailFileName ($trail->route[$t]->lat, $trail->route[$t]->lng);
+							$fileName = "trails/" . getTrailFileName ($trail->route[$t]->lat, $trail->route[$t]->lng, ".initial");
 							
 							if (!isset($prevFileName) || $fileName != $prevFileName)
 							{
@@ -159,7 +159,10 @@ function parseJSON ($inputFile)
 	}
 }
 
-parseJSON ("trails.combined.json");
+if (isset($argv[1]))
+{
+	parseJSON ($argv[1]);
+}
 //parseJSON ("roads.combined.json");
 
 ?>

@@ -11,10 +11,10 @@ BEGIN {
 	roadCN = ""; roadRoute = "";
 
 	for (i = 1; i <= NF; i++) {
-                if ($i ~ "RoadCore_FS") {
-                        split($i, subFields, ":");
-                        featureID = subFields[2];
-                }
+	            if ($i ~ "RoadCore_FS") {
+	                    split($i, subFields, ":");
+	                    featureID = subFields[2];
+	            }
 
 
 		if ($i ~ "RTE_CN") {
@@ -36,7 +36,6 @@ BEGIN {
 			#printf ","
 		#}
 		roadCount++;
-
 		
 		segmentCount = split (roadRoute, segments, "\\),\\(");
 		

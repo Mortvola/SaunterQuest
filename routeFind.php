@@ -85,7 +85,9 @@ function findPath ($start, $end)
 	error_log(json_encode($start));
 
 	error_log("Start Route Index: " . json_encode($startRouteIndex));
-	error_log ("Number of Points: " . count($startRoute));
+	error_log ("start trailName: " . $trailName);
+	error_log ("start trailIndex: " . $startTrailIndex);
+	error_log ("start routeIndex: " . $startRouteIndex);
 	
 	$parts = explode(":", $trailName);
 	$startCN = $parts[1];
@@ -111,7 +113,8 @@ function findPath ($start, $end)
 
 	error_log ("End CN/Route: " . $endCN . "/" . $endRoute);
 	
-	$graph = json_decode(file_get_contents("trails/N405W1095.inter.json"));
+	$graphFile = "trails/" . getTrailFileName ($start->lat, $start->lng, ".inter.json");
+	$graph = json_decode(file_get_contents($graphFile));
 	
 	if ($handle) fwrite ($handle, "digraph G {\n");
 	

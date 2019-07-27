@@ -1,6 +1,7 @@
 <?php
 
 require_once "coordinates.php";
+require_once "utilities.php";
 
 $closeIntersectThreshold = 0;
 
@@ -370,15 +371,6 @@ function addConnector ($coord, $route)
 	}
 }
 
-
-function var_dump_ret($mixed = null)
-{
-	ob_start();
-	var_dump($mixed);
-	$content = ob_get_contents();
-	ob_end_clean();
-	return $content;
-}
 
 // function addConnectorIntersections (&$intersections, $point, $newIntersection, $trail1, $trail1RouteIndex, $trail2)
 // {
@@ -937,22 +929,22 @@ function parseJSON ($inputFile)
 	global $edges;
 	global $connectors;
 	
-	$handle = fopen($inputFile, "rb");
+	$input = fopen($inputFile, "rb");
 	
-	if ($handle)
+	if ($input)
 	{
 		for (;;)
 		{
-			$trailStartPos = ftell ($handle);
+			$trailStartPos = ftell ($input);
 			
-			$jsonString = fgets ($handle);
+			$jsonString = fgets ($input);
 			
 			if (!$jsonString)
 			{
 				break;
 			}
 			
-			$startPos = ftell($handle);
+			$startPos = ftell($input);
 			
 //			error_log ("file position = " . $startPos);
 			
@@ -963,16 +955,9 @@ function parseJSON ($inputFile)
 				error_log ("***** Number of Points: " . count($trail->routes[0]->route));
 			}
 			
-			if ($trail->type == "connector")
-			{
-				$connectorOffset = $trailStartPos;
-			}
-			else 
-			{
-				findJunctions ($trail, $handle);
-			}
+			findJunctions ($trail, $input);
 			
-			fseek ($handle, $startPos);
+			fseek ($input, $startPos);
 
 			//$intersectionCount = 0;
 // 			$overlapCount = 0;
@@ -983,7 +968,7 @@ function parseJSON ($inputFile)
 //			break;
 		}
 
-		fclose ($handle);
+		fclose ($input);
 	}
 	
 	consolidateNodes ();
@@ -1006,23 +991,20 @@ function parseJSON ($inputFile)
 	$graph->nodes = array_values ($allIntersections);
 	$graph->edges = $edges;
 	
-	echo json_encode($graph);
+	$handle = fopen (getFileBaseName($inputFile) . ".inter.json", "wb");
+	
+	if ($handle)
+	{
+		fwrite ($handle, json_encode($graph));
+		fclose ($handle);
+	}
 	
 	if (count($connectors->routes) > 0)
 	{
-		$handle = fopen($inputFile, "cb");
+		$handle = fopen(getFileBaseName($inputFile) . ".connectors.json", "wb");
 		
 		if ($handle)
 		{
-			if (isset($connectorOffset))
-			{
-				fseek ($handle, $connectorOffset);
-			}
-			else
-			{
-				fseek ($handle, 0, SEEK_END);
-			}
-			
 			$jsonString = json_encode($connectors) . "\n";
 			
 			fwrite ($handle, $jsonString);
@@ -1039,6 +1021,8 @@ function parseJSON ($inputFile)
 
 // var_dump ($intersection);
 
-parseJSON ("trails/N405W1095.json.deduped");
-
+if (isset($argv[1]))
+{
+	parseJSON ($argv[1]);
+}
 ?>

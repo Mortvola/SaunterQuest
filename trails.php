@@ -13,7 +13,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET")
 	$lat = floatval($parts[0]) + (floatval($parts[2]) - floatval($parts[0])) / 2;
 	$lng = floatval($parts[1]) + (floatval($parts[3]) - floatval($parts[1])) / 2;
 
-	$fileName = "trails/" . getTrailFileName ($lat, $lng);
+	$fileName = "trails/" . getTrailFileName ($lat, $lng, ".trails");
 	
 	$first = true;
 	

@@ -179,7 +179,7 @@ function pointOnPath ($point, &$segments, $tolerance)
 }
 
 
-function getTrailFileName ($lat, $lng)
+function getTrailFileName ($lat, $lng, $suffix)
 {
 	$lat = floor($lat * 2) * 5;
 	$lng = floor($lng * 2) * 5;
@@ -204,7 +204,7 @@ function getTrailFileName ($lat, $lng)
 			$fileName .= "W" . -$lng;
 		}
 
-		return $fileName . ".trails";
+		return $fileName . $suffix;
 	}
 }
 
@@ -367,7 +367,7 @@ function findTrail (&$point, &$trailName, &$trailIndex, &$route, &$routeIndex)
 	$adjustedPoint = $point;
 	$first = true;
 	
-	$fileName = "trails/" . getTrailFileName ($point->lat, $point->lng);
+	$fileName = "trails/" . getTrailFileName ($point->lat, $point->lng, ".trails");
 	
 	$handle = fopen ($fileName, "rb");
 	

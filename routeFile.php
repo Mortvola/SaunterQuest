@@ -40,7 +40,7 @@ function getFullTrail ($lat, $lng, $trailName)
 {
 	if (strpos ($trailName, ":") !== false)
 	{
-		$fileName = "trails/" . getTrailFileName ($lat, $lng);
+		$fileName = "trails/" . getTrailFileName ($lat, $lng, ".trails");
 		
 		$handle = fopen ($fileName, "rb");
 		
@@ -74,6 +74,11 @@ function getFullTrail ($lat, $lng, $trailName)
 				{
 					error_log ("No routes");
 				}
+			}
+			
+			if (!isset($route))
+			{
+				error_log ("Unable to find route in " . $fileName);
 			}
 			
 			fclose ($handle);

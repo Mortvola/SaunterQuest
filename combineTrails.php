@@ -190,7 +190,11 @@ function parseJSON ($inputFile)
 	}
 }
 
-parseJSON ("trails.sorted.json");
+if (isset($argv[1]))
+{
+	parseJSON ($argv[1]);
+}
+
 //parseJSON ("roads.sorted.json");
 
 // echo "mind12 = $mind12\n";

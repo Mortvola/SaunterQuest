@@ -385,7 +385,7 @@ function removeDuplicates2 (&$routes, $otherRoutes, $startingIndex)
 	
 	$debug = false;
 	
-	error_log ("count of routes = " . count($routes));
+//	error_log ("count of routes = " . count($routes));
 	
 	if (count($routes) > 0)
 	{
@@ -397,107 +397,114 @@ function removeDuplicates2 (&$routes, $otherRoutes, $startingIndex)
 			
 			foreach ($routes as $r)
 			{
-				$prevPoint = $r->route[0];
-				$contiguousJunctionCount = 0;
-				$prevHadJunction = false;
-				
-				$dedupedRoute = [];
-				
-				for ($i = 1; $i < count($r->route); $i++)
+				if (count($r->bounds) == 0 || count($r2->bounds) == 0 || boundsIntersect ($r->bounds, $r2->bounds, 0.00027027))
 				{
-					if ($prevPoint->lat != $r->route[$i]->lat
-							&& $prevPoint->lng != $r->route[$i]->lng)
+					$prevPoint = $r->route[0];
+					$contiguousJunctionCount = 0;
+					$prevHadJunction = false;
+					
+					$dedupedRoute = [];
+					
+					for ($i = 1; $i < count($r->route); $i++)
 					{
-						if (count($r2->bounds) == 0 ||
-								withinBounds ($prevPoint, $r2->bounds, 0) ||
-								withinBounds ($r->route[$i], $r2->bounds, 0))
+						if ($prevPoint->lat != $r->route[$i]->lat
+								&& $prevPoint->lng != $r->route[$i]->lng)
 						{
-							$newIntersections = [];
-							
-							segmentCrossesTrail ($prevPoint,
-									$r->route[$i],
-									$r2->route, $newIntersections);
-							
-							if ($debug)
+							if (count($r2->bounds) == 0 ||
+									withinBounds ($prevPoint, $r2->bounds, 0) ||
+									withinBounds ($r->route[$i], $r2->bounds, 0))
 							{
-								error_log("intersections = " . count($newIntersections));
-							}
-							
-							if (count($newIntersections) > 0)
-							{
-								if ($prevHadJunction)
+								$newIntersections = [];
+								
+								segmentCrossesTrail ($prevPoint,
+										$r->route[$i],
+										$r2->route, $newIntersections);
+								
+								if ($debug)
 								{
-									$contiguousJunctionCount++;
+									error_log("intersections = " . count($newIntersections));
+								}
+								
+								if (count($newIntersections) > 0)
+								{
+									if ($prevHadJunction)
+									{
+										$contiguousJunctionCount++;
+									}
+									else
+									{
+										if ($debug)
+										{
+											error_log("pushed point");
+										}
+										
+										if (count($dedupedRoute) == 0)
+										{
+											array_push($dedupedRoute, $prevPoint);
+										}
+										
+										array_push($dedupedRoute, $r->route[$i]);
+									}
+									
+									$prevHadJunction = true;
 								}
 								else
 								{
-									if ($debug)
+									if ($prevHadJunction && $contiguousJunctionCount > 0)
 									{
-										error_log("pushed point");
+										
+	//									error_log ("contiguous junctions: count of dedupedRoute = " . count($dedupedRoute));
+										
+										if (count($dedupedRoute) > 1)
+										{
+											array_push($dedupedRoutes, (object)["bounds" => getBounds ($dedupedRoute), "route" => $dedupedRoute]);
+										}
+										
+										$dedupedRoute = [];
 									}
 									
-									if (count($dedupedRoute) == 0)
-									{
-										array_push($dedupedRoute, $prevPoint);
-									}
+	//								if ($contiguousJunctionCount > 0)
+	//								{
+	//									echo "$contiguousJunctionCount\n";
+	//								}
+										
+									$totalJunctionsRemoved += $contiguousJunctionCount;
+									$contiguousJunctionCount = 0;
 									
 									array_push($dedupedRoute, $r->route[$i]);
+									$prevHadJunction = false;
 								}
-								
-								$prevHadJunction = true;
 							}
 							else
 							{
-								if ($prevHadJunction && $contiguousJunctionCount > 0)
+								$prevHadJunction = false;
+								
+								if (count($dedupedRoute) == 0)
 								{
-									
-									error_log ("contiguous junctions: count of dedupedRoute = " . count($dedupedRoute));
-									
-									if (count($dedupedRoute) > 1)
-									{
-										array_push($dedupedRoutes, (object)["bounds" => getBounds ($dedupedRoute), "route" => $dedupedRoute]);
-									}
-									
-									$dedupedRoute = [];
+									array_push($dedupedRoute, $prevPoint);
 								}
 								
-//								if ($contiguousJunctionCount > 0)
-//								{
-//									echo "$contiguousJunctionCount\n";
-//								}
-									
-								$totalJunctionsRemoved += $contiguousJunctionCount;
-								$contiguousJunctionCount = 0;
-								
 								array_push($dedupedRoute, $r->route[$i]);
-								$prevHadJunction = false;
 							}
+							
+							$prevPoint = $r->route[$i];
 						}
 						else
 						{
-							$prevHadJunction = false;
-							
-							if (count($dedupedRoute) == 0)
-							{
-								array_push($dedupedRoute, $prevPoint);
-							}
-							
-							array_push($dedupedRoute, $r->route[$i]);
+							$duplicatePointCount++;
 						}
-						
-						$prevPoint = $r->route[$i];
 					}
-					else
+					
+	//				error_log ("count of dedupedRoute = " . count($dedupedRoute));
+					
+					if (count($dedupedRoute) > 1)
 					{
-						$duplicatePointCount++;
+						array_push($dedupedRoutes, (object)["bounds" => getBounds($dedupedRoute), "route" => $dedupedRoute]);
 					}
 				}
-				
-				error_log ("count of dedupedRoute = " . count($dedupedRoute));
-				
-				if (count($dedupedRoute) > 1)
+				else
 				{
-					array_push($dedupedRoutes, (object)["bounds" => getBounds($dedupedRoute), "route" => $dedupedRoute]);
+					array_push($dedupedRoutes, (object)["bounds" => $r->bounds, "route" => $r->route]);
 				}
 			}
 			
@@ -628,7 +635,7 @@ function removeDuplicates ($trail, $handle)
 	}
 	else
 	{
-		error_log ("JSON not decoable:");
+		error_log ("JSON not decodable:");
 		error_log ($jsonString);
 	}
 }
@@ -639,69 +646,84 @@ function parseJSON ($inputFile)
 	global $allIntersections, $totalJunctionsRemoved;
 	global $intersectionCount, $overlapCount, $pointCount, $duplicatePointCount, $closeIntersectionCount;
 	
-	$handle = fopen($inputFile, "rb");
+	$countOfOriginalTrails = 0;
 	
-	if ($handle)
+	$input = fopen($inputFile, "rb");
+	
+	if ($input)
 	{
-		$storedTrailCount = 0;
-		$removedTrailcount = 0;
+		fseek ($input, 0, SEEK_END);
+		$fileSize = ftell($input);
+		fseek ($input, 0, SEEK_SET);
 		
-		for (;;)
+		$output = fopen (getFileBaseName($inputFile) . ".trails", "wb");
+		
+		if ($output)
 		{
-			$jsonString = fgets ($handle);
+			$storedTrailCount = 0;
+			$removedTrailcount = 0;
 			
-			if (!$jsonString)
+			for (;;)
 			{
-				break;
-			}
-			
-			$countOfOriginalTrails++;
-			
-			$startPos = ftell($handle);
-			
-			$trail = json_decode($jsonString);
-			
-			removeDuplicates ($trail, $handle);
-			
-			if (count($trail->routes) > 0)
-			{
-				$storedTrailCount++;
+				$jsonString = fgets ($input);
 				
-				echo json_encode($trail) . "\n";
-			}
-			else
-			{
-				$removedTrailcount++;
-				
-				if (isset($trail->name))
+				if (!$jsonString)
 				{
-					error_log ("Removed trail " . $trail->name);
+					break;
+				}
+				
+				$countOfOriginalTrails++;
+				
+				$startPos = ftell($input);
+				
+				$trail = json_decode($jsonString);
+				
+				removeDuplicates ($trail, $input);
+				
+				if (count($trail->routes) > 0)
+				{
+					$storedTrailCount++;
+					
+					fwrite ($output, json_encode($trail) . "\n");
 				}
 				else
 				{
-					error_log ("Removed trail " . $trail->cn);
+					$removedTrailcount++;
+					
+					if (isset($trail->name))
+					{
+						error_log ("Removed trail " . $trail->name);
+					}
+					else
+					{
+						error_log ("Removed trail " . $trail->cn);
+					}
 				}
+				
+				error_log ("Completed " . $startPos / $fileSize * 100 . "%");
+				
+				fseek ($input, $startPos);
+	
+	// 			echo "intersect count = ", $intersectionCount, " ";
+	// 			echo "close intersect count = ", $closeIntersectionCount, " ";
+	// 			echo "overlap count = ", $overlapCount, " ";
+	// 			echo "point count = ", $pointCount, " ";
+	// 			echo "duplicate point count = ", $duplicatePointCount, "\n";
+				
+				//$intersectionCount = 0;
+				$overlapCount = 0;
+				$pointCount = 0;
+				$closeIntersectionCount = 0;
+				
+	//			break;
 			}
+	
+			$intersectionCount = 0;
 			
-			fseek ($handle, $startPos);
-
-// 			echo "intersect count = ", $intersectionCount, " ";
-// 			echo "close intersect count = ", $closeIntersectionCount, " ";
-// 			echo "overlap count = ", $overlapCount, " ";
-// 			echo "point count = ", $pointCount, " ";
-// 			echo "duplicate point count = ", $duplicatePointCount, "\n";
-			
-			//$intersectionCount = 0;
-			$overlapCount = 0;
-			$pointCount = 0;
-			$closeIntersectionCount = 0;
-			
-//			break;
+			fclose ($output);
 		}
-
-		$intersectionCount = 0;
 		
-		fclose ($handle);
+		fclose ($input);
 	}
 
 	error_log ("original trail count = " . $countOfOriginalTrails);
@@ -721,6 +743,9 @@ function parseJSON ($inputFile)
 
 // var_dump ($intersection);
 
-parseJSON ("N405W1095.trails");
+if (isset($argv[1]))
+{
+	parseJSON ($argv[1]);
+}
 
 ?>
