@@ -145,21 +145,22 @@ function getOtherNodeIndex ($edge, $nodeIndex)
 }
 
 
-function pushNode ($edgeIndex, $nodeIndex, &$graph, $graphFile, &$nodes, &$foundEnd)
+function pushNode ($edgeIndex, $fromNodeIndex, &$graph, $graphFile, &$nodes, &$foundEnd)
 {
 	global $endCN, $endRoute, $endRouteIndex, $endGraphFile;
 	global $handle;
 
-	$node = &$graph->nodes[$nodeIndex];
+	$node = &$graph->nodes[$fromNodeIndex];
 	$edge = &$graph->edges[$edgeIndex];
 
-	error_log ("End graph file: " . $endGraphFile . ", curent file: " . $graphFile);
+	if (!isset ($edge))
+	{
+		error_log ("edge index: " . $edgeIndex);
+		error_log ("number of edges: " . count ($graph->edges));
+	}
 
 	if (isset($edge->file))
 	{
-		//todo: get cost from edge
-		$cost = 1;
-
 		error_log ("edge with file found: " . $edge->file);
 
 		$nextNodeIndex = $edge->nodeIndex;
@@ -168,19 +169,12 @@ function pushNode ($edgeIndex, $nodeIndex, &$graph, $graphFile, &$nodes, &$found
 
 		$nextNode->bestEdge = $edgeIndex;
 
-		if (isset($node->cost))
-		{
-			$nextNode->cost = $node->cost + $cost;
-		}
-		else
-		{
-			$nextNode->cost = $cost;
-		}
-
 		array_push($nodes, (object)["index" => $nextNodeIndex, "file" => $graphFile]);
 	}
 	else
 	{
+		error_log ("End graph file: " . $endGraphFile . ", curent file: " . $graphFile);
+
 		if ($graphFile == $endGraphFile
 			&& $edge->cn == $endCN && $edge->route == $endRoute
 			&& ($endRouteIndex >= $edge->prev->routeIndex && $endRouteIndex <= $edge->next->routeIndex))
@@ -191,24 +185,39 @@ function pushNode ($edgeIndex, $nodeIndex, &$graph, $graphFile, &$nodes, &$found
 		}
 		else
 		{
-			//todo: get cost from edge
-			$cost = 1;
+//			if ($edge->cn == "5059.002691")
+//			{
+//				$cost = $node->cost;
+//			}
+//			else
+			{
+				$cost = $node->cost + $edge->cost;
+			}
 
-			$nextNodeIndex = getOtherNodeIndex ($edge, $nodeIndex);
+			$nextNodeIndex = getOtherNodeIndex ($edge, $fromNodeIndex);
 
 			if (isset ($nextNodeIndex))
 			{
 				$nextNode = &$graph->nodes[$nextNodeIndex];
 
-				$nextNode->bestEdge = $edgeIndex;
-				$nextNode->cost = $node->cost + $cost;
-				array_push($nodes, (object)["index" => $nextNodeIndex, "file" => $graphFile]);
+				if (!isset ($nextNode->cost) || $cost < $nextNode->cost)
+				{
+					$nextNode->bestEdge = $edgeIndex;
 
-				if ($handle) fwrite ($handle, $nodeIndex . " -> " . $nextNodeIndex . ";\n");
+					if (!isset($nextNode->cost))
+					{
+						error_log ("found cheaper path to node");
+					}
 
-				// For now, until we get an edge cost, use the last edge traversed
-				// as the best edge.
-				//					$node->bestEdge = $edgeIndex;
+					$nextNode->cost = $cost;
+					array_push($nodes, (object)["index" => $nextNodeIndex, "file" => $graphFile]);
+
+					if ($handle) fwrite ($handle, $fromNodeIndex . " -> " . $nextNodeIndex . ";\n");
+
+					// For now, until we get an edge cost, use the last edge traversed
+					// as the best edge.
+					//					$node->bestEdge = $edgeIndex;
+				}
 			}
 		}
 	}
@@ -248,6 +257,24 @@ function getOtherGraphInfo ($edge, &$otherFile, &$otherGraph, &$otherEdgeIndex, 
 		error_log ("file connector not found: file: " . $otherFile . ", id: " . $id);
 	}
 }
+
+function sortComparison ($a, $b)
+{
+	$aGraph = getGraph ($a->file);
+	$bGraph = getGraph ($b->file);
+
+	if ($aGraph->nodes[$a->index]->cost < $bGraph->nodes[$b->index]->cost)
+	{
+		return -1;
+	}
+	else if ($aGraph->nodes[$a->index]->cost > $bGraph->nodes[$b->index]->cost)
+	{
+		return 1;
+	}
+
+	return 0;
+}
+
 
 function findPath ($start, $end)
 {
@@ -409,6 +436,9 @@ function findPath ($start, $end)
 
 	while (count($nodes) > 0)
 	{
+		// Sort the nodes from lowest cost to highest cost
+		usort ($nodes, "sortComparison");
+
 		error_log ("current node queue:");
 		var_dump ($nodes);
 
@@ -462,8 +492,11 @@ function findPath ($start, $end)
 						}
 
 						$otherNode = $otherGraph->nodes[$otherNodeIndex];
+						$otherNode->cost = $node->cost;
 
-						error_log ("Other edge: " . $otherEdgeIndex);
+						error_log ("edge: " . json_encode ($edge));
+						error_log ("Other edge index: " . $otherEdgeIndex);
+						error_log ("Other node index: " . $otherNodeIndex);
 						error_log ("Other node: " . json_encode($otherNode));
 
 						pushNode ($otherEdgeIndex, $otherNodeIndex, $otherGraph, $otherFile, $nodes, $foundEnd);

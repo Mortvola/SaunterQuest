@@ -36,57 +36,68 @@ function trimRoute ($route, $startIndex, $endIndex)
 }
 
 
+function getFullTrailFromFile ($fileName, $trailName)
+{
+	$handle = fopen ($fileName, "rb");
+
+	if ($handle)
+	{
+		$parts = explode (":", $trailName);
+
+		for (;;)
+		{
+			$jsonString = fgets ($handle);
+
+			if (!$jsonString)
+			{
+				break;
+			}
+
+			$trail = json_decode($jsonString);
+
+			if (isset($trail) && isset($trail->routes))
+			{
+				if ($parts[0] == $trail->type && $parts[1] == $trail->cn)
+				{
+					error_log ("number of routes: " . count($trail->routes));
+
+					if (isset($parts[2]))
+					{
+						return $trail->routes[$parts[2]]->route;
+					}
+					else
+					{
+						return $trail;
+					}
+				}
+			}
+			else
+			{
+				error_log ("No routes");
+			}
+		}
+
+		if (!isset($route))
+		{
+			error_log ("Unable to find route in " . $fileName);
+		}
+
+		fclose ($handle);
+	}
+	else
+	{
+		error_log ("Unable to open file " . $fileName);
+	}
+}
+
+
 function getFullTrail ($lat, $lng, $trailName)
 {
 	if (strpos ($trailName, ":") !== false)
 	{
 		$fileName = "trails/" . getTrailFileName ($lat, $lng, ".trails");
 
-		$handle = fopen ($fileName, "rb");
-
-		if ($handle)
-		{
-			$parts = explode (":", $trailName);
-
-			for (;;)
-			{
-				$jsonString = fgets ($handle);
-
-				if (!$jsonString)
-				{
-					break;
-				}
-
-				$trail = json_decode($jsonString);
-
-				if (isset($trail) && isset($trail->routes))
-				{
-					if ($parts[0] == $trail->type && $parts[1] == $trail->cn)
-					{
-						error_log ("number of routes: " . count($trail->routes));
-
-						$route = $trail->routes[$parts[2]]->route;
-
-						break;
-					}
-				}
-				else
-				{
-					error_log ("No routes");
-				}
-			}
-
-			if (!isset($route))
-			{
-				error_log ("Unable to find route in " . $fileName);
-			}
-
-			fclose ($handle);
-		}
-		else
-		{
-			error_log ("Unable to open file " . $fileName);
-		}
+		$route = getFullTrailFromFile ($fileName, $trailName);
 	}
 	else
 	{
