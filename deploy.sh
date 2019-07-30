@@ -5,6 +5,7 @@ sudo cp \
 	editHike.php \
 	route.php \
 	routeFile.php \
+	routeFind.php \
 	routeHighlighting.js \
 	trailCondition.js \
 	elevation.php \
@@ -19,6 +20,7 @@ sudo cp \
 	welcome.php \
 	userHike.php \
 	utilities.js \
+	utilities.php \
 	/var/www/html/
 
 sudo cp \

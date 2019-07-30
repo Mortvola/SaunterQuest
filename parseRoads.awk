@@ -11,10 +11,10 @@ BEGIN {
 	roadCN = ""; roadRoute = "";
 
 	for (i = 1; i <= NF; i++) {
-                if ($i ~ "RoadCore_FS") {
-                        split($i, subFields, ":");
-                        featureID = subFields[2];
-                }
+	            if ($i ~ "RoadCore_FS") {
+	                    split($i, subFields, ":");
+	                    featureID = subFields[2];
+	            }
 
 
 		if ($i ~ "RTE_CN") {
@@ -26,8 +26,6 @@ BEGIN {
 			roadRoute = $i;
 			
 			gsub ("[ ]*MULTILINESTRING[ ]*", "", roadRoute);
-			gsub ("\\(", "", roadRoute);
-			gsub ("\\)", "", roadRoute);
 		}
 	}
 
@@ -38,30 +36,37 @@ BEGIN {
 			#printf ","
 		#}
 		roadCount++;
-
-		printf "{"
-		printf "\"feature\":\"%s\",", featureID;
-		printf "\"type\":\"road\",";
-		printf "\"cn\":\"%s\",", roadCN;
-
-		printf "\"route\":["
-
-		count = split (roadRoute, coords, ",");
-
-		for (i = 1; i <= count; i++)
+		
+		segmentCount = split (roadRoute, segments, "\\),\\(");
+		
+		for (t = 1; t <= segmentCount; t++)
 		{
-			split (coords[i], comps, " ");
+			printf "{"
+			printf "\"type\":\"road\",";
+			printf "\"cn\":\"%s\",", roadCN;
+			printf "\"feature\":\"%s\",", featureID;
 
-			if (i > 1)
+			printf "\"route\":["
+
+			gsub ("\\(", "", segments[t]);
+			gsub ("\\)", "", segments[t]);
+			count = split (segments[t], coords, ",");
+
+			for (i = 1; i <= count; i++)
 			{
-				printf ","
+				split (coords[i], comps, " ");
+
+				if (i > 1)
+				{
+					printf ","
+				}
+
+				printf "{\"lat\":%s,\"lng\":%s}", comps[2], comps[1];
 			}
+			printf "]"
 
-			printf "{\"lat\":%s,\"lng\":%s}", comps[2], comps[1];
+			printf "}\n"
 		}
-		printf "]"
-
-		printf "}\n"
 
 		#if (roadCount > 1)
 		#{

@@ -2,8 +2,12 @@
 
 require_once "coordinates.php";
 
+$continueCount = 0;
+
 function parseJSON ($inputFile)
 {
+	global $continueCount;
+	
 	$handle = fopen($inputFile, "rb");
 	
 	if ($handle)
@@ -25,39 +29,102 @@ function parseJSON ($inputFile)
 				{
 					$files = [];
 					
-					foreach ($trail->route as $t)
+					for ($t = 0; $t < count($trail->route); $t++)
 					{
-						if (isset($t->lat) && isset($t->lng))
+						if (isset($trail->route[$t]->lat) && isset($trail->route[$t]->lng))
 						{
-							if (!isset($trail->minLat) || ($trail->minLat > $t->lat))
+							if (!isset($minLat))
 							{
-								$trail->minLat = $t->lat;
+								$minLat = $trail->route[$t]->lat;
+							}
+							else
+							{
+								$minLat = min ($minLat, $trail->route[$t]->lat);
 							}
 							
-							if (!isset ($trail->maxLat) || ($trail->maxLat < $t->lat))
+							if (!isset ($maxLat))
 							{
-								$trail->maxLat = $t->lat;
+								$maxLat = $trail->route[$t]->lat;
+							}
+							else
+							{
+								$maxLat = max($maxLat, $trail->route[$t]->lat);
 							}
 							
-							if (!isset($trail->minLng) || ($trail->minLng > $t->lng))
+							if (!isset($minLng))
 							{
-								$trail->minLng = $t->lng;
+								$minLng = $trail->route[$t]->lng;
+							}
+							else
+							{
+								$minLng = min($minLng, $trail->route[$t]->lng);
 							}
 							
-							if (!isset($trail->maxLng) || ($trail->maxLng < $t->lng))
+							if (!isset($maxLng))
 							{
-								$trail->maxLng = $t->lng;
+								$maxLng = $trail->route[$t]->lng;
+							}
+							else
+							{
+								$maxLng = max($maxLng, $trail->route[$t]->lng);
 							}
 							
-							$fileName = getTrailFileName ($t->lat, $t->lng);
+							$fileName = "trails/" . getTrailFileName ($trail->route[$t]->lat, $trail->route[$t]->lng, ".initial");
 							
-							$files[$fileName] = TRUE;
+							if (!isset($prevFileName) || $fileName != $prevFileName)
+							{
+								if (!isset($files[$fileName]))
+								{
+									$files[$fileName] = (object)[];
+									$files[$fileName]->type = $trail->type;
+									$files[$fileName]->cn = $trail->cn;
+									if (isset($trail->name))
+									{
+										$files[$fileName]->name = $trail->name;
+									}
+									
+									$files[$fileName]->routes = [];
+								}
+								
+								array_push($files[$fileName]->routes, (object)[]);
+								$trailRoute = $files[$fileName]->routes[count($files[$fileName]->routes) - 1];
+								$trailRoute->bounds = [];
+								$trailRoute->route = [];
+								$trailRoute->feature = $trail->feature;
+								
+								if (isset ($prevFileName))
+								{
+									$prevTrailRoute->bounds = [$minLat, $minLng, $maxLat, $maxLng];
+									$prevTrailRoute->to = $fileName . ':' . $continueCount;
+									$trailRoute->from = $prevFileName . ':' . $continueCount;
+									$trailRoute->startIndex = $t;
+									
+									$continueCount++;
+								}
+								
+								unset ($minLat);
+								unset ($minLng);
+								unset ($maxLat);
+								unset ($maxLng);
+							}
+
+							array_push($trailRoute->route, (object)["lat" => $trail->route[$t]->lat, "lng" => $trail->route[$t]->lng]);
+							
+							$prevFileName = $fileName;
+							$prevTrailRoute = $trailRoute;
 						}
 					}
 					
-					$jsonString = json_encode($trail) . "\n";
+					if (count($trailRoute->bounds) == 0 && count($trailRoute->route) > 1)
+					{
+						if (!isset($minLat))
+						{
+							echo "count = ", count($trailRoute->route), "\n";
+						}
+						$trailRoute->bounds = [$minLat, $minLng, $maxLat, $maxLng];
+					}
 					
-					foreach ($files as $fileName => $bool)
+					foreach ($files as $fileName => $fileTrail)
 					{
 						//echo "Writing to file ", $fileName, "\n";
 						
@@ -65,10 +132,15 @@ function parseJSON ($inputFile)
 					
 						if ($out)
 						{
+							$jsonString = json_encode($fileTrail) . "\n";
+							
 							fwrite ($out, $jsonString);
 							fclose ($out);
 						}
 					}
+					
+					unset($prevFileName);
+					unset($prevTrailRoute);
 				}
 				else
 				{
@@ -87,7 +159,10 @@ function parseJSON ($inputFile)
 	}
 }
 
-parseJSON ("trails.json");
-parseJSON ("roads.json");
+if (isset($argv[1]))
+{
+	parseJSON ($argv[1]);
+}
+//parseJSON ("roads.combined.json");
 
 ?>

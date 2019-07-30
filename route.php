@@ -3,61 +3,7 @@ require_once "checkLogin.php";
 require_once "config.php";
 require_once "coordinates.php";
 require_once "routeFile.php";
-
-
-function findTrail (&$point, &$trailName, &$trailIndex, &$route)
-{
-	$trails = [];
-	$closestTrail = -1;
-	$adjustedPoint = $point;
-	$first = true;
-	
-	$fileName = "trails/" . getTrailFileName ($point->lat, $point->lng);
-	
-	$handle = fopen ($fileName, "rb");
-	
-	if ($handle)
-	{
-		for (;;)
-		{
-			$jsonString = fgets ($handle);
-			
-			if (!$jsonString)
-			{
-				break;
-			}
-			
-			$trail = json_decode($jsonString);
-			
-			if (isset($trail) && isset($trail->route)
-					&& $point->lng >= ($trail->minLng - 0.00027027) && $point->lng <= ($trail->maxLng + 0.00027027)
-					&& $point->lat >= ($trail->minLat - 0.00027027) && $point->lat <= ($trail->maxLat + 0.00027027))
-			{
-				$newPoint = (object)[];
-				
-				pointOnPath ($point->lat, $point->lng, $trail->route, 30, $index, $distance, $newPoint);
-				
-				if ($index != -1 && ($first || $distance < $shortestDistance))
-				{
-					$first = false;
-					
-					$shortestDistance = $distance;
-					$trailName = $trail->type . ":" . $trail->feature;
-					// The new point is on the closest segment found on the trail. Therefore, the trail
-					// route will start at the next segment.
-					$trailIndex = $index + 1; 
-					$route = $trail->route;
-					
-					$adjustedPoint = (object)["lat" => $newPoint->x, "lng" => $newPoint->y];
-				}
-			}
-		}
-		
-		fclose ($handle);
-	}
-	
-	$point = $adjustedPoint;
-}
+require_once "routeFind.php";
 
 
 function modifyPoint (&$segments, $routeUpdate)
@@ -129,6 +75,85 @@ function modifyPoint (&$segments, $routeUpdate)
 }
 
 
+function deletePoints (&$segments, $routeUpdate)
+{
+	// Remove the specified points
+	array_splice ($segments, $routeUpdate->index, $routeUpdate->length);
+	$segments = array_values($segments);
+	
+	$prevSegment = $segments[$routeUpdate->index - 1];
+	$nextSegment = $segments[$routeUpdate->index];
+	
+	// Are the previous point and the next point on the same trail? If so, then send all
+	// of the points between the previous point and the next point.
+	if ($routeUpdate->index > 0 && $routeUpdate->index < count($segments)
+			&& isset ($prevSegment->trailName) && isset($nextSegment->trailName)
+			&& $prevSegment->trailName == $nextSegment->trailName)
+	{
+		$result = getTrail($prevSegment->lat, $prevSegment->lng,
+				$prevSegment->trailName, $prevSegment->trailIndex,
+				$nextSegment->trailIndex);
+		
+		if (isset($result) && count($result) > 0)
+		{
+			$prevLat = $prevSegment->lat;
+			$prevLng = $prevSegment->lng;
+			$distance = $prevSegment->dist;
+			
+			assignTrailDistances ($result, $distance, $prevLat, $prevLng);
+		}
+	}
+	
+	// Adjust distances now that vertices have been removed.
+	if ($routeUpdate->index < count($segments))
+	{
+		assignDistances ($segments, $routeUpdate->index - 1);
+	}
+	
+	echo json_encode($result);
+}
+
+
+function addTrail (&$segments, $routeUpdate)
+{
+	$trailName = $routeUpdate->type . ":" . $routeUpdate->cn;
+	
+	$route = getFullTrail ($routeUpdate->point->lat, $routeUpdate->point->lng, $trailName);
+
+	if (isset ($route))
+	{
+		$s = nearestSegmentFind ($route[0]->lat, $route[0]->lng, $segments);
+	
+		if ($s != -1)
+		{
+			$anchor1 = (object)[];
+			
+			$anchor1->trailName = $trailName;
+			$anchor1->trailIndex = 0;
+			$anchor1->lat = $route[0]->lat;
+			$anchor1->lng = $route[0]->lng;
+			$anchor1->ele = getElevation ($anchor1->lat, $anchor1->lng);
+	
+			var_dump ($anchor1);
+			
+			array_push($segments, $anchor1);
+	
+			$anchor2 = (object)[];
+			
+			$anchor2->trailName = $trailName;
+			$anchor2->trailIndex = count($route) - 1;
+			$anchor2->lat = $route[$anchor2->trailIndex]->lat;
+			$anchor2->lng = $route[$anchor2->trailIndex]->lng;
+			$anchor2->ele = getElevation ($anchor2->lat, $anchor2->lng);
+	
+			var_dump ($anchor2);
+			
+			array_push($segments, $anchor2);
+		}
+	}
+}
+
+
 if ($_SERVER["REQUEST_METHOD"] == "GET")
 {
 	$userId = $_SESSION["userId"];
@@ -192,44 +217,152 @@ else if ($_SERVER["REQUEST_METHOD"] == "PUT")
 		}
 		else if ($routeUpdate->mode == "delete")
 		{
-			 // Remove the specified points
-			array_splice ($segments, $routeUpdate->index, $routeUpdate->length);
-			$segments = array_values($segments);
-			
-			$prevSegment = $segments[$routeUpdate->index - 1];
-			$nextSegment = $segments[$routeUpdate->index];
-			
-			// Are the previous point and the next point on the same trail? If so, then send all
-			// of the points between the previous point and the next point.
-			if ($routeUpdate->index > 0 && $routeUpdate->index < count($segments)
-				&& isset ($prevSegment->trailName) && isset($nextSegment->trailName)
-				&& $prevSegment->trailName == $nextSegment->trailName)
+			deletePoints ($segments, $routeUpdate);
+		}
+		else if ($routeUpdate->mode == "addTrail")
+		{
+			addTrail ($segments, $routeUpdate);
+		}
+		else if ($routeUpdate->mode == "setStart")
+		{
+			if (!isset($segments) || count($segments) == 0)
 			{
-				$result = getTrail($prevSegment->lat, $prevSegment->lng,
-						$prevSegment->trailName, $prevSegment->trailIndex,
-						$nextSegment->trailIndex);
+				$segments = [];
 				
-				if (isset($result) && count($result) > 0)
+				array_push($segments, (object)[
+						"lat" => $routeUpdate->point->lat,
+						"lng" => $routeUpdate->point->lng,
+						"dist" => 0,
+						"ele" => getElevation ($routeUpdate->point->lat, $routeUpdate->point->lng),
+						"type" => "start"
+				]);
+			}
+			else
+			{
+				// Find "start" and "end"
+				for ($i = 0; $i < count ($segments); $i++)
 				{
-					$prevLat = $prevSegment->lat;
-					$prevLng = $prevSegment->lng;
-					$distance = $prevSegment->dist;
+					if (isset($segments[$i]->type))
+					{
+						if ($segments[$i]->type == "end")
+						{
+							$endIndex = $i;
+						}
+						else if ($segments[$i]->type == "start")
+						{
+							$startIndex = $i;
+						}
+					}
+				}
+				
+				if (isset($startIndex))
+				{
+					// Start exists, update it.
 					
-					assignTrailDistances ($result, $distance, $prevLat, $prevLng);
+					$segments[$startIndex]->lat = $routeUpdate->point->lat;
+					$segments[$startIndex]->lng = $routeUpdate->point->lng;
+					$segments[$startIndex]->dist = 0;
+					$segments[$startIndex]->ele = getElevation ($routeUpdate->point->lat, $routeUpdate->point->lng);
+				}
+				else
+				{
+					// Start doesn't exist, add it
+					
+					array_splice($segments, 0, 0, (object)[
+							"lat" => $routeUpdate->point->lat,
+							"lng" => $routeUpdate->point->lng,
+							"dist" => 0,
+							"ele" => getElevation ($routeUpdate->point->lat, $routeUpdate->point->lng),
+							"type" => "start"
+					]);
+					
+					$startIndex = 0;
+					$endIndex = count($segments) - 1;
+				}
+				
+				if (isset($startIndex) && isset($endIndex))
+				{
+					$newSegments = findPath ($segments[$startIndex], $segments[$endIndex]);
+					
+					if (isset($newSegments) && count ($newSegments) > 0)
+					{
+						$segments = $newSegments;
+					}
 				}
 			}
-
-			// Adjust distances now that vertices have been removed.
-			if ($routeUpdate->index < count($segments))
+		}
+		else if ($routeUpdate->mode == "setEnd")
+		{
+			if (!isset($segments) || count($segments) == 0)
 			{
-				assignDistances ($segments, $routeUpdate->index - 1);
-			}
+				$segments = [];
 				
-			echo json_encode($result);
+				array_push($segments, (object)[
+						"lat" => $routeUpdate->point->lat,
+						"lng" => $routeUpdate->point->lng,
+						"dist" => 0,
+						"ele" => getElevation ($routeUpdate->point->lat, $routeUpdate->point->lng),
+						"type" => "end"
+				]);
+			}
+			else
+			{
+				// Find "start" and "end"
+				for ($i = 0; $i < count ($segments); $i++)
+				{
+					if (isset($segments[$i]->type))
+					{
+						if ($segments[$i]->type == "end")
+						{
+							$endIndex = $i;
+							
+							break;
+						}
+						else if ($segments[$i]->type == "start")
+						{
+							$startIndex = $i;
+						}
+					}
+				}
+				
+				if (isset($endIndex))
+				{
+					// End exists, update it.
+					
+					$segments[$endIndex]->lat = $routeUpdate->point->lat;
+					$segments[$endIndex]->lng = $routeUpdate->point->lng;
+					$segments[$endIndex]->dist = 0;
+					$segments[$endIndex]->ele = getElevation ($routeUpdate->point->lat, $routeUpdate->point->lng);
+				}
+				else
+				{
+					// End doesn't exist, add it
+					
+					array_push($segments, (object)[
+							"lat" => $routeUpdate->point->lat,
+							"lng" => $routeUpdate->point->lng,
+							"dist" => 0,
+							"ele" => getElevation ($routeUpdate->point->lat, $routeUpdate->point->lng),
+							"type" => "end"
+					]);
+					
+					$endIndex = count($segments) - 1;
+				}
+			
+				if (isset($startIndex) && isset($endIndex))
+				{
+					$newSegments = findPath ($segments[$startIndex], $segments[$endIndex]);
+					
+					if (isset($newSegments) && count ($newSegments) > 0)
+					{
+						$segments = $newSegments;
+					}
+				}
+			}
 		}
 		
 		// Write the data to the file.
-		$result = file_put_contents ($fileName, json_encode($segments));
+		file_put_contents ($fileName, json_encode($segments));
 	}
 }
 ?>

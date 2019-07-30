@@ -32,16 +32,20 @@ BEGIN {
 			gsub ("\"", "", trailName);
 		}
 
+		if ($i ~ "TRAIL_TYPE") {
+			split($i, subFields, "[ ]*=[ ]*");
+			trailType = subFields[2];
+			gsub ("\"", "", trailType);
+		}
+
 		if ($i ~ "MULTILINESTRING") {
 			trailRoute = $i;
 			
 			gsub ("[ ]*MULTILINESTRING[ ]*", "", trailRoute);
-			gsub ("\\(", "", trailRoute);
-			gsub ("\\)", "", trailRoute);
 		}
 	}
 
-	if (trailNO != "" && trailCN != "" && trailRoute != "")
+	if (trailType != "SNOW" && trailNO != "" && trailCN != "" && trailRoute != "")
 	{
 		#if (trailCount > 0)
 		#{
@@ -49,31 +53,39 @@ BEGIN {
 		#}
 		trailCount++;
 
-		printf "{"
-		printf "\"feature\":\"%s\",", featureID;
-		printf "\"type\":\"trail\",";
-		printf "\"number\":\"%s\",", trailNO;
-		printf "\"cn\":\"%s\",", trailCN;
-		printf "\"name\":\"%s\",", trailName;
-
-		printf "\"route\":["
-
-		count = split (trailRoute, coords, ",");
-
-		for (i = 1; i <= count; i++)
+		trailSegmentCount = split (trailRoute, trailSegments, "\\),\\(");
+		
+		for (t = 1; t <= trailSegmentCount; t++)
 		{
-			split (coords[i], comps, " ");
-
-			if (i > 1)
+			printf "{"
+			printf "\"type\":\"trail\",";
+			printf "\"cn\":\"%s\",", trailCN;
+			printf "\"feature\":\"%s\",", featureID;
+			printf "\"number\":\"%s\",", trailNO;
+			printf "\"name\":\"%s\",", trailName;
+			printf "\"surface\":\"%s\",", trailType;
+	
+			printf "\"route\":["
+	
+			gsub ("\\(", "", trailSegments[t]);
+			gsub ("\\)", "", trailSegments[t]);
+			count = split (trailSegments[t], coords, ",");
+	
+			for (i = 1; i <= count; i++)
 			{
-				printf ","
+				split (coords[i], comps, " ");
+	
+				if (i > 1)
+				{
+					printf ","
+				}
+	
+				printf "{\"lat\":%s,\"lng\":%s}", comps[2], comps[1];
 			}
-
-			printf "{\"lat\":%s,\"lng\":%s}", comps[2], comps[1];
+			printf "]"
+	
+			printf "}\n"
 		}
-		printf "]"
-
-		printf "}\n"
 
 		#if (trailCount > 1)
 		#{
