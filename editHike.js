@@ -1124,6 +1124,7 @@ function myMap()
 	routeContextMenu = new ContextMenu ([
 		{title: "Add Point of Interest", func: showAddPointOfInterest},
 		{title: "Select route segment", func: startRouteMeasurement},
+		{title: "Display Location", func:displayLocation},
 		{title: "Add Note", func: addNote},
 		{title: "Recalculate distances", func: recalculateDistances},
 		{title: "Edit", func: toggleEdit}
