@@ -21,6 +21,8 @@ sudo cp \
 	userHike.php \
 	utilities.js \
 	utilities.php \
+	addfoodtomeal.php \
+	foodItem.php \
 	/var/www/html/
 
 sudo cp \
