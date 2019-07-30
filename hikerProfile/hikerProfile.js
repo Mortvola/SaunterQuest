@@ -203,7 +203,8 @@ function insertHikerProfile ()
 	{
 		if (this.readyState == 4 && this.status == 200)
 		{
-			profile.hikerProfileId = JSON.parse(this.responseText);
+			profile = JSON.parse(this.responseText);
+			hikerProfiles.push (profile);
 			
 			$("#hikerProfileLastRow").before(hikerProfileRowGet(profile));
 

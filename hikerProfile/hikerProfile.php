@@ -124,9 +124,9 @@ else if($_SERVER["REQUEST_METHOD"] == "POST")
 			
 			$stmt->execute ();
 			
-			$hikerProfileId = $pdo->lastInsertId ("hikerProfileId");
+			$profile->hikerProfileId = $pdo->lastInsertId ("hikerProfileId");
 			
-			echo json_encode($hikerProfileId);
+			echo json_encode($profile);
 			
 			unset ($stmt);
 		}
