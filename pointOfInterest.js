@@ -139,9 +139,12 @@ function insertPointOfInterest (position)
 	pointOfInterest.lng = position.lng ();
 	pointOfInterest.userHikeId = userHikeId;
 	
-	pointOfInterest.constraints = [];
-	pointOfInterest.constraints.push({type: 'linger', time: pointOfInterest.hangOut});
-	delete pointOfInterest.hangOut;
+	if (pointOfInterest.hangOut != "")
+	{
+		pointOfInterest.constraints = [];
+		pointOfInterest.constraints.push({type: 'linger', time: pointOfInterest.hangOut});
+		delete pointOfInterest.hangOut;
+	}
 
 	var xmlhttp = new XMLHttpRequest ();
 	xmlhttp.onreadystatechange = function ()

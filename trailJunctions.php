@@ -2,6 +2,7 @@
 
 require_once "coordinates.php";
 require_once "utilities.php";
+require_once "routeFile.php";
 
 $closeIntersectThreshold = 0;
 
@@ -947,6 +948,52 @@ function findEdges ()
 	}
 }
 
+
+function assignEdgeCosts ()
+{
+	global $allIntersections;
+	global $edges;
+
+	foreach ($edges as $edge)
+	{
+		$cost = 0;
+
+		if (!isset ($edge->file))
+		{
+			if (!isset ($edge->prev->nodeIndex) || !isset($edge->next->nodeIndex))
+			{
+				error_log ("no node index: " . json_encode ($edge));
+			}
+			else
+			{
+				$node = $allIntersections[$edge->prev->nodeIndex];
+
+				$trailName = $edge->type . ":" . $edge->cn . ":" . $edge->route;
+
+				$points = getTrail ($node->lat, $node->lng, $trailName, $edge->prev->routeIndex, $edge->next->routeIndex);
+
+				for ($p = 0; $p < count ($points) - 1; $p++)
+				{
+					$dx = haversineGreatCircleDistance ($points[$p]->lat, $points[$p]->lng, $points[$p + 1]->lat, $points[$p + 1]->lng);
+
+					if ($dx != 0)
+					{
+						$ele1 = getElevation ($points[$p]->lat, $points[$p]->lng);
+						$ele2 = getElevation ($points[$p + 1]->lat, $points[$p + 1]->lng);
+
+						$dh = $ele2 - $ele1;
+
+						$cost += $dx / metersPerHourGet ($dh, $dx);
+					}
+				}
+			}
+		}
+
+		$edge->cost = $cost;
+	}
+}
+
+
 // todo: could we use the lat/lng as the key to the array instead of iterating through all of the nodes?
 function consolidateNodes ()
 {
@@ -1026,6 +1073,8 @@ function parseJSON ($inputFile)
 	consolidateNodes ();
 
 	findEdges ();
+
+	assignEdgeCosts ();
 
 	error_log("intersect count = " . $intersectionCount);
 	error_log("total intersections = " . $totalIntersectionsCount);

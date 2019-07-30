@@ -13,7 +13,7 @@ if ($hikeId)
 	require_once "cloneHike.php";
 }
 ?>
- 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -42,7 +42,7 @@ if ($hikeId)
 			createCharts ();
 			loadData ();
 		}
-		
+
 		function loadData ()
 		{
 			if (chartsInitialized)
@@ -50,20 +50,20 @@ if ($hikeId)
 				elevationDataTable = google.visualization.arrayToDataTable (elevationData);
 
 				drawCharts ();
-				
+
 // 				var xmlhttp = new XMLHttpRequest ();
 // 				xmlhttp.onreadystatechange = function ()
 // 				{
 // 					if (this.readyState == 4 && this.status == 200)
 // 					{
 // 						elevation = JSON.parse(this.responseText);
-	
+
 // 						elevationData = new google.visualization.DataTable (elevation);
-	
+
 // 						drawCharts ();
 // 					}
 // 				};
-	
+
 // 				xmlhttp.open("GET", "retirementCalculate.php?plan=" + currentPlanId, true);
 // 				//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 // 				xmlhttp.send();
@@ -85,7 +85,7 @@ if ($hikeId)
 				vAxis: {viewWindowMode: 'pretty'},
 				vAxis: {viewWindow: {min: elevationMin, max: elevationMax}}
 			};
-			
+
 			elevationChart.draw(elevationDataTable, elevationOptions);
 		}
 	</script>
@@ -137,7 +137,7 @@ if ($hikeId)
 	<!-- Modal -->
 	<div class="modal fade" id="myModal" role="dialog">
 		<div class="modal-dialog">
-		
+
 			<!-- Modal content-->
 			<div class="modal-content">
 				<div class="modal-header">
@@ -151,14 +151,14 @@ if ($hikeId)
 					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
 				</div>
 			</div>
-			
+
 		</div>
 	</div> <!--  Modal -->
 
 	<!-- Modal -->
 	<div class="modal fade" id="addHikerProfile" role="dialog">
 		<div class="modal-dialog">
-		
+
 			<!-- Modal content-->
 			<div class="modal-content">
 				<div class="modal-header">
@@ -175,19 +175,19 @@ if ($hikeId)
 					<input type="number" class='form-control' name='endDay'/>
 					<br/>
 
-					<label>Speed Factor:</label>
-					<input type="number" class='form-control' name='speedFactor'/>
+					<label>Speed Factor (%):</label>
+					<input type="number" class='form-control' name='speedFactor' value='100'/>
 					<br/>
-					
+
 					<label>Start Time:</label>
-					<input type="time" class='form-control' name='startTime'/>
+					<input type="time" class='form-control' name='startTime' value='07:00'/>
 					<br/>
 
 					<label>End Time:</label>
-					<input type="time" class='form-control' name='endTime'/>
+					<input type="time" class='form-control' name='endTime'value='18:00'/>
 					<br/>
-					
-					<label>Break Duration:</label>
+
+					<label>Break Duration (hours):</label>
 					<input type="number" class='form-control' name='breakDuration'/>
 					<br/>
 				</form>
@@ -197,14 +197,14 @@ if ($hikeId)
 					<button id='hikerProfileSaveButton' type="button" class="btn btn-default" data-dismiss="modal">Save</button>
 				</div>
 			</div>
-			
+
 		</div>
 	</div> <!--  Modal -->
 
 	<!-- Modal -->
 	<div class="modal fade" id="addResupplyLocation" role="dialog">
 		<div class="modal-dialog">
-		
+
 			<!-- Modal content-->
 			<div class="modal-content">
 				<div class="modal-header">
@@ -228,7 +228,7 @@ if ($hikeId)
 					<label>Address 2:</label>
 					<input type="text" class='form-control' name='address2'/>
 					<br/>
-					
+
 					<label>City:</label>
 					<input type="text" class='form-control' name='city'/>
 					<br/>
@@ -236,7 +236,7 @@ if ($hikeId)
 					<label>State:</label>
 					<input type="text" class='form-control' name='state'/>
 					<br/>
-					
+
 					<label>Zip Code:</label>
 					<input type="text" class='form-control' name='zip'/>
 					<br/>
@@ -247,10 +247,10 @@ if ($hikeId)
 					<button id='resupplyLocationSaveButton' type="button" class="btn btn-default" data-dismiss="modal">Save</button>
 				</div>
 			</div>
-			
+
 		</div>
 	</div> <!--  Modal -->
-	
+
 	<!-- Modal -->
 	<div class="modal fade" id="addPointOfInterest" role="dialog">
 		<div class="modal-dialog">
@@ -265,7 +265,7 @@ if ($hikeId)
 						<label>Name:</label>
 						<input type="text" class='form-control' name='name'/>
 						<br/>
-	
+
 						<label>Description:</label>
 						<input type="text" class='form-control' name='description'/>
 						<br/>
@@ -285,7 +285,7 @@ if ($hikeId)
 	<!-- Modal -->
 	<div class="modal fade" id="addLinger" role="dialog">
 		<div class="modal-dialog">
-		
+
 			<!-- Modal content-->
 			<div class="modal-content">
 				<div class="modal-header">
@@ -304,14 +304,14 @@ if ($hikeId)
 					<button id='lingerSaveButton' type="button" class="btn btn-default" data-dismiss="modal">Save</button>
 				</div>
 			</div>
-			
+
 		</div>
 	</div> <!--  Modal -->
 
 	<!-- Modal -->
 	<div class="modal fade" id="modalDialog" role="dialog">
 		<div class="modal-dialog">
-		
+
 			<!-- Modal content-->
 			<div class="modal-content">
 				<div class="modal-header">
@@ -325,7 +325,7 @@ if ($hikeId)
 					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
 				</div>
 			</div>
-			
+
 		</div>
 	</div> <!--  Modal -->
 
@@ -340,7 +340,7 @@ if ($hikeId)
 			<div id='editTrailConditions' style='display:none'>
 				<form id='trailConditionForm'>
 					<div class="grid-container">
-					
+
 					<div>
 					<label>Type:</label>
 					<select class="form-control" name='type'>
@@ -349,17 +349,17 @@ if ($hikeId)
 						<option value=2>Other</option>
 					</select>
 					</div>
-					
+
 					<div>
 					<label>Description:</label>
 					<input type="text" class='form-control' name='description'/>
 					</div>
-					
+
 					<div>
 					<label>Speed Factor:</label>
 					<input type="number" class='form-control' name='speedFactor' value='100'/>
 					</div>
-					
+
 					</div>
 				</form>
 				<div class="modal-footer">
@@ -486,11 +486,11 @@ if ($hikeId)
 			</div>
 		</div>
 	</div>
-	
+
 	<script>
 		var userHikeId = <?php echo $userHikeId ?>;
 	</script>
-	
+
 	<script src="/utilities.js"></script>
 	<script src="/contextMenu.js"></script>
 	<script src="/pointOfInterest.js"></script>
@@ -499,7 +499,7 @@ if ($hikeId)
 	<script src="/resupplyPlan.js"></script>
 	<script src="/routeHighlighting.js"></script>
 	<script src="/trailCondition.js"></script>
-	
+
 	<script async defer
 	 src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB16_kVJjm2plHSOkrxZDC4etbpp6vW8kU&callback=myMap&libraries=geometry">
 	</script>
