@@ -28,4 +28,5 @@ sudo cp \
 sudo cp \
 	hikerProfile/hikerProfile.js \
 	hikerProfile/hikerProfile.php \
+	hikerProfile/hikerProfileDialog.php \
 	/var/www/html/hikerProfile/
