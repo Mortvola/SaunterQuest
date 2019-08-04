@@ -20,6 +20,7 @@ create table foodItem (
 	modificationDate DATETIME NOT NULL,
 	manufacturer VARCHAR (255) NOT NULL,
 	name VARCHAR (255) NOT NULL,
+	servingSizeDescription VARCHAR(255),
 	gramsServingSize INT,
 	calories INT,
 	totalFat DECIMAL (3,1),

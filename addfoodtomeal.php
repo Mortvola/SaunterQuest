@@ -18,6 +18,8 @@ require_once "checkLogin.php";
 	</style>
 </head>
 <body>
+	<?php require_once "foodItemDialog.php"; ?>
+
 	<div class="page-header" style="text-align:center;">
 		<h1>Add Food</h1>
 	</div>
@@ -73,6 +75,9 @@ require_once "checkLogin.php";
 		</div>
 
 		<div class="col-md-6">
+			<div>
+				<a class='btn btn-sm' onclick='addFoodItem()'><span class='glyphicon glyphicon-plus'></span>Add Food Item</a>
+			</div>
 			<table class="table table-bordered table-condensed">
 				<thead>
 					<th>Name</th><th>Serving Size</th><th>Number of Servings</th><th>Calories</th><th>Weight</th>
@@ -107,7 +112,7 @@ require_once "checkLogin.php";
 					{
 						let foodItem = tableData.foodItems[x];
 
-						foodItem.servingSizeIndex = 0;
+						foodItem.foodItemServingSizeId = -1;
 						foodItem.numberOfServings = 1;
 
 						txt +=
@@ -123,7 +128,7 @@ require_once "checkLogin.php";
 							+		"<li><a onclick='addItem(tableData.foodItems[" + x + "],0)'>Add to morning</a></li>"
 							+		"<li><a onclick='addItem(tableData.foodItems[" + x + "],1)'>Add to afternoon</a></li>"
 							+		"<li><a onclick='addItem(tableData.foodItems[" + x + "],2)'>Add to evening</a></li>"
-							+		"<li><a onclick='editItem(tableData.foodItems[" + x + "],2)'>Edit item</a></li>"
+							+		"<li><a onclick='editFoodItem(tableData.foodItems[" + x + "])'>Edit item</a></li>"
 							+	"</ul>"
 							+ "</div>"
 							+ fullName(foodItem)
@@ -134,11 +139,13 @@ require_once "checkLogin.php";
 							// Serving Size column
 							txt += "<select class='form-control' onchange='servingSizeChanged(\"query_\", value,tableData.foodItems[" + x + "])'>";
 
-							let lookup = foodItem.lookup;
+							txt += "<option value='-1'>" + foodItem.servingSizeDescription + " (" + foodItem.gramsServingSize + "g)" + "</option>";
 
-							for (let l in lookup)
+							let servingDescriptions = foodItem.servingDescriptions;
+
+							for (let l in servingDescriptions)
 							{
-								txt += "<option value='" + l + "'>" + lookup[l].description + " (" + lookup[l].grams + "g)" + "</option>";
+								txt += "<option value='" + servingDescriptions[l].foodItemServingSizeId + "'>" + servingDescriptions[l].description + " (" + servingDescriptions[l].grams + "g)" + "</option>";
 							}
 
 							txt += "</select>";
@@ -166,27 +173,48 @@ require_once "checkLogin.php";
 			xmlhttp.send();
 		}
 
+		function getServingSizeDescriptionById (servingDescriptions, servingSizeId)
+		{
+			for (let y in servingDescriptions)
+			{
+				if (servingDescriptions[y].foodItemServingSizeId == servingSizeId)
+				{
+					return servingDescriptions[y];
+				}
+			}
+		}
+
 		function computeCalories (foodItem)
 		{
-			if (foodItem.lookup.length == 0)
+			if (foodItem.foodItemServingSizeId == -1)
 			{
-				return 0;
+				return Math.round(foodItem.numberOfServings * foodItem.calories);
 			}
 			else
 			{
-				return Math.round((foodItem.lookup[foodItem.servingSizeIndex].grams / foodItem.gramsServingSize) * foodItem.numberOfServings * foodItem.calories);
+				var servingSizeDescription = getServingSizeDescriptionById (foodItem.servingDescriptions, foodItem.foodItemServingSizeId);
+
+				if (servingSizeDescription != undefined)
+				{
+					return Math.round((servingSizeDescription.grams / foodItem.gramsServingSize) * foodItem.numberOfServings * foodItem.calories);
+				}
 			}
 		}
 
 		function computeWeight (foodItem)
 		{
-			if (foodItem.lookup.length == 0)
+			if (foodItem.foodItemServingSizeId == -1)
 			{
-				return 0;
+				return Math.round(foodItem.gramsServingSize * foodItem.numberOfServings);
 			}
 			else
 			{
-				return Math.round(foodItem.lookup[foodItem.servingSizeIndex].grams * foodItem.numberOfServings);
+				var servingSizeDescription = getServingSizeDescriptionById (foodItem.servingDescriptions, foodItem.foodItemServingSizeId);
+
+				if (servingSizeDescription != undefined)
+				{
+					return Math.round(servingSizeDescription.grams * foodItem.numberOfServings);
+				}
 			}
 		}
 
@@ -216,9 +244,9 @@ require_once "checkLogin.php";
 			}
 		}
 
-		function servingSizeChanged (prefix, servingSizeIndex, foodItem)
+		function servingSizeChanged (prefix, foodItemServingSizeId, foodItem)
 		{
-			foodItem.servingSizeIndex = servingSizeIndex;
+			foodItem.foodItemServingSizeId = foodItemServingSizeId;
 			foodItem.modified = true;
 
 			computeCaloriesAndWeight (prefix, foodItem);
@@ -263,17 +291,6 @@ require_once "checkLogin.php";
 
 						for (let x in data)
 						{
-							// Determine the selected serving size index
-							data[x].servingSizeIndex = 0;
-							for (let y in data[x].lookup)
-							{
-								if (data[x].foodItemServingSizeId == data[x].lookup[y].foodItemServingSizeId)
-								{
-									data[x].servingSizeIndex = y;
-									break;
-								}
-							}
-
 							addItem(data[x], data[x].mealTimeId);
 						}
 
@@ -283,7 +300,7 @@ require_once "checkLogin.php";
 					}
 				}
 
-				xmlhttp.open("GET", "GetDayTemplate.php?id=" + mealPlanId, true);
+				xmlhttp.open("GET", "mealPlan.php?id=" + mealPlanId, true);
 				//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 				xmlhttp.send();
 			}
@@ -311,7 +328,7 @@ require_once "checkLogin.php";
 					{
 						mealTimeId: mealPlan[x].mealTimeId,
 						foodItemId: mealPlan[x].foodItemId,
-						foodItemServingSizeId: mealPlan[x].lookup[mealPlan[x].servingSizeIndex].foodItemServingSizeId,
+						foodItemServingSizeId: mealPlan[x].foodItemServingSizeId,
 						numberOfServings: mealPlan[x].numberOfServings
 					};
 
@@ -322,7 +339,7 @@ require_once "checkLogin.php";
 					let item =
 					{
 						dayTemplateFoodItemId: mealPlan[x].dayTemplateFoodItemId,
-						foodItemServingSizeId: mealPlan[x].lookup[mealPlan[x].servingSizeIndex].foodItemServingSizeId,
+						foodItemServingSizeId: mealPlan[x].foodItemServingSizeId,
 						numberOfServings: mealPlan[x].numberOfServings
 					};
 
@@ -346,7 +363,7 @@ require_once "checkLogin.php";
 			// convert data to a JSON object
 			let jsonData = JSON.stringify(foodList);
 
-			xmlhttp.open("POST", "SaveDayTemplate.php", true);
+			xmlhttp.open("POST", "mealPlan.php", true);
 			xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 			xmlhttp.send("x=" + jsonData);
 		}
@@ -375,17 +392,23 @@ require_once "checkLogin.php";
 			select.setAttribute("class", "form-control");
 			select.setAttribute("onchange", "servingSizeChanged(\"plan_\", value,mealPlan[" + nextMealPlanEntryId + "])");
 
-			for (let l in foodItem.lookup)
-			{
-				let option = document.createElement("OPTION");
-				option.setAttribute("value", l);
+			let option = document.createElement("OPTION");
+			option.setAttribute("value", -1);
+			txt = document.createTextNode(foodItem.servingSizeDescription + " (" + foodItem.gramsServingSize + "g)");
+			option.appendChild(txt);
+			select.appendChild(option);
 
-				let txt = document.createTextNode(foodItem.lookup[l].description + " (" + foodItem.lookup[l].grams + "g)");
+			for (let l in foodItem.servingDescriptions)
+			{
+				option = document.createElement("OPTION");
+				option.setAttribute("value", foodItem.servingDescriptions[l].foodItemServingSizeId);
+
+				let txt = document.createTextNode(foodItem.servingDescriptions[l].description + " (" + foodItem.servingDescriptions[l].grams + "g)");
 				option.appendChild(txt);
 
 				select.appendChild(option);
 			}
-			select.value = foodItem.servingSizeIndex;
+			select.value = foodItem.foodItemServingSizeId;
 
 			td = document.createElement("TD");
 			td.setAttribute("style", "padding:0px;vertical-align:middle");
@@ -433,8 +456,8 @@ require_once "checkLogin.php";
 				foodItemId: foodItem.foodItemId,
 				calories: foodItem.calories,
 				gramsServingSize: foodItem.gramsServingSize,
-				lookup: foodItem.lookup,
-				servingSizeIndex: foodItem.servingSizeIndex,
+				foodItemServingSizeId: foodItem.foodItemServingSizeId,
+				servingDescriptions: foodItem.servingDescriptions,
 				numberOfServings: foodItem.numberOfServings,
 				dayTemplateFoodItemId: foodItem.dayTemplateFoodItemId
 			};
@@ -458,6 +481,62 @@ require_once "checkLogin.php";
 
 		loadTable ();
 		loadMealPlan ();
+
+		function updateFoodItem (foodItemId)
+		{
+			var foodItem = unloadFoodItemDialog ();
+
+			foodItem.foodItemId = foodItemId;
+
+			var xmlhttp = new XMLHttpRequest ();
+			xmlhttp.onreadystatechange = function ()
+			{
+				if (this.readyState == 4 && this.status == 200)
+				{
+				}
+			}
+
+			xmlhttp.open("PUT", "foodItem.php", true);
+			xmlhttp.setRequestHeader("Content-type", "application/json");
+			xmlhttp.send(JSON.stringify(foodItem));
+		}
+
+		function insertFoodItem ()
+		{
+			var foodItem = unloadFoodItemDialog ();
+
+			var xmlhttp = new XMLHttpRequest ();
+			xmlhttp.onreadystatechange = function ()
+			{
+				if (this.readyState == 4 && this.status == 200)
+				{
+				}
+			}
+
+			xmlhttp.open("POST", "foodItem.php", true);
+			xmlhttp.setRequestHeader("Content-type", "application/json");
+			xmlhttp.send(JSON.stringify(foodItem));
+		}
+
+		function editFoodItem (foodItem)
+		{
+			loadFoodItemDialog (foodItem);
+
+			$("#foodItemSaveButton").off('click');
+			$("#foodItemSaveButton").click(function () { updateFoodItem(foodItem.foodItemId)});
+
+			$("#addFoodItem").modal ('show');
+		}
+
+		function addFoodItem ()
+		{
+			clearFoodItemDialog ();
+
+			$("#foodItemSaveButton").off('click');
+			$("#foodItemSaveButton").click(function () { insertFoodItem()});
+
+			$("#addFoodItem").modal ('show');
+		}
 
 	</script>
 </body>

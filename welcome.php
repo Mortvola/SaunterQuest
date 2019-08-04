@@ -3,7 +3,7 @@
 require_once "checkLogin.php";
 
 ?>
- 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -21,7 +21,7 @@ require_once "checkLogin.php";
 	<!-- Modal -->
 	<div class="modal fade" id="addUserHike" role="dialog">
 		<div class="modal-dialog">
-		
+
 			<!-- Modal content-->
 			<div class="modal-content">
 				<div class="modal-header">
@@ -40,7 +40,7 @@ require_once "checkLogin.php";
 					<button id='addUserHikeSaveButton' type="button" class="btn btn-default" data-dismiss="modal">Save</button>
 				</div>
 			</div>
-			
+
 		</div>
 	</div> <!--  Modal -->
 
@@ -57,7 +57,6 @@ require_once "checkLogin.php";
 				<li class="nav-item active"><a class="nav-link">Home</a></li>
 				<li class="nav-item"><a class="nav-link" href="#">Daily View</a></li>
 				<li class="nav-item"><a class="nav-link" href="#">Segment View</a></li>
-				<li class="nav-item"><a class="nav-link" href="/CreateFoodItem.php">Create Food Item</a></li>
 				<li class="nav-item"><a class="nav-link" href="/DayTemplates.php">Daily Meal Plans</a></li>
 			</ul>
 		</div>
@@ -76,11 +75,11 @@ require_once "checkLogin.php";
 			<?php
 				$sql = "select name, hikeId
 					from hike";
-				
+
 				if ($stmt = $pdo->prepare($sql))
 				{
 					$stmt->execute ();
-					
+
 					$output = $stmt->fetchAll (PDO::FETCH_ASSOC);
 
 					foreach ($output as $hike)
@@ -90,7 +89,7 @@ require_once "checkLogin.php";
 						echo "<td>", "</td>";
 						echo "</tr>";
 					}
-					
+
 					unset ($stmt);
 				}
 			?>
@@ -104,41 +103,41 @@ require_once "checkLogin.php";
 			<table class="table table-condensed">
 			<thead><tr><th>Name</th><th>Length</th><th>Duration</th><th>Start Date</th></tr></thead>
 			<tbody>
-			<?php
-				$sql = "select name, userHikeId
-					from userHike
-					where userId = :userId";
-				
-				if ($stmt = $pdo->prepare($sql))
-				{
-					$stmt->bindParam(":userId", $paramUserId, PDO::PARAM_INT);
-					$paramUserId = $_SESSION["userId"];
-					
-					$stmt->execute ();
-					
-					$output = $stmt->fetchAll (PDO::FETCH_ASSOC);
+				<?php
+					$sql = "select name, userHikeId
+						from userHike
+						where userId = :userId";
 
-					foreach ($output as $hike)
+					if ($stmt = $pdo->prepare($sql))
 					{
-						echo "<tr id='userHike_", $hike["userHikeId"], "'>";
-						echo "<td>";
-						echo "<a class='btn btn-sm' href='/editHike.php?id=", $hike["userHikeId"], "'><span class='glyphicon glyphicon-pencil'></span></a>";
-						echo "<a class='btn btn-sm' onclick='deleteHike(", $hike["userHikeId"], ")'><span class='glyphicon glyphicon-trash'></span></a>";
-						echo "<a href='/editHike.php?id=", $hike["userHikeId"], "'>", $hike["name"], "</a></td>";
-						echo "<td>", "</td>";
-						echo "<td>", "</td>";
-						echo "<td>", "None", "</td>";
-						echo "</tr>";
+						$stmt->bindParam(":userId", $paramUserId, PDO::PARAM_INT);
+						$paramUserId = $_SESSION["userId"];
+
+						$stmt->execute ();
+
+						$output = $stmt->fetchAll (PDO::FETCH_ASSOC);
+
+						foreach ($output as $hike)
+						{
+							echo "<tr id='userHike_", $hike["userHikeId"], "'>";
+							echo "<td>";
+							echo "<a class='btn btn-sm' href='/editHike.php?id=", $hike["userHikeId"], "'><span class='glyphicon glyphicon-pencil'></span></a>";
+							echo "<a class='btn btn-sm' onclick='deleteHike(", $hike["userHikeId"], ")'><span class='glyphicon glyphicon-trash'></span></a>";
+							echo "<a href='/editHike.php?id=", $hike["userHikeId"], "'>", $hike["name"], "</a></td>";
+							echo "<td>", "</td>";
+							echo "<td>", "</td>";
+							echo "<td>", "None", "</td>";
+							echo "</tr>";
+						}
+
+						unset ($stmt);
 					}
-					
-					echo "<tr id='userHikeLastRow'>";
-					echo "<td><a class='btn btn-sm' onclick='addUserHike()'><span class='glyphicon glyphicon-plus'></span></a></td>";
-					echo "<td/><td/><td/><td/>";
-					echo "</tr>";
-					
-					unset ($stmt);
-				}
-			?>
+				?>
+				<tr id='userHikeLastRow'>
+				<td><a class='btn btn-sm' onclick='addUserHike()'><span class='glyphicon glyphicon-plus'></span></a></td>
+				<td/><td/><td/><td/>
+				</tr>
+
 			</tbody>
 			</table>
 			</div>
@@ -147,7 +146,7 @@ require_once "checkLogin.php";
 	<script src="/utilities.js"></script>
 	<script>
 	"use strict";
-	
+
 	function deleteHike (userHikeId)
 	{
 		var xmlhttp = new XMLHttpRequest ();
@@ -163,7 +162,7 @@ require_once "checkLogin.php";
 		var userHike = {}
 
 		userHike.userHikeId = userHikeId;
-		
+
 		xmlhttp.open("DELETE", "userHike.php", true);
 		xmlhttp.setRequestHeader("Content-type", "application/json");
 		xmlhttp.send(JSON.stringify(userHike));
@@ -172,7 +171,7 @@ require_once "checkLogin.php";
 	function insertUserHike ()
 	{
 		var userHike = objectifyForm($("#userHikeForm").serializeArray());
-		
+
 		var xmlhttp = new XMLHttpRequest ();
 		xmlhttp.onreadystatechange = function ()
 		{
@@ -183,12 +182,12 @@ require_once "checkLogin.php";
 				document.location.href = "/editHike.php?id=" + userHike.userHikeId;
 			}
 		}
-		
+
 		xmlhttp.open("POST", "userHike.php", true);
 		xmlhttp.setRequestHeader("Content-type", "application/json");
 		xmlhttp.send(JSON.stringify(userHike));
 	}
-		
+
 	function addUserHike ()
 	{
 		$("#addUserHikeSaveButton").off('click');
