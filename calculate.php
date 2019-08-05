@@ -1206,7 +1206,7 @@ function userHikeDataStore ($jsonHikeData)
 {
 	$segments = [];
 
-	$fileName = getRouteFile ($userHikeId);
+	$fileName = getRouteFileName ($userHikeId);
 	$route = getRouteFromFile($fileName);
 
 	foreach ($route as $r)

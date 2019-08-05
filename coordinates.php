@@ -1,6 +1,6 @@
 <?php
 
-function getRouteFile ($userHikeId)
+function getRouteFileName ($userHikeId)
 {
 	global $pdo;
 
