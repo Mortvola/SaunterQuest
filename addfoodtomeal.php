@@ -462,6 +462,8 @@ require_once "checkLogin.php";
 				dayTemplateFoodItemId: foodItem.dayTemplateFoodItemId
 			};
 			nextMealPlanEntryId++;
+
+			computeCaloriesAndWeightTotals (mealTimeId);
 		}
 
 		function removeItem(mealPlanEntryId, mealTimeId)
