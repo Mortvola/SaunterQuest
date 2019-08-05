@@ -447,14 +447,16 @@ if ($hikeId)
 		var userHikeId = <?php echo $userHikeId ?>;
 	</script>
 
-	<script src="/utilities.js"></script>
-	<script src="/contextMenu.js"></script>
-	<script src="/pointOfInterest.js"></script>
-	<script	src="/editHike.js"></script>
-	<script	src="/hikerProfile/hikerProfile.js"></script>
-	<script src="/resupplyPlan.js"></script>
-	<script src="/routeHighlighting.js"></script>
-	<script src="/trailCondition.js"></script>
+	<script>
+		<?php require_once "utilities.js"; ?>
+		<?php require_once "contextMenu.js"; ?>
+		<?php require_once "pointOfInterest.js"; ?>
+		<?php require_once "editHike.js"; ?>
+		<?php require_once "hikerProfile/hikerProfile.js"; ?>
+		<?php require_once "resupplyPlan.js"; ?>
+		<?php require_once "routeHighlighting.js"; ?>
+		<?php require_once "trailCondition.js"; ?>
+	</script>
 
 	<script async defer
 	 src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB16_kVJjm2plHSOkrxZDC4etbpp6vW8kU&callback=myMap&libraries=geometry">
