@@ -1,19 +1,4 @@
 <?php
-
-$commandLine = 0;
-
-if ($commandLine == 0)
-{
-	require_once "checkLogin.php";
-	$userId = $_SESSION["userId"];
-	$userHikeId = $_GET["id"];
-}
-else
-{
-	$userId = 1;
-	$userHikeId = 100051;
-}
-
 //$debug = true;
 // 	$maxZ = 2000;
 
@@ -22,9 +7,9 @@ require_once "config.php";
 require_once "coordinates.php";
 require_once "routeFile.php";
 require_once "utilities.php";
+require_once "pointOfInterestUtils.php";
 
 class trailCondition {};
-class pointOfInterest {};
 class hikerProfile {};
 class foodPlan {};
 
@@ -126,7 +111,7 @@ class Day
 
 function dayStart (&$d, &$dayMeters, &$dayHours, $lat, $lng, $ele, &$dayGain, &$dayLoss, $segmentIndex, $segmentMeters)
 {
-	global $segments, $currentTime;
+	global $currentTime;
 
 	$d++;
 
@@ -297,9 +282,9 @@ function DayGet ($d)
 }
 
 
-function pointsOfInterestGet ($userId, $userHikeId)
+function pointsOfInterestGet ($userId, $userHikeId, &$points)
 {
-	global $pdo, $segments;
+	global $pdo;
 
 	try
 	{
@@ -334,25 +319,25 @@ function pointsOfInterestGet ($userId, $userHikeId)
 			{
 				//var_dump ($poi);
 
-				if ($s == -1 || ($segments[$s]->lat != $poi->lat && $segments[$s]->lng != $poi->lng))
+				if ($s == -1 || ($points[$s]->lat != $poi->lat && $points[$s]->lng != $poi->lng))
 				{
-					$s = nearestSegmentFind ($poi->lat, $poi->lng, $segments);
+					$s = nearestSegmentFind ($poi->lat, $poi->lng, $points);
 				}
 
 				if ($s != -1)
 				{
-					$distance = haversineGreatCircleDistance ($segments[$s]->lat, $segments[$s]->lng, $poi->lat, $poi->lng);
+					$distance = haversineGreatCircleDistance ($points[$s]->lat, $points[$s]->lng, $poi->lat, $poi->lng);
 
 					$segmentPercentage = percentageOfPointOnSegment (
 							(object)["x" => $poi->lat, "y" => $poi->lng],
-							(object)["x" => $segments[$s]->lat, "y" => $segments[$s]->lng],
-							(object)["x" => $segments[$s + 1]->lat, "y" => $segments[$s + 1]->lng]);
+							(object)["x" => $points[$s]->lat, "y" => $points[$s]->lng],
+							(object)["x" => $points[$s + 1]->lat, "y" => $points[$s + 1]->lng]);
 
 					//echo "Found segment $s\n";
 
 //					echo "poi time: ", $poi->time, "\n";
 
-					$segments[$s]->subsegments[strval($segmentPercentage)]->events[] = (object)[
+					$points[$s]->subsegments[strval($segmentPercentage)]->events[] = (object)[
 							"poiId" => $poi->pointOfInterestId,
 							"type" => $poi->type,
 							"lat" => $poi->lat,
@@ -362,14 +347,14 @@ function pointsOfInterestGet ($userId, $userHikeId)
 							"enabled" => true,
 							"segmentPercentage" => $segmentPercentage,
 							"segments" => [
-									(object)["lat" => $segments[$s]->lat, "lng" => $segments[$s]->lng, "ele" => $segments[$s]->ele, "dist" => 0],
-									(object)["lat" => $poi->lat, "lng" => $poi->lng, "ele" => $segments[$s]->ele, "dist" => $distance],
+									(object)["lat" => $points[$s]->lat, "lng" => $points[$s]->lng, "ele" => $points[$s]->ele, "dist" => 0],
+									(object)["lat" => $poi->lat, "lng" => $poi->lng, "ele" => $points[$s]->ele, "dist" => $distance],
 							]
 					];
 				}
 			}
 
-			//var_dump ($segments);
+			//var_dump ($points);
 
 			unset($stmt);
 		}
@@ -383,9 +368,9 @@ function pointsOfInterestGet ($userId, $userHikeId)
 }
 
 
-function trailConditionsGet ($userHikeId)
+function trailConditionsGet ($userHikeId, &$points)
 {
-	global $pdo, $segments, $trailConditions;
+	global $pdo, $trailConditions;
 
 	try
 	{
@@ -411,11 +396,11 @@ function trailConditionsGet ($userHikeId)
 			//
 			for ($t = 0; $t < count($trailConditions); $t++)
 			{
-				$s = nearestSegmentFind ($trailConditions[$t]->startLat, $trailConditions[$t]->startLng, $segments);
+				$s = nearestSegmentFind ($trailConditions[$t]->startLat, $trailConditions[$t]->startLng, $points);
 
 				if ($s != -1)
 				{
-					$e = nearestSegmentFind ($trailConditions[$t]->endLat, $trailConditions[$t]->endLng, $segments);
+					$e = nearestSegmentFind ($trailConditions[$t]->endLat, $trailConditions[$t]->endLng, $points);
 
 					if ($e != -1)
 					{
@@ -428,18 +413,18 @@ function trailConditionsGet ($userHikeId)
 
 						$startSegmentPercentage = percentageOfPointOnSegment (
 								(object)["x" => $trailConditions[$t]->startLat, "y" => $trailConditions[$t]->startLng],
-								(object)["x" => $segments[$s]->lat, "y" => $segments[$s]->lng],
-								(object)["x" => $segments[$s + 1]->lat, "y" => $segments[$s + 1]->lng]);
+								(object)["x" => $points[$s]->lat, "y" => $points[$s]->lng],
+								(object)["x" => $points[$s + 1]->lat, "y" => $points[$s + 1]->lng]);
 
-						$segments[$s]->subsegments[strval($startSegmentPercentage)]->events[] = (object)["type" => "trailCondition", "index" => $t];
+						$points[$s]->subsegments[strval($startSegmentPercentage)]->events[] = (object)["type" => "trailCondition", "index" => $t];
 						$trailConditions[$t]->startSegment = (object)["segment" => $s, "percentage" => $startSegmentPercentage];
 
 						$endSegmentPercentage = percentageOfPointOnSegment (
 								(object)["x" => $trailConditions[$t]->endLat, "y" => $trailConditions[$t]->endLng],
-								(object)["x" => $segments[$e]->lat, "y" => $segments[$e]->lng],
-								(object)["x" => $segments[$e + 1]->lat, "y" => $segments[$e + 1]->lng]);
+								(object)["x" => $points[$e]->lat, "y" => $points[$e]->lng],
+								(object)["x" => $points[$e + 1]->lat, "y" => $points[$e + 1]->lng]);
 
-						$segments[$e]->subsegments[strval($endSegmentPercentage)]->events[] = (object)["type" => "trailCondition", "index" => $t];
+						$points[$e]->subsegments[strval($endSegmentPercentage)]->events[] = (object)["type" => "trailCondition", "index" => $t];
 						$trailConditions[$t]->endSegment = (object)["segment" => $e, "percentage" => $endSegmentPercentage];
 					}
 				}
@@ -496,6 +481,11 @@ function hikerProfilesGet ($userId, $userHikeId)
 function activeHikerProfileGet ($d)
 {
 	global $hikerProfile, $hikerProfiles;
+
+	if (!isset($hikerProfile))
+	{
+		$hikerProfile = (object)[];
+	}
 
 	$hikerProfile->speedFactor = 100;
 	$hikerProfile->startTime = 8;
@@ -1102,7 +1092,7 @@ function traverseSegment ($it, &$z, $segmentMeters, $lastEle, &$restart)
 
 function traverseSegments ($it)
 {
-	global $hikerProfile, $d, $day, $dayHours, $dayMeters, $dayLoss, $dayGain;
+	global $d, $day, $dayHours, $dayMeters, $dayLoss, $dayGain;
 	global $foodStart, $maxZ, $debug;
 	global $currentTime;
 
@@ -1202,32 +1192,18 @@ function userHikeDataStore ($jsonHikeData)
 }
 
 
-// Main routine
+function getSchedule ($userId, &$points)
 {
-	$segments = [];
-
-	$fileName = getRouteFileName ($userHikeId);
-	$route = getRouteFromFile($fileName);
-
-	foreach ($route as $r)
-	{
-		array_push($segments, $r);
-
-		if (isset ($r->trail))
-		{
-			foreach ($r->trail as $t)
-			{
-				array_push ($segments, $t);
-			}
-		}
-	}
-
-	$hikerProfile = (object)[];
+	global $userHikeId;
+	global $d, $day;
+	global $dayMeters, $dayHours, $dayGain, $dayLoss;
+	global $foodStart;
+	global $debug;
 
 	hikerProfilesGet ($userId, $userHikeId);
 	foodPlansGet ($userId);
-	pointsOfInterestGet ($userId, $userHikeId);
-	trailConditionsGet ($userHikeId);
+	pointsOfInterestGet ($userId, $userHikeId, $points);
+	trailConditionsGet ($userHikeId, $points);
 
 	$d = -1;
 	$day = [];
@@ -1237,25 +1213,22 @@ function userHikeDataStore ($jsonHikeData)
 	$dayGain = 0;
 	$dayLoss = 0;
 
-	dayStart ($d, $dayMeters, $dayHours, $segments[0]->lat, $segments[0]->lng, $segments[0]->ele, $dayGain, $dayLoss, 0, 0);
+	dayStart ($d, $dayMeters, $dayHours, $points[0]->lat, $points[0]->lng, $points[0]->ele, $dayGain, $dayLoss, 0, 0);
 
 	$foodStart = $d;
 
 	if (isset($debug))
 	{
-		echo "Total Segments: ", count($segments), "\n";
+		echo "Total Segments: ", count($points), "\n";
 	}
 
-	$it = new segmentIterator($segments, 1);
+	$it = new segmentIterator($points, 1);
 
 	traverseSegments($it);
 
 	computeFoodWeight ($day, $d, $foodStart);
 
-	$jsonHikeData = json_encode($day);
-
-//	userHikeDataStore ($jsonHikeData);
-
-	echo $jsonHikeData;
+	return $day;
 }
+
 ?>

@@ -1146,26 +1146,6 @@ function myMap()
 	retrieveHikerProfiles (); //todo: only do this when visiting the tab of hiker profiles
 } 
 
-function metersToMilesRounded (meters)
-{
-	return Math.round(parseFloat(meters) / 1609.34 * 10) / 10;
-}
-
-function metersToMiles (meters)
-{
-	return parseFloat(meters) / 1609.34;
-}
-
-function metersToFeet (meters)
-{
-	return Math.round(parseFloat(meters) * 3.281);
-}
-
-function gramsToOunces (grams)
-{
-	return grams * 0.035274;
-}
-
 function calculate ()
 {
 	var xmlhttp = new XMLHttpRequest ();
@@ -1182,16 +1162,12 @@ function calculate ()
 			
 			for (d in data)
 			{
-				let ounces = gramsToOunces (data[d].accumWeight);
-				let pounds = Math.floor (ounces / 16.0);
-				ounces = Math.round(ounces % 16.0);
-
 				txt += "<div class='panel panel-default'>";
 				txt += "<div class='panel-heading' style='padding:5px 5px 5px 5px' onclick='positionMapToDay(" + d + ")'>";
 				txt += "<div class='grid-container'>";
 				txt += "<div>" + "Day " + (parseInt(d) + 1) + "</div>";
 				txt += "<div>" + "Gain/Loss (feet): " + metersToFeet(data[d].gain) + "/" + metersToFeet(data[d].loss) + "</div>";
-				txt += "<div>" + "Food: " + pounds + " lb " + ounces  + " oz" + "</div>";
+				txt += "<div>" + "Food: " + gramsToPoundsAndOunces (data[d].accumWeight) + "</div>";
 				txt += "<div>" + "" + "</div>";
 				txt += "<div>" + "Miles: " + metersToMilesRounded (data[d].distance) + "</div>";
 				txt += "</div>";
@@ -1354,7 +1330,7 @@ function calculate ()
 		}
 	}
 
-	xmlhttp.open("GET", "calculate.php?id=" + userHikeId, true);
+	xmlhttp.open("GET", "schedule.php?id=" + userHikeId, true);
 	//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xmlhttp.send();
 }

@@ -1,6 +1,8 @@
 <?php
 
 require_once "coordinates.php";
+require_once "config.php";
+
 
 function trimRoute ($route, $startIndex, $endIndex)
 {
@@ -187,6 +189,45 @@ function assignDistances (&$segments, $startIndex)
 }
 
 
+function getRouteFileName ($userHikeId)
+{
+	global $pdo;
+
+	class hike {};
+
+	try
+	{
+		$sql = "select IFNULL(h.file, uh.userHikeId) AS file
+			from userHike uh
+			left join hike h on h.hikeId = uh.hikeId
+			where uh.userHikeId = :userHikeId";
+
+		if ($stmt = $pdo->prepare($sql))
+		{
+			$stmt->bindParam(":userHikeId", $paramUserHikeId, PDO::PARAM_INT);
+
+			$paramUserHikeId = $userHikeId;
+
+			$stmt->execute ();
+
+			$hike = $stmt->fetchAll (PDO::FETCH_CLASS, 'hike');
+
+			$fileName = $hike[0]->file;
+
+			unset($stmt);
+
+			return "data/" . $fileName;
+		}
+	}
+	catch(PDOException $e)
+	{
+		http_response_code (500);
+		echo $e->getMessage();
+		throw $e;
+	}
+}
+
+
 function readAndSanitizeFile ($fileName)
 {
 	$segments = json_decode(file_get_contents($fileName));
@@ -212,40 +253,66 @@ function getRouteFromFile ($fileName)
 	{
 		$segments = readAndSanitizeFile ($fileName);
 
-		for ($s = 0; $s < count($segments) - 1; $s++)
+		if (isset ($segments))
 		{
-			// If this segment and the next start on the same trail then
-			// find the route along the trail.
-			if (isset($segments[$s]->next->trailName) && isset($segments[$s + 1]->prev->trailName) &&
-				$segments[$s]->next->trailName == $segments[$s + 1]->prev->trailName &&
-				$segments[$s]->next->routeIndex != $segments[$s + 1]->prev->routeIndex)
+			for ($s = 0; $s < count($segments) - 1; $s++)
 			{
-				error_log ("Points on same trail" . $segments[$s]->next->trailName);
-
-				if ($segments[$s]->next->routeIndex < $segments[$s + 1]->prev->routeIndex)
+				// If this segment and the next start on the same trail then
+				// find the route along the trail.
+				if (isset($segments[$s]->next->trailName) && isset($segments[$s + 1]->prev->trailName) &&
+					$segments[$s]->next->trailName == $segments[$s + 1]->prev->trailName &&
+					$segments[$s]->next->routeIndex != $segments[$s + 1]->prev->routeIndex)
 				{
-					$trail = getTrail ($segments[$s]->lat, $segments[$s]->lng, $segments[$s]->next->trailName, $segments[$s]->next->routeIndex + 1, $segments[$s + 1]->prev->routeIndex);
+					error_log ("Points on same trail" . $segments[$s]->next->trailName);
+
+					if ($segments[$s]->next->routeIndex < $segments[$s + 1]->prev->routeIndex)
+					{
+						$trail = getTrail ($segments[$s]->lat, $segments[$s]->lng, $segments[$s]->next->trailName, $segments[$s]->next->routeIndex + 1, $segments[$s + 1]->prev->routeIndex);
+					}
+					else
+					{
+						$trail = getTrail ($segments[$s]->lat, $segments[$s]->lng, $segments[$s]->next->trailName, $segments[$s]->next->routeIndex, $segments[$s + 1]->prev->routeIndex + 1);
+					}
+
+					//				array_splice ($segments, $s + 1, 0, $trail);
+					//				$s += count($trail);
+					$segments[$s]->trail = $trail;
 				}
 				else
 				{
-					$trail = getTrail ($segments[$s]->lat, $segments[$s]->lng, $segments[$s]->next->trailName, $segments[$s]->next->routeIndex, $segments[$s + 1]->prev->routeIndex + 1);
+					error_log ("prev: " . json_encode($segments[$s]));
+					error_log ("next: " . json_encode($segments[$s + 1]));
 				}
+			}
 
-				//				array_splice ($segments, $s + 1, 0, $trail);
-				//				$s += count($trail);
-				$segments[$s]->trail = $trail;
-			}
-			else
-			{
-				error_log ("prev: " . json_encode($segments[$s]));
-				error_log ("next: " . json_encode($segments[$s + 1]));
-			}
+			assignDistances ($segments, 0);
+
+			return $segments;
 		}
-
-		assignDistances ($segments, 0);
 	}
-
-	return $segments;
 }
 
+
+function getRoutePointsFromUserHike ($userHikeId)
+{
+	$fileName = getRouteFileName ($userHikeId);
+	$route = getRouteFromFile($fileName);
+
+	$points = [];
+
+	foreach ($route as $r)
+	{
+		array_push($points, $r);
+
+		if (isset ($r->trail))
+		{
+			foreach ($r->trail as $t)
+			{
+				array_push ($points, $t);
+			}
+		}
+	}
+
+	return $points;
+}
 ?>

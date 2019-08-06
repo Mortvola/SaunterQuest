@@ -290,6 +290,7 @@ if ($hikeId)
 		<ul class='list-unstyled'>
 		<li><a class="nav-link" href="/welcome.php" style="color:white">Home</a></li>
 		<li><a class="nav-link" href="/DayTemplates.php" style="color:white">Food Plans</a></li>
+		<li><a class="nav-link" href="/exportTrail.php?id=<?php echo $userHikeId ?>" style="color:white" download="export.gpx">Export Trail</a></li>
 		</ul>
 		</nav>
 		<div class="col-md-7" style="display:flex;flex-direction:column;padding:0;height:100%">

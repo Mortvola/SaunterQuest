@@ -10,10 +10,12 @@ sudo cp \
 	trailCondition.js \
 	elevation.php \
 	coordinates.php \
+	schedule.php \
 	calculate.php \
 	trails.php \
 	pointOfInterest.js \
 	pointOfInterest.php \
+	pointOfInterestUtils.php \
 	resupplyPlan.js \
 	resupplyPlan.php \
 	contextMenu.js \
@@ -26,6 +28,7 @@ sudo cp \
 	foodItem.php \
 	foodItemDialog.php \
 	mealPlan.php \
+	exportTrail.php \
 	/var/www/html/
 
 sudo cp \
