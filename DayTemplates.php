@@ -49,6 +49,15 @@ require_once "checkLogin.php";
 			$stmt = $pdo->prepare("select dt.dayTemplateId AS dayTemplateId,
 				dt.name AS name,
 				floor(sum(fi.calories * dtfi.numberOfServings * (IFNULL(fiss.grams, fi.gramsServingSize) / fi.gramsServingSize)) + 0.5) AS calories,
+				floor(sum(case when dtfi.mealTimeId = 0 then
+						fi.calories * dtfi.numberOfServings * (IFNULL(fiss.grams, fi.gramsServingSize) / fi.gramsServingSize)
+						else 0 end) + 0.5) AS morningCalories,
+				floor(sum(case when dtfi.mealTimeId = 1 then
+						fi.calories * dtfi.numberOfServings * (IFNULL(fiss.grams, fi.gramsServingSize) / fi.gramsServingSize)
+						else 0 end) + 0.5) AS afternoonCalories,
+				floor(sum(case when dtfi.mealTimeId = 2 then
+						fi.calories * dtfi.numberOfServings * (IFNULL(fiss.grams, fi.gramsServingSize) / fi.gramsServingSize)
+						else 0 end) + 0.5) AS eveningCalories,
 				floor(sum(fi.totalFat * dtfi.numberOfServings * (IFNULL(fiss.grams, fi.gramsServingSize) / fi.gramsServingSize)) + 0.5) AS fats,
 				floor(sum(fi.totalCarbohydrates * dtfi.numberOfServings * (IFNULL(fiss.grams, fi.gramsServingSize) / fi.gramsServingSize)) + 0.5) AS carbs,
 				floor(sum(fi.protein * dtfi.numberOfServings * (IFNULL(fiss.grams, fi.gramsServingSize) / fi.gramsServingSize)) + 0.5) AS protein,
@@ -87,7 +96,7 @@ require_once "checkLogin.php";
 					}
 					echo "</td>";
 					//echo "<td><a href='/addfoodtomeal.php?id=", $row["dayTemplateId"], "'>", $row["name"], "</a></td>";
-					echo "<td>", $row["calories"], "</td>";
+					echo "<td>", $row["calories"], " (", $row["morningCalories"], "/", $row["afternoonCalories"], "/", $row["eveningCalories"], ")", "</td>";
 					echo "<td>", $row["fats"], "</td>";
 					echo "<td>", $row["carbs"], "</td>";
 					echo "<td>", $row["protein"], "</td>";
