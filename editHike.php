@@ -97,18 +97,6 @@ if ($hikeId)
 		  grid-template-columns: auto auto auto;
 		  justify-content: space-between;
 		}
-		.resupply-grid
-		{
-			display: grid;
-			grid-template-columns: auto auto;
-			justify-content: space-between;
-		}
-		.resupply-grid-item
-		{
-			overflow:hidden;
-			white-space:nowrap;
-			text-overflow:ellipsis;
-		}
 		.context-menu
 		{
 			position: absolute;
@@ -454,7 +442,9 @@ if ($hikeId)
 		<?php require_once "pointOfInterest.js"; ?>
 		<?php require_once "editHike.js"; ?>
 		<?php require_once "hikerProfile/hikerProfile.js"; ?>
-		<?php require_once "resupplyPlan.js"; ?>
+	</script>
+	<?php require_once "resupplyPlan.js"; ?>
+	<script>
 		<?php require_once "routeHighlighting.js"; ?>
 		<?php require_once "trailCondition.js"; ?>
 	</script>
