@@ -101,8 +101,7 @@ create table userHike (
 	modificationDate DATETIME NOT NULL,
 	userId INT NOT NULL,
 	hikeId INT,
-	name VARCHAR (255) NOT NULL,
-	data TEXT
+	name VARCHAR (255) NOT NULL
 );
 
 create table pointOfInterest (

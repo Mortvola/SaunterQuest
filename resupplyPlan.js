@@ -12,8 +12,6 @@ function loadResupply ()
 		{
 			let resupplyPlan = JSON.parse(this.responseText);
 
-			console.log(resupplyPlan);
-			
 			let txt = "";
 			
 			for (let i in resupplyPlan)
@@ -33,6 +31,8 @@ function loadResupply ()
 				txt += "</div>";
 				
 				txt += "<div>Items</div>";
+				
+				resupplyPlan[i].items.sort (function (a, b) { return a.name.localeCompare(b.name); });
 				
 				for (let j in resupplyPlan[i].items)
 				{

@@ -1,9 +1,14 @@
 <?php
 
-require_once "routeFile.php";
+$skipSessionCheck = true;
 
-$segments = getRouteFromFile ("/var/www/html/data/100051");
+$_SESSION["loggedin"] = true;
+$_SERVER["REQUEST_METHOD"] = "GET";
+$_SESSION["userId"] = 1;
+$_GET["id"] = 100051;
 
-echo (json_encode ($segments));
+$userHikeId = 100051;
+
+require_once "resupplyPlan.php"
 
 ?>

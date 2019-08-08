@@ -189,42 +189,15 @@ function assignDistances (&$segments, $startIndex)
 }
 
 
+function getHikeFolder ($userHikeId)
+{
+	return "data/" . $userHikeId . "/";
+}
+
+
 function getRouteFileName ($userHikeId)
 {
-	global $pdo;
-
-	class hike {};
-
-	try
-	{
-		$sql = "select IFNULL(h.file, uh.userHikeId) AS file
-			from userHike uh
-			left join hike h on h.hikeId = uh.hikeId
-			where uh.userHikeId = :userHikeId";
-
-		if ($stmt = $pdo->prepare($sql))
-		{
-			$stmt->bindParam(":userHikeId", $paramUserHikeId, PDO::PARAM_INT);
-
-			$paramUserHikeId = $userHikeId;
-
-			$stmt->execute ();
-
-			$hike = $stmt->fetchAll (PDO::FETCH_CLASS, 'hike');
-
-			$fileName = $hike[0]->file;
-
-			unset($stmt);
-
-			return "data/" . $fileName;
-		}
-	}
-	catch(PDOException $e)
-	{
-		http_response_code (500);
-		echo $e->getMessage();
-		throw $e;
-	}
+	return getHikeFolder ($userHikeId) . "route.json";
 }
 
 

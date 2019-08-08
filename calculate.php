@@ -73,8 +73,7 @@ class Day
 			$this->meters = $dayMeters;
 		}
 
-		$this->foodPlanId = $food[0]->dayTemplateId;
-		$this->foodWeight = $food[0]->weight; //todo: randomly select meal plan
+		getFoodPlan($this->foodPlanId, $this->foodWeight);
 
 		if ($this->notes == null)
 		{
@@ -521,15 +520,39 @@ function activeHikerProfileGet ($d)
 }
 
 
+function getFoodPlan (&$foodPlanId, &$foodPlanWeight)
+{
+	global $food, $foodPlanIndex;
+
+	if (!isset($foodPlanIndex))
+	{
+		$foodPlanIndex = array_rand($food);
+	}
+	else
+	{
+		$foodPlanIndex++;
+
+		if ($foodPlanIndex >= count($food))
+		{
+			$foodPlanIndex = 0;
+		}
+	}
+
+	$foodPlanId = $food[$foodPlanIndex]->dayTemplateId;
+	$foodPlanWeight = $food[$foodPlanIndex]->weight;
+}
+
+
 function foodPlansGet ($userId)
 {
 	global $pdo, $food;
 
 	try
 	{
-		$sql = "select dt.dayTemplateId, dt.name, sum(fiss.grams * dtfi.numberOfServings) as weight
+		$sql = "select dt.dayTemplateId, dt.name, sum(IFNULL(fiss.grams, fi.gramsServingSize) * dtfi.numberOfServings) as weight
 				from dayTemplateFoodItem dtfi
-				join foodItemServingSize fiss on fiss.foodItemId = dtfi.foodItemId
+				join foodItem fi on fi.foodItemId = dtfi.foodItemId
+				left join foodItemServingSize fiss on fiss.foodItemId = dtfi.foodItemId
 				join dayTemplate dt on dt.dayTemplateId = dtfi.dayTemplateId and userId = :userId
 				group by dtfi.dayTemplateId, dt.name";
 
@@ -1162,33 +1185,13 @@ function traverseSegments ($it)
 	$day[$d]->endMeters = $day[$d]->meters + $dayMeters;
 }
 
-function userHikeDataStore ($jsonHikeData)
+function storeSchedule ($schedule)
 {
-	global $userHikeId, $pdo;
+	global $userHikeId;
 
-	try
-	{
-		$sql = "update userHike set data = :data where userHikeId = :userHikeId";
+	$fileName = getHikeFolder ($userHikeId) . "schedule.json";
 
-		if ($stmt = $pdo->prepare($sql))
-		{
-			$stmt->bindParam(":userHikeId", $paramUserHikeId, PDO::PARAM_INT);
-			$stmt->bindParam(":data", $paramData, PDO::PARAM_STR);
-
-			$paramUserHikeId = $userHikeId;
-			$paramData = $jsonHikeData;
-
-			$stmt->execute ();
-
-			unset($stmt);
-		}
-	}
-	catch(PDOException $e)
-	{
-		http_response_code (500);
-		echo $e->getMessage();
-		throw $e;
-	}
+	file_put_contents ($fileName, json_encode($schedule));
 }
 
 
@@ -1227,6 +1230,8 @@ function getSchedule ($userId, &$points)
 	traverseSegments($it);
 
 	computeFoodWeight ($day, $d, $foodStart);
+
+	storeSchedule ($day);
 
 	return $day;
 }

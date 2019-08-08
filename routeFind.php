@@ -721,9 +721,4 @@ function test ($fileName)
 	}
 }
 
-if ($argv[1])
-{
-	test ($argv[1]);
-}
-
 ?>
