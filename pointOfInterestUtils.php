@@ -1,63 +1,52 @@
 <?php
+namespace bpp;
 
 require_once "config.php";
 
-class pointOfInterest {};
-class pointOfInterestConstraint {};
-
-
-function getPointsOfInterest ($userHikeId)
+function getPointsOfInterest($userHikeId)
 {
-	global $pdo;
+    global $pdo;
 
-	try
-	{
-		$sql = "select pointOfInterestId, lat, lng, name, description
+    try {
+        $sql = "select pointOfInterestId, lat, lng, name, description
 				from pointOfInterest
 				where userHikeId = :userHikeId";
 
-		if ($stmt = $pdo->prepare($sql))
-		{
-			$stmt->bindParam(":userHikeId", $paramUserHikeId, PDO::PARAM_INT);
+        if ($stmt = $pdo->prepare($sql)) {
+            $stmt->bindParam(":userHikeId", $paramUserHikeId, \PDO::PARAM_INT);
 
-			$paramUserHikeId = $userHikeId;
+            $paramUserHikeId = $userHikeId;
 
-			$stmt->execute ();
+            $stmt->execute();
 
-			$pointOfInterest = $stmt->fetchAll (PDO::FETCH_CLASS, 'pointOfInterest');
+            $pointOfInterest = $stmt->fetchAll(\PDO::FETCH_OBJ);
 
-			unset ($stmt);
-		}
+            unset($stmt);
+        }
 
-		if (isset ($pointOfInterest))
-		{
-			foreach ($pointOfInterest as &$poi)
-			{
-				$sql = "select pointOfInterestConstraintId, type, time
+        if (isset($pointOfInterest)) {
+            foreach ($pointOfInterest as &$poi) {
+                $sql = "select pointOfInterestConstraintId, type, time
 						from pointOfInterestConstraint
 						where pointOfInterestId = :pointOfInterestId";
 
-				if ($stmt = $pdo->prepare($sql))
-				{
-					$stmt->bindParam(":pointOfInterestId", $paramPointOfInterestId, PDO::PARAM_INT);
+                if ($stmt = $pdo->prepare($sql)) {
+                    $stmt->bindParam(":pointOfInterestId", $paramPointOfInterestId, \PDO::PARAM_INT);
 
-					$paramPointOfInterestId = $poi->pointOfInterestId;
+                    $paramPointOfInterestId = $poi->pointOfInterestId;
 
-					$stmt->execute ();
+                    $stmt->execute();
 
-					$poi->constraints = $stmt->fetchAll (PDO::FETCH_CLASS, 'pointOfInterestConstraint');
+                    $poi->constraints = $stmt->fetchAll(\PDO::FETCH_OBJ);
 
-					unset ($stmt);
-				}
-			}
+                    unset($stmt);
+                }
+            }
 
-			return $pointOfInterest;
-		}
-	}
-	catch(PDOException $e)
-	{
-		http_response_code (500);
-		echo $e->getMessage();
-	}
+            return $pointOfInterest;
+        }
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo $e->getMessage();
+    }
 }
-?>

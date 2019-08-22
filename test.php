@@ -1,4 +1,5 @@
 <?php
+namespace bpp;
 
 $skipSessionCheck = true;
 
@@ -9,6 +10,5 @@ $_GET["id"] = 100051;
 
 $userHikeId = 100051;
 
-require_once "resupplyPlan.php"
+require_once "schedule.php";
 
-?>

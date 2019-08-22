@@ -29,6 +29,8 @@ sudo cp \
 	foodItemDialog.php \
 	mealPlan.php \
 	exportTrail.php \
+	segmentIterator.php \
+	day.php \
 	/var/www/html/
 
 sudo cp \
