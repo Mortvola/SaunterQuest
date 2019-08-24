@@ -6,11 +6,12 @@ create table user (
 	email varchar(255) NOT NULL,
 	password varchar(255) NOT NULL,
 	name varchar(255),
-	remember_token varchar(100));
+	rememberToken varchar(100),
+	emailVerifiedDate DATETIME);
 
 // View to satisfy the needs of laravel.
 create view users as
-select id, creationDate as created_at, modificationDate as updated_at, username, email, password, name, remember_token
+select id, creationDate as created_at, modificationDate as updated_at, username, email, password, name, rememberToken as remember_token, emailVerifiedDate as email_verified_at
 from user;
 
 create table trip (
