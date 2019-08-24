@@ -3,8 +3,15 @@ create table user (
 	creationDate DATETIME NOT NULL,
 	modificationDate DATETIME NOT NULL,
 	username varchar(255) NOT NULL,
-	emailAddress varchar(255) NOT NULL,
-	password varchar(255) NOT NULL);
+	email varchar(255) NOT NULL,
+	password varchar(255) NOT NULL,
+	name varchar(255),
+	remember_token varchar(100));
+
+// View to satisfy the needs of laravel.
+create view users as
+select id, creationDate as created_at, modificationDate as updated_at, username, email, password, name, remember_token
+from user;
 
 create table trip (
 	id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
