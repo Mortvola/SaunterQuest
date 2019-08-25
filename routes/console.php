@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Foundation\Inspiring;
+use App\Trail;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,3 +17,8 @@ use Illuminate\Foundation\Inspiring;
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->describe('Display an inspiring quote');
+
+
+Artisan::command('trail:get {bounds}', function ($bounds) {
+    $this->info(Trail::getTrail($bounds));
+})->describe('Gets the trails within the bounds provided (Top Lat, Left Lon, Right Lat, Bottom Lon)');

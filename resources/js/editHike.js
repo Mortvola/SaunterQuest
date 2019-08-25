@@ -1568,7 +1568,7 @@ function retrieveTrails ()
 		{
 			var requestedTrailBounds = bounds;
 			
-			xmlhttp.open("GET", "trails.php?b=" + requestedTrailBounds.toUrlValue (), true);
+			xmlhttp.open("GET", "trails?b=" + requestedTrailBounds.toUrlValue (), true);
 			//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 			xmlhttp.send();
 		}

@@ -22,3 +22,5 @@ Route::get('/home', 'HomeController@index')->name('home');
 Route::get('/editHike', function () {
     return view('editHike');
 })->name('editHike');
+
+Route::get('/trails', 'TrailController@get');

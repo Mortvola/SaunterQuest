@@ -189,7 +189,7 @@
     </div>
 
     <script>
-        var userHikeId = <?php echo $_GET["id"] ?>;
+        var userHikeId = {{ $_GET["id"] }};
     </script>
 
     <?php require_once resource_path('js/contextMenu.js'); ?>
