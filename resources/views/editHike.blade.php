@@ -105,85 +105,83 @@
         <div class="col-md-4">
             <div style="display:grid;align-content:start;grid-template-rows: auto auto;height:100%">
                 <ul class="nav nav-tabs" role="tablist">
-                    <li role="presentation" class="active"><a data-toggle="tab" href="#schedule">Schedule</a></li>
-                    <li role="presentation"><a data-toggle="tab" href="#trailConditions">Trail Conditions</a></li>
-                    <li role="presentation"><a data-toggle="tab" href="#hikerProfiles">Hiker Profiles</a></li>
-                    <li role="presentation"><a data-toggle="tab" href="#equipment">Gear</a></li>
-                    <li role="presentation"><a data-toggle="tab" href="#resupply" onclick="loadResupply()">Resupply</a></li>
-                    <li role="presentation"><a data-toggle="tab" href="#todoList">To-do</a></li>
-                    <li role="presentation"><a data-toggle="tab" href="#notes">Notes</a></li>
+                    <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#schedule">Schedule</a></li>
+                    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#trailConditions">Trail Conditions</a></li>
+                    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#hikerProfiles">Hiker Profiles</a></li>
+                    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#equipment">Gear</a></li>
+                    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#resupply" onclick="loadResupply()">Resupply</a></li>
+                    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#todoList">To-do</a></li>
+                    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#notes">Notes</a></li>
                 </ul>
-                <div style="overflow:scroll;width:100%;height:100%;">
-                    <div class="tab-content">
-                        <div id="schedule" class="tab-pane fade in active">
-                        </div>
-                        <div id="hikerProfiles" class="tab-pane fade">
-                            <table class="table table-condensed">
-                            <thead>
-                            <tr>
-                            <th style="text-align:right">Start<br/>Day</th>
-                            <th style="text-align:right">End<br/>Day</th>
-                            <th style="text-align:right">Speed<br/>Factor</th>
-                            <th style="text-align:right">Start<br/>Time</th>
-                            <th style="text-align:right">End<br/>Time</th>
-                            <th style="text-align:right">Break<br/>Duration</th>
+                <div class="tab-content" style="overflow-y:scroll;width:100%;height:100%;">
+                    <div id="schedule" class="tab-pane fade in active">
+                    </div>
+                    <div id="hikerProfiles" class="tab-pane fade">
+                        <table class="table table-condensed">
+                        <thead>
+                        <tr>
+                        <th style="text-align:right">Start<br/>Day</th>
+                        <th style="text-align:right">End<br/>Day</th>
+                        <th style="text-align:right">Speed<br/>Factor</th>
+                        <th style="text-align:right">Start<br/>Time</th>
+                        <th style="text-align:right">End<br/>Time</th>
+                        <th style="text-align:right">Break<br/>Duration</th>
+                        </tr>
+                        </thead>
+                        <tbody id="hikerProfilesTable">
+                            <tr id="hikerProfileLastRow">
+                                <td><a class='btn btn-sm' onclick='addHikerProfile()'><span class='glyphicon glyphicon-plus'></span></a></td>
                             </tr>
-                            </thead>
-                            <tbody id="hikerProfilesTable">
-                                <tr id="hikerProfileLastRow">
-                                    <td><a class='btn btn-sm' onclick='addHikerProfile()'><span class='glyphicon glyphicon-plus'></span></a></td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div id="equipment" class="tab-pane fade">
-                            <table class="table table-condensed">
-                            <thead>
-                            <tr>
-                            <th>Type</th>
-                            <th>Brand & Model</th>
-                            <th>Max Distance</th>
-                            <th>Current Distance</th>
+                        </table>
+                    </div>
+                    <div id="equipment" class="tab-pane fade">
+                        <table class="table table-condensed">
+                        <thead>
+                        <tr>
+                        <th>Type</th>
+                        <th>Brand & Model</th>
+                        <th>Max Distance</th>
+                        <th>Current Distance</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            <tr id="gearLastRow">
+                                <td><a class='btn btn-sm' onclick='addGear()'><span class='glyphicon glyphicon-plus'></span></a></td>
                             </tr>
-                            </thead>
-                            <tbody>
-                                <tr id="gearLastRow">
-                                    <td><a class='btn btn-sm' onclick='addGear()'><span class='glyphicon glyphicon-plus'></span></a></td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div id="resupply" class="tab-pane fade">
-                        </div>
-                        <div id="trailConditions" class="tab-pane fade"> <!-- snow, relaxing hike, no camping, no stealth camping, etc -->
-                            <table class="table table-condensed">
-                            <thead>
-                            <tr>
-                            <th>Type</th>
-                            <th>Description</th>
-                            <th style='text-align:right'>Speed Factor</th>
+                        </table>
+                    </div>
+                    <div id="resupply" class="tab-pane fade">
+                    </div>
+                    <div id="trailConditions" class="tab-pane fade"> <!-- snow, relaxing hike, no camping, no stealth camping, etc -->
+                        <table class="table table-condensed">
+                        <thead>
+                        <tr>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th style='text-align:right'>Speed Factor</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            <tr id="conditionsLastRow">
+                                <td><a class='btn btn-sm' onclick='addTrailCondition()'><span class='glyphicon glyphicon-plus'></span></a></td>
                             </tr>
-                            </thead>
-                            <tbody>
-                                <tr id="conditionsLastRow">
-                                    <td><a class='btn btn-sm' onclick='addTrailCondition()'><span class='glyphicon glyphicon-plus'></span></a></td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div id="todoList" class="tab-pane fade">
-                            <table class="table table-condensed">
-                            <thead>
-                            <tr>
-                            <th>Task</th>
-                            <th>Due Date</th>
+                        </table>
+                    </div>
+                    <div id="todoList" class="tab-pane fade">
+                        <table class="table table-condensed">
+                        <thead>
+                        <tr>
+                        <th>Task</th>
+                        <th>Due Date</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            <tr id="todoLastRow">
+                                <td><a class='btn btn-sm' onclick='addTodo()'><span class='glyphicon glyphicon-plus'></span></a></td>
                             </tr>
-                            </thead>
-                            <tbody>
-                                <tr id="todoLastRow">
-                                    <td><a class='btn btn-sm' onclick='addTodo()'><span class='glyphicon glyphicon-plus'></span></a></td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div id="notes" class="tab-pane fade">
-                        </div>
+                        </table>
+                    </div>
+                    <div id="notes" class="tab-pane fade">
                     </div>
                 </div>
             </div>
