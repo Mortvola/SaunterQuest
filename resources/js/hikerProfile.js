@@ -66,7 +66,7 @@ function retrieveHikerProfiles ()
 		}
 	}
 	
-	xmlhttp.open("GET", "hikerProfile/hikerProfile.php?id=" + userHikeId, true);
+	xmlhttp.open("GET", "hikerProfile?id=" + userHikeId, true);
 	//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xmlhttp.send();
 }

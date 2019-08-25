@@ -194,7 +194,7 @@ function retrievePointsOfInterest ()
 		}
 	}
 	
-	xmlhttp.open("GET", "pointOfInterest.php?id=" + userHikeId, true);
+	xmlhttp.open("GET", "pointOfInterest?id=" + userHikeId, true);
 	//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xmlhttp.send();
 }

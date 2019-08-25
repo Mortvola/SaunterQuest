@@ -28,3 +28,13 @@ Route::get('/trails', 'TrailController@get');
 Route::get('/route', 'RouteController@get');
 
 Route::get('/schedule', 'ScheduleController@get');
+
+Route::get('/pointOfInterest', 'PointOfInterestController@get');
+
+Route::get('/resupplyLocation', 'ResupplyLocationController@get');
+
+Route::get('/hikerProfile', 'HikerProfileController@get');
+
+Route::get('/trailCondition', 'TrailConditionController@get');
+
+Route::get('/resupplyPlan', 'ResupplyPlanController@get');

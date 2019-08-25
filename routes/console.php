@@ -4,6 +4,11 @@ use Illuminate\Foundation\Inspiring;
 use App\Trail;
 use App\Route;
 use App\Schedule;
+use App\PointOfInterest;
+use App\ResupplyLocation;
+use App\HikerProfile;
+use App\TrailCondition;
+use App\ResupplyPlan;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,3 +39,28 @@ Artisan::command('userRoute:get {userHikeId}', function ($userHikeId) {
 Artisan::command('userSchedule:get {userId} {userHikeId}', function ($userId, $userHikeId) {
     $this->info(Schedule::get($userId, $userHikeId));
 })->describe('Gets the sechedule for the route specified by the provided userId and userHikeId');
+
+
+Artisan::command('pointOfInterest:get {userHikeId}', function ($userHikeId) {
+    $this->info(PointOfInterest::get($userHikeId));
+})->describe('Gets the points of interest for the hike specified by the provided userHikeId');
+
+
+Artisan::command('resupplyLocation:get {userHikeId}', function ($userHikeId) {
+    $this->info(ResupplyLocation::get($userHikeId));
+})->describe('Gets the resupply locations for the hike specified by the provided userHikeId');
+
+
+Artisan::command('hikerProfile:get {userId} {userHikeId}', function ($userId, $userHikeId) {
+    $this->info(HikerProfile::get($userId, $userHikeId));
+})->describe('Gets the hiker profiles for the hike specified by the provided userId and userHikeId');
+
+
+Artisan::command('trailCondition:get {userId} {userHikeId}', function ($userId, $userHikeId) {
+    $this->info(TrailCondition::get($userId, $userHikeId));
+})->describe('Gets the trail conditions for the hike specified by the provided userId and userHikeId');
+
+
+Artisan::command('resupplyPlan:get {userId} {userHikeId}', function ($userId, $userHikeId) {
+    $this->info(ResupplyPlan::get($userId, $userHikeId));
+})->describe('Gets the trail conditions for the hike specified by the provided userId and userHikeId');
