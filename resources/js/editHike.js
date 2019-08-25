@@ -1415,7 +1415,7 @@ function retrieveRoute ()
 		}
 	}
 	
-	xmlhttp.open("GET", "route.php?id=" + userHikeId, true);
+	xmlhttp.open("GET", "route?id=" + userHikeId, true);
 	//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xmlhttp.send();
 }

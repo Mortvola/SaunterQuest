@@ -242,7 +242,7 @@ function getElevation($lat, $lng)
 
     $filename = $latPrefix . $latInt . $lngPrefix . $lngInt . ".hgt";
 
-    $file = fopen("elevations/" . $filename, "rb");
+    $file = fopen(base_path("/elevations/" . $filename), "rb");
 
     $ele = [];
 

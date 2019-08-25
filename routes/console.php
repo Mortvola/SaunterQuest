@@ -2,6 +2,7 @@
 
 use Illuminate\Foundation\Inspiring;
 use App\Trail;
+use App\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,3 +23,8 @@ Artisan::command('inspire', function () {
 Artisan::command('trail:get {bounds}', function ($bounds) {
     $this->info(Trail::getTrail($bounds));
 })->describe('Gets the trails within the bounds provided (Top Lat, Left Lon, Right Lat, Bottom Lon)');
+
+
+Artisan::command('userRoute:get {userHikeId}', function ($userHikeId) {
+    $this->info(Route::get($userHikeId));
+})->describe('Gets the route specified by the provided userHikeId');

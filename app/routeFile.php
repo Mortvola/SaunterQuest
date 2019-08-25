@@ -1,7 +1,6 @@
 <?php
 
 require_once "coordinates.php";
-require_once "config.php";
 
 
 function trimRoute($route, $startIndex, $endIndex)
@@ -77,7 +76,7 @@ function getFullTrailFromFile($fileName, $trailName)
 function getFullTrail($lat, $lng, $trailName)
 {
     if (strpos($trailName, ":") !== false) {
-        $fileName = "trails/" . getTrailFileName($lat, $lng, ".trails");
+        $fileName = base_path("/trails/" . getTrailFileName($lat, $lng, ".trails"));
 
         $route = getFullTrailFromFile($fileName, $trailName);
     } else {
@@ -94,9 +93,14 @@ function getTrail($lat, $lng, $trailName, $startIndex, $endIndex)
 {
     $route = getFullTrail($lat, $lng, $trailName);
 
-    error_log("trim route to " . $startIndex . " and " . $endIndex . " of " . count($route));
+    if (isset($route))
+    {
+        error_log("trim route to " . $startIndex . " and " . $endIndex . " of " . count($route));
 
-    return trimRoute($route, $startIndex, $endIndex);
+        return trimRoute($route, $startIndex, $endIndex);
+    }
+    
+    return $route;
 }
 
 
@@ -156,7 +160,7 @@ function assignDistances(&$segments, $startIndex)
 
 function getHikeFolder($userHikeId)
 {
-    return "data/" . $userHikeId . "/";
+    return base_path("/data/" . $userHikeId . "/");
 }
 
 

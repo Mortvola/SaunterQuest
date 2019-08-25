@@ -24,3 +24,5 @@ Route::get('/editHike', function () {
 })->name('editHike');
 
 Route::get('/trails', 'TrailController@get');
+
+Route::get('/route', 'RouteController@get');
