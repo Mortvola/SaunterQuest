@@ -1,3 +1,4 @@
+<script>
 var trailConditions = [];
 var editingTrailConditionId = null;
 var trailConditionMenu;
@@ -340,3 +341,4 @@ function removeTrailCondition (trailConditionId)
 	xmlhttp.setRequestHeader("Content-type", "application/json");
 	xmlhttp.send(JSON.stringify(trailConditionId));
 }
+</script>

@@ -1,3 +1,4 @@
+<script>
 "use strict";
 
 var hikerProfiles = [];
@@ -234,3 +235,4 @@ function removeHikerProfile (hikerProfileId)
 	xmlhttp.setRequestHeader("Content-type", "application/json");
 	xmlhttp.send(JSON.stringify(hikerProfileId));
 }
+</script>

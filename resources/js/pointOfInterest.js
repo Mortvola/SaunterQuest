@@ -1,3 +1,4 @@
+<script>
 var pointOfInterestCM = {};
 var pointOfInterestUrl = "http://maps.google.com/mapfiles/ms/micons/blue.png";
 var pointsOfInterest = [];
@@ -197,5 +198,4 @@ function retrievePointsOfInterest ()
 	//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xmlhttp.send();
 }
-
-
+</script>

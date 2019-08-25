@@ -1,3 +1,4 @@
+<script>
 var routeHighlightMarkers = [];
 var routeHighLightPolyLine;
 
@@ -144,5 +145,4 @@ function endRouteHighlighting ()
 
 	
 }
-
-
+</script>

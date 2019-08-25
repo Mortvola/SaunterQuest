@@ -1,3 +1,28 @@
+<style type="text/css">
+    .context-menu
+    {
+        position: absolute;
+        border: 1px solid #999;
+        box-shadow: 1px 3px 3px rgba(0, 0, 0, .3);
+        margin-top: -10px;
+        margin-left: 10px;
+    }
+    .context-menu-item
+    {
+        padding: 3px;
+        background: white;
+        color: #666;
+        font-weight: bold;
+        font-family: sans-serif;
+        font-size: 12px;
+        cursor: pointer;
+    }
+    .context-menu-item:hover
+    {
+        background: #eee;
+    }
+</style>
+<script>
 "use strict";
 
 function removeContextMenu (object)
@@ -133,3 +158,4 @@ function ContextMenu (items)
 		});
 	}
 }
+</script>

@@ -1,3 +1,4 @@
+<script>
 "use strict";
 
 var dayMarkers = [];
@@ -1610,3 +1611,4 @@ function updateTrails ()
 		}
 	}
 }
+</script>
