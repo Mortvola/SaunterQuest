@@ -26,3 +26,5 @@ Route::get('/editHike', function () {
 Route::get('/trails', 'TrailController@get');
 
 Route::get('/route', 'RouteController@get');
+
+Route::get('/schedule', 'ScheduleController@get');

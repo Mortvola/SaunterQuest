@@ -76,7 +76,7 @@ function getFullTrailFromFile($fileName, $trailName)
 function getFullTrail($lat, $lng, $trailName)
 {
     if (strpos($trailName, ":") !== false) {
-        $fileName = base_path("/trails/" . getTrailFileName($lat, $lng, ".trails"));
+        $fileName = base_path("trails/" . getTrailFileName($lat, $lng, ".trails"));
 
         $route = getFullTrailFromFile($fileName, $trailName);
     } else {
@@ -160,7 +160,7 @@ function assignDistances(&$segments, $startIndex)
 
 function getHikeFolder($userHikeId)
 {
-    return base_path("/data/" . $userHikeId . "/");
+    return base_path("data/" . $userHikeId . "/");
 }
 
 

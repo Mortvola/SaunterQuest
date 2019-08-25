@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Inspiring;
 use App\Trail;
 use App\Route;
+use App\Schedule;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,3 +29,8 @@ Artisan::command('trail:get {bounds}', function ($bounds) {
 Artisan::command('userRoute:get {userHikeId}', function ($userHikeId) {
     $this->info(Route::get($userHikeId));
 })->describe('Gets the route specified by the provided userHikeId');
+
+
+Artisan::command('userSchedule:get {userId} {userHikeId}', function ($userId, $userHikeId) {
+    $this->info(Schedule::get($userId, $userHikeId));
+})->describe('Gets the sechedule for the route specified by the provided userId and userHikeId');

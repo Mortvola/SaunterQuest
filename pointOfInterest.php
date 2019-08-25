@@ -1,8 +1,6 @@
 <?php
 namespace bpp;
 
-require_once "checkLogin.php";
-require_once "config.php";
 require_once "pointOfInterestUtils.php";
 
 

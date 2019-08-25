@@ -7,7 +7,6 @@ namespace bpp;
 // Include config file
 //use const Day\$events as false;
 
-require_once "config.php";
 require_once "coordinates.php";
 require_once "routeFile.php";
 require_once "utilities.php";
@@ -199,182 +198,121 @@ function DayGet($d)
 
 function pointsOfInterestGet($userId, $userHikeId, &$points)
 {
-    global $pdo;
+    $output = \DB::select(\DB::raw(
+        "select poi.pointOfInterestId, lat, lng, type, time
+		from pointOfInterest poi
+		join pointOfInterestConstraint poic on poic.pointOfInterestId = poi.pointOfInterestId
+		where poi.userHikeId = :userHikeId"),
+        array("userHikeId" => $userHikeId));
 
-    try {
-//      $sql = "select re.resupplyEventId AS pointOfInterestId, sl.lat, sl.lng, sl.shippingLocationId, 'resupply' AS type, NULL as time
-//              from resupplyEvent re
-//              join shippingLocation sl on sl.shippingLocationId = re.shippingLocationId
-//              where re.userHikeId = :userHikeId";
+    $s = -1;
 
-        $sql = "select poi.pointOfInterestId, lat, lng, type, time
-				from pointOfInterest poi
-				join pointOfInterestConstraint poic on poic.pointOfInterestId = poi.pointOfInterestId
-				where poi.userHikeId = :userHikeId";
+    //
+    // Find the segment that is nearest to this POI.
+    //
+    foreach ($output as $poi) {
+        //var_dump ($poi);
 
-        if ($stmt = $pdo->prepare($sql)) {
-            //      $stmt->bindParam(":userId", $paramUserId, \PDO::PARAM_INT);
-            $stmt->bindParam(":userHikeId", $paramUserHikeId, \PDO::PARAM_INT);
-
-    //      $paramUserId = $userId;
-            $paramUserHikeId = $userHikeId;
-
-            $stmt->execute();
-
-            $output = $stmt->fetchAll(\PDO::FETCH_OBJ);
-
-            $s = -1;
-
-            //
-            // Find the segment that is nearest to this POI.
-            //
-            foreach ($output as $poi) {
-                //var_dump ($poi);
-
-                if ($s == -1 || ($points[$s]->lat != $poi->lat && $points[$s]->lng != $poi->lng)) {
-                    $s = nearestSegmentFind($poi->lat, $poi->lng, $points);
-                }
-
-                if ($s != -1) {
-                    $distance = haversineGreatCircleDistance($points[$s]->lat, $points[$s]->lng, $poi->lat, $poi->lng);
-
-                    $segmentPercentage = percentageOfPointOnSegment(
-                        (object)["x" => $poi->lat, "y" => $poi->lng],
-                        (object)["x" => $points[$s]->lat, "y" => $points[$s]->lng],
-                        (object)["x" => $points[$s + 1]->lat, "y" => $points[$s + 1]->lng]
-                    );
-
-                    //echo "Found segment $s\n";
-
-//                  echo "poi time: ", $poi->time, "\n";
-
-                    $points[$s]->subsegments[strval($segmentPercentage)]->events[] = (object)[
-                            "poiId" => $poi->pointOfInterestId,
-                            "type" => $poi->type,
-                            "lat" => $poi->lat,
-                            "lng" => $poi->lng,
-                            //"shippingLocationId" => $poi->shippingLocationId,
-                            "time" => $poi->time,
-                            "enabled" => true,
-                            "segmentPercentage" => $segmentPercentage,
-                            "segments" => [
-                                    (object)["lat" => $points[$s]->lat, "lng" => $points[$s]->lng, "ele" => $points[$s]->ele, "dist" => 0],
-                                    (object)["lat" => $poi->lat, "lng" => $poi->lng, "ele" => $points[$s]->ele, "dist" => $distance],
-                            ]
-                    ];
-                }
-            }
-
-            //var_dump ($points);
-
-            unset($stmt);
+        if ($s == -1 || ($points[$s]->lat != $poi->lat && $points[$s]->lng != $poi->lng)) {
+            $s = nearestSegmentFind($poi->lat, $poi->lng, $points);
         }
-    } catch (PDOException $e) {
-        http_response_code(500);
-        echo $e->getMessage();
-        throw $e;
+
+        if ($s != -1) {
+            $distance = haversineGreatCircleDistance($points[$s]->lat, $points[$s]->lng, $poi->lat, $poi->lng);
+
+            $segmentPercentage = percentageOfPointOnSegment(
+                (object)["x" => $poi->lat, "y" => $poi->lng],
+                (object)["x" => $points[$s]->lat, "y" => $points[$s]->lng],
+                (object)["x" => $points[$s + 1]->lat, "y" => $points[$s + 1]->lng]
+            );
+
+            //echo "Found segment $s\n";
+
+            $points[$s]->subsegments[strval($segmentPercentage)]->events[] = (object)[
+                    "poiId" => $poi->pointOfInterestId,
+                    "type" => $poi->type,
+                    "lat" => $poi->lat,
+                    "lng" => $poi->lng,
+                    //"shippingLocationId" => $poi->shippingLocationId,
+                    "time" => $poi->time,
+                    "enabled" => true,
+                    "segmentPercentage" => $segmentPercentage,
+                    "segments" => [
+                            (object)["lat" => $points[$s]->lat, "lng" => $points[$s]->lng, "ele" => $points[$s]->ele, "dist" => 0],
+                            (object)["lat" => $poi->lat, "lng" => $poi->lng, "ele" => $points[$s]->ele, "dist" => $distance],
+                    ]
+            ];
+        }
     }
+
+    //var_dump ($points);
 }
 
 
 function trailConditionsGet($userHikeId, &$points)
 {
-    global $pdo, $trailConditions;
+    $trailConditions = \DB::select (\DB::raw (
+            "select tc.trailConditionId, startLat, startLng, endLat, endLng, type, IFNULL(speedFactor, 100) AS speedFactor
+			from trailCondition tc
+			join userHike uh on (uh.userHikeId = tc.userHikeId OR uh.hikeId = tc.hikeId)
+			and uh.userHikeId = :userHikeId"),
+            array ("userHikeId" => $userHikeId));
 
-    try {
-        $sql = "select tc.trailConditionId, startLat, startLng, endLat, endLng, type, IFNULL(speedFactor, 100) AS speedFactor
-				from trailCondition tc
-				join userHike uh on (uh.userHikeId = tc.userHikeId OR uh.hikeId = tc.hikeId)
-				and uh.userHikeId = :userHikeId";
+    $s = -1;
 
-        if ($stmt = $pdo->prepare($sql)) {
-            $stmt->bindParam(":userHikeId", $paramUserHikeId, \PDO::PARAM_INT);
+    //
+    // Find the segment that is nearest to this POI.
+    //
+    for ($t = 0; $t < count($trailConditions); $t++) {
+        $s = nearestSegmentFind($trailConditions[$t]->startLat, $trailConditions[$t]->startLng, $points);
 
-            $paramUserHikeId = $userHikeId;
+        if ($s != -1) {
+            $e = nearestSegmentFind($trailConditions[$t]->endLat, $trailConditions[$t]->endLng, $points);
 
-            $stmt->execute();
-
-            $trailConditions = $stmt->fetchAll(\PDO::FETCH_OBJ);
-
-            $s = -1;
-
-            //
-            // Find the segment that is nearest to this POI.
-            //
-            for ($t = 0; $t < count($trailConditions); $t++) {
-                $s = nearestSegmentFind($trailConditions[$t]->startLat, $trailConditions[$t]->startLng, $points);
-
-                if ($s != -1) {
-                    $e = nearestSegmentFind($trailConditions[$t]->endLat, $trailConditions[$t]->endLng, $points);
-
-                    if ($e != -1) {
-                        if ($s > $e) {
-                            $tmp  = $s;
-                            $s = $e;
-                            $e = $tmp;
-                        }
-
-                        $startSegmentPercentage = percentageOfPointOnSegment(
-                            (object)["x" => $trailConditions[$t]->startLat, "y" => $trailConditions[$t]->startLng],
-                            (object)["x" => $points[$s]->lat, "y" => $points[$s]->lng],
-                            (object)["x" => $points[$s + 1]->lat, "y" => $points[$s + 1]->lng]
-                        );
-
-                        $points[$s]->subsegments[strval($startSegmentPercentage)]->events[] = (object)["type" => "trailCondition", "index" => $t];
-                        $trailConditions[$t]->startSegment = (object)["segment" => $s, "percentage" => $startSegmentPercentage];
-
-                        $endSegmentPercentage = percentageOfPointOnSegment(
-                            (object)["x" => $trailConditions[$t]->endLat, "y" => $trailConditions[$t]->endLng],
-                            (object)["x" => $points[$e]->lat, "y" => $points[$e]->lng],
-                            (object)["x" => $points[$e + 1]->lat, "y" => $points[$e + 1]->lng]
-                        );
-
-                        $points[$e]->subsegments[strval($endSegmentPercentage)]->events[] = (object)["type" => "trailCondition", "index" => $t];
-                        $trailConditions[$t]->endSegment = (object)["segment" => $e, "percentage" => $endSegmentPercentage];
-                    }
+            if ($e != -1) {
+                if ($s > $e) {
+                    $tmp  = $s;
+                    $s = $e;
+                    $e = $tmp;
                 }
-            }
 
-            unset($stmt);
+                $startSegmentPercentage = percentageOfPointOnSegment(
+                    (object)["x" => $trailConditions[$t]->startLat, "y" => $trailConditions[$t]->startLng],
+                    (object)["x" => $points[$s]->lat, "y" => $points[$s]->lng],
+                    (object)["x" => $points[$s + 1]->lat, "y" => $points[$s + 1]->lng]
+                );
+
+                $points[$s]->subsegments[strval($startSegmentPercentage)]->events[] = (object)["type" => "trailCondition", "index" => $t];
+                $trailConditions[$t]->startSegment = (object)["segment" => $s, "percentage" => $startSegmentPercentage];
+
+                $endSegmentPercentage = percentageOfPointOnSegment(
+                    (object)["x" => $trailConditions[$t]->endLat, "y" => $trailConditions[$t]->endLng],
+                    (object)["x" => $points[$e]->lat, "y" => $points[$e]->lng],
+                    (object)["x" => $points[$e + 1]->lat, "y" => $points[$e + 1]->lng]
+                );
+
+                $points[$e]->subsegments[strval($endSegmentPercentage)]->events[] = (object)["type" => "trailCondition", "index" => $t];
+                $trailConditions[$t]->endSegment = (object)["segment" => $e, "percentage" => $endSegmentPercentage];
+            }
         }
-    } catch (PDOException $e) {
-        http_response_code(500);
-        echo $e->getMessage();
-        throw $e;
     }
+    
+    return $trailConditions;
 }
 
 
 function hikerProfilesGet($userId, $userHikeId)
 {
-    global $pdo, $hikerProfiles;
-
-    try {
-        $sql = "select speedFactor,
-					startDay, endDay,
-					startTime, endTime, breakDuration
-				from hikerProfile
-				where userId = :userId
-				and userHikeId = :userHikeId";
-
-        if ($stmt = $pdo->prepare($sql)) {
-            $stmt->bindParam(":userId", $paramUserId, \PDO::PARAM_INT);
-            $stmt->bindParam(":userHikeId", $paramUserHikeId, \PDO::PARAM_INT);
-
-            $paramUserId = $userId;
-            $paramUserHikeId = $userHikeId;
-
-            $stmt->execute();
-
-            $hikerProfiles = $stmt->fetchAll(\PDO::FETCH_OBJ);
-
-            unset($stmt);
-        }
-    } catch (PDOException $e) {
-        http_response_code(500);
-        echo $e->getMessage();
-        throw $e;
-    }
+    $hikerProfiles = \DB::select(\DB::raw(
+            "select speedFactor,
+				startDay, endDay,
+				startTime, endTime, breakDuration
+			from hikerProfile
+			where userId = :userId
+			and userHikeId = :userHikeId"),
+            array ("userId" => $userId, "userHikeId" => $userHikeId));
+    
+    return $hikerProfiles;
 }
 
 function activeHikerProfileGet($d)
@@ -434,31 +372,16 @@ function getFoodPlan(&$foodPlanId, &$foodPlanWeight)
 
 function foodPlansGet($userId)
 {
-    global $pdo, $food;
+    $food = \DB::select(\DB::raw (
+        "select dt.dayTemplateId, dt.name, sum(IFNULL(fiss.grams, fi.gramsServingSize) * dtfi.numberOfServings) as weight
+		from dayTemplateFoodItem dtfi
+		join foodItem fi on fi.foodItemId = dtfi.foodItemId
+		left join foodItemServingSize fiss on fiss.foodItemId = dtfi.foodItemId
+		join dayTemplate dt on dt.dayTemplateId = dtfi.dayTemplateId and userId = :userId
+		group by dtfi.dayTemplateId, dt.name"),
+		array ("userId" => $userId));
 
-    try {
-        $sql = "select dt.dayTemplateId, dt.name, sum(IFNULL(fiss.grams, fi.gramsServingSize) * dtfi.numberOfServings) as weight
-				from dayTemplateFoodItem dtfi
-				join foodItem fi on fi.foodItemId = dtfi.foodItemId
-				left join foodItemServingSize fiss on fiss.foodItemId = dtfi.foodItemId
-				join dayTemplate dt on dt.dayTemplateId = dtfi.dayTemplateId and userId = :userId
-				group by dtfi.dayTemplateId, dt.name";
-
-        if ($stmt = $pdo->prepare($sql)) {
-            $stmt->bindParam(":userId", $paramUserId, \PDO::PARAM_INT);
-            $paramUserId = $userId;
-
-            $stmt->execute();
-
-            $food = $stmt->fetchAll(\PDO::FETCH_OBJ);
-
-            unset($stmt);
-        }
-    } catch (PDOException $e) {
-        http_response_code(500);
-        echo $e->getMessage();
-        throw $e;
-    }
+    return $food;
 }
 
 
@@ -939,11 +862,14 @@ function getSchedule($userId, &$points)
     global $dayMeters, $dayHours, $dayGain, $dayLoss;
     global $foodStart;
     global $debug;
-
-    hikerProfilesGet($userId, $userHikeId);
-    foodPlansGet($userId);
+    global $hikerProfiles;
+    global $trailConditions;
+    global $food;
+    
+    $hikerProfiles = hikerProfilesGet($userId, $userHikeId);
+    $food = foodPlansGet($userId);
     pointsOfInterestGet($userId, $userHikeId, $points);
-    trailConditionsGet($userHikeId, $points);
+    $trailConditions = trailConditionsGet($userHikeId, $points);
 
     $d = -1;
     $day = [];
