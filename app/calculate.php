@@ -43,12 +43,12 @@ class Event
 
 function dayStart($point, $segmentIndex, $segmentMeters)
 {
-    global $hikerProfiles, $activeHikerProfile;
+    global $activeHikerProfile;
     global $schedule;
     
     $schedule->nextDay ();
 
-    $activeHikerProfile = activeHikerProfileGet($hikerProfiles, $schedule->currentDayIndexGet ());
+    $activeHikerProfile = $schedule->activeHikerProfileGet();
 
     $schedule->currentDayGet ()->initialize($activeHikerProfile, $point, $schedule->previousDayTotalMetersGet (), $segmentIndex, $segmentMeters);
 }
@@ -275,56 +275,6 @@ function trailConditionsGet($userHikeId, &$points)
     }
     
     return $trailConditions;
-}
-
-
-function hikerProfilesGet($userId, $userHikeId)
-{
-    $hikerProfiles = \DB::select(\DB::raw(
-            "select speedFactor,
-				startDay, endDay,
-				startTime, endTime, breakDuration
-			from hikerProfile
-			where userId = :userId
-			and userHikeId = :userHikeId"),
-            array ("userId" => $userId, "userHikeId" => $userHikeId));
-    
-    return $hikerProfiles;
-}
-
-function activeHikerProfileGet($hikerProfiles, $d)
-{
-    global $hikerProfiles;
-
-    $hikerProfile = (object)[];
-
-    $hikerProfile->speedFactor = 100;
-    $hikerProfile->startTime = 8;
-    $hikerProfile->endTime = 19;
-    $hikerProfile->breakDuration = 1;
-
-    foreach ($hikerProfiles as $profile) {
-        if ((!isset($profile->startDay) || $d >= $profile->startDay)
-         && (!isset($profile->endDay) || $d <= $profile->endDay)) {
-            if (isset($profile->speedFactor)) {
-                $hikerProfile->speedFactor = $profile->speedFactor;
-            }
-
-            if (isset($profile->startTime)) {
-                $hikerProfile->startTime = $profile->startTime;
-            }
-
-            if (isset($profile->endTime)) {
-                $hikerProfile->endTime = $profile->endTime;
-            }
-
-            if (isset($profile->breakDuration)) {
-                $hikerProfile->breakDuration = $profile->breakDuration;
-            }
-        }
-    }
-    
-    return $hikerProfile;
 }
 
 
@@ -819,16 +769,14 @@ function getSchedule($userId, $userHikeId, &$points)
     global $schedule;
     global $foodStart;
     global $debug;
-    global $hikerProfiles;
     global $trailConditions;
     global $food;
     
-    $hikerProfiles = hikerProfilesGet($userId, $userHikeId);
     $food = foodPlansGet($userId);
     pointsOfInterestGet($userId, $userHikeId, $points);
     $trailConditions = trailConditionsGet($userHikeId, $points);
 
-    $schedule = new Schedule;
+    $schedule = new Schedule ($userId, $userHikeId);
 
     dayStart($points[0], 0, 0);
 

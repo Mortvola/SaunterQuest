@@ -12,7 +12,13 @@ class Schedule
 {
     private $days = [];
     private $currentDay = -1;
+    private $hikerProfiles;
     
+    public function __construct ($userId, $userHikeId)
+    {
+        $this->hikerProfiles = $this->hikerProfilesGet($userId, $userHikeId);
+    }
+
     public static function get ($userId, $userHikeId)
     {
         $points = getRoutePointsFromUserHike($userHikeId);
@@ -60,4 +66,52 @@ class Schedule
 
         return 0;
     }
+    
+    private function hikerProfilesGet($userId, $userHikeId)
+    {
+        $hikerProfiles = \DB::select(\DB::raw(
+                "select speedFactor,
+				startDay, endDay,
+				startTime, endTime, breakDuration
+			from hikerProfile
+			where userId = :userId
+			and userHikeId = :userHikeId"),
+                array ("userId" => $userId, "userHikeId" => $userHikeId));
+        
+        return $hikerProfiles;
+    }
+    
+    public function activeHikerProfileGet()
+    {
+        $hikerProfile = (object)[];
+        
+        $hikerProfile->speedFactor = 100;
+        $hikerProfile->startTime = 8;
+        $hikerProfile->endTime = 19;
+        $hikerProfile->breakDuration = 1;
+        
+        foreach ($this->hikerProfiles as $profile) {
+            if ((!isset($profile->startDay) || $this->currentDay >= $profile->startDay)
+                    && (!isset($profile->endDay) || $this->currentDay <= $profile->endDay)) {
+                        if (isset($profile->speedFactor)) {
+                            $hikerProfile->speedFactor = $profile->speedFactor;
+                        }
+                        
+                        if (isset($profile->startTime)) {
+                            $hikerProfile->startTime = $profile->startTime;
+                        }
+                        
+                        if (isset($profile->endTime)) {
+                            $hikerProfile->endTime = $profile->endTime;
+                        }
+                        
+                        if (isset($profile->breakDuration)) {
+                            $hikerProfile->breakDuration = $profile->breakDuration;
+                        }
+                    }
+        }
+        
+        return $hikerProfile;
+    }
+    
 }
