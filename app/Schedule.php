@@ -11,6 +11,7 @@ use bpp\Day;
 class Schedule
 {
     private $days = [];
+    private $currentDay = -1;
     
     public static function get ($userId, $userHikeId)
     {
@@ -19,6 +20,11 @@ class Schedule
         $schedule = \bpp\getSchedule($userId, $userHikeId, $points);
         
         return json_encode($schedule->days);
+    }
+    
+    public function nextDay ()
+    {
+        $this->currentDay++;
     }
     
     public function &dayGet ($d)
@@ -30,11 +36,26 @@ class Schedule
         return $this->days[$d];
     }
     
-    public function previousDayTotalMetersGet ($d)
+    public function &currentDayGet ()
     {
-        if (isset ($this->days[$d - 1]))
+        return $this->dayGet ($this->currentDay);
+    }
+    
+    public function currentDayIndexGet ()
+    {
+        return $this->currentDay;
+    }
+    
+    public function currentDaySet ($day)
+    {
+        $this->currentDay = $day;
+    }
+    
+    public function previousDayTotalMetersGet ()
+    {
+        if (isset ($this->days[$this->currentDay - 1]))
         {
-            return $this->days[$d - 1]->totalMetersGet ();
+            return $this->days[$this->currentDay - 1]->totalMetersGet ();
         }
 
         return 0;

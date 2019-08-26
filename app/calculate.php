@@ -41,18 +41,16 @@ class Event
 }
 
 
-function dayStart(&$d, $point, $segmentIndex, $segmentMeters)
+function dayStart($point, $segmentIndex, $segmentMeters)
 {
     global $hikerProfiles, $activeHikerProfile;
     global $schedule;
     
-    $d++;
+    $schedule->nextDay ();
 
-    $activeHikerProfile = activeHikerProfileGet($hikerProfiles, $d);
+    $activeHikerProfile = activeHikerProfileGet($hikerProfiles, $schedule->currentDayIndexGet ());
 
-    $day = &$schedule->dayGet($d);
-    
-    $day->initialize($activeHikerProfile, $point, $schedule->previousDayTotalMetersGet ($d), $segmentIndex, $segmentMeters);
+    $schedule->currentDayGet ()->initialize($activeHikerProfile, $point, $schedule->previousDayTotalMetersGet (), $segmentIndex, $segmentMeters);
 }
 
 
@@ -388,7 +386,7 @@ $lingerHours = 0;
 
 function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
 {
-    global $activeHikerProfile, $d, $schedule;
+    global $activeHikerProfile, $schedule;
     global $foodStart, $maxZ, $debug, $trailConditions, $lingerHours;
 
     $metersPerHour = metersPerHourGet($it->elevationChange(), $it->segmentLength());
@@ -436,10 +434,10 @@ function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
 
         $hoursToNextEvent = $metersToNextEvent / $currentMetersPerHour;
 
-        $currentTime = $schedule->dayGet($d)->currentTimeGet ();
+        $currentTime = $schedule->currentDayGet()->currentTimeGet ();
         
         if (isset($debug)) {
-            echo "Segment Meters: ", $segmentMeters, " current time: ", $currentTime, ", hours remaining: ", $schedule->dayGet($d)->endTime - $currentTime, ", Hours to next event: ", $hoursToNextEvent, "\n";
+            echo "Segment Meters: ", $segmentMeters, " current time: ", $currentTime, ", hours remaining: ", $schedule->currentDayGet()->endTime - $currentTime, ", Hours to next event: ", $hoursToNextEvent, "\n";
         }
 
         // If we hike until the next event, will we hike through our afternoon break?
@@ -453,33 +451,33 @@ function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
 
             $segmentMeters += $metersHiked;
 
-            $schedule->dayGet($d)->hoursHiked += $hoursHiked;
+            $schedule->currentDayGet()->hoursHiked += $hoursHiked;
 
-            $schedule->dayGet($d)->timeAdd ($hoursHiked + $activeHikerProfile->breakDuration);
-            $schedule->dayGet($d)->metersAdd ($metersHiked);
-            $currentTime = $schedule->dayGet($d)->currentTimeGet ();
+            $schedule->currentDayGet()->timeAdd ($hoursHiked + $activeHikerProfile->breakDuration);
+            $schedule->currentDayGet()->metersAdd ($metersHiked);
+            $currentTime = $schedule->currentDayGet()->currentTimeGet ();
 
             $metersToNextEvent -= $metersHiked;
             $hoursToNextEvent -= $hoursHiked;
         } elseif ($currentTime >= 12 && $currentTime < 12 + $activeHikerProfile->breakDuration) {
-            $schedule->dayGet($d)->timeAdd (12 + $activeHikerProfile->breakDuration - $currentTime);
-            $currentTime = $schedule->dayGet($d)->currentTimeGet ();
+            $schedule->currentDayGet()->timeAdd (12 + $activeHikerProfile->breakDuration - $currentTime);
+            $currentTime = $schedule->currentDayGet()->currentTimeGet ();
         }
 
         // Is there enough time remaining to hike to the next event? If so, process the events
         // at that point. If not, then camp.
 
-        if ($currentTime + $hoursToNextEvent < $schedule->dayGet($d)->endTime) {
+        if ($currentTime + $hoursToNextEvent < $schedule->currentDayGet()->endTime) {
             // There is enough time remaining to hike to the next event...
 
             $segmentMeters += $metersToNextEvent;
             $remainingSegmentMeters = max($it->segmentLength() - $segmentMeters, 0);
 
-            $schedule->dayGet($d)->hoursHiked += $hoursToNextEvent;
+            $schedule->currentDayGet()->hoursHiked += $hoursToNextEvent;
 
-            $schedule->dayGet($d)->timeAdd ($hoursToNextEvent);
-            $schedule->dayGet($d)->metersAdd ($metersToNextEvent);
-            $currentTime = $schedule->dayGet($d)->currentTimeGet ();
+            $schedule->currentDayGet()->timeAdd ($hoursToNextEvent);
+            $schedule->currentDayGet()->metersAdd ($metersToNextEvent);
+            $currentTime = $schedule->currentDayGet()->currentTimeGet ();
 
 //          echo "$currentTime\n";
 
@@ -517,17 +515,17 @@ function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
                             // prior day until the extra time needed is found or it could evenly divide the needed time
                             // across all days since the start, or a mix of the two.
 
-                            $startDay1 = StrategyEndLater(1, $schedule, $d - 1, $hoursNeeded);
+                            $startDay1 = StrategyEndLater(1, $schedule, $schedule->currentDayIndexGet () - 1, $hoursNeeded);
 
                             if ($startDay1 == -1) {
-                                $startDay1 = $d;
+                                $startDay1 = $schedule->currentDayIndexGet ();
                             }
 
                             if ($hoursNeeded > 0) {
-                                $startDay2 = StrategyStartEarlier(1, $schedule, $d, $hoursNeeded);
+                                $startDay2 = StrategyStartEarlier(1, $schedule, $schedule->currentDayIndexGet (), $hoursNeeded);
 
                                 if ($startDay2 == -1) {
-                                    $startDay2 = $d;
+                                    $startDay2 = $schedule->currentDayIndexGet ();
                                 }
 
                                 $startDay1 = min($startDay1, $startDay2);
@@ -537,14 +535,14 @@ function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
                                 $event->enabled = false;
                             }
 
-                            $d = $startDay1;
+                            $schedule->currentDaySet ($startDay1);
 
                             $restart = true;
 
                             return;
                         }
 
-                        $schedule->dayGet($d)->events[] = new Event("arriveBefore", $event->poiId, $event->lat, $event->lng, $segmentMeters, $currentTime, "Arrive Before: " . $arriveBeforeTime . ", arrived at " . $currentTime . ";");
+                        $schedule->currentDayGet()->events[] = new Event("arriveBefore", $event->poiId, $event->lat, $event->lng, $segmentMeters, $currentTime, "Arrive Before: " . $arriveBeforeTime . ", arrived at " . $currentTime . ";");
                     } elseif ($event->type == "resupply" && $event->enabled) {
                         if (isset($event->segments) && count($event->segments) > 0) {
     //                      echo "Following segments to resupply. dayMeters = $dayMeters\n";
@@ -556,24 +554,24 @@ function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
     //                      echo "Returned from following segments to resupply. dayMeters = $dayMeters\n";
                         }
 
-                        computeFoodWeight($schedule, $d, $foodStart);
+                        computeFoodWeight($schedule, $schedule->currentDayIndexGet (), $foodStart);
 
                         if ($event) {
-                            $schedule->dayGet($d)->events[] = new Event("resupply", $event->poiId, $event->lat, $event->lng, $event->shippingLocationId, $segmentMeters, $currentTime, "");
+                            $schedule->currentDayGet()->events[] = new Event("resupply", $event->poiId, $event->lat, $event->lng, $event->shippingLocationId, $segmentMeters, $currentTime, "");
                         }
                     } elseif ($event->type == "stop" && $event->enabled) {
                         // todo: error out if a mustStop is in a noCamping area?
 
-                        $schedule->dayGet($d)->events[] = new Event("stop", $event->poiId, $event->lat, $event->lng, $segmentMeters, $currentTime, "");
+                        $schedule->currentDayGet()->events[] = new Event("stop", $event->poiId, $event->lat, $event->lng, $segmentMeters, $currentTime, "");
 
                         // todo: Determine what to do here. If we are mid-segment then it seems we should just initialize the new day. Otherwise, return back to the caller?
 
     //                  if ($nextSegmentIndex < count($segments) - 1)
     //                  {
-    //                      $schedule->dayGet($d)->end ($dayMeters, $dayGain, $dayLoss);
-    //                      dayStart ($d, $dayMeters, $dayHours, $nextSegment, $dayGain, $dayLoss, $nextSegmentIndex, $segmentMeters);
+    //                      $schedule->currentDayGet()->end ($dayMeters, $dayGain, $dayLoss);
+    //                      dayStart ($nextSegment, $dayGain, $dayLoss, $nextSegmentIndex, $segmentMeters);
 
-    //                      $schedule->dayGet ($d)->cantMoveStartMeters = true;
+    //                      $schedule->currentDayGet ()->cantMoveStartMeters = true;
     //                  }
                     } elseif ($event->type == "linger" && $event->enabled) {
                         // todo: determine what it means to linger when already stopped.
@@ -581,8 +579,8 @@ function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
 //                      echo "linger time = ", $event->time, "\n";
 
                         $lingerHours = $event->time / 60;
-                        $schedule->dayGet($d)->timeAdd ($lingerHours);
-                        $currentTime = $schedule->dayGet($d)->currentTimeGet ();
+                        $schedule->currentDayGet()->timeAdd ($lingerHours);
+                        $currentTime = $schedule->currentDayGet()->currentTimeGet ();
 //                      echo "Current Time = ", $currentTime, "\n";
 
                         /*
@@ -597,23 +595,23 @@ function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
 
                         if ($remainingHours > 0)
                         {
-                            $schedule->dayGet ($d)->events[] = new Event("linger", $event->poiId, $event->lat, $event->lng, null, $segmentMeters, $currentTime, "linger for " . $lingerHours . " hour(s);");
+                            $schedule->currentDayGet ()->events[] = new Event("linger", $event->poiId, $event->lat, $event->lng, null, $segmentMeters, $currentTime, "linger for " . $lingerHours . " hour(s);");
                         }
                         else
                         {
-                            $schedule->dayGet ($d)->events[] = new Event("linger", $event->poiId, $event->lat, $event->lng, null, $segmentMeters, $currentTime, "linger for " . round ($lingerHours + $remainingHours, 1) . " hour(s);");
+                            $schedule->currentDayGet ()->events[] = new Event("linger", $event->poiId, $event->lat, $event->lng, null, $segmentMeters, $currentTime, "linger for " . round ($lingerHours + $remainingHours, 1) . " hour(s);");
 
                             // todo: Determine what to do here. If we are mid-segment then we should record the day. Otherwise, return back to the caller?
     //                      if ($nextSegmentIndex < count($segments) - 1)
     //                      {
-    //                          $schedule->dayGet($d)->end ($dayMeters, $dayGain, $dayLoss);
-    //                          dayStart ($d, $dayMeters, $dayHours, $nextSegment, $dayGain, $dayLoss, $nextSegmentIndex, $segmentMeters);
+    //                          $schedule->currentDayGet()->end ($dayMeters, $dayGain, $dayLoss);
+    //                          dayStart ($nextSegment, $dayGain, $dayLoss, $nextSegmentIndex, $segmentMeters);
 
     //                          $lingerHours = -$remainingHours;
 
     //                          if ($lingerHours)
     //                          {
-    //                              $schedule->dayGet ($d)->events[] = new Event("linger", $event->poiId, $event->lat, $event->lng, $segmentMeters, $currentTime, "linger for " . round($lingerHours, 1) . " hour(s);");
+    //                              $schedule->currentDayGet ()->events[] = new Event("linger", $event->poiId, $event->lat, $event->lng, $segmentMeters, $currentTime, "linger for " . round($lingerHours, 1) . " hour(s);");
     //                          }
     //                      }
                         }
@@ -625,7 +623,7 @@ function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
             if ($remainingSegmentMeters <= 0) {
                 $eleDelta = $it->nextSegment()->ele - $lastEle;
 
-                $schedule->dayGet ($d)->updateGainLoss ($eleDelta);
+                $schedule->currentDayGet ()->updateGainLoss ($eleDelta);
 
                 if (isset($debug)) {
                     echo "Ended segment. Segment Meters = ", $segmentMeters, "\n\n";
@@ -687,9 +685,9 @@ function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
 
                     //                      $dayMeters += $remainingMeters;
                     //                      $segmentMeters += $remainingMeters;
-                    //                      $schedule->dayGet ($d)->endTime += $remainingHours;
+                    //                      $schedule->currentDayGet ()->endTime += $remainingHours;
 
-                    //                      echo "Changed end time for $d to ", $schedule->dayGet ($d)->endTime, "\n";
+                    //                      echo "Changed end time for $d to ", $schedule->currentDayGet ()->endTime, "\n";
 
                     //                      echo "Changed to $dayMeters, $segmentMeters\n";
 
@@ -700,16 +698,16 @@ function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
             }
             */
 
-            $hoursHiked = $schedule->dayGet($d)->endTime - $currentTime;
+            $hoursHiked = $schedule->currentDayGet()->endTime - $currentTime;
             $metersHiked = $hoursHiked * $currentMetersPerHour;
 
             $segmentMeters += $metersHiked;
 
-            $schedule->dayGet($d)->hoursHiked += $hoursHiked;
+            $schedule->currentDayGet()->hoursHiked += $hoursHiked;
 
-            $schedule->dayGet($d)->timeAdd ($hoursHiked);
-            $schedule->dayGet($d)->metersAdd ($metersHiked);
-            $currentTime = $schedule->dayGet($d)->currentTimeGet ();
+            $schedule->currentDayGet()->timeAdd ($hoursHiked);
+            $schedule->currentDayGet()->metersAdd ($metersHiked);
+            $currentTime = $schedule->currentDayGet()->currentTimeGet ();
 
             // We ended the day between the start and end of the current segment.
             // Determine where in the segment we ended and compute current elevation and
@@ -728,7 +726,7 @@ function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
 
             $eleDelta = $currentEle - $lastEle;
 
-            $schedule->dayGet ($d)->updateGainLoss ($eleDelta);
+            $schedule->currentDayGet ()->updateGainLoss ($eleDelta);
 
             $lastEle = $currentEle;
 
@@ -737,11 +735,11 @@ function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
             $lat = ($it->nextSegment()->lat - $it->current()->lat) * $segmentPercent + $it->current()->lat;
             $lng = ($it->nextSegment()->lng - $it->current()->lng) * $segmentPercent + $it->current()->lng;
 
-            $schedule->dayGet($d)->end();
-            dayStart($d, (object)["lat" => $lat, "lng" => $lng, "ele" => $currentEle], $it->key(), $segmentMeters);
+            $schedule->currentDayGet()->end();
+            dayStart((object)["lat" => $lat, "lng" => $lng, "ele" => $currentEle], $it->key(), $segmentMeters);
 
-//          echo "Day $d, segment meters: " . dayGet ($d)->segmentMeters . "\n";
-            //              echo "day $d start meters = " . dayGet ($d)->meters . "\n";
+            //          echo "Day $d, segment meters: " . currentDayGet ()->segmentMeters . "\n";
+            //              echo "day $d start meters = " . currentDayGet ()->meters . "\n";
         }
 
         //echo "Meters = $meters\n";
@@ -751,8 +749,8 @@ function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
 
 function traverseSegments($it)
 {
-    global $d, $schedule;
-    global $foodStart, $maxZ, $debug;
+    global $schedule;
+    global $maxZ, $debug;
 
     $restart = false;
 
@@ -775,9 +773,9 @@ function traverseSegments($it)
                     echo "Restarting at day $d\n";
                 }
 
-                $segmentMeters = $schedule->dayGet($d)->segmentMeters;
-                $lastEle = $schedule->dayGet($d)->ele;
-                $schedule->dayGet($d)->reset ();
+                $segmentMeters = $schedule->currentDayGet()->segmentMeters;
+                $lastEle = $schedule->currentDayGet()->ele;
+                $schedule->currentDayGet()->reset ();
                 $restart = false;
             } else {
                 $segmentMeters = 0;
@@ -787,7 +785,7 @@ function traverseSegments($it)
             traverseSegment($it, $z, $segmentMeters, $lastEle, $restart);
 
             if ($restart) {
-                $it->position($schedule->dayGet($d)->segment - 1); // decrease by one since the for loop will increase it by one
+                $it->position($schedule->currentDayGet()->segment - 1); // decrease by one since the for loop will increase it by one
             }
 
             if (isset($maxZ) && $z > $maxZ) {
@@ -800,7 +798,7 @@ function traverseSegments($it)
         }
     }
 
-    $day = &$schedule->dayGet($d);
+    $day = &$schedule->currentDayGet();
     
     $day->end();
 
@@ -820,7 +818,7 @@ function storeSchedule($userHikeId, $schedule)
 
 function getSchedule($userId, $userHikeId, &$points)
 {
-    global $schedule, $d;
+    global $schedule;
     global $foodStart;
     global $debug;
     global $hikerProfiles;
@@ -833,17 +831,16 @@ function getSchedule($userId, $userHikeId, &$points)
     $trailConditions = trailConditionsGet($userHikeId, $points);
 
     $schedule = new Schedule;
-    $d = -1;
 
-    dayStart($d, $points[0], 0, 0);
+    dayStart($points[0], 0, 0);
 
-    $foodStart = $d;
+    $foodStart = $schedule->currentDayIndexGet ();
 
     $it = new SegmentIterator($points, 1);
 
     traverseSegments($it);
 
-    computeFoodWeight($schedule, $d, $foodStart);
+    computeFoodWeight($schedule, $schedule->currentDayIndexGet (), $foodStart);
 
     storeSchedule($userHikeId, $schedule);
     
