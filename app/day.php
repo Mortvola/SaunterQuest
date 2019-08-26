@@ -60,10 +60,8 @@ class Day
         $this->events = [];
     }
     
-    public function end ($dayGain, $dayLoss)
+    public function end ()
     {
-        $this->gain = $dayGain;
-        $this->loss = $dayLoss;
         $this->endTime = $this->startTime + $this->elapsedTime;
     }
     
@@ -92,9 +90,20 @@ class Day
         $this->elapsedTime += $hours;
     }
     
+    public function updateGainLoss ($eleDelta)
+    {
+        if ($eleDelta > 0) {
+            $this->gain += $eleDelta;
+        } else {
+            $this->loss += -$eleDelta;
+        }
+    }
+    
     public function reset ()
     {
         $this->meters = 0;
         $this->elapsedTime = 0;
+        $this->gain = 0;
+        $this->loss = 0;
     }
 }

@@ -41,8 +41,7 @@ class Event
 }
 
 
-
-function dayStart(&$d, $point, &$dayGain, &$dayLoss, $segmentIndex, $segmentMeters)
+function dayStart(&$d, $point, $segmentIndex, $segmentMeters)
 {
     global $hikerProfiles, $activeHikerProfile;
     global $schedule;
@@ -54,9 +53,6 @@ function dayStart(&$d, $point, &$dayGain, &$dayLoss, $segmentIndex, $segmentMete
     $day = &$schedule->dayGet($d);
     
     $day->initialize($activeHikerProfile, $point, $schedule->previousDayTotalMetersGet ($d), $segmentIndex, $segmentMeters);
-
-    $dayGain = 0;
-    $dayLoss = 0;
 }
 
 
@@ -392,7 +388,7 @@ $lingerHours = 0;
 
 function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
 {
-    global $activeHikerProfile, $d, $schedule, $dayGain, $dayLoss;
+    global $activeHikerProfile, $d, $schedule;
     global $foodStart, $maxZ, $debug, $trailConditions, $lingerHours;
 
     $metersPerHour = metersPerHourGet($it->elevationChange(), $it->segmentLength());
@@ -629,11 +625,7 @@ function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
             if ($remainingSegmentMeters <= 0) {
                 $eleDelta = $it->nextSegment()->ele - $lastEle;
 
-                if ($eleDelta > 0) {
-                    $dayGain += $eleDelta;
-                } else {
-                    $dayLoss += -$eleDelta;
-                }
+                $schedule->dayGet ($d)->updateGainLoss ($eleDelta);
 
                 if (isset($debug)) {
                     echo "Ended segment. Segment Meters = ", $segmentMeters, "\n\n";
@@ -736,11 +728,7 @@ function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
 
             $eleDelta = $currentEle - $lastEle;
 
-            if ($eleDelta > 0) {
-                $dayGain += $eleDelta;
-            } else {
-                $dayLoss += -$eleDelta;
-            }
+            $schedule->dayGet ($d)->updateGainLoss ($eleDelta);
 
             $lastEle = $currentEle;
 
@@ -749,8 +737,8 @@ function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
             $lat = ($it->nextSegment()->lat - $it->current()->lat) * $segmentPercent + $it->current()->lat;
             $lng = ($it->nextSegment()->lng - $it->current()->lng) * $segmentPercent + $it->current()->lng;
 
-            $schedule->dayGet($d)->end($dayGain, $dayLoss);
-            dayStart($d, (object)["lat" => $lat, "lng" => $lng, "ele" => $currentEle], $dayGain, $dayLoss, $it->key(), $segmentMeters);
+            $schedule->dayGet($d)->end();
+            dayStart($d, (object)["lat" => $lat, "lng" => $lng, "ele" => $currentEle], $it->key(), $segmentMeters);
 
 //          echo "Day $d, segment meters: " . dayGet ($d)->segmentMeters . "\n";
             //              echo "day $d start meters = " . dayGet ($d)->meters . "\n";
@@ -763,7 +751,7 @@ function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
 
 function traverseSegments($it)
 {
-    global $d, $schedule, $dayLoss, $dayGain;
+    global $d, $schedule;
     global $foodStart, $maxZ, $debug;
 
     $restart = false;
@@ -814,7 +802,7 @@ function traverseSegments($it)
 
     $day = &$schedule->dayGet($d);
     
-    $day->end($dayGain, $dayLoss);
+    $day->end();
 
     $day->endLat = $segment->lat;
     $day->endLng = $segment->lng;
@@ -833,7 +821,6 @@ function storeSchedule($userHikeId, $schedule)
 function getSchedule($userId, $userHikeId, &$points)
 {
     global $schedule, $d;
-    global $dayGain, $dayLoss;
     global $foodStart;
     global $debug;
     global $hikerProfiles;
@@ -848,7 +835,7 @@ function getSchedule($userId, $userHikeId, &$points)
     $schedule = new Schedule;
     $d = -1;
 
-    dayStart($d, $points[0], $dayGain, $dayLoss, 0, 0);
+    dayStart($d, $points[0], 0, 0);
 
     $foodStart = $d;
 
