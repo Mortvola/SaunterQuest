@@ -25,15 +25,9 @@ class Day
     //
     // Initialize the day
     //
-    public function dayInitialize($d, $lat, $lng, $ele, &$dayMeters, $k, $segmentMeters)
+    public function dayInitialize($hikerProfile, $point, $prevDayMeters, &$dayMeters, $k, $segmentMeters)
     {
-        global $food, $hikerProfile, $debug, $day;
-
-        if ($d > 0) {
-            $this->meters = $day[$d - 1]->meters + $dayMeters;
-        } else {
-            $this->meters = $dayMeters;
-        }
+        $this->meters = $prevDayMeters + $dayMeters;
 
         getFoodPlan($this->foodPlanId, $this->foodWeight);
 
@@ -49,18 +43,22 @@ class Day
             $this->endTime = $hikerProfile->endTime;
         }
 
-        $this->lat = $lat;
-        $this->lng = $lng;
-        $this->ele = $ele;
+        $this->lat = $point->lat;
+        $this->lng = $point->lng;
+        $this->ele = $point->ele;
 
         $this->segment = $k;
         $this->segmentMeters = $segmentMeters;
 
         //unset($this->events);
         $this->events = [];
-
-        if (isset($debug)) {
-            echo "Initializing Day $d, meters: $this->meters, segment: $k, segment meters: $segmentMeters\n";
-        }
+    }
+    
+    public function end ($dayMeters, $dayGain, $dayLoss, $endTime)
+    {
+        $this->gain = $dayGain;
+        $this->loss = $dayLoss;
+        $this->distance = $dayMeters;
+        $this->endTime = $endTime;
     }
 }
