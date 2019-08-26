@@ -5,6 +5,7 @@ namespace bpp;
 class Day
 {
     public $meters = 0;
+    public $startMeters = 0;
     public $lat;
     public $lng;
     public $ele;
@@ -25,9 +26,9 @@ class Day
     //
     // Initialize the day
     //
-    public function dayInitialize($hikerProfile, $point, $prevDayMeters, &$dayMeters, $k, $segmentMeters)
+    public function dayInitialize($hikerProfile, $point, $startMeters, $segment, $segmentMeters)
     {
-        $this->meters = $prevDayMeters + $dayMeters;
+        $this->startMeters = $startMeters;
 
         getFoodPlan($this->foodPlanId, $this->foodWeight);
 
@@ -47,18 +48,36 @@ class Day
         $this->lng = $point->lng;
         $this->ele = $point->ele;
 
-        $this->segment = $k;
+        $this->segment = $segment;
         $this->segmentMeters = $segmentMeters;
 
-        //unset($this->events);
         $this->events = [];
     }
     
-    public function end ($dayMeters, $dayGain, $dayLoss, $endTime)
+    public function end ($dayGain, $dayLoss, $endTime)
     {
         $this->gain = $dayGain;
         $this->loss = $dayLoss;
-        $this->distance = $dayMeters;
         $this->endTime = $endTime;
+    }
+    
+    public function metersAdd ($meters)
+    {
+        $this->meters += $meters;
+    }
+    
+    public function metersGet ()
+    {
+        return $this->meters;
+    }
+    
+    public function totalMetersGet ()
+    {
+        return $this->startMeters + $this->meters;
+    }
+    
+    public function reset ()
+    {
+        $this->meters = 0;
     }
 }

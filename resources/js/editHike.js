@@ -1170,11 +1170,11 @@ function calculate ()
 				txt += "<div>" + "Gain/Loss (feet): " + metersToFeet(data[d].gain) + "/" + metersToFeet(data[d].loss) + "</div>";
 				txt += "<div>" + "Food: " + gramsToPoundsAndOunces (data[d].accumWeight) + "</div>";
 				txt += "<div>" + "" + "</div>";
-				txt += "<div>" + "Miles: " + metersToMilesRounded (data[d].distance) + "</div>";
+				txt += "<div>" + "Miles: " + metersToMilesRounded (data[d].meters) + "</div>";
 				txt += "</div>";
 				txt += "</div>";
 					
-				txt += "<div style='padding:2px 2px 2px 2px'>" + timeFormat(data[d].startTime) + ", " + "mile " + metersToMilesRounded (data[d].meters) + ": start" + "</div>";
+				txt += "<div style='padding:2px 2px 2px 2px'>" + timeFormat(data[d].startTime) + ", " + "mile " + metersToMilesRounded (data[d].startMeters) + ": start" + "</div>";
 				
 //				if (data[d].events.length > 0)
 //				{
@@ -1217,14 +1217,7 @@ function calculate ()
 
 				txt += "<div style='padding:2px 2px 2px 2px'>" + timeFormat(data[d].endTime) + ", " + "mile ";
 				
-				if (d < data.length - 1)
-				{
-					 txt += metersToMilesRounded (data[parseInt(d) + 1].meters);
-				}
-				else
-				{
-					txt += metersToMilesRounded (data[parseInt(d)].endMeters);
-				}
+				txt += metersToMilesRounded (data[parseInt(d)].startMeters + data[parseInt(d)].meters);
 				
 				txt += ": stop " + "</div>";
 
@@ -1271,7 +1264,7 @@ function calculate ()
 						startOfTrailMarker.listener = attachInfoWindowMessage(startOfTrailMarker,
 							"<div>"
 							+ "Start of day 1"
-							+ "</div><div>Mile: " + metersToMilesRounded(data[d].meters)
+							+ "</div><div>Mile: " + metersToMilesRounded(data[d].startMeters)
 							+ "</div><div>Elevation: " + metersToFeet(data[d].ele) + "\'</div>");
 					}
 				}
@@ -1280,7 +1273,7 @@ function calculate ()
 					dayMarkers[day].listener = attachInfoWindowMessage(dayMarkers[day],
 						"<div>"
 						+ "End of day " + dayMarkers[day].day
-						+ "</div><div>Mile: " + metersToMilesRounded(data[d].meters)
+						+ "</div><div>Mile: " + metersToMilesRounded(data[d].startMeters)
 						+ "</div><div>Elevation: " + metersToFeet(data[d].ele) + "\'</div>");
 				}
 				
