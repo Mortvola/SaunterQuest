@@ -57,8 +57,10 @@ function dayStart($point, $segmentIndex, $segmentMeters)
 //
 // Compute the weight of food over a period of days
 //
-function computeFoodWeight(&$schedule, $d, &$foodStart)
+function computeFoodWeight(&$schedule, &$foodStart)
 {
+    $d = $schedule->currentDayIndexGet ();
+    
 //  echo "d = $d, foodStart = $foodStart\n";
     $accum = 0;
     for ($i = $d; $i >= $foodStart; $i--) {
@@ -75,11 +77,12 @@ function computeFoodWeight(&$schedule, $d, &$foodStart)
 }
 
 
-function StrategyEndLater($timeShift, &$schedule, $d, &$hoursNeeded)
+function StrategyEndLater($timeShift, &$schedule, &$hoursNeeded)
 {
     global $activeHikerProfile;
 
     $earliestChangedDay = -1;
+    $d = $schedule->currentDayIndexGet () - 1;
 
     // Try extending the end hours for the past days
     for (; $d > 0; $d--) {
@@ -113,11 +116,12 @@ function StrategyEndLater($timeShift, &$schedule, $d, &$hoursNeeded)
 }
 
 
-function StrategyStartEarlier($timeShift, &$schedule, $d, &$hoursNeeded)
+function StrategyStartEarlier($timeShift, &$schedule, &$hoursNeeded)
 {
     global $activeHikerProfile;
 
     $earliestChangedDay = -1;
+    $d = $schedule->currentDayIndexGet ();
 
     //
     // Try starting earlier for the past days
@@ -515,14 +519,14 @@ function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
                             // prior day until the extra time needed is found or it could evenly divide the needed time
                             // across all days since the start, or a mix of the two.
 
-                            $startDay1 = StrategyEndLater(1, $schedule, $schedule->currentDayIndexGet () - 1, $hoursNeeded);
+                            $startDay1 = StrategyEndLater(1, $schedule, $hoursNeeded);
 
                             if ($startDay1 == -1) {
                                 $startDay1 = $schedule->currentDayIndexGet ();
                             }
 
                             if ($hoursNeeded > 0) {
-                                $startDay2 = StrategyStartEarlier(1, $schedule, $schedule->currentDayIndexGet (), $hoursNeeded);
+                                $startDay2 = StrategyStartEarlier(1, $schedule, $hoursNeeded);
 
                                 if ($startDay2 == -1) {
                                     $startDay2 = $schedule->currentDayIndexGet ();
@@ -554,7 +558,7 @@ function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
     //                      echo "Returned from following segments to resupply. dayMeters = $dayMeters\n";
                         }
 
-                        computeFoodWeight($schedule, $schedule->currentDayIndexGet (), $foodStart);
+                        computeFoodWeight($schedule, $foodStart);
 
                         if ($event) {
                             $schedule->currentDayGet()->events[] = new Event("resupply", $event->poiId, $event->lat, $event->lng, $event->shippingLocationId, $segmentMeters, $currentTime, "");
@@ -840,7 +844,7 @@ function getSchedule($userId, $userHikeId, &$points)
 
     traverseSegments($it);
 
-    computeFoodWeight($schedule, $schedule->currentDayIndexGet (), $foodStart);
+    computeFoodWeight($schedule, $foodStart);
 
     storeSchedule($userHikeId, $schedule);
     
