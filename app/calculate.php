@@ -845,19 +845,16 @@ function traverseSegments($it)
     $day[$d]->endMeters = $day[$d]->meters + $dayMeters;
 }
 
-function storeSchedule($schedule)
+function storeSchedule($userHikeId, $schedule)
 {
-    global $userHikeId;
-
     $fileName = getHikeFolder($userHikeId) . "schedule.json";
 
     file_put_contents($fileName, json_encode($schedule));
 }
 
 
-function getSchedule($userId, &$points)
+function getSchedule($userId, $userHikeId, &$points)
 {
-    global $userHikeId;
     global $d, $day;
     global $dayMeters, $dayHours, $dayGain, $dayLoss;
     global $foodStart;
@@ -893,7 +890,7 @@ function getSchedule($userId, &$points)
 
     computeFoodWeight($day, $d, $foodStart);
 
-    storeSchedule($day);
+    storeSchedule($userHikeId, $day);
 
     return $day;
 }

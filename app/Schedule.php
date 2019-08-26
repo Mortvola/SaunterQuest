@@ -11,7 +11,7 @@ class Schedule
     {
         $points = getRoutePointsFromUserHike($userHikeId);
         
-        $day = \bpp\getSchedule($userId, $points);
+        $day = \bpp\getSchedule($userId, $userHikeId, $points);
         
         return json_encode($day);
     }

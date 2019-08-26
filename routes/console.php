@@ -36,8 +36,9 @@ Artisan::command('userRoute:get {userHikeId}', function ($userHikeId) {
 })->describe('Gets the route specified by the provided userHikeId');
 
 
-Artisan::command('userSchedule:get {userId} {userHikeId}', function ($userId, $userHikeId) {
-    $this->info(Schedule::get($userId, $userHikeId));
+Artisan::command('hikeSchedule:get {userId} {userHikeId}', function ($userId, $userHikeId) {
+    $schedule = Schedule::get($userId, $userHikeId);
+    $this->info($schedule);
 })->describe('Gets the sechedule for the route specified by the provided userId and userHikeId');
 
 

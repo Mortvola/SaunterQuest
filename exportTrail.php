@@ -106,7 +106,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         $xw->writeAttribute("xmlns:xsd", "http://www.w3.org/2001/XMLSchema");
         $xw->writeAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
 
-        $days = getSchedule($userId, $points);
+        $days = getSchedule($userId, $userHikeId, $points);
 
         for ($d = 1; $d < count($days); $d++) {
             writeWayPoint($xw, $days[$d], "Day " . $d . " camp");

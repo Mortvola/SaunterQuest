@@ -11,7 +11,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
 
     $points = getRoutePointsFromUserHike($userHikeId);
 
-    $day = getSchedule($userId, $points);
+    $day = getSchedule($userId, $userHikeId, $points);
 
     echo json_encode($day);
 }
