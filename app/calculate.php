@@ -455,8 +455,6 @@ function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
 
             $segmentMeters += $metersHiked;
 
-            $schedule->currentDayGet()->hoursHiked += $hoursHiked;
-
             $schedule->currentDayGet()->timeAdd ($hoursHiked + $activeHikerProfile->breakDuration);
             $schedule->currentDayGet()->metersAdd ($metersHiked);
             $currentTime = $schedule->currentDayGet()->currentTimeGet ();
@@ -476,8 +474,6 @@ function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
 
             $segmentMeters += $metersToNextEvent;
             $remainingSegmentMeters = max($it->segmentLength() - $segmentMeters, 0);
-
-            $schedule->currentDayGet()->hoursHiked += $hoursToNextEvent;
 
             $schedule->currentDayGet()->timeAdd ($hoursToNextEvent);
             $schedule->currentDayGet()->metersAdd ($metersToNextEvent);
@@ -706,8 +702,6 @@ function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
             $metersHiked = $hoursHiked * $currentMetersPerHour;
 
             $segmentMeters += $metersHiked;
-
-            $schedule->currentDayGet()->hoursHiked += $hoursHiked;
 
             $schedule->currentDayGet()->timeAdd ($hoursHiked);
             $schedule->currentDayGet()->metersAdd ($metersHiked);

@@ -22,7 +22,6 @@ class Day
     public $startTime;
     public $endTime;
     
-    public $hoursHiked = 0;
     public $notes;
     public $segment = 0;
     public $segmentMeters = 0;
