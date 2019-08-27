@@ -23,6 +23,8 @@ class ScheduleController extends Controller
         $userId = Auth::user()->id;
         $userHikeId = $_GET["id"];
         
-        return json_encode(Schedule::get ($userId, $userHikeId));
+        $schedule = new Schedule ($userId, $userHikeId);
+        
+        return json_encode($schedule->get ());
     }
 }

@@ -10,20 +10,25 @@ use bpp\Day;
 
 class Schedule
 {
+    private $userId;
+    private $userHikeId;
     private $days = [];
     private $currentDay = -1;
     private $hikerProfiles;
     
     public function __construct ($userId, $userHikeId)
     {
+        $this->userId = $userId;
+        $this->userHikeId = $userHikeId;
+        
         $this->hikerProfiles = $this->hikerProfilesGet($userId, $userHikeId);
     }
 
-    public static function get ($userId, $userHikeId)
+    public function get ()
     {
-        $points = getRoutePointsFromUserHike($userHikeId);
+        $points = getRoutePointsFromUserHike($this->userHikeId);
         
-        $schedule = \bpp\getSchedule($userId, $userHikeId, $points);
+        $schedule = \bpp\getSchedule($this->userId, $this->userHikeId, $points);
         
         return $schedule->days;
     }

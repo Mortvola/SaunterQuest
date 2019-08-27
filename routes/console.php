@@ -38,14 +38,16 @@ Artisan::command('userRoute:get {userHikeId}', function ($userHikeId) {
 
 
 Artisan::command('export:get {userId} {userHikeId} {maxSegmentPoints} {maxDistance}', function ($userId, $userHikeId, $maxSegmentPoints, $maxDistance) {
-    $export = new Export ();
-    $this->info($export->get($userId, $userHikeId, $maxSegmentPoints, $maxDistance));
+    $export = new Export ($userId, $userHikeId, $maxSegmentPoints, $maxDistance);
+    $this->info($export->get());
 })->describe('Exports the plan for the hike specified by the provided userHikeId');
 
 
 Artisan::command('hikeSchedule:get {userId} {userHikeId}', function ($userId, $userHikeId) {
-    $schedule = Schedule::get($userId, $userHikeId);
-    $this->info(json_encode($schedule));
+    $schedule = new Schedule ($userId, $userHikeId);
+    
+    $days = $schedule->get();
+    $this->info(json_encode($days));
 })->describe('Gets the sechedule for the route specified by the provided userId and userHikeId');
 
 
