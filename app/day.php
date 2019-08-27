@@ -2,32 +2,67 @@
 namespace bpp;
 //use const bpp\Day\$cantMoveStartMeters as false;
 
-class Day
+class Day implements \JsonSerializable
 {
-    public $meters = 0;
-    public $startMeters = 0;
+    private $meters = 0;
+    private $startMeters = 0;
 
-    public $lat;
-    public $lng;
-    public $ele;
+    private $lat;
+    private $lng;
+    private $ele;
     
-    public $gain = 0;
-    public $loss = 0;
+    private $gain = 0;
+    private $loss = 0;
     
     public $foodPlanId;
     public $foodWeight = 0;
     public $accumWeight = 0;
 
     private $elapsedTime = 0;
-    public $startTime;
+    private $startTime;
     public $endTime;
     
     public $notes;
     public $segment = 0;
     public $segmentMeters = 0;
-    public $cantMoveStartMeters = false;
+    private $cantMoveStartMeters = false;
     public $events = [];
 
+    public function jsonSerialize ()
+    {
+        $array = ["startTime" => $this->startTime,
+                "endTime" => $this->endTime,
+                "startMeters" => $this->startMeters,
+                "meters" => $this->meters,
+                "lat" => $this->lat,
+                "lng" => $this->lng,
+                "ele" => $this->ele,
+                "gain" => $this->gain,
+                "loss" => $this->loss];
+        
+        if (isset ($this->endLat))
+        {
+            $array["endLat"] = $this->endLat;
+        }
+        
+        if (isset ($this->endLng))
+        {
+            $array["endLng"] = $this->endLng;
+        }
+        
+        if (isset ($this->endEle))
+        {
+            $array["endEle"] = $this->endEle;
+        }
+        
+        if (isset ($this->endMeters))
+        {
+            $array["endMeters"] = $this->endMeters;
+        }
+        
+        return $array;
+    }
+    
     //
     // Initialize the day
     //
