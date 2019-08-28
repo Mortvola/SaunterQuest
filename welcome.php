@@ -117,8 +117,8 @@ require_once "checkLogin.php";
                     foreach ($output as $hike) {
                         echo "<tr id='userHike_", $hike["userHikeId"], "'>";
                         echo "<td>";
-                        echo "<a class='btn btn-sm' href='/editHike.php?id=", $hike["userHikeId"], "'><span class='glyphicon glyphicon-pencil'></span></a>";
-                        echo "<a class='btn btn-sm' onclick='deleteHike(", $hike["userHikeId"], ")'><span class='glyphicon glyphicon-trash'></span></a>";
+                        echo "<a class='btn btn-sm' href='/editHike.php?id=", $hike["userHikeId"], "'><i class='fas fa-pencil-alt'></i></a>";
+                        echo "<a class='btn btn-sm' onclick='deleteHike(", $hike["userHikeId"], ")'><i class='fas fa-trash-alt'></i></a>";
                         echo "<a href='/editHike.php?id=", $hike["userHikeId"], "'>", $hike["name"], "</a></td>";
                         echo "<td>", "</td>";
                         echo "<td>", "</td>";
@@ -130,7 +130,7 @@ require_once "checkLogin.php";
                 }
                 ?>
                 <tr id='userHikeLastRow'>
-                <td><a class='btn btn-sm' onclick='addUserHike()'><span class='glyphicon glyphicon-plus'></span></a></td>
+                <td><a class='btn btn-sm' onclick='addUserHike()'><i class='fas fa-plus'></i></a></td>
                 <td/><td/><td/><td/>
                 </tr>
 

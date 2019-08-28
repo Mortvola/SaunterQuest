@@ -12,8 +12,8 @@ function hikerProfileRowGet (profile)
 
 	txt += "<td style='display:flex;justify-content:space-between;'>";
 	txt += "<span>";
-	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='editHikerProfile(" + profile.hikerProfileId + ")'><span class='glyphicon glyphicon-pencil'></span></a>";
-	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='removeHikerProfile(" + profile.hikerProfileId + ")'><span class='glyphicon glyphicon-trash'></span></a>";
+	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='editHikerProfile(" + profile.hikerProfileId + ")'><i class='fas fa-pencil-alt'></i></a>";
+	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='removeHikerProfile(" + profile.hikerProfileId + ")'><i class='fas fa-trash-alt'></i></a>";
 	txt += "</span>"
 	
 	// fixup start day.

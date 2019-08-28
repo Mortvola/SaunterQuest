@@ -80,8 +80,8 @@ require_once "checkLogin.php";
             foreach ($output as $row) {
                 echo "<tr id='mealPlan_", $row["dayTemplateId"], "'>";
                 echo "<td>";
-                echo "<a class='btn btn-sm' href='/addfoodtomeal.php?id=", $row["dayTemplateId"], "'><span class='glyphicon glyphicon-pencil'></span></a>";
-                echo "<a class='btn btn-sm' onclick='deleteMealPlan(", $row["dayTemplateId"], ")'><span class='glyphicon glyphicon-trash'></span></a>";
+                echo "<a class='btn btn-sm' href='/addfoodtomeal.php?id=", $row["dayTemplateId"], "'><i class='fas fa-pencil-alt'></i></a>";
+                echo "<a class='btn btn-sm' onclick='deleteMealPlan(", $row["dayTemplateId"], ")'><i class='fas fa-trash-alt'></i></a>";
 
                 if ($row["name"] == "") {
                     echo "Meal Plan #", $row["dayTemplateId"];

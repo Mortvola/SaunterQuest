@@ -91,9 +91,9 @@ function trailConditionRowGet (trailCondition)
 
 	txt += "<td style='display:flex;justify-content:flex-start;'>";
 	txt += "<span style='padding-right:15px'>";
-	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='viewTrailCondition(" + trailCondition.trailConditionId + ")'><span class='glyphicon glyphicon-eye-open'></span></a>";
-	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='editTrailCondition(" + trailCondition.trailConditionId + ")'><span class='glyphicon glyphicon-pencil'></span></a>";
-	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='removeTrailCondition(" + trailCondition.trailConditionId + ")'><span class='glyphicon glyphicon-trash'></span></a>";
+	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='viewTrailCondition(" + trailCondition.trailConditionId + ")'><i class='fas fas-eye'></i></a>";
+	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='editTrailCondition(" + trailCondition.trailConditionId + ")'><i class='fas fa-pencil-alt'></i></a>";
+	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='removeTrailCondition(" + trailCondition.trailConditionId + ")'><i class='fas fa-trash-alt'></i></a>";
 	txt += "</span>"
 	txt += trailConditionTypeGet(trailCondition.type) + "</td>";
 	txt += "<td style='text-align:left'>" + nvl(trailCondition.description, "") + "</td>";

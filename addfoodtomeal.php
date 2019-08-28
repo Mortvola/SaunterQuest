@@ -76,7 +76,7 @@ require_once "checkLogin.php";
 
         <div class="col-md-6">
             <div>
-                <a class='btn btn-sm' onclick='addFoodItem()'><span class='glyphicon glyphicon-plus'></span>Add Food Item</a>
+                <a class='btn btn-sm' onclick='addFoodItem()'><i class='fas fa-plus'></i>Add Food Item</a>
             </div>
             <table class="table table-bordered table-condensed">
                 <thead>
@@ -373,7 +373,7 @@ require_once "checkLogin.php";
             let row = document.createElement("TR");
 
             let span = document.createElement("SPAN");
-            span.setAttribute("class", "glyphicon glyphicon-trash");
+            span.setAttribute("class", "fas fa-trash-alt");
 
             let removeButton = document.createElement("A");
             removeButton.setAttribute("class", "btn btn-sm");

@@ -121,7 +121,7 @@
                         </thead>
                         <tbody id="hikerProfilesTable">
                             <tr id="hikerProfileLastRow">
-                                <td><a class='btn btn-sm' onclick='addHikerProfile()'><span class='glyphicon glyphicon-plus'></span></a></td>
+                                <td><a class='btn btn-sm' onclick='addHikerProfile()'><i class='fas fa-plus'></i></a></td>
                             </tr>
                         </table>
                     </div>
@@ -137,7 +137,7 @@
                         </thead>
                         <tbody>
                             <tr id="gearLastRow">
-                                <td><a class='btn btn-sm' onclick='addGear()'><span class='glyphicon glyphicon-plus'></span></a></td>
+                                <td><a class='btn btn-sm' onclick='addGear()'><i class='fas fa-plus'></i></span></a></td>
                             </tr>
                         </table>
                     </div>
@@ -154,7 +154,7 @@
                         </thead>
                         <tbody>
                             <tr id="conditionsLastRow">
-                                <td><a class='btn btn-sm' onclick='addTrailCondition()'><span class='glyphicon glyphicon-plus'></span></a></td>
+                                <td><a class='btn btn-sm' onclick='addTrailCondition()'><i class='fas fa-plus'></i></a></td>
                             </tr>
                         </table>
                     </div>
@@ -168,7 +168,7 @@
                         </thead>
                         <tbody>
                             <tr id="todoLastRow">
-                                <td><a class='btn btn-sm' onclick='addTodo()'><span class='glyphicon glyphicon-plus'></span></a></td>
+                                <td><a class='btn btn-sm' onclick='addTodo()'><i class='fas fa-plus'></i></span></a></td>
                             </tr>
                         </table>
                     </div>

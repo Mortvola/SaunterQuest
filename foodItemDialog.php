@@ -74,7 +74,7 @@
                             </tr>
 
                             <tr id='servingSizeLastRow'>
-                                <td><a class='btn btn-sm' onclick='addServingSizeRow()'><span class='glyphicon glyphicon-plus'></span></a></td>
+                                <td><a class='btn btn-sm' onclick='addServingSizeRow()'><i class='fas fa-plus'></i></a></td>
                                 <td/>
                             </tr>
 
@@ -153,7 +153,7 @@
         txt += "<tr name='alternateServingSize'>";
         txt += "<td>";
         txt += "<span>";
-        txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='removeServingSize()'><span class='glyphicon glyphicon-trash'></span></a>";
+        txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='removeServingSize()'><i class='fas fa-trash-alt'></i></span></a>";
         txt += "</span>"
         txt += "<input name='alternateDescription' type='text' class='form-control' required='required' ";
 
