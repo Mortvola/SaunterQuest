@@ -26,7 +26,7 @@
 </head>
 <body>
     <div id="app" style="display:grid;grid-template-rows: min-content auto;position:absolute;top:0px;bottom:0px;left:0px;right:0px">
-        <nav class="navbar navbar-expand-md navbar-light shadow-sm" style="background-color:#007F00">
+        <nav class="navbar navbar-expand-md navbar-light shadow-sm" style="background-color:#228B22">
             <div class="container">
                 <a class="navbar-brand" href="{{ url('/') }}">
                     {{ config('app.name', 'Laravel') }}
@@ -38,8 +38,8 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav mr-auto">
-	                    <a class="nav-link" href="{{ url('/home') }}">Home</a>
-	                    <a class="nav-link" href="javascript:showExportTrailModal()">Export Trail</a>
+	                    <a class="nav-link" href="{{ url('/home') }}" style="color:white">Home</a>
+	                    <a class="nav-link" href="javascript:showExportTrailModal()" style="color:white">Export Trail</a>
                     </ul>
 
                     <!-- Right Side Of Navbar -->
