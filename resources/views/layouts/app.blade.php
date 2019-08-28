@@ -26,7 +26,7 @@
 </head>
 <body>
     <div id="app" style="display:grid;grid-template-rows: min-content auto;position:absolute;top:0px;bottom:0px;left:0px;right:0px">
-        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
+        <nav class="navbar navbar-expand-md navbar-light shadow-sm" style="background-color:#007F00">
             <div class="container">
                 <a class="navbar-brand" href="{{ url('/') }}">
                     {{ config('app.name', 'Laravel') }}
@@ -38,6 +38,8 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav mr-auto">
+	                    <a class="nav-link" href="{{ url('/home') }}">Home</a>
+	                    <a class="nav-link" href="javascript:showExportTrailModal()">Export Trail</a>
                     </ul>
 
                     <!-- Right Side Of Navbar -->
@@ -59,6 +61,7 @@
                                 </a>
 
                                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                                	<a class="dropdown-item" href="#">{{ __('Profile') }}</a>
                                     <a class="dropdown-item" href="{{ route('logout') }}"
                                        onclick="event.preventDefault();
                                                      document.getElementById('logout-form').submit();">
