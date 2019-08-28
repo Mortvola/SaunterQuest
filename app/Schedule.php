@@ -25,7 +25,7 @@ class Schedule
         
         $schedule = \bpp\getSchedule($userId, $userHikeId, $points);
         
-        return json_encode($schedule->days);
+        return $schedule->days;
     }
     
     public function nextDay ()

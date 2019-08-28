@@ -133,6 +133,11 @@ class Day implements \JsonSerializable
         }
     }
     
+    public function pointGet ()
+    {
+        return (object)["lat" => $this->lat, "lng" => $this->lng];
+    }
+    
     public function reset ()
     {
         $this->meters = 0;

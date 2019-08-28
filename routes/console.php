@@ -9,6 +9,7 @@ use App\ResupplyLocation;
 use App\HikerProfile;
 use App\TrailCondition;
 use App\ResupplyPlan;
+use App\Export;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,9 +37,15 @@ Artisan::command('userRoute:get {userHikeId}', function ($userHikeId) {
 })->describe('Gets the route specified by the provided userHikeId');
 
 
+Artisan::command('export:get {userId} {userHikeId} {maxSegmentPoints} {maxDistance}', function ($userId, $userHikeId, $maxSegmentPoints, $maxDistance) {
+    $export = new Export ();
+    $this->info($export->get($userId, $userHikeId, $maxSegmentPoints, $maxDistance));
+})->describe('Exports the plan for the hike specified by the provided userHikeId');
+
+
 Artisan::command('hikeSchedule:get {userId} {userHikeId}', function ($userId, $userHikeId) {
     $schedule = Schedule::get($userId, $userHikeId);
-    $this->info($schedule);
+    $this->info(json_encode($schedule));
 })->describe('Gets the sechedule for the route specified by the provided userId and userHikeId');
 
 
@@ -65,3 +72,4 @@ Artisan::command('trailCondition:get {userId} {userHikeId}', function ($userId, 
 Artisan::command('resupplyPlan:get {userId} {userHikeId}', function ($userId, $userHikeId) {
     $this->info(ResupplyPlan::get($userId, $userHikeId));
 })->describe('Gets the trail conditions for the hike specified by the provided userId and userHikeId');
+

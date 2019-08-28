@@ -39,7 +39,7 @@
         var segmentMax = $("#exportTrailSegmentMax").val ();
         var maxDistance = $("#exportTrailMaxDistance").val ();
 
-        $("#exportTrailLink").attr ("href", "/exportTrail.php?id=<?php echo $_GET['id'] ?>&segmentMax=" + segmentMax + "&maxDistance=" + maxDistance);
+        $("#exportTrailLink").attr ("href", "exportTrail?id=<?php echo $_GET['id'] ?>&segmentMax=" + segmentMax + "&maxDistance=" + maxDistance);
         $("#exportTrailLink")[0].click ();
     }
 </script>

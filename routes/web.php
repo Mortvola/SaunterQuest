@@ -38,3 +38,5 @@ Route::get('/hikerProfile', 'HikerProfileController@get');
 Route::get('/trailCondition', 'TrailConditionController@get');
 
 Route::get('/resupplyPlan', 'ResupplyPlanController@get');
+
+Route::get('/exportTrail', 'ExportController@get');
