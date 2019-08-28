@@ -41,10 +41,9 @@ class Event
 }
 
 
-function dayStart($point, $segmentIndex, $segmentMeters)
+function dayStart($schedule, $point, $segmentIndex, $segmentMeters)
 {
     global $activeHikerProfile;
-    global $schedule;
     
     $schedule->nextDay ();
 
@@ -334,9 +333,9 @@ function activeTrailConditionsGet(&$trailConditions, $segmentIndex, $segmentPerc
 
 $lingerHours = 0;
 
-function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
+function traverseSegment($it, $schedule, &$z, $segmentMeters, $lastEle, &$restart)
 {
-    global $activeHikerProfile, $schedule;
+    global $activeHikerProfile;
     global $foodStart, $maxZ, $debug, $trailConditions, $lingerHours;
 
     $metersPerHour = metersPerHourGet($it->elevationChange(), $it->segmentLength());
@@ -493,10 +492,10 @@ function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
                         if (isset($event->segments) && count($event->segments) > 0) {
     //                      echo "Following segments to resupply. dayMeters = $dayMeters\n";
                             $pathIt = new SegmentIterator($event->segments, 1);
-                            traverseSegments($pathIt);
+                            traverseSegments($pathIt, $schedule);
     //                      echo "Reversing direction. dayMeters = $dayMeters\n";
                             $pathIt = new SegmentIterator($event->segments, -1);
-                            traverseSegments($pathIt);
+                            traverseSegments($pathIt, $schedule);
     //                      echo "Returned from following segments to resupply. dayMeters = $dayMeters\n";
                         }
 
@@ -680,7 +679,7 @@ function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
             $lng = ($it->nextSegment()->lng - $it->current()->lng) * $segmentPercent + $it->current()->lng;
 
             $schedule->currentDayGet()->end();
-            dayStart((object)["lat" => $lat, "lng" => $lng, "ele" => $currentEle], $it->key(), $segmentMeters);
+            dayStart($schedule, (object)["lat" => $lat, "lng" => $lng, "ele" => $currentEle], $it->key(), $segmentMeters);
 
             //          echo "Day $d, segment meters: " . currentDayGet ()->segmentMeters . "\n";
             //              echo "day $d start meters = " . currentDayGet ()->meters . "\n";
@@ -691,9 +690,8 @@ function traverseSegment($it, &$z, $segmentMeters, $lastEle, &$restart)
 }
 
 
-function traverseSegments($it)
+function traverseSegments($it, $schedule)
 {
-    global $schedule;
     global $maxZ, $debug;
 
     $restart = false;
@@ -726,7 +724,7 @@ function traverseSegments($it)
                 $lastEle = $segment->ele;
             }
 
-            traverseSegment($it, $z, $segmentMeters, $lastEle, $restart);
+            traverseSegment($it, $schedule, $z, $segmentMeters, $lastEle, $restart);
 
             if ($restart) {
                 $it->position($schedule->currentDayGet()->segment - 1); // decrease by one since the for loop will increase it by one
@@ -752,17 +750,9 @@ function traverseSegments($it)
     $day->endMeters = $day->totalMetersGet ();
 }
 
-function storeSchedule($userHikeId, $schedule)
+
+function getSchedule($schedule, $userId, $userHikeId, &$points)
 {
-    $fileName = getHikeFolder($userHikeId) . "schedule.json";
-
-    file_put_contents($fileName, json_encode($schedule));
-}
-
-
-function getSchedule($userId, $userHikeId, &$points)
-{
-    global $schedule;
     global $foodStart;
     global $debug;
     global $trailConditions;
@@ -772,19 +762,13 @@ function getSchedule($userId, $userHikeId, &$points)
     pointsOfInterestGet($userId, $userHikeId, $points);
     $trailConditions = trailConditionsGet($userHikeId, $points);
 
-    $schedule = new Schedule ($userId, $userHikeId);
-
-    dayStart($points[0], 0, 0);
+    dayStart($schedule, $points[0], 0, 0);
 
     $foodStart = $schedule->currentDayIndexGet ();
 
     $it = new SegmentIterator($points, 1);
 
-    traverseSegments($it);
+    traverseSegments($it, $schedule);
 
     computeFoodWeight($schedule, $foodStart);
-
-    storeSchedule($userHikeId, $schedule);
-    
-    return $schedule;
 }

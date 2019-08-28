@@ -28,9 +28,11 @@ class Schedule
     {
         $points = getRoutePointsFromUserHike($this->userHikeId);
         
-        $schedule = \bpp\getSchedule($this->userId, $this->userHikeId, $points);
+        \bpp\getSchedule($this, $this->userId, $this->userHikeId, $points);
         
-        return $schedule->days;
+        $this->storeSchedule();
+        
+        return $this->days;
     }
     
     public function nextDay ()
@@ -118,5 +120,15 @@ class Schedule
         
         return $hikerProfile;
     }
+    
+    
+    private function storeSchedule()
+    {
+        $fileName = getHikeFolder($this->userHikeId) . "schedule.json";
+        
+        file_put_contents($fileName, json_encode($this));
+    }
+    
+    
     
 }
