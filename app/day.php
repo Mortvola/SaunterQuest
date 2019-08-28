@@ -38,7 +38,8 @@ class Day implements \JsonSerializable
                 "lng" => $this->lng,
                 "ele" => $this->ele,
                 "gain" => $this->gain,
-                "loss" => $this->loss];
+                "loss" => $this->loss,
+                "accumWeight" => $this->accumWeight];
         
         if (isset ($this->endLat))
         {
