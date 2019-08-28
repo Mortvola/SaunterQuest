@@ -61,16 +61,12 @@ function computeFoodWeight(&$schedule, &$foodStart)
 {
     $d = $schedule->currentDayIndexGet ();
     
-//  echo "d = $d, foodStart = $foodStart\n";
     $accum = 0;
     for ($i = $d; $i >= $foodStart; $i--) {
-//      echo $i, ": ";
         $day = &$schedule->dayGet ($i);
         
         $accum += $day->foodWeight;
-        //      echo $schedule->dayGet ($i)->foodWeight, ", ";
         $day->accumWeight = $accum;
-        //      echo $schedule->dayGet ($i)->accumWeight, "\n";
     }
 
     $foodStart = $d + 1;

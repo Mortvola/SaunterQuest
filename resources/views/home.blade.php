@@ -27,39 +27,37 @@
         </div>
     </div> <!--  Modal -->
 
-    <div class="container-fluid">
-    	<div class="row">
-            <div class="col-md-12">
+	<div class="row no-gutters" style="height:100%">
+        <div class="col-md-12" style="overflow-y:scroll;height:100%">
             <h4>Your Hikes</h4>
             <table class="table table-condensed">
-            <thead><tr><th>Name</th><th>Length</th><th>Duration</th><th>Start Date</th></tr></thead>
-            <tbody>
-                <?php
-                    $results = DB::select (DB::raw (
-                       "select name, userHikeId
-                        from userHike
-                        where userId = :userId"), array('userId' => "1"));
-    
-                    foreach ($results as $hike) {
-                        echo "<tr id='userHike_", $hike->userHikeId, "'>\n";
-                        echo "<td>\n";
-                        echo "<a class='btn btn-sm' href='/editHike.php?id=", $hike->userHikeId, "'><i class='fas fa-pencil-alt'></i></a>\n";
-                        echo "<a class='btn btn-sm' href='javascript:deleteHike(", $hike->userHikeId, ")'><i class='fas fa-trash-alt'></i></a>\n";
-                        echo "<a href=\""?> {{ url('/editHike?id=' . $hike->userHikeId) }} <?php echo "\">", $hike->name, "</a></td>\n";
-                        echo "<td>", "</td>\n";
-                        echo "<td>", "</td>\n";
-                        echo "<td>", "None", "</td>\n";
-                        echo "</tr>\n";
-                     }
-                ?>
-                <tr id='userHikeLastRow'>
-                <td><a class='btn btn-sm' href='javascript:addUserHike()'><i class='fas fa-plus'></i></a></td>
-                <td/><td/><td/><td/>
-                </tr>
-    
-            </tbody>
+                <thead><tr><th>Name</th><th>Length</th><th>Duration</th><th>Start Date</th></tr></thead>
+                <tbody>
+                    <?php
+                        $results = DB::select (DB::raw (
+                           "select name, userHikeId
+                            from userHike
+                            where userId = :userId"), array('userId' => "1"));
+        
+                        foreach ($results as $hike) {
+                            echo "<tr id='userHike_", $hike->userHikeId, "'>\n";
+                            echo "<td>\n";
+                            echo "<a class='btn btn-sm' href='/editHike.php?id=", $hike->userHikeId, "'><i class='fas fa-pencil-alt'></i></a>\n";
+                            echo "<a class='btn btn-sm' href='javascript:deleteHike(", $hike->userHikeId, ")'><i class='fas fa-trash-alt'></i></a>\n";
+                            echo "<a href=\""?> {{ url('/editHike?id=' . $hike->userHikeId) }} <?php echo "\">", $hike->name, "</a></td>\n";
+                            echo "<td>", "</td>\n";
+                            echo "<td>", "</td>\n";
+                            echo "<td>", "None", "</td>\n";
+                            echo "</tr>\n";
+                         }
+                    ?>
+                    <tr id='userHikeLastRow'>
+                    <td><a class='btn btn-sm' href='javascript:addUserHike()'><i class='fas fa-plus'></i></a></td>
+                    <td/><td/><td/><td/>
+                    </tr>
+        
+                </tbody>
             </table>
-            </div>
         </div>
     </div>
 

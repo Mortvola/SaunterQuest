@@ -28,17 +28,8 @@
 	@component('exportTrailDialog')
 	@endcomponent
 
-    <div class="row no-gutters" style="height:100%">
-    	<div class='col-md-1'>
-            <nav id='sideBar' style="background-color:SlateGray;height:100%">
-            <ul class='list-unstyled'>
-            <li><a class="nav-link" href="/welcome.php" style="color:white">Home</a></li>
-            <li><a class="nav-link" href="/DayTemplates.php" style="color:white">Food Plans</a></li>
-            <li><a class="nav-link" href="javascript:showExportTrailModal()" style="color:white">Export Trail</a></li>
-            </ul>
-            </nav>
-        </div>
-        <div class="col-md-7" >
+    <div class="row no-gutters" style="flex-wrap:nowrap;height:100%">
+        <div class="col-md-8">
             <div id='editTrailConditions' style='display:none'>
                 <form id='trailConditionForm'>
                     <div class="grid-container">
@@ -114,7 +105,7 @@
                     <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#notes">Notes</a></li>
                 </ul>
                 <div class="tab-content" style="overflow-y:scroll;width:100%;height:100%;">
-                    <div id="schedule" class="tab-pane fade in active">
+                    <div id="schedule" class="tab-pane fade show active">
                     </div>
                     <div id="hikerProfiles" class="tab-pane fade">
                         <table class="table table-condensed">
