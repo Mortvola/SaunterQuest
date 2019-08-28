@@ -61,6 +61,14 @@
             .m-b-md {
                 margin-bottom: 30px;
             }
+            
+            body {
+                background-image: url({{ asset ('Forester.jpg') }});
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+                background-position: center;
+                background-size: cover;
+            }
         </style>
     </head>
     <body>
