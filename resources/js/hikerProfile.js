@@ -77,7 +77,7 @@ function addHikerProfile ()
 	$("#hikerProfileSaveButton").off('click');
 	$("#hikerProfileSaveButton").click(insertHikerProfile);
 
-	$("#addHikerProfile").modal ('show');
+	$("#hikerProfileDialog").modal ('show');
 }
 
 
@@ -133,7 +133,7 @@ function editHikerProfile (hikerProfileId)
 		$("#hikerProfileSaveButton").off('click');
 		$("#hikerProfileSaveButton").click(function () { updateHikerProfile(hikerProfileId)});
 		
-		$("#addHikerProfile").modal ('show');
+		$("#hikerProfileDialog").modal ('show');
 	}
 }
 

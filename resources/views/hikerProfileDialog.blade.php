@@ -1,5 +1,5 @@
 <!-- Modal -->
-<div class="modal fade" id="addHikerProfile" role="dialog">
+<div class="modal fade" id="hikerProfileDialog" role="dialog">
 	<div class="modal-dialog">
 	
 		<!-- Modal content-->
