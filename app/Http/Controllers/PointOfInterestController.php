@@ -26,27 +26,27 @@ class PointOfInterestController extends Controller
     {
         $userHikeId = $_GET["id"];
         
-        return PointOfInterest::get($userHikeId);
+        return json_encode(PointOfInterest::get($userHikeId));
     }
     
     public function post ()
     {
         $pointOfInterest = json_decode(file_get_contents("php://input"));
         
-        return PointOfInterest::post ($pointOfInterest);
+        return json_encode(PointOfInterest::post ($pointOfInterest));
     }
 
     public function put ()
     {
         $pointOfInterest = json_decode(file_get_contents("php://input"));
         
-        return PointOfInterest::put ($pointOfInterest);
+        return json_encode(PointOfInterest::put ($pointOfInterest));
     }
     
     public function delete ()
     {
         $pointOfInterest = json_decode(file_get_contents("php://input"));
         
-        return PointOfInterest::delete ($pointOfInterest);
+        PointOfInterest::delete ($pointOfInterest);
     }
 }

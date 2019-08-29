@@ -5,7 +5,6 @@ namespace App;
 use App\Schedule;
 
 require_once app_path("routeFile.php");
-require_once app_path("pointOfInterestUtils.php");
 
 class Export
 {
@@ -59,7 +58,7 @@ class Export
                 $this->writeWayPoint($xw, $days[$d]->pointGet (), "Day " . $d . " camp");
             }
             
-            $pointsOfInterest = \bpp\getPointsOfInterest($this->userHikeId);
+            $pointsOfInterest = PointOfInterest::get ($this->userHikeId);
             
             foreach ($pointsOfInterest as $poi) {
                 $this->writeWayPoint($xw, $poi, $poi->name);

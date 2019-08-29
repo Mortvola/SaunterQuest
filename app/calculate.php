@@ -12,7 +12,6 @@ use App\Schedule;
 require_once "coordinates.php";
 require_once "routeFile.php";
 require_once "utilities.php";
-require_once "pointOfInterestUtils.php";
 require_once "day.php";
 require_once "segmentIterator.php";
 
