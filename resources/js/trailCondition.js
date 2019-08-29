@@ -87,13 +87,13 @@ function trailConditionRowGet (trailCondition)
 {
 	let txt = "";
 	
-	txt += "<tr id='trailCondition_" + trailCondition.trailConditionId + "'>";
+	txt += "<tr id='trailCondition_" + trailCondition.id + "'>";
 
 	txt += "<td style='display:flex;justify-content:flex-start;'>";
 	txt += "<span style='padding-right:15px'>";
-	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='viewTrailCondition(" + trailCondition.trailConditionId + ")'><i class='fas fas-eye'></i></a>";
-	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='editTrailCondition(" + trailCondition.trailConditionId + ")'><i class='fas fa-pencil-alt'></i></a>";
-	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='removeTrailCondition(" + trailCondition.trailConditionId + ")'><i class='fas fa-trash-alt'></i></a>";
+	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='viewTrailCondition(" + trailCondition.id + ")'><i class='fas fas-eye'></i></a>";
+	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='editTrailCondition(" + trailCondition.id + ")'><i class='fas fa-pencil-alt'></i></a>";
+	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='removeTrailCondition(" + trailCondition.id + ")'><i class='fas fa-trash-alt'></i></a>";
 	txt += "</span>"
 	txt += trailConditionTypeGet(trailCondition.type) + "</td>";
 	txt += "<td style='text-align:left'>" + nvl(trailCondition.description, "") + "</td>";
@@ -157,7 +157,7 @@ function findTrailConditionIndex (trailConditionId)
 {
 	for (let t in trailConditions)
 	{
-		if (trailConditions[t].trailConditionId == trailConditionId)
+		if (trailConditions[t].id == trailConditionId)
 		{
 			return t;
 		}
@@ -269,7 +269,7 @@ function closeEditTrailConditions ()
 function updateTrailCondition (trailConditionId)
 {
 	var trailCondition = objectifyForm($("#trailConditionForm").serializeArray());
-	trailCondition.trailConditionId = trailConditionId;
+	trailCondition.id = trailConditionId;
 	
 	let t = findTrailConditionIndex (trailConditionId);
 

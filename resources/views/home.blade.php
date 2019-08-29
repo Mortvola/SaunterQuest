@@ -35,16 +35,16 @@
                 <tbody>
                     <?php
                         $results = DB::select (DB::raw (
-                           "select name, userHikeId
+                           "select name, id
                             from userHike
                             where userId = :userId"), array('userId' => "1"));
         
                         foreach ($results as $hike) {
-                            echo "<tr id='userHike_", $hike->userHikeId, "'>\n";
+                            echo "<tr id='userHike_", $hike->id, "'>\n";
                             echo "<td>\n";
-                            echo "<a class='btn btn-sm' href='/editHike.php?id=", $hike->userHikeId, "'><i class='fas fa-pencil-alt'></i></a>\n";
-                            echo "<a class='btn btn-sm' href='javascript:deleteHike(", $hike->userHikeId, ")'><i class='fas fa-trash-alt'></i></a>\n";
-                            echo "<a href=\""?> {{ url('/editHike?id=' . $hike->userHikeId) }} <?php echo "\">", $hike->name, "</a></td>\n";
+                            echo "<a class='btn btn-sm' href='/editHike.php?id=", $hike->id, "'><i class='fas fa-pencil-alt'></i></a>\n";
+                            echo "<a class='btn btn-sm' href='javascript:deleteHike(", $hike->id, ")'><i class='fas fa-trash-alt'></i></a>\n";
+                            echo "<a href=\""?> {{ url('/editHike?id=' . $hike->id) }} <?php echo "\">", $hike->name, "</a></td>\n";
                             echo "<td>", "</td>\n";
                             echo "<td>", "</td>\n";
                             echo "<td>", "None", "</td>\n";

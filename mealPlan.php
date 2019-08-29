@@ -59,7 +59,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
 
             $stmt->execute();
 
-            $obj->dayTemplateId = $pdo->lastInsertId("dayTemplateId");
+            $obj->id = $pdo->lastInsertId("id");
 
             unset($stmt);
         }
@@ -177,7 +177,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
             unset($stmt);
         }
 
-        $stmt = "DELETE FROM dayTemplate WHERE dayTemplateId = :dayTemplateId AND userId = :userId";
+        $stmt = "DELETE FROM dayTemplate WHERE id = :dayTemplateId AND userId = :userId";
 
         if ($stmt = $pdo->prepare($stmt)) {
             $stmt->bindParam(":dayTemplateId", $paramDayTemplateId, PDO::PARAM_INT);

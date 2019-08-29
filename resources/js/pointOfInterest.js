@@ -8,7 +8,7 @@ function findPointOfInterestIndex (poiId)
 {
 	for (let p in pointsOfInterest)
 	{
-		if (pointsOfInterest[p].pointOfInterestId == poiId)
+		if (pointsOfInterest[p].id == poiId)
 		{
 			return p;
 		}
@@ -25,7 +25,7 @@ function removePointOfInterest (object, position)
 	{
 		if (this.readyState == 4 && this.status == 200)
 		{
-			var index = findPointOfInterestIndex(object.pointOfInterestId);
+			var index = findPointOfInterestIndex(object.id);
 			pointsOfInterest[index].marker.setMap (null);
 			removeContextMenu (pointsOfInterest[index].marker);
 			
@@ -35,9 +35,10 @@ function removePointOfInterest (object, position)
 		}
 	}
 	
-	xmlhttp.open("DELETE", "pointOfInterest.php", true);
+	xmlhttp.open("DELETE", "pointOfInterest", true);
 	xmlhttp.setRequestHeader("Content-type", "application/json");
-	xmlhttp.send(JSON.stringify(object.pointOfInterestId));
+	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
+	xmlhttp.send(JSON.stringify(object.id));
 }
 
 
@@ -45,28 +46,45 @@ function updatePointOfInterest (poiId)
 {
 	var pointOfInterest = objectifyForm($("#pointOfInterestForm").serializeArray());
 
-	pointOfInterest.pointOfInterestId = poiId;
+	pointOfInterest.id = poiId;
 	
 	var index = findPointOfInterestIndex(poiId);
 
 	pointOfInterest.lat = pointsOfInterest[index].lat;
 	pointOfInterest.lng = pointsOfInterest[index].lng;
+	pointOfInterest.constraints = pointsOfInterest[index].constraints;
 	
-	if (pointOfInterest.constraints != undefined)
+	if (pointOfInterest.hangOut !== undefined && pointOfInterest.hangOut != "")
 	{
-		for (let c in pointOfInterest.constraints)
+		if (pointOfInterest.constraints == undefined || pointOfInterest.constraints.length == 0)
 		{
-			if (pointOfInterest.constraints[c].type == 'linger')
+			pointOfInterest.constraints = [];
+			pointOfInterest.constraints.push({type: 'linger', time: pointOfInterest.hangOut});
+		}
+		else
+		{
+			for (let c in pointOfInterest.constraints)
 			{
-				pointOfInterest.constraints[c].time = pointOfInterest.hangOut;
-				break;
+				if (pointOfInterest.constraints[c].type == 'linger')
+				{
+					pointOfInterest.constraints[c].time = pointOfInterest.hangOut;
+					
+					break;
+				}
 			}
 		}
 	}
 	else
 	{
-		pointOfInterest.constraints = [];
-		pointOfInterest.constraints.push({type: 'linger', time: pointOfInterest.hangOut});
+		for (let c in pointOfInterest.constraints)
+		{
+			if (pointOfInterest.constraints[c].type == 'linger')
+			{
+				pointOfInterest.constraints[c].remove = true;
+				
+				break;
+			}
+		}
 	}
 
 	delete pointOfInterest.hangOut;
@@ -76,18 +94,27 @@ function updatePointOfInterest (poiId)
 	{
 		if (this.readyState == 4 && this.status == 200)
 		{
-			pointsOfInterest[index] = pointOfInterest;
+			let poi = JSON.parse(this.responseText);
+
+			pointsOfInterest[index].lat = poi.lat;
+			pointsOfInterest[index].lng = poi.lng;
+			pointsOfInterest[index].name = poi.name;
+			pointsOfInterest[index].description = poi.description;
+			pointsOfInterest[index].constraints = poi.constraints;
+			
+			pointsOfInterest[index].message = getInfoWindowMessage(poi);
 		}
 	}
 	
-	xmlhttp.open("PUT", "pointOfInterest.php", true);
+	xmlhttp.open("PUT", "pointOfInterest", true);
 	xmlhttp.setRequestHeader("Content-type", "application/json");
+	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
 	xmlhttp.send(JSON.stringify(pointOfInterest));
 }
 
 function editPointOfInterest (object, position)
 {
-	var index = findPointOfInterestIndex(object.pointOfInterestId);
+	var index = findPointOfInterestIndex(object.id);
 
 	$("input[name='name']").val(pointsOfInterest[index].name);
 	$("input[name='description']").val(pointsOfInterest[index].description);
@@ -105,10 +132,17 @@ function editPointOfInterest (object, position)
 	}
 	
 	$("#pointOfInterestSaveButton").off('click');
-	$("#pointOfInterestSaveButton").click(function () { updatePointOfInterest(poiId)});
+	$("#pointOfInterestSaveButton").click(function () { updatePointOfInterest(object.id)});
 	
 	$("#addPointOfInterest").modal ('show');
 }
+
+function getInfoWindowMessage (poi)
+{
+	return "<div>" + poi.name + "</div>"
+	+ "<div>" + poi.description + "</div>";
+}
+
 
 function addPointOfInterest (poi)
 {
@@ -120,13 +154,12 @@ function addPointOfInterest (poi)
 		}
 	});
 
-	poi.marker.pointOfInterestId = poi.pointOfInterestId;
+	poi.marker.id = poi.id;
 	
 	setContextMenu (poi.marker, pointOfInterestCM);
 	
 	poi.listener = attachInfoWindowMessage(poi,
-		"<div>" + poi.name + "</div>"
-		+ "<div>" + poi.description + "</div>");
+		getInfoWindowMessage (poi));
 
 	pointsOfInterest.push(poi);
 }
@@ -160,8 +193,9 @@ function insertPointOfInterest (position)
 		}
 	}
 
-	xmlhttp.open("POST", "pointOfInterest.php", true);
+	xmlhttp.open("POST", "pointOfInterest", true);
 	xmlhttp.setRequestHeader("Content-type", "application/json");
+	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
 	xmlhttp.send(JSON.stringify(pointOfInterest));
 }
 

@@ -26,23 +26,23 @@ function isValidRequest($location)
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
     $userId = $_SESSION["userId"];
     $userHikeId = $_GET["id"];
-    
+
     try {
         $sql = "select shippingLocationId, lat, lng, sl.name, inCareOf, address1, address2, city, state, zip
 				from shippingLocation sl
-				join userHike uh ON (uh.userHikeId = sl.userHikeId OR uh.hikeId = sl.hikeId) and uh.userHikeId =  :userHikeId";
-        
+				join userHike uh ON (uh.id = sl.userHikeId OR uh.hikeId = sl.hikeId) and uh.id =  :userHikeId";
+
         if ($stmt = $pdo->prepare($sql)) {
             $stmt->bindParam(":userHikeId", $paramUserHikeId, PDO::PARAM_INT);
-            
+
             $paramUserHikeId = $userHikeId;
-            
+
             $stmt->execute();
-            
+
             $output = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            
+
             echo json_encode($output);
-            
+
             unset($stmt);
         }
     } catch (PDOException $e) {
@@ -61,7 +61,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
 						name, inCareOf, address1, address2, city, state, zip)
 					values (now(), now(), :userHikeId, :lat, :lng, TRIM(:name), TRIM(:inCareOf),
 						TRIM(:address1), TRIM(:address2), TRIM(:city), TRIM(:state), TRIM(:zip))";
-            
+
             if ($stmt = $pdo->prepare($sql)) {
                 $stmt->bindParam(":userHikeId", $paramUserHikeId, PDO::PARAM_INT);
                 $stmt->bindParam(":lat", $paramLat, PDO::PARAM_INT);
@@ -73,7 +73,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
                 $stmt->bindParam(":city", $paramCity, PDO::PARAM_STR);
                 $stmt->bindParam(":state", $paramState, PDO::PARAM_STR);
                 $stmt->bindParam(":zip", $paramZip, PDO::PARAM_STR);
-                
+
                 $paramUserHikeId = $userHikeId;
                 $paramLat = $location->lat;
                 $paramLng = $location->lng;
@@ -88,13 +88,13 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
                 $paramCity = $location->city;
                 $paramState = $location->state;
                 $paramZip = $location->zip;
-                
+
                 $stmt->execute();
-                
+
                 $shippingLocationId = $pdo->lastInsertId("shippingLocationId");
-                
+
                 echo json_encode($shippingLocationId);
-                
+
                 unset($stmt);
             }
         } catch (PDOException $e) {
@@ -104,7 +104,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
     }
 } elseif ($_SERVER["REQUEST_METHOD"] == "PUT") {
     $location = json_decode(file_get_contents("php://input"));
-    
+
     if (!isValidRequest($location) || !hasValue($location->shippingLocationId)) {
         http_response_code(400);
     } else {
@@ -121,7 +121,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
 						state = TRIM(:state),
 						zip = TRIM(:zip)
 					where shippingLocationId = :shippingLocationId";
-            
+
             if ($stmt = $pdo->prepare($sql)) {
                 $stmt->bindParam(":shippingLocationId", $paramShippingLocationId, PDO::PARAM_INT);
                 $stmt->bindParam(":lat", $paramLat, PDO::PARAM_INT);
@@ -133,7 +133,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
                 $stmt->bindParam(":city", $paramCity, PDO::PARAM_STR);
                 $stmt->bindParam(":state", $paramState, PDO::PARAM_STR);
                 $stmt->bindParam(":zip", $paramZip, PDO::PARAM_STR);
-                
+
                 $paramShippingLocationId = $location->shippingLocationId;
                 $paramLat = $location->lat;
                 $paramLng = $location->lng;
@@ -148,9 +148,9 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
                 $paramCity = $location->city;
                 $paramState = $location->state;
                 $paramZip = $location->zip;
-                
+
                 $stmt->execute();
-                
+
                 unset($stmt);
             }
         } catch (PDOException $e) {

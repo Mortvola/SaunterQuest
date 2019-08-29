@@ -171,9 +171,9 @@ function findEvent($eventType, $events)
 function pointsOfInterestGet($userId, $userHikeId, &$points)
 {
     $output = \DB::select(\DB::raw(
-        "select poi.pointOfInterestId, lat, lng, type, time
+        "select poi.id, lat, lng, type, time
 		from pointOfInterest poi
-		join pointOfInterestConstraint poic on poic.pointOfInterestId = poi.pointOfInterestId
+		join pointOfInterestConstraint poic on poic.pointOfInterestId = poi.id
 		where poi.userHikeId = :userHikeId"),
         array("userHikeId" => $userHikeId));
 
@@ -201,7 +201,7 @@ function pointsOfInterestGet($userId, $userHikeId, &$points)
             //echo "Found segment $s\n";
 
             $points[$s]->subsegments[strval($segmentPercentage)]->events[] = (object)[
-                    "poiId" => $poi->pointOfInterestId,
+                    "poiId" => $poi->id,
                     "type" => $poi->type,
                     "lat" => $poi->lat,
                     "lng" => $poi->lng,
@@ -224,10 +224,10 @@ function pointsOfInterestGet($userId, $userHikeId, &$points)
 function trailConditionsGet($userHikeId, &$points)
 {
     $trailConditions = \DB::select (\DB::raw (
-            "select tc.trailConditionId, startLat, startLng, endLat, endLng, type, IFNULL(speedFactor, 100) AS speedFactor
+            "select tc.id, startLat, startLng, endLat, endLng, type, IFNULL(speedFactor, 100) AS speedFactor
 			from trailCondition tc
-			join userHike uh on (uh.userHikeId = tc.userHikeId OR uh.hikeId = tc.hikeId)
-			and uh.userHikeId = :userHikeId"),
+			join userHike uh on (uh.id = tc.userHikeId OR uh.hikeId = tc.hikeId)
+			and uh.id = :userHikeId"),
             array ("userHikeId" => $userHikeId));
 
     $s = -1;
@@ -287,7 +287,7 @@ function getFoodPlan(&$foodPlanId, &$foodPlanWeight)
         }
     }
 
-    $foodPlanId = $food[$foodPlanIndex]->dayTemplateId;
+    $foodPlanId = $food[$foodPlanIndex]->id;
     $foodPlanWeight = $food[$foodPlanIndex]->weight;
 }
 
@@ -295,11 +295,11 @@ function getFoodPlan(&$foodPlanId, &$foodPlanWeight)
 function foodPlansGet($userId)
 {
     $food = \DB::select(\DB::raw (
-        "select dt.dayTemplateId, dt.name, sum(IFNULL(fiss.grams, fi.gramsServingSize) * dtfi.numberOfServings) as weight
+        "select dt.id, dt.name, sum(IFNULL(fiss.grams, fi.gramsServingSize) * dtfi.numberOfServings) as weight
 		from dayTemplateFoodItem dtfi
-		join foodItem fi on fi.foodItemId = dtfi.foodItemId
+		join foodItem fi on fi.id = dtfi.foodItemId
 		left join foodItemServingSize fiss on fiss.foodItemId = dtfi.foodItemId
-		join dayTemplate dt on dt.dayTemplateId = dtfi.dayTemplateId and userId = :userId
+		join dayTemplate dt on dt.id = dtfi.dayTemplateId and userId = :userId
 		group by dtfi.dayTemplateId, dt.name"),
 		array ("userId" => $userId));
 

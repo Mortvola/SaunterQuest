@@ -10,10 +10,10 @@ function foodPlanGet($userId, $foodPlanId)
     $foodPlan = \DB::select (\DB::raw (
         "select fi.manufacturer, fi.name, sum(dtfi.numberOfServings) AS totalServings, IFNULL(fiss.description, fi.servingSizeDescription) AS servingDescription
 		from dayTemplate dt
-		join dayTemplateFoodItem dtfi on dtfi.dayTemplateId = dt.dayTemplateId
-		join foodItem fi on fi.foodItemId = dtfi.foodItemId
+		join dayTemplateFoodItem dtfi on dtfi.dayTemplateId = dt.id
+		join foodItem fi on fi.id = dtfi.foodItemId
 		left join foodItemServingSize fiss on fiss.foodItemId = dtfi.foodItemId and fiss.foodItemServingSizeid = dtfi.foodItemServingSizeId
-		where dt.dayTemplateId = :foodPlanId and dt.userId = :userId
+		where dt.id = :foodPlanId and dt.userId = :userId
 		group by fi.manufacturer, fi.name, IFNULL(fiss.description, fi.servingSizeDescription)"),
         array ("userId" => $userId, "foodPlanId" => $foodPlanId));
 
@@ -62,9 +62,9 @@ function resupplyPackageAdd($shippingLocationId, &$resupplyPackages, &$foodPlanA
     
     if (isset($shippingLocationId) && $shippingLocationId != -1) {
         $resupplyPackage->shippingLocation = \DB::select (\DB::raw (
-            "select shippingLocationId, name, inCareOf, address1, address2, city, state, zip
+            "select id, name, inCareOf, address1, address2, city, state, zip
 			from shippingLocation sl
-			where shippingLocationId = :shippingLocationId"),
+			where id = :shippingLocationId"),
             array ("shippingLocationId" => $shippingLocationId));
     }
     

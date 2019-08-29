@@ -8,12 +8,12 @@ function hikerProfileRowGet (profile)
 {
 	let txt = "";
 	
-	txt += "<tr id='hikerProfile_" + profile.hikerProfileId + "'>";
+	txt += "<tr id='hikerProfile_" + profile.id + "'>";
 
 	txt += "<td style='display:flex;justify-content:space-between;'>";
 	txt += "<span>";
-	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='editHikerProfile(" + profile.hikerProfileId + ")'><i class='fas fa-pencil-alt'></i></a>";
-	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='removeHikerProfile(" + profile.hikerProfileId + ")'><i class='fas fa-trash-alt'></i></a>";
+	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='editHikerProfile(" + profile.id + ")'><i class='fas fa-pencil-alt'></i></a>";
+	txt += "<a class='btn btn-sm' style='padding:5px 5px 5px 5px' onclick='removeHikerProfile(" + profile.id + ")'><i class='fas fa-trash-alt'></i></a>";
 	txt += "</span>"
 	
 	// fixup start day.
@@ -85,7 +85,7 @@ function findHikerProfileIndex (hikerProfileId)
 {
 	for (let h in hikerProfiles)
 	{
-		if (hikerProfiles[h].hikerProfileId == hikerProfileId)
+		if (hikerProfiles[h].id == hikerProfileId)
 		{
 			return h;
 		}
@@ -147,7 +147,7 @@ function toTimeFloat (time)
 function updateHikerProfile (hikerProfileId)
 {
 	var profile = objectifyForm($("#hikerProfileForm").serializeArray());
-	profile.hikerProfileId = hikerProfileId;
+	profile.id = hikerProfileId;
 	
 	if (profile.startDay != "")
 	{

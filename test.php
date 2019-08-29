@@ -1,14 +1,20 @@
 <?php
-namespace bpp;
+	$a = ['a', 'b', 'c', 'd'];
 
-$skipSessionCheck = true;
+	var_dump ($a);
 
-$_SESSION["loggedin"] = true;
-$_SERVER["REQUEST_METHOD"] = "GET";
-$_SESSION["userId"] = 1;
-$_GET["id"] = 100051;
+	echo json_encode ($a);
 
-$userHikeId = 100051;
+    for ($i = 0; $i < count($a); $i++)
+    {
+	if ($a[$i] == 'c')
+	{
+	    unset ($a[$i]);
+	}
+    }
 
-require_once "schedule.php";
+	var_dump ($a);
+	echo json_encode ($a);
 
+	$a = array_values($a);
+	echo json_encode ($a);

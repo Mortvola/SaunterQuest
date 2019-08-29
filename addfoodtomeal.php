@@ -156,10 +156,10 @@ require_once "checkLogin.php";
                             + "' onchange='numberOfServingsChanged(\"query_\", value,tableData.foodItems[" + x + "])'/>" + "</td>"
 
                             // Calories column
-                            + "<td style='text-align:right' id='query_calories_" + foodItem.foodItemId + "'>" + computeCalories(foodItem) + "</td>"
+                            + "<td style='text-align:right' id='query_calories_" + foodItem.id + "'>" + computeCalories(foodItem) + "</td>"
 
                             // Weight column
-                            + "<td style='text-align:right' id='query_weight_" + foodItem.foodItemId + "'>" + computeWeight(foodItem) + "</td>"
+                            + "<td style='text-align:right' id='query_weight_" + foodItem.id + "'>" + computeWeight(foodItem) + "</td>"
                             //+ "</td><td>" + tableData.foodItems[x].price
                             + "</tr>";
                     }
@@ -235,8 +235,8 @@ require_once "checkLogin.php";
             let calories = computeCalories(foodItem);
             let weight = computeWeight(foodItem);
 
-            document.getElementById(prefix + "calories_" + foodItem.foodItemId).innerHTML = calories;
-            document.getElementById(prefix + "weight_" + foodItem.foodItemId).innerHTML = weight;
+            document.getElementById(prefix + "calories_" + foodItem.id).innerHTML = calories;
+            document.getElementById(prefix + "weight_" + foodItem.id).innerHTML = weight;
 
             if (prefix == "plan_")
             {

@@ -7,26 +7,26 @@ $userId = $_SESSION["userId"];
 
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
     $userHikeId = $_GET["id"];
-    
+
     try {
-        $sql = "select tc.trailConditionId, tc.hikeId, tc.userHikeId, startLat, startLng, endLat, endLng, type, description, speedFactor
+        $sql = "select tc.id, tc.hikeId, tc.userHikeId, startLat, startLng, endLat, endLng, type, description, speedFactor
 				from trailCondition tc
-				join userHike uh on (uh.userHikeId = tc.userHikeId OR uh.hikeId = tc.hikeId)
-				and uh.userHikeId = :userHikeId and uh.userId = :userId";
-        
+				join userHike uh on (uh.id = tc.userHikeId OR uh.hikeId = tc.hikeId)
+				and uh.id = :userHikeId and uh.userId = :userId";
+
         if ($stmt = $pdo->prepare($sql)) {
             $stmt->bindParam(":userHikeId", $paramUserHikeId, PDO::PARAM_INT);
             $stmt->bindParam(":userId", $paramUserId, PDO::PARAM_INT);
-            
+
             $paramUserHikeId = $userHikeId;
             $paramUserId = $userId;
-            
+
             $stmt->execute();
-            
+
             $output = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            
+
             echo json_encode($output);
-            
+
             unset($stmt);
         }
     } catch (PDOException $e) {
@@ -35,7 +35,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
     }
 } elseif ($_SERVER["REQUEST_METHOD"] == "POST") {
     $trailCondition = json_decode(file_get_contents("php://input"));
-    
+
     try {
         $sql = "insert into trailCondition (creationDate, modificationDate, userHikeId,
 					type, description,
@@ -45,7 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
 					:type, :description,
 					:startLat, :startLng, :endLat, :endLng,
 					:speedFactor)";
-        
+
         if ($stmt = $pdo->prepare($sql)) {
             $stmt->bindParam(":userHikeId", $paramUserHikeId, PDO::PARAM_INT);
             $stmt->bindParam(":type", $paramType, PDO::PARAM_INT);
@@ -55,7 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
             $stmt->bindParam(":endLat", $paramEndLat, PDO::PARAM_INT);
             $stmt->bindParam(":endLng", $paramEndLng, PDO::PARAM_INT);
             $stmt->bindParam(":speedFactor", $paramSpeedFactor, PDO::PARAM_INT);
-            
+
             $paramUserHikeId = $trailCondition->userHikeId;
             $paramType = $trailCondition->type;
             $paramDescription = $trailCondition->description;
@@ -63,17 +63,17 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
             $paramStartLng = $trailCondition->startLng;
             $paramEndLat = $trailCondition->endLat;
             $paramEndLng = $trailCondition->endLng;
-            
+
             if (isset($trailCondition->speedFactor) && $trailCondition->speedFactor != "") {
                 $paramSpeedFactor = $trailCondition->speedFactor;
             }
-            
+
             $stmt->execute();
-            
-            $trailCondition->trailConditionId = $pdo->lastInsertId("trailConditionId");
-            
+
+            $trailCondition->id = $pdo->lastInsertId("id");
+
             echo json_encode($trailCondition);
-            
+
             unset($stmt);
         }
     } catch (PDOException $e) {
@@ -82,7 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
     }
 } elseif ($_SERVER["REQUEST_METHOD"] == "PUT") {
     $trailCondition = json_decode(file_get_contents("php://input"));
-    
+
     try {
         $sql = "update trailCondition set
 					modificationDate = now(),
@@ -93,8 +93,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
 					endLng = :endLng,
 					description = :description,
 					speedFactor = :speedFactor
-				where trailConditionId = :trailConditionId";
-        
+				where id = :trailConditionId";
+
         if ($stmt = $pdo->prepare($sql)) {
             $stmt->bindParam(":type", $paramType, PDO::PARAM_INT);
             $stmt->bindParam(":startLat", $paramStartLat, PDO::PARAM_INT);
@@ -104,9 +104,9 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
             $stmt->bindParam(":description", $paramDescription, PDO::PARAM_STR);
             $stmt->bindParam(":speedFactor", $paramSpeedFactor, PDO::PARAM_INT);
             $stmt->bindParam(":trailConditionId", $paramTrailConditionId, PDO::PARAM_INT);
-            
-            $paramTrailConditionId = $trailCondition->trailConditionId;
-            
+
+            $paramTrailConditionId = $trailCondition->id;
+
             $paramType = $trailCondition->type;
             $paramStartLat = $trailCondition->startLat;
             $paramStartLng = $trailCondition->startLng;
@@ -114,11 +114,11 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
             $paramEndLng = $trailCondition->endLng;
 
             $paramDescription = $trailCondition->description;
-            
+
             $paramSpeedFactor = $trailCondition->speedFactor;
-            
+
             $stmt->execute();
-            
+
             unset($stmt);
         }
     } catch (PDOException $e) {
@@ -127,21 +127,21 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
     }
 } elseif ($_SERVER["REQUEST_METHOD"] == "DELETE") {
     $trailConditionId = json_decode(file_get_contents("php://input"));
-    
+
     try {
         $sql = "delete from trailCondition
-				where trailConditionId = :trailConditionId";
+				where id = :trailConditionId";
 //              and userId = :userId";
-        
+
         if ($stmt = $pdo->prepare($sql)) {
             //$stmt->bindParam(":userId", $paramUserId, PDO::PARAM_INT);
             $stmt->bindParam(":trailConditionId", $paramTrailConditionId, PDO::PARAM_INT);
-            
+
             //$paramUserId = $_SESSION["userId"];
             $paramTrailConditionId = $trailConditionId;
-            
+
             $stmt->execute();
-            
+
             unset($stmt);
         }
     } catch (PDOException $e) {

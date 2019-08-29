@@ -45,7 +45,7 @@ require_once "checkLogin.php";
         require_once "config.php";
 
     try {
-        $stmt = $pdo->prepare("select dt.dayTemplateId AS dayTemplateId,
+        $stmt = $pdo->prepare("select dt.id AS dayTemplateId,
 				dt.name AS name,
 				floor(sum(fi.calories * dtfi.numberOfServings * (IFNULL(fiss.grams, fi.gramsServingSize) / fi.gramsServingSize)) + 0.5) AS calories,
 				floor(sum(case when dtfi.mealTimeId = 0 then
@@ -62,11 +62,11 @@ require_once "checkLogin.php";
 				floor(sum(fi.protein * dtfi.numberOfServings * (IFNULL(fiss.grams, fi.gramsServingSize) / fi.gramsServingSize)) + 0.5) AS protein,
 				sum(dtfi.numberOfServings * IFNULL(fiss.grams, fi.gramsServingSize)) as weight
 				from dayTemplate dt
-				join dayTemplateFoodItem dtfi on dtfi.dayTemplateId = dt.dayTemplateId
+				join dayTemplateFoodItem dtfi on dtfi.dayTemplateId = dt.id
 				join foodItem fi on fi.foodItemId = dtfi.foodItemId
 				left join foodItemServingSize fiss on fiss.foodItemId = fi.foodItemId and fiss.foodItemServingSizeId = dtfi.foodItemServingSizeId
 				where userId = :userId
-				group by dt.name, dt.dayTemplateId");
+				group by dt.name, dt.id");
 
 
         if ($stmt) {

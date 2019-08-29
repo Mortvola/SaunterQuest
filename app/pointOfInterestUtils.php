@@ -4,7 +4,7 @@ namespace bpp;
 function getPointsOfInterest($userHikeId)
 {
     $pointsOfInterest = \DB::select(\DB::raw(
-        "select pointOfInterestId, lat, lng, name, description
+        "select id, lat, lng, name, description
 		from pointOfInterest
 		where userHikeId = :userHikeId"),
         array ("userHikeId" => $userHikeId));
@@ -13,10 +13,10 @@ function getPointsOfInterest($userHikeId)
         
         foreach ($pointsOfInterest as &$poi) {
             $poi->constraints = \DB::select (\DB::raw (
-                "select pointOfInterestConstraintId, type, time
+                "select id, type, time
 				from pointOfInterestConstraint
 				where pointOfInterestId = :pointOfInterestId"),
-                array ("pointOfInterestId" => $poi->pointOfInterestId));
+                array ("pointOfInterestId" => $poi->id));
         }
 
         return $pointsOfInterest;

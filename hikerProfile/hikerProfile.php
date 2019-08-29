@@ -11,7 +11,7 @@ if($_SERVER["REQUEST_METHOD"] == "GET")
 	
 	try
 	{
-		$sql = "select hikerProfileId, startDay, endDay, speedFactor, startTime, endTime, breakDuration
+		$sql = "select id, startDay, endDay, speedFactor, startTime, endTime, breakDuration
 				from hikerProfile
 				where userId = :userId
 				and userHikeId = :userHikeId";
@@ -46,7 +46,7 @@ else if($_SERVER["REQUEST_METHOD"] == "DELETE")
 	try
 	{
 		$sql = "delete from hikerProfile
-				where hikerProfileId = :hikerProfileId
+				where id = :hikerProfileId
 				and userId = :userId";
 		
 		if ($stmt = $pdo->prepare($sql))
@@ -124,7 +124,7 @@ else if($_SERVER["REQUEST_METHOD"] == "POST")
 			
 			$stmt->execute ();
 			
-			$profile->hikerProfileId = $pdo->lastInsertId ("hikerProfileId");
+			$profile->id = $pdo->lastInsertId ("id");
 			
 			echo json_encode($profile);
 			
@@ -151,7 +151,7 @@ else if($_SERVER["REQUEST_METHOD"] == "PUT")
 					startTime = :startTime,
 					endTime = :endTime,
 					breakDuration = :breakDuration
-				where hikerProfileId = :hikerProfileId";
+				where id = :hikerProfileId";
 		
 		if ($stmt = $pdo->prepare($sql))
 		{
@@ -163,9 +163,9 @@ else if($_SERVER["REQUEST_METHOD"] == "PUT")
 			$stmt->bindParam(":breakDuration", $paramBreakDuration, PDO::PARAM_INT);
 			$stmt->bindParam(":hikerProfileId", $paramHikerProfileId, PDO::PARAM_INT);
 			
-			echo "hikerProfileId = ", $profile->hikerProfileId, "\n";
+			echo "hikerProfileId = ", $profile->id, "\n";
 			
-			$paramHikerProfileId = $profile->hikerProfileId;
+			$paramHikerProfileId = $profile->id;
 			
 			if (isset($profile->startDay) && $profile->startDay != "")
 			{

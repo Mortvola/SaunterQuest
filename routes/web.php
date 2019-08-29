@@ -29,7 +29,11 @@ Route::get('/route', 'RouteController@get');
 
 Route::get('/schedule', 'ScheduleController@get');
 
+// Point of Interest operations
 Route::get('/pointOfInterest', 'PointOfInterestController@get');
+Route::post('/pointOfInterest', 'PointOfInterestController@post');
+Route::put('/pointOfInterest', 'PointOfInterestController@put');
+Route::delete('/pointOfInterest', 'PointOfInterestController@delete');
 
 Route::get('/resupplyLocation', 'ResupplyLocationController@get');
 
@@ -40,3 +44,4 @@ Route::get('/trailCondition', 'TrailConditionController@get');
 Route::get('/resupplyPlan', 'ResupplyPlanController@get');
 
 Route::get('/exportTrail', 'ExportController@get');
+
