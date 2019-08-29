@@ -183,7 +183,7 @@ function insertPointOfInterest (position)
 	var xmlhttp = new XMLHttpRequest ();
 	xmlhttp.onreadystatechange = function ()
 	{
-		if (this.readyState == 4 && this.status == 200)
+		if (this.readyState == 4 && (this.status == 200 || this.status == 201))
 		{
 			let poi = JSON.parse(this.responseText);
 

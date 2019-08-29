@@ -52,7 +52,7 @@ Artisan::command('hikeSchedule:get {userId} {userHikeId}', function ($userId, $u
 
 
 Artisan::command('pointOfInterest:get {userHikeId}', function ($userHikeId) {
-    $this->info(json_encode(PointOfInterest::get($userHikeId)));
+    $this->info(PointOfInterest::get()->where('userHikeId', $userHikeId));
 })->describe('Gets the points of interest for the hike specified by the provided userHikeId');
 
 
