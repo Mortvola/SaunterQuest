@@ -2,6 +2,7 @@
 namespace bpp;
 
 use App\Schedule;
+use \App\PointOfInterest;
 
 //$debug = true;
 //  $maxZ = 2000;
@@ -169,24 +170,16 @@ function findEvent($eventType, $events)
 
 function pointsOfInterestGet($userId, $userHikeId, &$points)
 {
-    $output = \DB::select(\DB::raw(
-        "select poi.id, lat, lng, type, time
-		from pointOfInterest poi
-		join pointOfInterestConstraint poic on poic.pointOfInterestId = poi.id
-		where poi.userHikeId = :userHikeId"),
-        array("userHikeId" => $userHikeId));
+    $pointsOfInterest = PointOfInterest::where('userHikeId', $userHikeId)->has('constraints')->get ();
 
-    $s = -1;
+    $pointsOfInterest->load('constraints');
 
     //
     // Find the segment that is nearest to this POI.
     //
-    foreach ($output as $poi) {
-        //var_dump ($poi);
+    foreach ($pointsOfInterest as $poi) {
 
-        if ($s == -1 || ($points[$s]->lat != $poi->lat && $points[$s]->lng != $poi->lng)) {
-            $s = nearestSegmentFind($poi->lat, $poi->lng, $points);
-        }
+        $s = nearestSegmentFind($poi->lat, $poi->lng, $points);
 
         if ($s != -1) {
             $distance = haversineGreatCircleDistance($points[$s]->lat, $points[$s]->lng, $poi->lat, $poi->lng);
@@ -199,20 +192,23 @@ function pointsOfInterestGet($userId, $userHikeId, &$points)
 
             //echo "Found segment $s\n";
 
-            $points[$s]->subsegments[strval($segmentPercentage)]->events[] = (object)[
-                    "poiId" => $poi->id,
-                    "type" => $poi->type,
-                    "lat" => $poi->lat,
-                    "lng" => $poi->lng,
-                    //"shippingLocationId" => $poi->shippingLocationId,
-                    "time" => $poi->time,
-                    "enabled" => true,
-                    "segmentPercentage" => $segmentPercentage,
-                    "segments" => [
-                            (object)["lat" => $points[$s]->lat, "lng" => $points[$s]->lng, "ele" => $points[$s]->ele, "dist" => 0],
-                            (object)["lat" => $poi->lat, "lng" => $poi->lng, "ele" => $points[$s]->ele, "dist" => $distance],
-                    ]
-            ];
+            foreach ($poi->constraints as $constraint)
+            {
+                $points[$s]->subsegments[strval($segmentPercentage)]->events[] = (object)[
+                        "poiId" => $poi->id,
+                        "type" => $constraint->type,
+                        "lat" => $poi->lat,
+                        "lng" => $poi->lng,
+                        //"shippingLocationId" => $poi->shippingLocationId,
+                        "time" => $constraint->time,
+                        "enabled" => true,
+                        "segmentPercentage" => $segmentPercentage,
+                        "segments" => [
+                                (object)["lat" => $points[$s]->lat, "lng" => $points[$s]->lng, "ele" => $points[$s]->ele, "dist" => 0],
+                                (object)["lat" => $poi->lat, "lng" => $poi->lng, "ele" => $points[$s]->ele, "dist" => $distance],
+                        ]
+                ];
+            }
         }
     }
 
