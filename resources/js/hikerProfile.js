@@ -165,8 +165,10 @@ function updateHikerProfile (hikerProfileId)
 	var xmlhttp = new XMLHttpRequest ();
 	xmlhttp.onreadystatechange = function ()
 	{
-		if (this.readyState == 4 && this.status == 200)
+		if (this.readyState == 4 && (this.status == 200 || this.status == 201))
 		{
+			let profile = JSON.parse(this.responseText);
+
 			let h = findHikerProfileIndex (hikerProfileId);
 			hikerProfiles[h] = profile;
 			
@@ -176,8 +178,9 @@ function updateHikerProfile (hikerProfileId)
 		}
 	}
 	
-	xmlhttp.open("PUT", "hikerProfile/hikerProfile.php", true);
+	xmlhttp.open("PUT", "hikerProfile", true);
 	xmlhttp.setRequestHeader("Content-type", "application/json");
+	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
 	xmlhttp.send(JSON.stringify(profile));
 }
 
@@ -202,7 +205,7 @@ function insertHikerProfile ()
 	var xmlhttp = new XMLHttpRequest ();
 	xmlhttp.onreadystatechange = function ()
 	{
-		if (this.readyState == 4 && this.status == 200)
+		if (this.readyState == 4 && (this.status == 200 || this.status == 201))
 		{
 			profile = JSON.parse(this.responseText);
 			hikerProfiles.push (profile);
@@ -213,9 +216,12 @@ function insertHikerProfile ()
 		}
 	}
 	
-	xmlhttp.open("POST", "hikerProfile/hikerProfile.php", true);
-	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	xmlhttp.send("userHikeId=" + userHikeId + "\&profile=" + JSON.stringify(profile));
+	profile.userHikeId = userHikeId;
+	
+	xmlhttp.open("POST", "hikerProfile", true);
+	xmlhttp.setRequestHeader("Content-type", "application/json");
+	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
+	xmlhttp.send(JSON.stringify(profile));
 }
 
 
@@ -231,8 +237,9 @@ function removeHikerProfile (hikerProfileId)
 		}
 	}
 	
-	xmlhttp.open("DELETE", "hikerProfile/hikerProfile.php", true);
+	xmlhttp.open("DELETE", "hikerProfile", true);
 	xmlhttp.setRequestHeader("Content-type", "application/json");
+	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
 	xmlhttp.send(JSON.stringify(hikerProfileId));
 }
 </script>

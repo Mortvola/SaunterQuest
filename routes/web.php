@@ -38,6 +38,9 @@ Route::delete('/pointOfInterest', 'PointOfInterestController@delete');
 Route::get('/resupplyLocation', 'ResupplyLocationController@get');
 
 Route::get('/hikerProfile', 'HikerProfileController@get');
+Route::post('/hikerProfile', 'HikerProfileController@post');
+Route::put('/hikerProfile', 'HikerProfileController@put');
+Route::delete('/hikerProfile', 'HikerProfileController@delete');
 
 Route::get('/trailCondition', 'TrailConditionController@get');
 

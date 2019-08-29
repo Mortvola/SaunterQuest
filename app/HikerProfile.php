@@ -2,17 +2,16 @@
 
 namespace App;
 
-class HikerProfile
+use Illuminate\Database\Eloquent\Model;
+
+class HikerProfile extends Model
 {
-    public static function get ($userId, $userHikeId)
-    {
-        $output = \DB::select (\DB::raw (
-            "select id, startDay, endDay, speedFactor, startTime, endTime, breakDuration
-			from hikerProfile
-			where userId = :userId
-			and userHikeId = :userHikeId"),
-            array ("userId" => $userId, "userHikeId" => $userHikeId));
-            
-        return json_encode($output);
-    }
+    protected $table = 'hikerProfile';
+    public $timestamps = false;
+    const CREATED_AT = 'creationDate';
+    const UPDATED_AT = 'modificationDate';
+    
+    protected $hidden = [PointOfInterestConstraint::CREATED_AT, PointOfInterestConstraint::UPDATED_AT, "userId", "userHikeId"];
+    
+    protected $fillable = ["startDay", "endDay", "speedFactor", "startTime", "endTime", "breakDuration", "userHikeId"];
 }

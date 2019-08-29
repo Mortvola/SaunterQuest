@@ -61,9 +61,9 @@ Artisan::command('resupplyLocation:get {userHikeId}', function ($userHikeId) {
 })->describe('Gets the resupply locations for the hike specified by the provided userHikeId');
 
 
-Artisan::command('hikerProfile:get {userId} {userHikeId}', function ($userId, $userHikeId) {
-    $this->info(HikerProfile::get($userId, $userHikeId));
-})->describe('Gets the hiker profiles for the hike specified by the provided userId and userHikeId');
+Artisan::command('hikerProfile:get {userHikeId}', function ($userHikeId) {
+    $this->info(HikerProfile::where('userHikeId', $userHikeId)->get());
+})->describe('Gets the hiker profiles for the hike specified by the provided userHikeId');
 
 
 Artisan::command('trailCondition:get {userId} {userHikeId}', function ($userId, $userHikeId) {

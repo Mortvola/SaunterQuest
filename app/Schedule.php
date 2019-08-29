@@ -6,6 +6,7 @@ require_once app_path('routeFile.php');
 require_once app_path('calculate.php');
 
 use bpp\Day;
+use App\HikerProfile;
 
 
 class Schedule
@@ -21,7 +22,7 @@ class Schedule
         $this->userId = $userId;
         $this->userHikeId = $userHikeId;
         
-        $this->hikerProfiles = $this->hikerProfilesGet($userId, $userHikeId);
+        $this->hikerProfiles = HikerProfile::where('userHikeId', $userHikeId)->get ();
     }
 
     public function get ()
@@ -72,20 +73,6 @@ class Schedule
         }
 
         return 0;
-    }
-    
-    private function hikerProfilesGet($userId, $userHikeId)
-    {
-        $hikerProfiles = \DB::select(\DB::raw(
-                "select speedFactor,
-				startDay, endDay,
-				startTime, endTime, breakDuration
-			from hikerProfile
-			where userId = :userId
-			and userHikeId = :userHikeId"),
-                array ("userId" => $userId, "userHikeId" => $userHikeId));
-        
-        return $hikerProfiles;
     }
     
     public function activeHikerProfileGet()
