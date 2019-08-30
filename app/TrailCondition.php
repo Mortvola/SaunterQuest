@@ -2,17 +2,19 @@
 
 namespace App;
 
-class TrailCondition
+use Illuminate\Database\Eloquent\Model;
+
+class TrailCondition extends Model
 {
-    public static function get ($userId, $userHikeId)
+    protected $table = 'trailCondition';
+    public $timestamps = false;
+    const CREATED_AT = 'creationDate';
+    const UPDATED_AT = 'modificationDate';
+    
+    protected $hidden = [TrailCondition::CREATED_AT, TrailCondition::UPDATED_AT, "userHikeId"];
+    
+    function hike ()
     {
-        $output = \DB::select (\DB::raw (
-            "select tc.id, tc.hikeId, tc.userHikeId, startLat, startLng, endLat, endLng, type, description, speedFactor
-			from trailCondition tc
-			join userHike uh on (uh.id = tc.userHikeId OR uh.hikeId = tc.hikeId)
-			and uh.id = :userHikeId and uh.userId = :userId"),
-            array ("userId" => $userId, "userHikeId" => $userHikeId));
-            
-        return json_encode($output);
+        return $this->belongsTo('App\Hike', 'userHikeId');
     }
 }

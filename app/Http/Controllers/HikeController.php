@@ -3,10 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\TrailCondition;
 
-class TrailConditionController extends Controller
+class HikeController extends Controller
 {
     /**
      * Create a new controller instance.
@@ -20,10 +18,11 @@ class TrailConditionController extends Controller
     
     public function get ()
     {
-        $userHikeId = $_GET["id"];
+        $userId = Auth::user()->id;
         
-        $trailConditions = TrailCondition::where ('userHikeId', $userHikeId)->get ();
+        $hikes = Hike::where ('userId', $userId)->get ();
         
-        return $trailConditions;
+        return $hikes;
     }
+    
 }

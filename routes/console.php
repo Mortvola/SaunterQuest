@@ -10,6 +10,7 @@ use App\HikerProfile;
 use App\TrailCondition;
 use App\ResupplyPlan;
 use App\Export;
+use App\Hike;
 
 /*
 |--------------------------------------------------------------------------
@@ -66,12 +67,16 @@ Artisan::command('hikerProfile:get {userHikeId}', function ($userHikeId) {
 })->describe('Gets the hiker profiles for the hike specified by the provided userHikeId');
 
 
-Artisan::command('trailCondition:get {userId} {userHikeId}', function ($userId, $userHikeId) {
-    $this->info(TrailCondition::get($userId, $userHikeId));
-})->describe('Gets the trail conditions for the hike specified by the provided userId and userHikeId');
+Artisan::command('trailCondition:get {userHikeId}', function ($userHikeId) {
+    $this->info(TrailCondition::where('userHikeId', $userHikeId)->get());
+})->describe('Gets the trail conditions for the hike specified by the provided userHikeId');
 
 
 Artisan::command('resupplyPlan:get {userId} {userHikeId}', function ($userId, $userHikeId) {
     $this->info(ResupplyPlan::get($userId, $userHikeId));
 })->describe('Gets the trail conditions for the hike specified by the provided userId and userHikeId');
 
+
+Artisan::command('hike:get {userId}', function ($userId) {
+    $this->info(Hike::where('userId', $userId)->get ());
+})->describe('Gets the hikes for the user specified by the provided userId');

@@ -218,19 +218,20 @@ function pointsOfInterestGet($userId, $userHikeId, &$points)
 
 function trailConditionsGet($userHikeId, &$points)
 {
-    $trailConditions = \DB::select (\DB::raw (
-            "select tc.id, startLat, startLng, endLat, endLng, type, IFNULL(speedFactor, 100) AS speedFactor
-			from trailCondition tc
-			join userHike uh on (uh.id = tc.userHikeId OR uh.hikeId = tc.hikeId)
-			and uh.id = :userHikeId"),
-            array ("userHikeId" => $userHikeId));
-
+    $trailConditions = \App\TrailCondition::where ('userHikeId', $userHikeId)->get ();
+    
     $s = -1;
 
     //
     // Find the segment that is nearest to this POI.
     //
     for ($t = 0; $t < count($trailConditions); $t++) {
+        
+        if ($trailConditions[$t]->speedFactor == null)
+        {
+            $trailConditions[$t]->speedFactor = 100;
+        }
+        
         $s = nearestSegmentFind($trailConditions[$t]->startLat, $trailConditions[$t]->startLng, $points);
 
         if ($s != -1) {

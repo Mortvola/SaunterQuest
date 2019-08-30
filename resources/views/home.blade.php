@@ -34,10 +34,7 @@
                 <thead><tr><th>Name</th><th>Length</th><th>Duration</th><th>Start Date</th></tr></thead>
                 <tbody>
                     <?php
-                        $results = DB::select (DB::raw (
-                           "select name, id
-                            from userHike
-                            where userId = :userId"), array('userId' => "1"));
+                        $results = Auth::user()->hikes()->get ();
         
                         foreach ($results as $hike) {
                             echo "<tr id='userHike_", $hike->id, "'>\n";

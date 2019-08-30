@@ -25,4 +25,9 @@ class PointOfInterest extends Model
     {
         return $this->hasMany('\App\PointOfInterestConstraint', 'pointOfInterestId');
     }
+
+    function hike ()
+    {
+        return $this->belongsTo('App\Hike', 'userHikeId');
+    }
 }
