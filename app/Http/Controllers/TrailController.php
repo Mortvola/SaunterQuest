@@ -22,9 +22,9 @@ class TrailController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
-    public function get()
+    public function get(Request $request)
     {
-        $bounds = $_GET["b"];
+        $bounds = $request->input('b');
         
         return Trail::getTrail($bounds);
     }

@@ -58,7 +58,7 @@ class Export
                 $this->writeWayPoint($xw, $days[$d]->pointGet (), "Day " . $d . " camp");
             }
             
-            $pointsOfInterest = PointOfInterest::get ($this->userHikeId);
+            $pointsOfInterest = PointOfInterest::where('userHikeId', $this->userHikeId)->get ();
             
             foreach ($pointsOfInterest as $poi) {
                 $this->writeWayPoint($xw, $poi, $poi->name);

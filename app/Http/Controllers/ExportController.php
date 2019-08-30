@@ -18,18 +18,12 @@ class ExportController extends Controller
         $this->middleware('auth');
     }
     
-    public function get ()
+    public function get (Request $request)
     {
         $userId = Auth::user()->id;
-        $userHikeId = $_GET["id"];
-        
-        if (isset($_GET["segmentMax"])) {
-            $maxNumberOfPointsPerSegment = $_GET["segmentMax"];
-        }
-        
-        if (isset($_GET["maxDistance"])) {
-            $maximumDistanceBetweenPoints = $_GET["maxDistance"];
-        }
+        $userHikeId = $request->input('id');
+        $maxNumberOfPointsPerSegment = $request->input('segmentMax');
+        $maximumDistanceBetweenPoints = $request->input('maxDistance');
         
         $export = new Export ($userId, $userHikeId, $maxNumberOfPointsPerSegment, $maximumDistanceBetweenPoints);
         

@@ -18,10 +18,10 @@ class resupplyPlanController extends Controller
         $this->middleware('auth');
     }
     
-    public function get ()
+    public function get (Request $request)
     {
         $userId = Auth::user()->id;
-        $userHikeId = $_GET["id"];
+        $userHikeId = $request->input('id');
         
         return ResupplyPlan::get ($userId, $userHikeId);
     }

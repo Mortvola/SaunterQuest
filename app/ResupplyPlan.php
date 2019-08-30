@@ -12,7 +12,7 @@ function foodPlanGet($userId, $foodPlanId)
 		from dayTemplate dt
 		join dayTemplateFoodItem dtfi on dtfi.dayTemplateId = dt.id
 		join foodItem fi on fi.id = dtfi.foodItemId
-		left join foodItemServingSize fiss on fiss.foodItemId = dtfi.foodItemId and fiss.foodItemServingSizeid = dtfi.foodItemServingSizeId
+		left join foodItemServingSize fiss on fiss.foodItemId = dtfi.foodItemId and fiss.id = dtfi.foodItemServingSizeId
 		where dt.id = :foodPlanId and dt.userId = :userId
 		group by fi.manufacturer, fi.name, IFNULL(fiss.description, fi.servingSizeDescription)"),
         array ("userId" => $userId, "foodPlanId" => $foodPlanId));
@@ -48,10 +48,8 @@ function foodPlanAccumulate($foodPlanItem, &$foodPlanAccumulator)
     }
 }
 
-function scheduleGet()
+function scheduleGet($userHikeId)
 {
-    global $userHikeId;
-    
     return json_decode(file_get_contents(getHikeFolder($userHikeId) . "schedule.json"));
 }
 
@@ -82,7 +80,7 @@ class resupplyPlan
         $resupplyPackages = [];
         $nextShippingLocationId = -1;
         
-        $day = scheduleGet();
+        $day = scheduleGet($userHikeId);
         
         for ($d = 0; $d < count($day); $d++) {
             if (!isset($foodPlans[$day[$d]->foodPlanId])) {
@@ -93,7 +91,7 @@ class resupplyPlan
                 foodPlanAccumulate($foodPlans[$day[$d]->foodPlanId][$i], $foodPlanAccumulator);
             }
             
-            if (count($day[$d]->events) > 0) {
+            if (isset($day[$d]->events) && count($day[$d]->events) > 0) {
                 for ($e = 0; $e < count($day[$d]->events); $e++) {
                     if ($day[$d]->events[$e]->type == "resupply") {
                         resupplyPackageAdd($nextShippingLocationId, $resupplyPackages, $foodPlanAccumulator);

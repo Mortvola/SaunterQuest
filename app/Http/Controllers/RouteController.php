@@ -17,9 +17,9 @@ class RouteController extends Controller
         $this->middleware('auth');
     }
     
-    public function get ()
+    public function get (Request $request)
     {
-        $userHikeId = $_GET["id"];
+        $userHikeId = $request->input('id');
         
         return Route::get ($userHikeId);
     }

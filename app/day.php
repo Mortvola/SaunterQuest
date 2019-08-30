@@ -39,7 +39,9 @@ class Day implements \JsonSerializable
                 "ele" => $this->ele,
                 "gain" => $this->gain,
                 "loss" => $this->loss,
-                "accumWeight" => $this->accumWeight];
+                "accumWeight" => $this->accumWeight,
+                "foodPlanId" => $this->foodPlanId
+        ];
         
         if (isset ($this->endLat))
         {

@@ -23,9 +23,9 @@ class PointOfInterestController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
-    public function get()
+    public function get(Request $request)
     {
-        $userHikeId = $_GET["id"];
+        $userHikeId = $request->input('id');
         
         $poi = PointOfInterest::get()->where ('userHikeId', $userHikeId);
         
@@ -34,9 +34,9 @@ class PointOfInterestController extends Controller
         return $poi;
     }
     
-    public function post ()
+    public function post (Request $request)
     {
-        $pointOfInterest = json_decode(file_get_contents("php://input"));
+        $pointOfInterest = (object)$request->input ();
         
         $poi = new PointOfInterest ([
             "name" => $pointOfInterest->name,
@@ -59,9 +59,9 @@ class PointOfInterestController extends Controller
         return $poi;
     }
 
-    public function put ()
+    public function put (Request $request)
     {
-        $pointOfInterest = json_decode(file_get_contents("php://input"));
+        $pointOfInterest = (object)$request->input ();
         
         $poi = PointOfInterest::find ($pointOfInterest->id);
         
@@ -103,9 +103,9 @@ class PointOfInterestController extends Controller
         return $poi;
     }
     
-    public function delete ()
+    public function delete (Request $request)
     {
-        $pointOfInterestId = json_decode(file_get_contents("php://input"));
+        $pointOfInterestId = $request->input ();
         
         PointOfInterestConstraint::where('pointOfInterestId', $pointOfInterestId)->delete ();
         PointOfInterest::where('id', $pointOfInterestId)->delete ();

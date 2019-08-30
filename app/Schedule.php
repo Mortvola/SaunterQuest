@@ -113,7 +113,7 @@ class Schedule
     {
         $fileName = getHikeFolder($this->userHikeId) . "schedule.json";
         
-        file_put_contents($fileName, json_encode($this));
+        file_put_contents($fileName, json_encode($this->days));
     }
     
     

@@ -29,18 +29,18 @@ class HikerProfileController extends Controller
         $this->middleware('auth');
     }
     
-    public function get ()
+    public function get (Request $request)
     {
-        $userHikeId = $_GET["id"];
+        $userHikeId = $request->input('id');
         
         $profiles = HikerProfile::where ('userHikeId', $userHikeId)->get ();
         
         return $profiles;
     }
     
-    public function post ()
+    public function post (Request $request)
     {
-        $hikerProfile = json_decode(file_get_contents("php://input"));
+        $hikerProfile = (object)$request->input ();
         
         $profile = new HikerProfile ([
                 "startDay" => ifNotSetOrEmpty($hikerProfile->startDay, null),
@@ -56,9 +56,9 @@ class HikerProfileController extends Controller
         return $profile;
     }
     
-    public function put ()
+    public function put (Request $request)
     {
-        $hikerProfile = json_decode(file_get_contents("php://input"));
+        $hikerProfile = (object)$request->input ();
         
         $profile = HikerProfile::find ($hikerProfile->id);
         
@@ -74,9 +74,9 @@ class HikerProfileController extends Controller
         return $profile;
     }
     
-    public function delete ()
+    public function delete (Request $request)
     {
-        $hikerProfileId = json_decode(file_get_contents("php://input"));
+        $hikerProfileId = $request->input ();
         
         HikerProfile::where('id', $hikerProfileId)->delete ();
     }
