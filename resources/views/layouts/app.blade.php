@@ -40,6 +40,8 @@
                     <ul class="navbar-nav mr-auto">
 	                    <a class="nav-link" href="{{ url('/home') }}" style="color:white">Home</a>
 	                    <a class="nav-link" href="javascript:showExportTrailModal()" style="color:white">Export Trail</a>
+	                    <a class="nav-link" href="#" style="color:white">Food</a>
+	                    <a class="nav-link" href="#" style="color:white">Gear</a>
                     </ul>
 
                     <!-- Right Side Of Navbar -->
@@ -61,7 +63,7 @@
                                 </a>
 
                                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-                                	<a class="dropdown-item" href="#">{{ __('Profile') }}</a>
+                                	<a class="dropdown-item" href="javascript:showProfileDialog()">{{ __('Profile') }}</a>
                                     <a class="dropdown-item" href="{{ route('logout') }}"
                                        onclick="event.preventDefault();
                                                      document.getElementById('logout-form').submit();">
@@ -83,5 +85,7 @@
 	        @yield('content')
     	</div>
     </div>
+    
+    @include('profileDialog')
 </body>
 </html>
