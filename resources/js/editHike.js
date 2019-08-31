@@ -1,9 +1,10 @@
 <script>
 "use strict";
 
+var days;
 var dayMarkers = [];
-var startOfTrailMarker = {};
-var endOfTrailMarker = {};
+var startOfTrailMarker;
+var endOfTrailMarker;
 var resupplyLocations = [];
 var anchors = [];
 var actualRoute = [];
@@ -26,7 +27,6 @@ var routeContextMenu;
 var vertexContextMenu;
 var map;
 var bounds = {};
-var data;
 var startPosition;
 var startSegment;
 var endPosition;
@@ -222,11 +222,11 @@ function moveAnchor (index, vertex)
 			
 			if (anchorIndex == 0)
 			{
-				startOfTrailMarker.marker.setPosition (updatedLatLng);
+				startOfTrailMarker.setPosition (updatedVertex.point);
 			}
 			else if (anchorIndex == anchors.length - 1)
 			{
-				endOfTrailMarker.marker.setPosition (updatedLatLng);
+				endOfTrailMarker.setPosition (updatedVertex.point);
 			}
 		}
 	}
@@ -590,7 +590,7 @@ function recalculateDistances (object, position)
 	
 	drawRoute ();
 	getAndLoadElevationData (0, actualRoute.length, actualRoute);
-	calculate ();
+	getSchedule ();
 }
 
 
@@ -868,13 +868,13 @@ function displayLocation (object, position)
 //
 function positionMapToDay (d)
 {
-	if (d < data.length - 1)
+	if (d < days.length - 1)
 	{
-		positionMapToBounds (data[d], data[d+1]);
+		positionMapToBounds (days[d], days[d+1]);
 	}
 	else
 	{
-		positionMapToBounds (data[d], {lat: data[d].endLat, lng: data[d].endLng});
+		positionMapToBounds (days[d], {lat: days[d].endLat, lng: days[d].endLng});
 	}
 
 }
@@ -1139,40 +1139,41 @@ function myMap()
 
 	infoWindow = new google.maps.InfoWindow({content: "This is a test"});
 
+	startOfTrailMarker = new StartOfTrailMarker (map, startPointUrl, infoWindow);
+	endOfTrailMarker = new EndOfTrailMarker (map, endPointUrl, infoWindow);
+	
 	retrieveRoute ();
 	retrievePointsOfInterest ();
 	retrieveResupplyLocations ();
 	retrieveHikerProfiles (); //todo: only do this when visiting the tab of hiker profiles
 } 
 
-function calculate ()
+function getSchedule ()
 {
 	var xmlhttp = new XMLHttpRequest ();
 	xmlhttp.onreadystatechange = function ()
 	{
 		if (this.readyState == 4 && this.status == 200)
 		{
-			data = JSON.parse(this.responseText);
+			days = JSON.parse(this.responseText);
 
 			let txt = "";
 			let m = 0;
-			let d = 0;
-			let day = 0;
 			
-			for (d in data)
+			for (let d = 0; d < days.length; d++)
 			{
 				txt += "<div class='card'>";
 				txt += "<div class='card-header' style='padding:5px 5px 5px 5px' onclick='positionMapToDay(" + d + ")'>";
 				txt += "<div class='grid-container'>";
 				txt += "<div>" + "Day " + (parseInt(d) + 1) + "</div>";
-				txt += "<div>" + "Gain/Loss (feet): " + metersToFeet(data[d].gain) + "/" + metersToFeet(data[d].loss) + "</div>";
-				txt += "<div>" + "Food: " + gramsToPoundsAndOunces (data[d].accumWeight) + "</div>";
+				txt += "<div>" + "Gain/Loss (feet): " + metersToFeet(days[d].gain) + "/" + metersToFeet(days[d].loss) + "</div>";
+				txt += "<div>" + "Food: " + gramsToPoundsAndOunces (days[d].accumWeight) + "</div>";
 				txt += "<div>" + "" + "</div>";
-				txt += "<div>" + "Miles: " + metersToMilesRounded (data[d].meters) + "</div>";
+				txt += "<div>" + "Miles: " + metersToMilesRounded (days[d].meters) + "</div>";
 				txt += "</div>";
 				txt += "</div>";
 					
-				txt += "<div style='padding:2px 2px 2px 2px'>" + timeFormat(data[d].startTime) + ", " + "mile " + metersToMilesRounded (data[d].startMeters) + ": start" + "</div>";
+				txt += "<div style='padding:2px 2px 2px 2px'>" + timeFormat(days[d].startTime) + ", " + "mile " + metersToMilesRounded (days[d].startMeters) + ": start" + "</div>";
 				
 //				if (data[d].events.length > 0)
 //				{
@@ -1213,111 +1214,40 @@ function calculate ()
 //					}
 //				}
 
-				txt += "<div style='padding:2px 2px 2px 2px'>" + timeFormat(data[d].endTime) + ", " + "mile ";
+				txt += "<div style='padding:2px 2px 2px 2px'>" + timeFormat(days[d].endTime) + ", " + "mile ";
 				
-				txt += metersToMilesRounded (data[parseInt(d)].startMeters + data[parseInt(d)].meters);
+				txt += metersToMilesRounded (days[parseInt(d)].startMeters + days[parseInt(d)].meters);
 				
 				txt += ": stop " + "</div>";
 
 				txt += "</div>";
 				
-				if (day >= dayMarkers.length)
+				if (d > 0)
 				{
-					dayMarkers.push({lat: parseFloat(data[d].lat), lng: parseFloat(data[d].lng), day:parseInt(d)});
+					// Add a day marker, if needed.
+					if (d - 1 >= dayMarkers.length)
+					{
+						dayMarkers.push(new EndOfDayMarker(map, campUrl, infoWindow));
+					}
 
-					if (day > 0)
-					{
-						dayMarkers[day].marker = new google.maps.Marker({
-							position: dayMarkers[day],
-							map: map,
-							icon: {
-								url: day == 0 ? startPointUrl : campUrl
-							},
-						});
-					}
+					dayMarkers[d - 1].setDay (d, days[d]);
 				}
-				else
-				{
-					dayMarkers[day].lat = parseFloat(data[d].lat);
-					dayMarkers[day].lng = parseFloat(data[d].lng);
-					dayMarkers[day].day = day;
-					
-					if (day > 0)
-					{
-						dayMarkers[day].marker.setPosition(dayMarkers[day]);
-
-						google.maps.event.removeListener (dayMarkers[day].listener);
-					}
-				}
-				
-				if (day == 0)
-				{
-					if (startOfTrailMarker.listener != undefined)
-					{
-						google.maps.event.removeListener (startOfTrailMarker.listener);
-					}
-						
-					if (startOfTrailMarker.marker != undefined)
-					{
-						startOfTrailMarker.listener = attachInfoWindowMessage(startOfTrailMarker,
-							"<div>"
-							+ "Start of day 1"
-							+ "</div><div>Mile: " + metersToMilesRounded(data[d].startMeters)
-							+ "</div><div>Elevation: " + metersToFeet(data[d].ele) + "\'</div>");
-					}
-				}
-				else
-				{
-					dayMarkers[day].listener = attachInfoWindowMessage(dayMarkers[day],
-						"<div>"
-						+ "End of day " + dayMarkers[day].day
-						+ "</div><div>Mile: " + metersToMilesRounded(data[d].startMeters)
-						+ "</div><div>Elevation: " + metersToFeet(data[d].ele) + "\'</div>");
-				}
-				
-				day++;
 			}
 
-			if (endOfTrailMarker.listener != undefined)
-			{
-				google.maps.event.removeListener (endOfTrailMarker.listener);
-			}
-		
-			if (endOfTrailMarker.marker != undefined)
-			{
-				endOfTrailMarker.listener = attachInfoWindowMessage(endOfTrailMarker,
-					"<div>Mile: " + metersToMilesRounded(data[d].endMeters)
-					+ "</div><div>Elevation: " + metersToFeet(data[d].endEle) + "\'</div>");
-			}
-			
 			document.getElementById ("schedule").innerHTML = txt;
 
 			//
 			// Remove any remaining markers at the end of the array that are in
 			// excess.
 			//
-//			if (m < markers.length)
-//			{
-//				for (let i = m; i < markers.length; i++)
-//				{
-//					markers[i].marker.setMap(null);
-//					markers[i].marker = null;
-//					google.maps.event.removeListener (markers[i].listener);
-//				}
-//				
-//				markers.splice(m, markers.length - m);
-//			}
-			
-			if (day < dayMarkers.length)
+			if (days.length < dayMarkers.length)
 			{
-				for (let i = day; i < dayMarkers.length; i++)
+				for (let i = days.length - 1; i < dayMarkers.length; i++)
 				{
-					dayMarkers[i].marker.setMap(null);
-					dayMarkers[i].marker = null;
-					google.maps.event.removeListener (dayMarkers[i].listener);
+					dayMarkers[i].removeMarker ();
 				}
 				
-				dayMarkers.splice(day, dayMarkers.length - day);
+				dayMarkers.splice(days.length, dayMarkers.length - days.length);
 			}
 		}
 	}
@@ -1325,28 +1255,6 @@ function calculate ()
 	xmlhttp.open("GET", "schedule?id=" + userHikeId, true);
 	//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xmlhttp.send();
-}
-
-
-function setTrailMarker (trailMarker, position, iconUrl)
-{
-	trailMarker.lat = parseFloat(position.lat);
-	trailMarker.lng = parseFloat(position.lng);
-
-	if (trailMarker.marker != undefined)
-	{
-		trailMarker.marker.setPosition (trailMarker);
-	}
-	else
-	{
-		trailMarker.marker = new google.maps.Marker({
-			position: trailMarker,
-			map: map,
-			icon: {
-				url: iconUrl
-			},
-		});
-	}
 }
 
 
@@ -1366,26 +1274,12 @@ function retrieveRoute ()
 				//
 				// Add start of trail marker
 				//
-				if (anchors[0].type == "start")
-				{
-					setTrailMarker (startOfTrailMarker, anchors[0], startPointUrl);
-				}
-				else if (anchors[anchors.length - 1].type == "start")
-				{
-					setTrailMarker (startOfTrailMarker, anchors[anchors.length - 1], startPointUrl);
-				}
+				startOfTrailMarker.setPosition(anchors[0]);
 
 				//
 				// Add end of trail marker
 				//
-				if (anchors[0].type == "end")
-				{
-					setTrailMarker (endOfTrailMarker, anchors[0], endPointUrl);
-				}
-				else if (anchors[anchors.length - 1].type == "end")
-				{
-					setTrailMarker (endOfTrailMarker, anchors[anchors.length - 1], endPointUrl);
-				}
+				endOfTrailMarker.setPosition(anchors[anchors.length - 1]);
 			}
 			
 			if (anchors.length > 1)
@@ -1402,7 +1296,7 @@ function retrieveRoute ()
 				getAndLoadElevationData (0, actualRoute.length, actualRoute);
 			}
 			
-			calculate ();
+			getSchedule ();
 		}
 	}
 	
