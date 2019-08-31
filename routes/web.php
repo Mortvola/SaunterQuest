@@ -48,3 +48,5 @@ Route::get('/resupplyPlan', 'ResupplyPlanController@get');
 
 Route::get('/exportTrail', 'ExportController@get');
 
+Route::get('/elevation', 'ElevationController@get');
+

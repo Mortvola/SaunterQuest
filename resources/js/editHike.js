@@ -842,10 +842,6 @@ function findNearestSegment (position, anchors)
 
 function displayLocation (object, position)
 {
-	$("#modalTitle").html("Location");
-	$("#modalBody").html("Lat: " + position.lat() + " Lng: " + position.lng());
-	$("#modalDialog").modal ('show');
-	
 	var xmlhttp = new XMLHttpRequest ();
 	xmlhttp.onreadystatechange = function ()
 	{
@@ -853,11 +849,13 @@ function displayLocation (object, position)
 		{
 			let elevation = JSON.parse(this.responseText);
 
-			$("#modalBody").html("Lat: " + position.lat() + " Lng: " + position.lng() + " Elevation: " + metersToFeet(elevation));
+			infoWindow.setContent ("<div>Lat: " + position.lat() + "</div><div>Lng: " + position.lng() + "</div><div>Elevation: " + metersToFeet(elevation) + "</div>");
+			infoWindow.setPosition (position);
+			infoWindow.open(map);
 		}
 	}
 	
-	xmlhttp.open("GET", "elevation.php?lat=" + position.lat () + "&lng=" + position.lng (), true);
+	xmlhttp.open("GET", "elevation?lat=" + position.lat () + "&lng=" + position.lng (), true);
 	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xmlhttp.send();
 }
