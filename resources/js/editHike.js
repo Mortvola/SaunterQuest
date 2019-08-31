@@ -1163,8 +1163,8 @@ function calculate ()
 			
 			for (d in data)
 			{
-				txt += "<div class='panel panel-default'>";
-				txt += "<div class='panel-heading' style='padding:5px 5px 5px 5px' onclick='positionMapToDay(" + d + ")'>";
+				txt += "<div class='card'>";
+				txt += "<div class='card-header' style='padding:5px 5px 5px 5px' onclick='positionMapToDay(" + d + ")'>";
 				txt += "<div class='grid-container'>";
 				txt += "<div>" + "Day " + (parseInt(d) + 1) + "</div>";
 				txt += "<div>" + "Gain/Loss (feet): " + metersToFeet(data[d].gain) + "/" + metersToFeet(data[d].loss) + "</div>";
