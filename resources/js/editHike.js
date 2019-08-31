@@ -2,8 +2,7 @@
 "use strict";
 
 var route;
-var days;
-var dayMarkers = [];
+var schedule;
 var resupplyLocations = [];
 
 var controlDown = false;
@@ -34,7 +33,6 @@ var selectEndSegment;
 
 var editPolyLine = {};
 
-var campUrl = "http://maps.google.com/mapfiles/ms/micons/campground.png";
 var junctionUrl = "http://maps.google.com/mapfiles/ms/micons/lightblue.png";
 
 const routeStrokeWeight = 6;
@@ -562,30 +560,6 @@ function clearVertices ()
 }
 
 
-function recalculateDistances (object, position)
-{
-	for (let r in anchors)
-	{
-		if (r == 0)
-		{
-			anchors[0].dist = 0;
-		}
-		else
-		{
-			let delta = google.maps.geometry.spherical.computeDistanceBetween(
-					new google.maps.LatLng(anchors[r - 1]),
-					new google.maps.LatLng(anchors[r]));
-			
-			anchors[r].dist = anchors[r - 1].dist + delta;
-		}
-	}
-	
-	drawRoute ();
-	getAndLoadElevationData (0, actualRoute.length, actualRoute);
-	getSchedule ();
-}
-
-
 function measureStartMarkerSet (position, segment)
 {
 	selectStartPosition = new google.maps.LatLng({lat: position.x, lng: position.y});
@@ -968,7 +942,6 @@ function myMap()
 		{title: "Select route segment", func: startRouteMeasurement},
 		{title: "Display Location", func:displayLocation},
 		{title: "Add Note", func: addNote},
-		{title: "Recalculate distances", func: recalculateDistances},
 		{title: "Edit", func: toggleEdit}
 	]);
 
@@ -983,124 +956,15 @@ function myMap()
 	map.infoWindow = new google.maps.InfoWindow({content: "This is a test"});
 
 	route = new Route(map);
+	schedule = new Schedule (map);
 	
 	route.retrieve ();
-	getSchedule ();
+	schedule.retrieve ();
 
 	retrievePointsOfInterest ();
 	retrieveResupplyLocations ();
 	retrieveHikerProfiles (); //todo: only do this when visiting the tab of hiker profiles
 } 
-
-function getSchedule ()
-{
-	var xmlhttp = new XMLHttpRequest ();
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && this.status == 200)
-		{
-			days = JSON.parse(this.responseText);
-
-			let txt = "";
-			let m = 0;
-			
-			for (let d = 0; d < days.length; d++)
-			{
-				txt += "<div class='card'>";
-				txt += "<div class='card-header' style='padding:5px 5px 5px 5px' onclick='positionMapToDay(" + d + ")'>";
-				txt += "<div class='grid-container'>";
-				txt += "<div>" + "Day " + (parseInt(d) + 1) + "</div>";
-				txt += "<div>" + "Gain/Loss (feet): " + metersToFeet(days[d].gain) + "/" + metersToFeet(days[d].loss) + "</div>";
-				txt += "<div>" + "Food: " + gramsToPoundsAndOunces (days[d].accumWeight) + "</div>";
-				txt += "<div>" + "" + "</div>";
-				txt += "<div>" + "Miles: " + metersToMilesRounded (days[d].meters) + "</div>";
-				txt += "</div>";
-				txt += "</div>";
-					
-				txt += "<div style='padding:2px 2px 2px 2px'>" + timeFormat(days[d].startTime) + ", " + "mile " + metersToMilesRounded (days[d].startMeters) + ": start" + "</div>";
-				
-//				if (data[d].events.length > 0)
-//				{
-//					for (let e in data[d].events)
-//					{
-//						txt += "<div style='padding:2px 2px 2px 2px'>" + timeFormat(data[d].events[e].time) + ", " + "mile " + metersToMilesRounded (data[d].events[e].meters) + ": " + data[d].events[e].type + "</div>";
-//
-//						if (m >= markers.length)
-//						{
-//							// todo: should the marker just have the index to this day and event instead of the POI ID?
-//							markers.push({poiId: data[d].events[e].poiId, lat: parseFloat(data[d].events[e].lat), lng: parseFloat(data[d].events[e].lng)});
-//							
-//							markers[m].marker = new google.maps.Marker({
-//								position: markers[m],
-//								map: map,
-//								icon: {
-//									url: pointOfInterestUrl
-//								},
-//							});
-//							
-//							let markerIndex = m;
-//							markers[m].marker.addListener ("rightclick", function (event) { pointOfInterestCM.open (map, event, markerIndex); });
-//						}
-//						else
-//						{
-//							markers[m].poiId = data[d].events[e].poiId;
-//							markers[m].lat = parseFloat(data[d].events[e].lat);
-//							markers[m].lng = parseFloat(data[d].events[e].lng);
-//							
-//							markers[m].marker.setPosition(markers[m]);
-//
-//							google.maps.event.removeListener (markers[m].listener);
-//						}
-//
-//						markers[m].listener = attachInfoWindowMessage(markers[m], "Resupply");
-//						
-//						m++;
-//					}
-//				}
-
-				txt += "<div style='padding:2px 2px 2px 2px'>" + timeFormat(days[d].endTime) + ", " + "mile ";
-				
-				txt += metersToMilesRounded (days[parseInt(d)].startMeters + days[parseInt(d)].meters);
-				
-				txt += ": stop " + "</div>";
-
-				txt += "</div>";
-				
-				if (d > 0)
-				{
-					// Add a day marker, if needed.
-					if (d - 1 >= dayMarkers.length)
-					{
-						dayMarkers.push(new EndOfDayMarker(map, campUrl));
-					}
-
-					dayMarkers[d - 1].setDay (d, days[d]);
-				}
-			}
-
-			$("#schedule").html (txt);
-
-			//
-			// Remove any remaining markers at the end of the array that are in
-			// excess.
-			//
-			if (days.length < dayMarkers.length)
-			{
-				for (let i = days.length - 1; i < dayMarkers.length; i++)
-				{
-					dayMarkers[i].removeMarker ();
-				}
-				
-				dayMarkers.splice(days.length, dayMarkers.length - days.length);
-			}
-		}
-	}
-
-	xmlhttp.open("GET", "schedule?id=" + userHikeId, true);
-	//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	xmlhttp.send();
-}
-
 
 function releaseTrails ()
 {

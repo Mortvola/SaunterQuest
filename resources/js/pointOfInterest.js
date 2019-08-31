@@ -31,7 +31,7 @@ function removePointOfInterest (object, position)
 			
 			pointsOfInterest.splice (index);
 			
-			calculate ();
+			schedule.retrieve ();
 		}
 	}
 	
@@ -189,7 +189,7 @@ function insertPointOfInterest (position)
 
 			addPointOfInterest(poi);
 
-			calculate();
+			schedule.retrieve();
 		}
 	}
 

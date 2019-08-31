@@ -174,7 +174,7 @@ function updateHikerProfile (hikerProfileId)
 			
 			$("#hikerProfile_" + hikerProfileId).replaceWith (hikerProfileRowGet(profile));
 
-			calculate ();
+			schedule.retrieve ();
 		}
 	}
 	
@@ -212,7 +212,7 @@ function insertHikerProfile ()
 			
 			$("#hikerProfileLastRow").before(hikerProfileRowGet(profile));
 
-			calculate ();
+			schedule.retrieve ();
 		}
 	}
 	
@@ -233,7 +233,7 @@ function removeHikerProfile (hikerProfileId)
 		if (this.readyState == 4 && this.status == 200)
 		{
 			$("#hikerProfile_" + hikerProfileId).remove();
-			calculate ();
+			schedule.retrieve ();
 		}
 	}
 	

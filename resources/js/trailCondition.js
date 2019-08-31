@@ -52,7 +52,7 @@ function insertTrailCondition ()
 	
 					$("#conditionsLastRow").before(trailConditionRowGet (trailCondition));
 					
-					calculate ();
+					schedule.retrieve ();
 				}
 
 				closeEditTrailConditions ();
@@ -302,7 +302,7 @@ function updateTrailCondition (trailConditionId)
 	
 				$("#trailCondition_" + trailConditionId).replaceWith (trailConditionRowGet(trailCondition));
 	
-				calculate ();
+				schedule.retrieve ();
 			}
 
 			closeEditTrailConditions ();
@@ -333,7 +333,7 @@ function removeTrailCondition (trailConditionId)
 			trailConditions.splice(t, 1);
 			
 			$("#trailCondition_" + trailConditionId).remove();
-			calculate ();
+			schedule.retrieve ();
 		}
 	}
 	
