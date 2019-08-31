@@ -1,14 +1,10 @@
 <script>
 "use strict";
 
+var route;
 var days;
 var dayMarkers = [];
-var startOfTrailMarker;
-var endOfTrailMarker;
 var resupplyLocations = [];
-var anchors = [];
-var actualRoute = [];
-var actualRoutePolyline;
 
 var controlDown = false;
 
@@ -26,7 +22,6 @@ var editedRoute = [];
 var routeContextMenu;
 var vertexContextMenu;
 var map;
-var bounds = {};
 var startPosition;
 var startSegment;
 var endPosition;
@@ -37,12 +32,9 @@ var selectStartSegment;
 var selectEndPosition;
 var selectEndSegment;
 
-var infoWindow = {};
 var editPolyLine = {};
 
-var startPointUrl = "http://maps.google.com/mapfiles/ms/micons/green-dot.png";
 var campUrl = "http://maps.google.com/mapfiles/ms/micons/campground.png";
-var endPointUrl = "http://maps.google.com/mapfiles/ms/micons/red-dot.png";
 var junctionUrl = "http://maps.google.com/mapfiles/ms/micons/lightblue.png";
 
 const routeStrokeWeight = 6;
@@ -77,8 +69,8 @@ function attachInfoWindowMessage (poi, message)
 	{
 		if (!controlDown)
 		{
-			infoWindow.setContent (poi.message);
-			infoWindow.open(map, poi.marker);
+			map.infoWindow.setContent (poi.message);
+			map.infoWindow.open(map, poi.marker);
 		}
 	});
 }
@@ -849,9 +841,9 @@ function displayLocation (object, position)
 		{
 			let elevation = JSON.parse(this.responseText);
 
-			infoWindow.setContent ("<div>Lat: " + position.lat() + "</div><div>Lng: " + position.lng() + "</div><div>Elevation: " + metersToFeet(elevation) + "</div>");
-			infoWindow.setPosition (position);
-			infoWindow.open(map);
+			map.infoWindow.setContent ("<div>Lat: " + position.lat() + "</div><div>Lng: " + position.lng() + "</div><div>Elevation: " + metersToFeet(elevation) + "</div>");
+			map.infoWindow.setPosition (position);
+			map.infoWindow.open(map);
 		}
 	}
 	
@@ -910,164 +902,15 @@ function positionMapToBounds (p1, p2)
 }
 
 
-function drawRoute ()
-{
-	if (map && anchors.length > 1)
-	{
-		//
-		// Traverse route coords and find the bounds
-		// todo: this should be part of the file retrieved
-		for (let r in anchors)
-		{
-			if (r == 0)
-			{
-				bounds.east = anchors[r].lng;
-				bounds.west = anchors[r].lng;
-				bounds.north = anchors[r].lat;
-				bounds.south = anchors[r].lat;
-			}
-			else
-			{
-				if (anchors[r].lng > bounds.east)
-				{
-					bounds.east = anchors[r].lng;
-				}
-
-				if (anchors[r].lng < bounds.west)
-				{
-					bounds.west = anchors[r].lng;
-				}
-				
-				if (anchors[r].lat > bounds.north)
-				{
-					bounds.north = anchors[r].lat;
-				}
-
-				if (anchors[r].lat < bounds.south)
-				{
-					bounds.south = anchors[r].lat;
-				}
-			}
-
-			if (r > 0)
-			{
-				if (anchors[r].lat == anchors[r - 1].lat && anchors[r].lng == anchors[r - 1].lng)
-				{
-					console.log ("same coordinate");
-				}
-			}
-			
-			actualRoute.push({lat: anchors[r].lat, lng: anchors[r].lng, dist: anchors[r].dist, ele: anchors[r].ele});
-			anchors[r].actualRouteIndex = actualRoute.length - 1;
-			
-			if (anchors[r].trail != undefined)
-			{
-				if (anchors[r].lat == anchors[r].trail[0].lat && anchors[r].lng == anchors[r].trail[0].lng)
-				{
-					console.log ("same coordinate");
-				}
-				
-				for (let t in anchors[r].trail)
-				{
-					actualRoute.push({lat: anchors[r].trail[t].lat, lng: anchors[r].trail[t].lng, dist: anchors[r].trail[t].dist, ele: anchors[r].trail[t].ele});
-				}
-			}
-		}
-
-		if (actualRoutePolyline != undefined)
-		{
-			actualRoutePolyline.setMap(null);
-			
-			removeContextMenu(actualRoutePolyline);
-		}
-		
-		actualRoutePolyline = new google.maps.Polyline({
-			path: actualRoute,
-			editable: false,
-			geodesic: true,
-			strokeColor: '#0000FF',
-			strokeOpacity: 1.0,
-			strokeWeight: routeStrokeWeight,
-			zIndex: 20});
-
-		actualRoutePolyline.setMap(map);
-		
-		setContextMenu (actualRoutePolyline, routeContextMenu);
-	}
-}
-
-
-function setRouteStart (position)
-{
-	var xmlhttp = new XMLHttpRequest ();
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && this.status == 200)
-		{
-			retrieveRoute ();
-		}
-	}
-	
-	var routeUpdate = {userHikeId: userHikeId, mode: "setStart", point: {lat: position.lat (), lng: position.lng ()}};
-	
-	xmlhttp.open("PUT", "route.php", true);
-	xmlhttp.setRequestHeader("Content-type", "application/json");
-	xmlhttp.send(JSON.stringify(routeUpdate));
-}
-
-
-function setRouteEnd (position)
-{
-	var xmlhttp = new XMLHttpRequest ();
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && this.status == 200)
-		{
-			retrieveRoute ();
-		}
-	}
-	
-	var routeUpdate = {userHikeId: userHikeId, mode: "setEnd", point: {lat: position.lat (), lng: position.lng ()}};
-	
-	xmlhttp.open("PUT", "route.php", true);
-	xmlhttp.setRequestHeader("Content-type", "application/json");
-	xmlhttp.send(JSON.stringify(routeUpdate));
-}
-
-
 function setStartLocation (object, position)
 {
-	// If there is no start or end location then
-	// add them both
-//	if (anchors.length == 0)
-	{
-		setRouteStart (position);
-	}
-//	else
-//	{
-//		toggleEdit (object, position);
-//		
-//		var path = editPolyLine.getPath ();
-//		var vertex = path.setAt(0, position);
-//	}
+	route.setStart (position);
 }
 
 
 function setEndLocation (object, position)
 {
-	// If there is no start or end location then
-	// add them both
-//	if (anchors.length == 0)
-	{
-		setRouteEnd (position);
-	}
-//	else
-//	{
-//		toggleEdit (object, position);
-//		
-//		var path = editPolyLine.getPath ();
-//		var vertex = path.setAt(path.length - 1, position);
-//	}
+	route.setEnd (position);
 }
 
 
@@ -1137,12 +980,13 @@ function myMap()
 	map.addListener ("dragend", function () { mapDragging = false; updateTrails (); });
 	map.addListener ("bounds_changed", function () { if (!mapDragging) { updateTrails (); }})
 
-	infoWindow = new google.maps.InfoWindow({content: "This is a test"});
+	map.infoWindow = new google.maps.InfoWindow({content: "This is a test"});
 
-	startOfTrailMarker = new StartOfTrailMarker (map, startPointUrl, infoWindow);
-	endOfTrailMarker = new EndOfTrailMarker (map, endPointUrl, infoWindow);
+	route = new Route(map);
 	
-	retrieveRoute ();
+	route.retrieve ();
+	getSchedule ();
+
 	retrievePointsOfInterest ();
 	retrieveResupplyLocations ();
 	retrieveHikerProfiles (); //todo: only do this when visiting the tab of hiker profiles
@@ -1227,14 +1071,14 @@ function getSchedule ()
 					// Add a day marker, if needed.
 					if (d - 1 >= dayMarkers.length)
 					{
-						dayMarkers.push(new EndOfDayMarker(map, campUrl, infoWindow));
+						dayMarkers.push(new EndOfDayMarker(map, campUrl));
 					}
 
 					dayMarkers[d - 1].setDay (d, days[d]);
 				}
 			}
 
-			document.getElementById ("schedule").innerHTML = txt;
+			$("#schedule").html (txt);
 
 			//
 			// Remove any remaining markers at the end of the array that are in
@@ -1257,53 +1101,6 @@ function getSchedule ()
 	xmlhttp.send();
 }
 
-
-function retrieveRoute ()
-{
-	var xmlhttp = new XMLHttpRequest ();
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && this.status == 200)
-		{
-			actualRoute = [];
-			
-			anchors = JSON.parse(this.responseText);
-
-			if (anchors.length > 0)
-			{
-				//
-				// Add start of trail marker
-				//
-				startOfTrailMarker.setPosition(anchors[0]);
-
-				//
-				// Add end of trail marker
-				//
-				endOfTrailMarker.setPosition(anchors[anchors.length - 1]);
-			}
-			
-			if (anchors.length > 1)
-			{
-				retrieveTrailConditions ();
-
-				if (map)
-				{
-					drawRoute ();
-	
-					map.fitBounds(bounds);
-				}
-				
-				getAndLoadElevationData (0, actualRoute.length, actualRoute);
-			}
-			
-			getSchedule ();
-		}
-	}
-	
-	xmlhttp.open("GET", "route?id=" + userHikeId, true);
-	//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	xmlhttp.send();
-}
 
 function releaseTrails ()
 {

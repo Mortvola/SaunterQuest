@@ -185,6 +185,7 @@
 
     <?php require_once resource_path('js/contextMenu.js'); ?>
     <?php require_once resource_path('js/trailMarker.js'); ?>
+    <?php require_once resource_path('js/route.js'); ?>
     <?php require_once resource_path('js/pointOfInterest.js'); ?>
     <?php require_once resource_path('js/editHike.js'); ?>
     <?php require_once resource_path('js/hikerProfile.js'); ?>
