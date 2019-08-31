@@ -29,7 +29,7 @@
 
 	<div class="row no-gutters" style="height:100%">
         <div class="col-md-12" style="overflow-y:scroll;height:100%">
-            <h4>Your Hikes</h4>
+            <h4>Planned Hikes</h4>
             <table class="table table-condensed">
                 <thead><tr><th>Name</th><th>Length</th><th>Duration</th><th>Start Date</th></tr></thead>
                 <tbody>
@@ -53,6 +53,12 @@
                     <td/><td/><td/><td/>
                     </tr>
         
+                </tbody>
+            </table>
+            <h4>Completed Hikes</h4>
+            <table class="table table-condensed">
+                <thead><tr><th>Name</th><th>Length</th><th>Duration</th><th>Start Date</th></tr></thead>
+                <tbody>
                 </tbody>
             </table>
         </div>
