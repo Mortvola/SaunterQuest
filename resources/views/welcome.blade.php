@@ -6,8 +6,19 @@
 
         <title>Backpacker's Planner</title>
 
+        <!-- Scripts -->
+        <script src="{{ asset('js/jquery-3.3.1.slim.min.js') }}"></script>
+    	<script src="{{ asset('js/popper-1.14.7.min.js') }}"></script>
+        <script src="{{ asset('js/bootstrap-4.3.1.min.js') }}"></script>
+        <script src="{{ asset('js/utilities.js') }}"></script>
+    
         <!-- Fonts -->
-        <link href="https://fonts.googleapis.com/css?family=Nunito:200,600" rel="stylesheet">
+        <link rel="dns-prefetch" href="//fonts.gstatic.com">
+        <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
+    
+        <!-- Styles -->
+        <link href="{{ asset('css/bootstrap-4.3.1.css') }}" rel="stylesheet">
+    	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
 
         <!-- Styles -->
         <style>
@@ -79,11 +90,9 @@
                     @auth
                         <a href="{{ url('/home') }}" style="color:white">Home</a>
                     @else
-                        <a href="{{ route('login') }}" style="color:white">Login</a>
-
-                        @if (Route::has('register'))
-                            <a href="{{ route('register') }}" style="color:white">Register</a>
-                        @endif
+                        <!-- a href="{{ route('login') }}" style="color:white">Login</a -->
+                        <a href="javascript:showLoginDialog()" style="color:white">Login</a>
+                        <a href="javascript:showRegisterDialog()" style="color:white">Register</a>
                     @endauth
                 </div>
             @endif
@@ -94,5 +103,212 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Modal -->
+        <div class="modal fade" id="loginDialog" role="dialog">
+            <div class="modal-dialog">
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#login">Login</a></li>
+                        <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#forgotpassword">Reset Password</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div id="login" class="tab-pane fade show active">
+        			        <div class="card-body">
+                                <form method="POST" action="{{ route('login') }}">
+                                    @csrf
+            
+                                    <div class="form-group row">
+                                        <label for="username" class="col-md-3 col-form-label text-md-right">{{ __('Username') }}</label>
+            
+                                        <div class="col-md-8">
+                                            <input id="username" type="username" class="form-control @error('username') is-invalid @enderror" name="username" value="{{ old('username') }}" required autocomplete="username" autofocus>
+            
+                                            @error('username')
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                        </div>
+                                    </div>
+            
+                                    <div class="form-group row">
+                                        <label for="password" class="col-md-3 col-form-label text-md-right">{{ __('Password') }}</label>
+            
+                                        <div class="col-md-8">
+                                            <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password">
+            
+                                            @error('password')
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                        </div>
+                                    </div>
+            
+                                    <div class="form-group row">
+                                        <div class="col-md-8 offset-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
+            
+                                                <label class="form-check-label" for="remember">
+                                                    {{ __('Remember Me') }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+            
+                                    <div class="form-group row mb-0">
+                                        <div class="col-md-8 offset-md-3">
+                                            <button type="submit" class="btn btn-primary">
+                                                {{ __('Login') }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <div id="forgotpassword" class="tab-pane fade">
+                            <div class="card-body">
+                                @if (session('status'))
+                                    <div class="alert alert-success" role="alert">
+                                        {{ session('status') }}
+                                    </div>
+                                @endif
+            
+                                <form method="POST" action="{{ route('password.email') }}">
+                                    @csrf
+            
+                                    <div class="form-group row">
+                                        <label for="email" class="col-md-3 col-form-label text-md-right">{{ __('E-Mail Address') }}</label>
+            
+                                        <div class="col-md-8">
+                                            <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
+            
+                                            @error('email')
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                        </div>
+                                    </div>
+            
+                                    <div class="form-group row mb-0">
+                                        <div class="col-md-8 offset-md-3">
+                                            <button type="submit" class="btn btn-primary">
+                                                {{ __('Send Password Reset Link') }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        
+                	</div>
+                </div>
+            </div>
+        </div> <!--  Modal -->
+
+        <!-- Modal -->
+        <div class="modal fade" id="registerDialog" role="dialog">
+            <div class="modal-dialog">
+                <!-- Modal content-->
+        	    <div class="modal-content">
+	                <div class="card-header">{{ __('Register') }}</div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ route('register') }}">
+                            @csrf
+    
+                            <div class="form-group row">
+                                <label for="username" class="col-md-3 col-form-label text-md-right">{{ __('Username') }}</label>
+    
+                                <div class="col-md-8">
+                                    <input id="username" type="text" class="form-control @error('username') is-invalid @enderror" name="username" value="{{ old('username') }}" required autocomplete="username" autofocus>
+    
+                                    @error('username')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+                            </div>
+    
+                            <div class="form-group row">
+                                <label for="name" class="col-md-3 col-form-label text-md-right">{{ __('Name') }}</label>
+    
+                                <div class="col-md-8">
+                                    <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name') }}" required autocomplete="name" autofocus>
+    
+                                    @error('name')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+                            </div>
+    
+                            <div class="form-group row">
+                                <label for="email" class="col-md-3 col-form-label text-md-right">{{ __('E-Mail Address') }}</label>
+    
+                                <div class="col-md-8">
+                                    <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email">
+    
+                                    @error('email')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+                            </div>
+    
+                            <div class="form-group row">
+                                <label for="password" class="col-md-3 col-form-label text-md-right">{{ __('Password') }}</label>
+    
+                                <div class="col-md-8">
+                                    <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="new-password">
+    
+                                    @error('password')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+                            </div>
+    
+                            <div class="form-group row">
+                                <label for="password-confirm" class="col-md-3 col-form-label text-md-right">{{ __('Confirm Password') }}</label>
+    
+                                <div class="col-md-8">
+                                    <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required autocomplete="new-password">
+                                </div>
+                            </div>
+    
+                            <div class="form-group row mb-0">
+                                <div class="col-md-8 offset-md-3">
+                                    <button type="submit" class="btn btn-primary">
+                                        {{ __('Register') }}
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div> <!--  Modal -->
+        
+        <script>
+            function showLoginDialog ()
+            {
+                $("#loginDialog").modal ('show');
+            }
+
+            function showRegisterDialog ()
+            {
+                $("#registerDialog").modal ('show');
+            }
+        </script>
     </body>
 </html>
