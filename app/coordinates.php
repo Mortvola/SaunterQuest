@@ -21,7 +21,7 @@ function haversineGreatCircleDistance(
     return $angle * $earthRadius;
 }
 
-function nearestSegmentFind($lat, $lng, &$segments)
+function nearestSegmentFind($lat, $lng, $segments)
 {
     $closestIndex = -1;
 
@@ -93,7 +93,7 @@ function distToSegmentSquared($p, $v, $w)
 }
 
 
-function pointOnPath($point, &$segments, $tolerance)
+function pointOnPath($point, $segments, $tolerance)
 {
     //
     // There has to be at least two points in the array. Otherwise, we wouldn't have any edges.
@@ -298,7 +298,7 @@ function boundsIntersect($b1, $b2, $inflation)
 
 
 
-function findTrail(&$point, &$trailName, &$trailIndex, &$route, &$routeIndex)
+function findTrail($point)
 {
     $trails = [];
     $closestTrail = -1;
@@ -350,4 +350,6 @@ function findTrail(&$point, &$trailName, &$trailIndex, &$route, &$routeIndex)
 
     $point->lat = $adjustedPoint->lat;
     $point->lng = $adjustedPoint->lng;
+    
+    return [$point, $trailName, $trailIndex, $route, $routeIndex];
 }

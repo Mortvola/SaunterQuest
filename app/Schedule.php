@@ -41,7 +41,7 @@ class Schedule
         $this->currentDay++;
     }
     
-    public function &dayGet ($d)
+    public function dayGet ($d)
     {
         if (!isset($this->days[$d])) {
             $this->days[$d] = new Day();
@@ -50,7 +50,7 @@ class Schedule
         return $this->days[$d];
     }
     
-    public function &currentDayGet ()
+    public function currentDayGet ()
     {
         return $this->dayGet ($this->currentDay);
     }

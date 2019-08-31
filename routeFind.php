@@ -240,39 +240,32 @@ function findPath($start, $end)
     global $handle;
     global $endCN, $endRoute, $endRouteIndex, $endGraphFile;
 
-    $trailName = "";
-    $startTrailIndex = -1;
-
-    findTrail($start, $trailName, $startTrailIndex, $startRoute, $startRouteIndex);
-
-    $start->trailName = $trailName;
+    list($start, $start->trailName, $startTrailIndex, $startRoute, $startRouteIndex) = findTrail($start);
 
     error_log(json_encode($start));
 
     error_log("Start Route Index: " . json_encode($startRouteIndex));
-    error_log("start trailName: " . $trailName);
+    error_log("start trailName: " . $start->trailName);
     error_log("start trailIndex: " . $startTrailIndex);
     error_log("start routeIndex: " . $startRouteIndex);
 
-    $parts = explode(":", $trailName);
+    $parts = explode(":", $start->trailName);
     $startCN = $parts[1];
     $startRoute = $parts[2];
 
     error_log("Start CN/Route: " . $startCN . "/" . $startRoute);
 
-    findTrail($end, $trailName, $endTrailIndex, $endRoute, $endRouteIndex);
-
-    $end->trailName = $trailName;
+    list($end, $end->trailName, $endTrailIndex, $endRoute, $endRouteIndex) = findTrail($end);
 
     error_log(json_encode($end));
-    error_log("end trailName: " . $trailName);
+    error_log("end trailName: " . $end->trailName);
     error_log("end trailIndex: " . $endTrailIndex);
     error_log("end routeIndex: " . $endRouteIndex);
-//  var_dump ($trailName);
+//  var_dump ($end->trailName);
 //  var_dump ($endTrailIndex);
 //  var_dump ($endRouteIndex);
 
-    $parts = explode(":", $trailName);
+    $parts = explode(":", $end->trailName);
     $endCN = $parts[1];
     $endRoute = $parts[2];
 

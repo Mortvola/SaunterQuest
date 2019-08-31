@@ -56,23 +56,23 @@ function dayStart($schedule, $point, $segmentIndex, $segmentMeters)
 //
 // Compute the weight of food over a period of days
 //
-function computeFoodWeight(&$schedule, &$foodStart)
+function computeFoodWeight($schedule, $foodStart)
 {
     $d = $schedule->currentDayIndexGet ();
     
     $accum = 0;
     for ($i = $d; $i >= $foodStart; $i--) {
-        $day = &$schedule->dayGet ($i);
+        $day = $schedule->dayGet ($i);
         
         $accum += $day->foodWeight;
         $day->accumWeight = $accum;
     }
 
-    $foodStart = $d + 1;
+    return $d + 1;
 }
 
 
-function StrategyEndLater($timeShift, &$schedule, &$hoursNeeded)
+function StrategyEndLater($timeShift, $schedule, $hoursNeeded)
 {
     global $activeHikerProfile;
 
@@ -107,11 +107,11 @@ function StrategyEndLater($timeShift, &$schedule, &$hoursNeeded)
         }
     }
 
-    return $earliestChangedDay;
+    return [$earliestChangedDay, $hoursNeeded];
 }
 
 
-function StrategyStartEarlier($timeShift, &$schedule, &$hoursNeeded)
+function StrategyStartEarlier($timeShift, $schedule, $hoursNeeded)
 {
     global $activeHikerProfile;
 
@@ -148,7 +148,7 @@ function StrategyStartEarlier($timeShift, &$schedule, &$hoursNeeded)
         }
     }
 
-    return $earliestChangedDay;
+    return [$earliestChangedDay, $hoursNeeded];
 }
 
 
@@ -168,7 +168,7 @@ function findEvent($eventType, $events)
 }
 
 
-function pointsOfInterestGet($userId, $userHikeId, &$points)
+function pointsOfInterestGet($userId, $userHikeId, $points)
 {
     $pointsOfInterest = PointOfInterest::where('userHikeId', $userHikeId)->has('constraints')->get ();
 
@@ -216,7 +216,7 @@ function pointsOfInterestGet($userId, $userHikeId, &$points)
 }
 
 
-function trailConditionsGet($userHikeId, &$points)
+function trailConditionsGet($userHikeId, $points)
 {
     $trailConditions = \App\TrailCondition::where ('userHikeId', $userHikeId)->get ();
     
@@ -269,7 +269,7 @@ function trailConditionsGet($userHikeId, &$points)
 }
 
 
-function getFoodPlan(&$foodPlanId, &$foodPlanWeight)
+function getFoodPlan()
 {
     global $food, $foodPlanIndex;
 
@@ -285,6 +285,8 @@ function getFoodPlan(&$foodPlanId, &$foodPlanWeight)
 
     $foodPlanId = $food[$foodPlanIndex]->id;
     $foodPlanWeight = $food[$foodPlanIndex]->weight;
+    
+    return [$foodPlanId, $foodPlanWeight];
 }
 
 
@@ -303,7 +305,7 @@ function foodPlansGet($userId)
 }
 
 
-function activeTrailConditionsGet(&$trailConditions, $segmentIndex, $segmentPercentage, &$speedFactor, &$type)
+function activeTrailConditionsGet($trailConditions, $segmentIndex, $segmentPercentage)
 {
     $speedFactor = 1.0;
     $type = 2; // 'other'
@@ -324,21 +326,24 @@ function activeTrailConditionsGet(&$trailConditions, $segmentIndex, $segmentPerc
             }
         }
     }
+    
+    return [$speedFactor, $type];
 }
 
 
 $lingerHours = 0;
 
-function traverseSegment($it, $schedule, &$z, $segmentMeters, $lastEle, &$restart)
+function traverseSegment($it, $schedule, &$z, $segmentMeters, $lastEle)
 {
     global $activeHikerProfile;
     global $foodStart, $maxZ, $debug, $trailConditions, $lingerHours;
 
+    $restart = false;
     $metersPerHour = metersPerHourGet($it->elevationChange(), $it->segmentLength());
 
     // todo: do we need to call this per segment or should the results just be global and only call this
     // when reaching a new trail condition point or if starting the segment mid-segment?
-    activeTrailConditionsGet($trailConditions, $it->key(), $segmentMeters / $it->segmentLength(), $trailConditionsSpeedFactor, $trailConditionType);
+    list ($trailConditionsSpeedFactor, $trailConditionType) = activeTrailConditionsGet($trailConditions, $it->key(), $segmentMeters / $it->segmentLength());
 
     if (isset($it->current()->subsegments)) {
         reset($it->current()->subsegments);
@@ -440,7 +445,7 @@ function traverseSegment($it, $schedule, &$z, $segmentMeters, $lastEle, &$restar
                     if ($event->type == "trailCondition") {
     //                  echo "before: $trailConditionsSpeedFactor\n";
 
-                        activeTrailConditionsGet($trailConditions, $it->key(), $segmentMeters / $it->segmentLength(), $trailConditionsSpeedFactor, $trailConditionType);
+                        list($trailConditionsSpeedFactor, $trailConditionType) = activeTrailConditionsGet($trailConditions, $it->key(), $segmentMeters / $it->segmentLength());
 
     //                  echo "after: $trailConditionsSpeedFactor\n";
                     } elseif ($event->type == "arriveBefore" && $event->enabled) {
@@ -456,14 +461,14 @@ function traverseSegment($it, $schedule, &$z, $segmentMeters, $lastEle, &$restar
                             // prior day until the extra time needed is found or it could evenly divide the needed time
                             // across all days since the start, or a mix of the two.
 
-                            $startDay1 = StrategyEndLater(1, $schedule, $hoursNeeded);
+                            list($startDay1, $hoursNeeded) = StrategyEndLater(1, $schedule, $hoursNeeded);
 
                             if ($startDay1 == -1) {
                                 $startDay1 = $schedule->currentDayIndexGet ();
                             }
 
                             if ($hoursNeeded > 0) {
-                                $startDay2 = StrategyStartEarlier(1, $schedule, $hoursNeeded);
+                                list($startDay2, $hoursNeeded) = StrategyStartEarlier(1, $schedule, $hoursNeeded);
 
                                 if ($startDay2 == -1) {
                                     $startDay2 = $schedule->currentDayIndexGet ();
@@ -495,7 +500,7 @@ function traverseSegment($it, $schedule, &$z, $segmentMeters, $lastEle, &$restar
     //                      echo "Returned from following segments to resupply. dayMeters = $dayMeters\n";
                         }
 
-                        computeFoodWeight($schedule, $foodStart);
+                        $foodStart = computeFoodWeight($schedule, $foodStart);
 
                         if ($event) {
                             $schedule->currentDayGet()->events[] = new Event("resupply", $event->poiId, $event->lat, $event->lng, $event->shippingLocationId, $segmentMeters, $currentTime, "");
@@ -599,7 +604,7 @@ function traverseSegment($it, $schedule, &$z, $segmentMeters, $lastEle, &$restar
 
                     //echo "needed hours: $hoursNeeded\n";
 
-                    $startDay1 = StrategyEndLater (1, $schedule, $d, $hoursNeeded);
+                    list($startDay1, $hoursNeeded) = StrategyEndLater (1, $schedule, $d, $hoursNeeded);
 
                     if ($startDay1 == -1)
                     {
@@ -608,7 +613,7 @@ function traverseSegment($it, $schedule, &$z, $segmentMeters, $lastEle, &$restar
 
                     if ($hoursNeeded > 0)
                     {
-                        $startDay2 = StrategyStartEarlier (1, $schedule, $d, $hoursNeeded);
+                        list($startDay2, $hoursNeeded) = StrategyStartEarlier (1, $schedule, $d, $hoursNeeded);
 
                         if ($startDay2 == -1)
                         {
@@ -720,7 +725,7 @@ function traverseSegments($it, $schedule)
                 $lastEle = $segment->ele;
             }
 
-            traverseSegment($it, $schedule, $z, $segmentMeters, $lastEle, $restart);
+            $restart = traverseSegment($it, $schedule, $z, $segmentMeters, $lastEle);
 
             if ($restart) {
                 $it->position($schedule->currentDayGet()->segment - 1); // decrease by one since the for loop will increase it by one
@@ -736,7 +741,7 @@ function traverseSegments($it, $schedule)
         }
     }
 
-    $day = &$schedule->currentDayGet();
+    $day = $schedule->currentDayGet();
     
     $day->end();
 
@@ -747,7 +752,7 @@ function traverseSegments($it, $schedule)
 }
 
 
-function getSchedule($schedule, $userId, $userHikeId, &$points)
+function getSchedule($schedule, $userId, $userHikeId, $points)
 {
     global $foodStart;
     global $debug;

@@ -73,7 +73,7 @@ class Day implements \JsonSerializable
     {
         $this->startMeters = $startMeters;
 
-        getFoodPlan($this->foodPlanId, $this->foodWeight);
+        list($this->foodPlanId, $this->foodWeight) = getFoodPlan();
 
         if ($this->notes == null) {
             $this->notes = "";

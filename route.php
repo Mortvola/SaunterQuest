@@ -11,7 +11,7 @@ function modifyPoint(&$segments, $routeUpdate)
     $trailName = "";
     $trailIndex = -1;
 
-    findTrail($routeUpdate->point, $trailName, $trailIndex, $trail);
+    list($routeUpdate->point, $trailName, $trailIndex) = findTrail($routeUpdate->point, $trail);
 
     $segments[$routeUpdate->index]->lat = $routeUpdate->point->lat;
     $segments[$routeUpdate->index]->lng = $routeUpdate->point->lng;
