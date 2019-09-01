@@ -1,19 +1,12 @@
 <script>
 "use strict";
 
+var trails;
 var route;
 var schedule;
 var resupplyLocations = [];
 
 var controlDown = false;
-
-var mapDragging = false;
-
-var trails = [];
-var trailCoords = {};
-//var requestedTrailBounds;
-var currentTrailBounds;
-var currentTrailWeight;
 
 var trailContextMenu;
 
@@ -824,7 +817,6 @@ function mapInitialize()
 		{title:"Add Point of Interest", func:showAddPointOfInterest},
 		{title:"Create Resupply Location", func:addResupplyLocation},
 		{title:"Display Location", func:displayLocation},
-		{title:"Add trail to route", func:addTrailToRoute},
 		{title:"Set Start Location", func:setStartLocation},
 		{title:"Set End Location", func:setEndLocation}]);
 
@@ -848,12 +840,10 @@ function mapInitialize()
 		{title:"Delete", func:deleteVertex}]);
 	
 	setContextMenu (map, mapContextMenu);
-	map.addListener ("dragstart", function () { mapDragging = true;})
-	map.addListener ("dragend", function () { mapDragging = false; updateTrails (); });
-	map.addListener ("bounds_changed", function () { if (!mapDragging) { updateTrails (); }})
 
 	map.infoWindow = new google.maps.InfoWindow({content: "This is a test"});
 
+	trails = new Trails(map);
 	route = new Route(map);
 	schedule = new Schedule (map);
 	
@@ -865,197 +855,7 @@ function mapInitialize()
 	retrieveHikerProfiles (); //todo: only do this when visiting the tab of hiker profiles
 } 
 
-function releaseTrails ()
-{
-	for (let t in trails)
-	{
-		removeContextMenu(trails[t]);
-		trails[t].setMap(null);
-	}
-	
-	trails = [];
-	trailCoords = {};
-	currentTrailBounds = undefined;
-}
 
-
-function getTrailWeight ()
-{
-	var zoom = map.getZoom ();
-	
-	if (zoom >= 17)
-	{
-		return 8;
-	}
-	else if (zoom >= 16)
-	{
-		return 6;
-	}
-	else
-	{
-		return 4;
-	}
-}
-
-
-function addTrailToRoute (object, position)
-{
-	console.log (trailCoords.trails[object.trailCoordsIndex].cn);
-	
-//	var xmlhttp = new XMLHttpRequest ();
-//	xmlhttp.onreadystatechange = function ()
-//	{
-//		if (this.readyState == 4 && this.status == 200)
-//		{
-//		}
-//	}
-//	
-//	var routeUpdate = {userHikeId: userHikeId, mode: "addTrail",
-//						type: trailCoords.trails[object.trailCoordsIndex].type,
-//						feature: trailCoords.trails[object.trailCoordsIndex].feature,
-//						point: {lat: position.lat (), lng: position.lng ()}};
-//	
-//	xmlhttp.open("PUT", "route.php", true);
-//	xmlhttp.setRequestHeader("Content-type", "application/json");
-//	xmlhttp.send(JSON.stringify(routeUpdate));
-}
-
-
-function drawTrails ()
-{
-	if (map && trailCoords.trails.length > 0)
-	{
-		currentTrailWeight = getTrailWeight ();
-		
-		for (let t in trailCoords.trails)
-		{
-			for (let r in trailCoords.trails[t].routes)
-			{
-				var color;
-				
-				if (trailCoords.trails[t].type == "trail")
-				{
-					color = '#704513'
-				}
-				else if (trailCoords.trails[t].type == "road")
-				{
-					color = "#404040";
-				}
-				else
-				{
-					color = "#FF0000";
-				}
-				
-				let trail = new google.maps.Polyline({
-					path: trailCoords.trails[t].routes[r].route,
-					editable: false,
-					geodesic: true,
-					strokeColor: color,
-					strokeOpacity: 1.0,
-					strokeWeight: currentTrailWeight,
-					zIndex: 15});
-		
-				trail.setMap(map);
-				
-				trail.trailCoordsIndex = parseInt(t);
-				
-				setContextMenu (trail, trailContextMenu);
-				
-				trails.push(trail);
-			}
-		}
-	}
-}
-
-
-function rectContainsRect (outer, inner)
-{
-	return outer.contains (inner.getNorthEast ()) && outer.contains (inner.getSouthWest ());
-}
-
-
-function retrieveTrails ()
-{
-	var xmlhttp = new XMLHttpRequest ();
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && this.status == 200)
-		{
-			releaseTrails ();
-			
-			trailCoords = JSON.parse(this.responseText);
-			
-			currentTrailBounds = new google.maps.LatLngBounds(
-					{lat: trailCoords.bounds[0], lng: trailCoords.bounds[1]},
-					{lat: trailCoords.bounds[2], lng: trailCoords.bounds[3]});
-			
-			drawTrails ();
-			
-//			for (let i in trailCoords.intersections)
-//			{
-//				new google.maps.Marker({
-//					position: trailCoords.intersections[i],
-//					map: map,
-//					icon: {
-//						url: junctionUrl
-//					},
-//				});
-//			}
-		}
-	}
-	
-	if (map.getZoom () >= 11)
-	{
-		var bounds = map.getBounds ();
-		
-		if (currentTrailBounds == undefined || !rectContainsRect (currentTrailBounds, bounds))
-//		 && (requestedTrailBounds == undefined || !rectContainsRect(requestedTrailBounds, bounds))
-		{
-			var requestedTrailBounds = bounds;
-			
-			xmlhttp.open("GET", "trails?b=" + requestedTrailBounds.toUrlValue (), true);
-			//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-			xmlhttp.send();
-		}
-	}
-}
-
-
-function updateTrails ()
-{
-	var zoom = map.getZoom ();
-	
-	if (zoom < 11)
-	{
-		// We are zoomed too far out. Release the trails.
-		releaseTrails ();
-	}
-	else
-	{
-		retrieveTrails ();
-	}
-
-	if (trails.length > 0)
-	{
-		// If the trail line weights have changed due to zooming then
-		// iterate through the trails and apply the new weight.
-		var weight = getTrailWeight ();
-		
-		if (weight != currentTrailWeight)
-		{
-			currentTrailWeight = weight;
-			
-			var options = {};
-	
-			options.strokeWeight = currentTrailWeight;
-			
-			for (let t in trails)
-			{
-				trails[t].setOptions (options);
-			}
-		}
-	}
-}
 </script>
 
 <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB16_kVJjm2plHSOkrxZDC4etbpp6vW8kU&callback=mapInitialize&libraries=geometry"></script>
