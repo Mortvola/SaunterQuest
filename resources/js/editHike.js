@@ -367,7 +367,7 @@ function stopRouteEdit ()
 	$("#editRoute").hide(250);
 
 //	drawRoute ();
-	getAndLoadElevationData (0, actualRoute.length, actualRoute);
+	getAndLoadElevationData (0, actualRoute.length);
 }
 
 
@@ -516,7 +516,7 @@ function createEditablePolyline ()
 
 	setContextMenu (editPolyLine, vertexContextMenu);
 
-	getAndLoadElevationData (0, editedRoute.length, editedRoute);
+//	getAndLoadElevationData (0, editedRoute.length, editedRoute);
 }
 
 
@@ -562,7 +562,7 @@ function clearVertices ()
 
 function measureStartMarkerSet (position, segment)
 {
-	selectStartPosition = new google.maps.LatLng({lat: position.x, lng: position.y});
+	selectStartPosition = position;
 	selectStartSegment = segment;
 	
 	measureRouteDistance (selectStartPosition, selectStartSegment, selectEndPosition, selectEndSegment);
@@ -571,7 +571,7 @@ function measureStartMarkerSet (position, segment)
 
 function measureEndMarkerSet (position, segment)
 {
-	selectEndPosition = new google.maps.LatLng({lat: position.x, lng: position.y});
+	selectEndPosition = position;
 	selectEndSegment = segment;
 	
 	measureRouteDistance (selectStartPosition, selectStartSegment, selectEndPosition, selectEndSegment);
@@ -583,13 +583,16 @@ function startRouteMeasurement (object, position)
 	setRouteHighlightStartMarker (position, measureStartMarkerSet);
 	setRouteHighlightEndMarker (position, measureEndMarkerSet);
 	
-	selectStartPosition = position;
-	selectEndPosition = position;
+	selectStartPosition = {lat: position.lat(), lng: position.lng ()};
+	selectEndPosition = selectStartPosition;
 
-	selectStartSegment = findNearestSegment(selectStartPosition, actualRoute);
+	selectStartSegment = route.getNearestSegment(position);
 	selectEndSegment = selectStartSegment;
 
-	$("#measureRoute").show (250);
+    $("#distanceWindowClose").off('click');
+    $("#distanceWindowClose").click(function () { stopRouteMeasurement(); });
+
+	$("#distanceWindow").show ();
 }
 
 
@@ -613,9 +616,9 @@ function stopRouteMeasurement ()
 	selectStartPosition = undefined;
 	selectEndPosition = undefined;
 	
-	$("#measureRoute").hide(250);
+	$("#distanceWindow").hide ();
 
-	getAndLoadElevationData (0, actualRoute.length, actualRoute);
+	getAndLoadElevationData (0, route.getLength ());
 }
 
 
@@ -625,42 +628,7 @@ function measureRouteDistance (startPosition, startSegment, endPosition, endSegm
 	
 	if (startPosition != undefined && endPosition != undefined)
 	{
-		if (startSegment == endSegment)
-		{
-			distance = google.maps.geometry.spherical.computeDistanceBetween(startPosition, endPosition);
-		}
-		else
-		{
-			//
-			// Swap the values if needed.
-			//
-			if (startSegment > endSegment)
-			{
-				endSegment = [startSegment, startSegment=endSegment][0];
-				endPosition = [startPosition, startPosition=endPosition][0];
-			}
-			
-			// Compute the distance between the start point and the start segment (the
-			// start point might be in the middle of a segment)
-			let startDistance = google.maps.geometry.spherical.computeDistanceBetween(
-					startPosition,
-					new google.maps.LatLng(actualRoute[startSegment + 1]));		
-	
-			for (let r = startSegment + 1; r < endSegment; r++)
-			{
-				distance += google.maps.geometry.spherical.computeDistanceBetween(
-					new google.maps.LatLng(actualRoute[r]),
-					new google.maps.LatLng(actualRoute[r + 1]));		
-			}
-	
-			// Compute the distance between the end segment and the end point (the
-			// end point might be int he middle of a segment)
-			let endDistance = google.maps.geometry.spherical.computeDistanceBetween(
-					new google.maps.LatLng(actualRoute[endSegment]),
-					endPosition);
-			
-			distance += startDistance + endDistance;
-		}
+		distance = route.measure (startPosition, startSegment, endPosition, endSegment);
 		
 		// If less than a 0.10 miles then measure in feet, otherwise measure in
 		// miles.
@@ -678,30 +646,13 @@ function measureRouteDistance (startPosition, startSegment, endPosition, endSegm
 }
 
 
-function getAndLoadElevationData (s, e, route)
+function getAndLoadElevationData (s, e)
 {
 	elevationData = [];
 	
 	elevationData.push([{label: 'Distance', type: 'number'}, {label: 'Elevation', type: 'number'}]);
 	
-	elevationMin = metersToFeet(route[s].ele);
-	elevationMax = elevationMin;
-	
-	for (let r = s; r < e;  r++)
-	{
-		if (!isNaN(route[r].ele) && route[r].ele !== null)
-		{
-			elevationData.push([metersToMiles(route[r].dist), metersToFeet(route[r].ele)]);
-			
-			elevationMin = Math.min(elevationMin, metersToFeet(route[r].ele));
-			elevationMax = Math.max(elevationMax, metersToFeet(route[r].ele));
-			
-			if (isNaN(elevationMin))
-			{
-				console.log("NAN");
-			}
-		}
-	}
+	route.getElevations (elevationData,s, e);
 	
 	loadData ();
 }
@@ -715,9 +666,9 @@ function displayRouteElevations (startSegment, endSegment)
 	{
 		if (startSegment == endSegment)
 		{
-			if (endSegment + 1 < actualRoute.length)
+			if (endSegment + 1 < route.getLength ())
 			{
-				getAndLoadElevationData (startSegment, endSegment + 1, actualRoute);
+				getAndLoadElevationData (startSegment, endSegment + 1);
 			}
 		}
 		else
@@ -730,7 +681,7 @@ function displayRouteElevations (startSegment, endSegment)
 				endSegment = [startSegment, startSegment=endSegment][0];
 			}
 			
-			getAndLoadElevationData (startSegment, Math.min(endSegment + 1, actualRoute.length), actualRoute);
+			getAndLoadElevationData (startSegment, Math.min(endSegment + 1, route.getLength ()));
 		}
 	}
 }
@@ -773,36 +724,6 @@ function distToSegmentSquared(p, v, w)
 function distToSegment(p, v, w)
 {
 	return Math.sqrt(distToSegmentSquared(p, v, w));
-}
-
-
-function findNearestSegment (position, anchors)
-{
-	let closestEdge = -1;
-
-	//
-	// There has to be at least two points in the array. Otherwise, we wouldn't have any edges.
-	//
-	if (anchors.length > 1)
-	{
-		let shortestDistance;
-		
-		for (let r = 0; r < anchors.length - 1; r++)
-		{
-			let distance = distToSegmentSquared(
-				{x: position.lng(), y: position.lat()},
-				{x: anchors[r].lng, y: anchors[r].lat},
-				{x: anchors[r + 1].lng, y: anchors[r + 1].lat});
-
-			if (r == 0 || distance < shortestDistance)
-			{
-				shortestDistance = distance;
-				closestEdge = r;
-			}
-		}
-	}
-	
-	return closestEdge;
 }
 
 
@@ -939,10 +860,9 @@ function myMap()
 
 	routeContextMenu = new ContextMenu ([
 		{title: "Add Point of Interest", func: showAddPointOfInterest},
-		{title: "Select route segment", func: startRouteMeasurement},
+		{title: "Measure route section", func: startRouteMeasurement},
 		{title: "Display Location", func:displayLocation},
 		{title: "Add Note", func: addNote},
-		{title: "Edit", func: toggleEdit}
 	]);
 
 	vertexContextMenu = new ContextMenu ([

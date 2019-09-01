@@ -9,6 +9,12 @@
           grid-template-columns: auto auto auto;
           justify-content: space-between;
         }
+        .map-info
+        {
+			background-color:white;
+			border-radius:5px;
+			box-shadow:0 2px 7px 1px rgba(0,0,0,0.3);
+        }
     </style>
 
 	<?php require_once resource_path('js/elevationChart.js'); ?>
@@ -58,24 +64,10 @@
                     <button id='trailConditionSaveButton' type="button" class="btn btn-default" data-dismiss="modal">Save</button>
                 </div>
             </div>
-            <div id='measureRoute' style='display:none'>
-                <form id='measureRouteForm'>
-                    <div class="grid-container">
-                        <div>
-                            <p>Distance: <span id='distance'></span></p>
-                        </div>
-                    </div>
-                </form>
-                <div class="modal-footer">
-                    <button type="button" class="btn" onclick='clearVertices()'>Clear Vertices</button>
-                    <button type="button" class="btn" onclick='stopRouteMeasurement()'>Close</button>
-                </div>
-            </div>
             <div id='editRoute' style='display:none'>
                 <form id='editRouteForm'>
                     <div class="grid-container">
                         <div>
-                            <p>Distance: <span id='distance'></span></p>
                         </div>
                     </div>
                 </form>
@@ -87,6 +79,13 @@
             <div class="row no-gutters flex-column" style="height:100%">
             	<div class="col">
 	            	<div id="googleMap" style="width:100%;height:100%"></div>
+					<div id="distanceWindow" class="map-info" style="display:none;left:50%;top:10px;position:absolute;margin-left:-100px;width:200px;height:50px;">
+						<div>
+                        	<span>Distance</span>
+		                	<button id="distanceWindowClose" type="button" class="close" style="width:14px;height:14px;font-size:14px">&times;</button>
+						</div>
+		                <div id="distance" style="height:auto;text-align:center;vertical-align:middle"></div>
+					</div>
 	            </div>
             	<div class="col" style="flex-grow:0">
                     <div id="elevation_chart_div" style="width:100%;height:250px"></div>

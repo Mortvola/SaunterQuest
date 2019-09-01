@@ -23,7 +23,7 @@ class Route
 		{
 			if (this.readyState == 4 && this.status == 200)
 			{
-				rotue.retrieve ();
+				route.retrieve ();
 			}
 		}
 		
@@ -55,6 +55,11 @@ class Route
 		xmlhttp.send(JSON.stringify(routeUpdate));
 	}
 
+	getLength ()
+	{
+		return this.actualRoute.length;
+	}
+	
 	retrieve ()
 	{
 		var route = this;
@@ -64,36 +69,7 @@ class Route
 		{
 			if (this.readyState == 4 && this.status == 200)
 			{
-				route.anchors = JSON.parse(this.responseText);
-
-				if (route.anchors.length > 0)
-				{
-					//
-					// Add start of trail marker
-					//
-					route.startOfTrailMarker.setPosition(route.anchors[0]);
-
-					//
-					// Add end of trail marker
-					//
-					route.endOfTrailMarker.setPosition(route.anchors[route.anchors.length - 1]);
-				}
-				
-				if (route.anchors.length > 1)
-				{
-					route.load ();
-					
-					retrieveTrailConditions ();
-
-					if (route.map)
-					{
-						route.draw ();
-		
-						route.map.fitBounds(route.bounds);
-					}
-					
-					getAndLoadElevationData (0, route.actualRoute.length, route.actualRoute);
-				}
+				route.processResponse (this.responseText);
 			}
 		}
 		
@@ -102,6 +78,40 @@ class Route
 		xmlhttp.send();
 	}
 
+	processResponse (responseText)
+	{
+		this.anchors = JSON.parse(responseText);
+
+		if (this.anchors.length > 0)
+		{
+			//
+			// Add start of trail marker
+			//
+			this.startOfTrailMarker.setPosition(this.anchors[0]);
+
+			//
+			// Add end of trail marker
+			//
+			this.endOfTrailMarker.setPosition(this.anchors[this.anchors.length - 1]);
+		}
+		
+		if (this.anchors.length > 1)
+		{
+			this.load ();
+			
+			retrieveTrailConditions ();
+
+			if (this.map)
+			{
+				this.draw ();
+
+				this.map.fitBounds(this.bounds);
+			}
+			
+			getAndLoadElevationData (0, this.actualRoute.length, this.actualRoute);
+		}
+	}
+	
 	load ()
 	{
 		this.actualRoute = [];
@@ -197,5 +207,143 @@ class Route
 		}
 	}
 
+	getNearestPoint (position)
+	{
+		let segment = this.getNearestSegment(position);
+		
+		let p = nearestPointOnSegment (
+			{x: position.lat(), y: position.lng()},
+			{x: this.actualRoute[segment].lat, y: this.actualRoute[segment].lng},
+			{x: this.actualRoute[segment + 1].lat, y: this.actualRoute[segment + 1].lng});
+
+		return {lat: p.x, lng: p.y, segment: segment};
+	}
+	
+	getNearestSegment (position)
+	{
+		let closestEdge = -1;
+
+		//
+		// There has to be at least two points in the array. Otherwise, we wouldn't have any edges.
+		//
+		if (this.actualRoute.length > 1)
+		{
+			let shortestDistance;
+			
+			for (let r = 0; r < this.actualRoute.length - 1; r++)
+			{
+				let distance = distToSegmentSquared(
+					{x: position.lng(), y: position.lat()},
+					{x: this.actualRoute[r].lng, y: this.actualRoute[r].lat},
+					{x: this.actualRoute[r + 1].lng, y: this.actualRoute[r + 1].lat});
+
+				if (r == 0 || distance < shortestDistance)
+				{
+					shortestDistance = distance;
+					closestEdge = r;
+				}
+			}
+		}
+			
+		return closestEdge;
+	}
+	
+	getSection (startPosition, endPosition)
+	{
+		let startSegment = this.getNearestSegment(startPosition);
+		let endSegment = this.getNearestSegment(endPosition);
+
+		let polyline = [];
+		
+		//
+		// Swap the values if needed.
+		//
+		if (startSegment > endSegment)
+		{
+			endSegment = [startSegment, startSegment=endSegment][0];
+			endPosition = [startPosition, startPosition=endPosition][0];
+		}
+
+		polyline.push({lat: startPosition.lat(), lng: startPosition.lng()});
+
+		if (startSegment != endSegment)
+		{
+			polyline.push({lat: startPosition.lat(), lng: startPosition.lng()});
+			
+			for (let r = startSegment + 1; r <= endSegment; r++)
+			{
+				polyline.push({lat: this.actualRoute[r].lat, lng: this.actualRoute[r].lng});
+			}
+
+			polyline.push({lat: endPosition.lat(), lng: endPosition.lng()});
+		}
+		
+		polyline.push({lat: endPosition.lat(), lng: endPosition.lng()});
+		
+		return polyline;
+	}
+	
+	getElevations (elevationData, s, e)
+	{
+		elevationMin = metersToFeet(this.actualRoute[s].ele);
+		elevationMax = elevationMin;
+		
+		for (let r = s; r < e;  r++)
+		{
+			if (!isNaN(this.actualRoute[r].ele) && this.actualRoute[r].ele !== null)
+			{
+				elevationData.push([metersToMiles(this.actualRoute[r].dist), metersToFeet(this.actualRoute[r].ele)]);
+				
+				elevationMin = Math.min(elevationMin, metersToFeet(this.actualRoute[r].ele));
+				elevationMax = Math.max(elevationMax, metersToFeet(this.actualRoute[r].ele));
+			}
+		}
+	}
+	
+	measure (startPosition, startSegment, endPosition, endSegment)
+	{
+		var distance = 0;
+		
+		if (startSegment == endSegment)
+		{
+			distance = google.maps.geometry.spherical.computeDistanceBetween(
+				new google.maps.LatLng(startPosition),
+				new google.maps.LatLng(endPosition));
+		}
+		else
+		{
+			//
+			// Swap the values if needed.
+			//
+			if (startSegment > endSegment)
+			{
+				endSegment = [startSegment, startSegment=endSegment][0];
+				endPosition = [startPosition, startPosition=endPosition][0];
+			}
+			
+			// Compute the distance between the start point and the start segment (the
+			// start point might be in the middle of a segment)
+			let startDistance = google.maps.geometry.spherical.computeDistanceBetween(
+					new google.maps.LatLng(startPosition),
+					new google.maps.LatLng(this.actualRoute[startSegment + 1]));		
+	
+			for (let r = startSegment + 1; r < endSegment; r++)
+			{
+				distance += google.maps.geometry.spherical.computeDistanceBetween(
+					new google.maps.LatLng(this.actualRoute[r]),
+					new google.maps.LatLng(this.actualRoute[r + 1]));		
+			}
+	
+			// Compute the distance between the end segment and the end point (the
+			// end point might be int he middle of a segment)
+			let endDistance = google.maps.geometry.spherical.computeDistanceBetween(
+					new google.maps.LatLng(this.actualRoute[endSegment]),
+					new google.maps.LatLng(endPosition));
+			
+			distance += startDistance + endDistance;
+		}
+		
+		return distance;
+	}
 }
 </script>
