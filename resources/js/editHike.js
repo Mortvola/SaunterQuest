@@ -788,7 +788,7 @@ function setEndLocation (object, position)
 }
 
 
-function myMap()
+function mapInitialize()
 {
 	var mapProp =
 	{
@@ -1057,3 +1057,5 @@ function updateTrails ()
 	}
 }
 </script>
+
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB16_kVJjm2plHSOkrxZDC4etbpp6vW8kU&callback=mapInitialize&libraries=geometry"></script>
