@@ -720,26 +720,7 @@ function displayLocation (object, position)
 }
 
 
-//
-// Position the map so that the two endpoints (today's and tomorrow's) are visible.
-// todo: take into account the area the whole path uses. Some paths go out of window 
-// even though the two endpoints are within the window.
-//
-function positionMapToDay (d)
-{
-	if (d < days.length - 1)
-	{
-		positionMapToBounds (days[d], days[d+1]);
-	}
-	else
-	{
-		positionMapToBounds (days[d], {lat: days[d].endLat, lng: days[d].endLng});
-	}
-
-}
-
-
-function positionMapToBounds (p1, p2)
+function positionMapToBounds (map, p1, p2)
 {
 	var bounds = {};
 

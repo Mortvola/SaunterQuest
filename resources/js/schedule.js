@@ -40,7 +40,7 @@ class Schedule
 		for (let d = 0; d < this.days.length; d++)
 		{
 			txt += "<div class='card'>";
-			txt += "<div class='card-header' style='padding:5px 5px 5px 5px' onclick='positionMapToDay(" + d + ")'>";
+			txt += "<div class='card-header' style='padding:5px 5px 5px 5px' onclick='schedule.positionMapToDay(" + d + ")'>";
 			txt += "<div class='grid-container'>";
 			txt += "<div>" + "Day " + (parseInt(d) + 1) + "</div>";
 			txt += "<div>" + "Gain/Loss (feet): " + metersToFeet(this.days[d].gain) + "/" + metersToFeet(this.days[d].loss) + "</div>";
@@ -126,6 +126,24 @@ class Schedule
 			
 			this.dayMarkers.splice(this.days.length, this.dayMarkers.length - this.days.length);
 		}
+	}
+
+	//
+	// Position the map so that the two endpoints (today's and tomorrow's) are visible.
+	// todo: take into account the area the whole path uses. Some paths go out of window 
+	// even though the two endpoints are within the window.
+	//
+	positionMapToDay (d)
+	{
+		if (d < this.days.length - 1)
+		{
+			positionMapToBounds (this.map, this.days[d], this.days[d+1]);
+		}
+		else
+		{
+			positionMapToBounds (this.map, this.days[d], {lat: this.days[d].endLat, lng: this.days[d].endLng});
+		}
+
 	}
 }
 
