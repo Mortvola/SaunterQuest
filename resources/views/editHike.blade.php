@@ -190,7 +190,7 @@
     <?php require_once resource_path('js/editHike.js'); ?>
     <?php require_once resource_path('js/hikerProfile.js'); ?>
     <?php require_once resource_path('js/resupplyPlan.js'); ?>
-    <?php require_once resource_path('js/routeHighlighting.js'); ?>
+    <?php require_once resource_path('js/routeHighlighter.js'); ?>
     <?php require_once resource_path('js/trailCondition.js'); ?>
 
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB16_kVJjm2plHSOkrxZDC4etbpp6vW8kU&callback=myMap&libraries=geometry"></script>

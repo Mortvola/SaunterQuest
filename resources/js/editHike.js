@@ -26,17 +26,11 @@ var startSegment;
 var endPosition;
 var endSegment;
 
-var selectStartPosition;
-var selectStartSegment;
-var selectEndPosition;
-var selectEndSegment;
+var routeHighlighter;
 
 var editPolyLine = {};
 
 var junctionUrl = "http://maps.google.com/mapfiles/ms/micons/lightblue.png";
-
-const routeStrokeWeight = 6;
-const routeHighlightStrokePadding = 4;
 
 function timeFormat (t)
 {
@@ -560,75 +554,13 @@ function clearVertices ()
 }
 
 
-function measureStartMarkerSet (position, segment)
-{
-	selectStartPosition = position;
-	selectStartSegment = segment;
-	
-	measureRouteDistance (selectStartPosition, selectStartSegment, selectEndPosition, selectEndSegment);
-	displayRouteElevations (selectStartSegment, selectEndSegment);
-}
-
-function measureEndMarkerSet (position, segment)
-{
-	selectEndPosition = position;
-	selectEndSegment = segment;
-	
-	measureRouteDistance (selectStartPosition, selectStartSegment, selectEndPosition, selectEndSegment);
-	displayRouteElevations (selectStartSegment, selectEndSegment);
-}
-
-function startRouteMeasurement (object, position)
-{
-	setRouteHighlightStartMarker (position, measureStartMarkerSet);
-	setRouteHighlightEndMarker (position, measureEndMarkerSet);
-	
-	selectStartPosition = {lat: position.lat(), lng: position.lng ()};
-	selectEndPosition = selectStartPosition;
-
-	selectStartSegment = route.getNearestSegment(position);
-	selectEndSegment = selectStartSegment;
-
-    $("#distanceWindowClose").off('click');
-    $("#distanceWindowClose").click(function () { stopRouteMeasurement(); });
-
-	$("#distanceWindow").show ();
-}
-
-
-function toggleEdit (object, position)
-{
-	editedRoute = [];
-
-	startSegment = 0;
-	endSegment = anchors.length - 1;
-	
-	editedRoute.splice (0, 0, ...anchors);
-
-	createEditablePolyline ();
-}
-
-
-function stopRouteMeasurement ()
-{
-	endRouteHighlighting ();
-
-	selectStartPosition = undefined;
-	selectEndPosition = undefined;
-	
-	$("#distanceWindow").hide ();
-
-	getAndLoadElevationData (0, route.getLength ());
-}
-
-
-function measureRouteDistance (startPosition, startSegment, endPosition, endSegment)
+function measureRouteDistance (startPosition, endPosition)
 {
 	let distance = 0;
 	
 	if (startPosition != undefined && endPosition != undefined)
 	{
-		distance = route.measure (startPosition, startSegment, endPosition, endSegment);
+		distance = route.measure (startPosition, startPosition.segment, endPosition, endPosition.segment);
 		
 		// If less than a 0.10 miles then measure in feet, otherwise measure in
 		// miles.
@@ -643,6 +575,53 @@ function measureRouteDistance (startPosition, startSegment, endPosition, endSegm
 			$("#distance").html(feet + " feet");
 		}
 	}
+}
+
+
+function measureMarkerSet (highlighter)
+{
+	let startPosition = highlighter.getStartPosition ();
+	let endPosition = highlighter.getEndPosition ();
+
+	if (startPosition && endPosition)
+	{
+		measureRouteDistance (startPosition, endPosition);
+		displayRouteElevations (startPosition.segment, endPosition.segment);
+	}
+}
+
+function startRouteMeasurement (object, position)
+{
+	routeHighlighter = new RouteHighlighter (route, {lat: position.lat (), lng: position.lng ()}, measureMarkerSet);
+	
+    $("#distanceWindowClose").off('click');
+    $("#distanceWindowClose").click(function () { stopRouteMeasurement(); });
+
+	$("#distanceWindow").show ();
+}
+
+
+function stopRouteMeasurement ()
+{
+	routeHighlighter.end ();
+	routeHighlighter = null;
+	
+	$("#distanceWindow").hide ();
+
+	getAndLoadElevationData (0, route.getLength ());
+}
+
+
+function toggleEdit (object, position)
+{
+	editedRoute = [];
+
+	startSegment = 0;
+	endSegment = anchors.length - 1;
+	
+	editedRoute.splice (0, 0, ...anchors);
+
+	createEditablePolyline ();
 }
 
 

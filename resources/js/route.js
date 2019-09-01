@@ -4,6 +4,8 @@
 var startPointUrl = "http://maps.google.com/mapfiles/ms/micons/green-dot.png";
 var endPointUrl = "http://maps.google.com/mapfiles/ms/micons/red-dot.png";
 
+const routeStrokeWeight = 6;
+
 class Route
 {
 	constructor (map)
@@ -212,7 +214,7 @@ class Route
 		let segment = this.getNearestSegment(position);
 		
 		let p = nearestPointOnSegment (
-			{x: position.lat(), y: position.lng()},
+			{x: position.lat, y: position.lng},
 			{x: this.actualRoute[segment].lat, y: this.actualRoute[segment].lng},
 			{x: this.actualRoute[segment + 1].lat, y: this.actualRoute[segment + 1].lng});
 
@@ -233,7 +235,7 @@ class Route
 			for (let r = 0; r < this.actualRoute.length - 1; r++)
 			{
 				let distance = distToSegmentSquared(
-					{x: position.lng(), y: position.lat()},
+					{x: position.lng, y: position.lat},
 					{x: this.actualRoute[r].lng, y: this.actualRoute[r].lat},
 					{x: this.actualRoute[r + 1].lng, y: this.actualRoute[r + 1].lat});
 
@@ -250,8 +252,19 @@ class Route
 	
 	getSection (startPosition, endPosition)
 	{
-		let startSegment = this.getNearestSegment(startPosition);
-		let endSegment = this.getNearestSegment(endPosition);
+		let startSegment = startPosition.segment;
+		
+		if (startSegment == undefined)
+		{
+			startSegment = this.getNearestSegment(startPosition);
+		}
+		
+		let endSegment = endPosition.segment;
+		
+		if (endSegment == undefined)
+		{
+			endSegment = this.getNearestSegment(endPosition);
+		}
 
 		let polyline = [];
 		
@@ -264,21 +277,17 @@ class Route
 			endPosition = [startPosition, startPosition=endPosition][0];
 		}
 
-		polyline.push({lat: startPosition.lat(), lng: startPosition.lng()});
+		polyline.push({lat: startPosition.lat, lng: startPosition.lng});
 
 		if (startSegment != endSegment)
 		{
-			polyline.push({lat: startPosition.lat(), lng: startPosition.lng()});
-			
 			for (let r = startSegment + 1; r <= endSegment; r++)
 			{
 				polyline.push({lat: this.actualRoute[r].lat, lng: this.actualRoute[r].lng});
 			}
-
-			polyline.push({lat: endPosition.lat(), lng: endPosition.lng()});
 		}
 		
-		polyline.push({lat: endPosition.lat(), lng: endPosition.lng()});
+		polyline.push({lat: endPosition.lat, lng: endPosition.lng});
 		
 		return polyline;
 	}
