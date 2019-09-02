@@ -770,7 +770,13 @@ function mapInitialize()
 		zoom:5,
 		streetViewControl:false,
 		fullscreenControl:false,
+		scaleControl:true,
+		minZoom:5,
+		maxZoom:16,
 		mapTypeId:"terrain",
+		mapTypeControlOptions: {
+		    style: google.maps.MapTypeControlStyle.DROPDOWN_MENU
+		  }
 	};
 	
 	map = new google.maps.Map(document.getElementById("googleMap"), mapProp);
