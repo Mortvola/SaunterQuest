@@ -2,6 +2,7 @@
 "use strict"
 
 const zoomDisplayThreshold = 10;
+const maxDetailedTiles = 12;
 
 class Trails
 {
@@ -62,8 +63,11 @@ class Trails
 		// Iterate through the existing list and determine
 		// if each tile is in the new tile list. If it is
 		// found the remove the entry from the new list.
-		// If it is not found then remove the entry from the
-		// old list.
+		// If it is not found then mark the tile as not
+		// used. This allows the data to stay around
+		// and avoid re-retrieving from the server
+		// in case we go back to the tile before it
+		// is discarded.
 		for (let i = 0; i < this.tiles.length;)
 		{
 			var found = false;
@@ -74,24 +78,25 @@ class Trails
 				{
 					found = true;
 					tileList.tiles.splice(t, 1);
+					
+					if (!this.tiles[i].used)
+					{
+						this.showTile(this.tiles[i]);
+					}
+					
 					break;
 				}
 			}
 			
-			if (!found)
-			{
-				this.releaseTile (this.tiles[i]);
-				
-				this.tiles.splice(i, 1);
-			}
-			else
-			{
-				i++;
-			}
+			this.tiles[i].used = found;
+			
+			i++;
 		}
 		
 		// Add the remaining from the new list to the
-		// old list of tiles and show each one.
+		// old list of tiles and show each one. If there
+		// is no data to show then it will be retrieved
+		// from the server.
 		for (let t = 0; t < tileList.tiles.length; t++)
 		{
 			this.tiles.push({
@@ -102,10 +107,6 @@ class Trails
 			
 			this.showTile (this.tiles[this.tiles.length - 1]);
 		}
-
-		this.currentTileBounds = new google.maps.LatLngBounds(
-			{lat: tileList.bounds[0], lng: tileList.bounds[1]},
-			{lat: tileList.bounds[2], lng: tileList.bounds[3]});
 	}
 	
 	processTileResponse (tile)
@@ -124,6 +125,27 @@ class Trails
 				this.showTile (this.tiles[i]);
 				
 				break;
+			}
+		}
+		
+		// If we are displayed detailed trail information then
+		// ensure there are no more than maxDetailedTiles in the
+		// list. If there are more, then release the ones that
+		// are not currently used.
+		if (this.displayableZoomLevel(this.zoom)
+		 && this.tiles.length > maxDetailedTiles)
+		{
+			for (let i = 0; i < this.tiles.length;)
+			{
+				if (!this.tiles[i].used)
+				{
+					this.releaseTile(this.tiles[i]);
+					this.tiles.splice(i, 1);
+				}
+				else
+				{
+					i++;
+				}
 			}
 		}
 	}
@@ -192,7 +214,7 @@ class Trails
 				}
 				else if (tile.trails)
 				{
-					this.drawTile (tile);
+					this.generatePolyLines (tile);
 				}
 				else
 				{
@@ -230,49 +252,46 @@ class Trails
 		}
 	}
 	
-	drawTile (tile)
+	generatePolyLines (tile)
 	{
-		if (this.displayableZoomLevel(this.zoom))
+		for (let t in tile.trails)
 		{
-			for (let t in tile.trails)
-			{
-				var color;
-				
-				if (tile.trails[t].type == "trail")
-				{
-					color = '#704513'
-				}
-				else if (tile.trails[t].type == "road")
-				{
-					color = "#404040";
-				}
-				else
-				{
-					color = "#FF0000";
-				}
-	
-				for (let r in tile.trails[t].routes)
-				{
-					let polyLine = new google.maps.Polyline({
-						path: tile.trails[t].routes[r].route,
-						editable: false,
-						geodesic: true,
-						strokeColor: color,
-						strokeOpacity: 1.0,
-						strokeWeight: this.currentTrailWeight,
-						zIndex: 15});
+			var color;
 			
-					polyLine.setMap(this.map);
-					
-					setContextMenu (polyLine, trailContextMenu);
-					
-					if (tile.polyLines == undefined)
-					{
-						tile.polyLines = [];
-					}
-					
-					tile.polyLines.push(polyLine);
+			if (tile.trails[t].type == "trail")
+			{
+				color = '#704513'
+			}
+			else if (tile.trails[t].type == "road")
+			{
+				color = "#404040";
+			}
+			else
+			{
+				color = "#FF0000";
+			}
+
+			for (let r in tile.trails[t].routes)
+			{
+				let polyLine = new google.maps.Polyline({
+					path: tile.trails[t].routes[r].route,
+					editable: false,
+					geodesic: true,
+					strokeColor: color,
+					strokeOpacity: 1.0,
+					strokeWeight: this.currentTrailWeight,
+					zIndex: 15});
+		
+				polyLine.setMap(this.map);
+				
+				setContextMenu (polyLine, trailContextMenu);
+				
+				if (tile.polyLines == undefined)
+				{
+					tile.polyLines = [];
 				}
+				
+				tile.polyLines.push(polyLine);
 			}
 		}
 	}
