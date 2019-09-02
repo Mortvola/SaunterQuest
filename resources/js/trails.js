@@ -2,7 +2,7 @@
 "use strict"
 
 const zoomDisplayThreshold = 10;
-const maxDetailedTiles = 12;
+const maxDetailedTiles = 16;
 
 class Trails
 {
@@ -103,7 +103,8 @@ class Trails
 				name: tileList.tiles[t].name,
 				bounds: new google.maps.LatLngBounds (
 					{lat: tileList.tiles[t].bounds[0], lng: tileList.tiles[t].bounds[1]},
-					{lat: tileList.tiles[t].bounds[2], lng: tileList.tiles[t].bounds[3]})});
+					{lat: tileList.tiles[t].bounds[2], lng: tileList.tiles[t].bounds[3]}),
+				used: true});
 			
 			this.showTile (this.tiles[this.tiles.length - 1]);
 		}
@@ -128,7 +129,7 @@ class Trails
 			}
 		}
 		
-		// If we are displayed detailed trail information then
+		// If we are displaying detailed trail information then
 		// ensure there are no more than maxDetailedTiles in the
 		// list. If there are more, then release the ones that
 		// are not currently used.
