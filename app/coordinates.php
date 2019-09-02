@@ -136,24 +136,60 @@ function pointOnPath($point, $segments, $tolerance)
 }
 
 
-function getTrailFileName($lat, $lng, $suffix)
+function getTileOffsets ($lat, $lng)
 {
     $lat = floor($lat * 2) * 5;
     $lng = floor($lng * 2) * 5;
+    
+    return [$lat, $lng];
+}
 
+
+function getTileNames ($bounds)
+{
+    list($minLat, $minLng) = getTileOffsets ($bounds[0], $bounds[1]);
+    list($maxLat, $maxLng) = getTileOffsets ($bounds[2], $bounds[3]);
+    
+    $files = [];
+    
+    for ($lat = $minLat; $lat <= $maxLat; $lat += 5)
+    {
+        for ($lng = $minLng; $lng <= $maxLng; $lng += 5)
+        {
+            $files[] = getTrailBaseNameCompassFormat ($lat, $lng);
+        }
+    }
+    
+    return [$files, [$minLat / 10.0, $minLng / 10.0, ($maxLat + 5) / 10.0, ($maxLng + 5) / 10.0]];
+}
+
+
+function getTrailBaseNameCompassFormat ($lat, $lng)
+{
+    if ($lat >= 0) {
+        $fileName = "N" . $lat;
+    } else {
+        $fileName = "S" . - $lat;
+    }
+    
+    if ($lng >= 0) {
+        $fileName .= "E" . $lng;
+    } else {
+        $fileName .= "W" . - $lng;
+    }
+    
+    return $fileName;
+}
+
+
+function getTrailFileName($lat, $lng, $suffix)
+{
+    list($lat, $lng) = getTileOffsets ($lat, $lng);
+    
     if ($lat && $lng) {
-        if ($lat >= 0) {
-            $fileName = "N" . $lat;
-        } else {
-            $fileName = "S" . - $lat;
-        }
-
-        if ($lng >= 0) {
-            $fileName .= "E" . $lng;
-        } else {
-            $fileName .= "W" . - $lng;
-        }
-
+        
+        $fileName = getTrailBaseNameCompassFormat ($lat, $lng);
+        
         return $fileName . $suffix;
     }
 }

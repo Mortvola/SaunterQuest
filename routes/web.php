@@ -23,7 +23,8 @@ Route::get('/editHike', function () {
     return view('editHike');
 })->name('editHike');
 
-Route::get('/trails', 'TrailController@get');
+Route::get('/tileList', 'TrailController@getList');
+Route::get('/tile', 'TrailController@get');
 
 Route::get('/route', 'RouteController@get');
 

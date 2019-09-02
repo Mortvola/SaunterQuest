@@ -22,10 +22,25 @@ class TrailController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
-    public function get(Request $request)
+    public function getList(Request $request)
     {
         $bounds = $request->input('b');
         
-        return Trail::getTrail($bounds);
+        $bounds = explode(",", $bounds);
+        
+        
+        return Trail::getTileList($bounds);
+    }
+    
+    /**
+     * Show the application dashboard.
+     *
+     * @return \Illuminate\Contracts\Support\Renderable
+     */
+    public function get(Request $request)
+    {
+        $name = $request->input('n');
+        
+        return Trail::getTile($name);
     }
 }
