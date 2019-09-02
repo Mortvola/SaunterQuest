@@ -1,13 +1,7 @@
 <script>
 "use strict"
 
-const zoomDisplayThreshold = 11;
-
-function rectContainsRect (outer, inner)
-{
-	return outer.contains (inner.getNorthEast ()) && outer.contains (inner.getSouthWest ());
-}
-
+const zoomDisplayThreshold = 10;
 
 class Trails
 {
@@ -25,7 +19,7 @@ class Trails
 		this.map.addListener ("bounds_changed", function () { if (!trails.mapDragging) { trails.update (); }})
 	}
 
-	retrieveTileList (bounds)
+	retrieveTileList ()
 	{
 		var trails = this;
 		
@@ -35,10 +29,12 @@ class Trails
 			if (this.readyState == 4 && this.status == 200)
 			{
 				let tileList = JSON.parse(this.responseText);
-				trails.processTileList (tileList);
+				trails.processTileListResponse (tileList);
 			}
 		}
 		
+		var bounds = this.map.getBounds ();
+
 		xmlhttp.open("GET", "tileList?b=" + bounds.toUrlValue(), true);
 		xmlhttp.send();
 	}
@@ -53,7 +49,7 @@ class Trails
 			if (this.readyState == 4 && this.status == 200)
 			{
 				let tile = JSON.parse(this.responseText);
-				trails.processTile (tile);
+				trails.processTileResponse (tile);
 			}
 		}
 		
@@ -61,31 +57,28 @@ class Trails
 		xmlhttp.send();
 	}
 
-	processTileList (tileList)
+	processTileListResponse (tileList)
 	{
-		for (let i = 0; i < this.tiles.length; i++)
+		// Iterate through the existing list and determine
+		// if each tile is in the new tile list. If it is
+		// found the remove the entry from the new list.
+		// If it is not found then remove the entry from the
+		// old list.
+		for (let i = 0; i < this.tiles.length;)
 		{
-			this.tiles[i].found = false;
-		}
-		
-		for (let i = 0; i < this.tiles.length; i++)
-		{
+			var found = false;
+			
 			for (let t = 0; t < tileList.tiles.length; t++)
 			{
-				if (tileList.tiles[t] == this.tiles[i].name)
+				if (tileList.tiles[t].name == this.tiles[i].name)
 				{
-					this.tiles[i].found = true;
+					found = true;
 					tileList.tiles.splice(t, 1);
 					break;
 				}
 			}
-		}
-		
-		// Now go through our current list of tiles and remove
-		// any that were not found in the response.
-		for (let i = 0; i < this.tiles.length;)
-		{
-			if (!this.tiles[i].found)
+			
+			if (!found)
 			{
 				this.releaseTile (this.tiles[i]);
 				
@@ -96,14 +89,18 @@ class Trails
 				i++;
 			}
 		}
-
-		// Add the remaining list to the tiles and 
-		// send a request for each one.
+		
+		// Add the remaining from the new list to the
+		// old list of tiles and show each one.
 		for (let t = 0; t < tileList.tiles.length; t++)
 		{
-			this.tiles.push({name: tileList.tiles[t]});
+			this.tiles.push({
+				name: tileList.tiles[t].name,
+				bounds: new google.maps.LatLngBounds (
+					{lat: tileList.tiles[t].bounds[0], lng: tileList.tiles[t].bounds[1]},
+					{lat: tileList.tiles[t].bounds[2], lng: tileList.tiles[t].bounds[3]})});
 			
-			this.retrieveTile (tileList.tiles[t]);
+			this.showTile (this.tiles[this.tiles.length - 1]);
 		}
 
 		this.currentTileBounds = new google.maps.LatLngBounds(
@@ -111,7 +108,7 @@ class Trails
 			{lat: tileList.bounds[2], lng: tileList.bounds[3]});
 	}
 	
-	processTile (tile)
+	processTileResponse (tile)
 	{
 		// See if we already have this tile in the tile list.
 		// If we do, then show the tile, otherwise, disregard it.
@@ -138,16 +135,18 @@ class Trails
 			removeContextMenu(tile.polyLines[p]);
 			tile.polyLines[p].setMap(null);
 		}
+
+		if (tile.polyBounds)
+		{
+			tile.polyBounds.setMap(null);
+		}
 	}
 	
 	hide ()
 	{
 		for (let t in this.tiles)
 		{
-			for (let p in this.tiles[t].polyLines)
-			{
-				this.tiles[t].polyLines[p].setMap(null);
-			}
+			this.hideTile (this.tiles[t]);
 		}
 	}
 	
@@ -159,18 +158,75 @@ class Trails
 		}
 	}
 
-	showTile (tile)
+	hideTile (tile)
 	{
-		if (tile.polyLines != undefined && tile.polyLines.length > 0)
+		for (let p in tile.polyLines)
 		{
-			for (let p in tile.polyLines)
+			if (tile.polyLines)
 			{
-				tile.polyLines[p].setMap(this.map);
+				tile.polyLines[p].setVisible(false);
 			}
 		}
-		else
+		
+		if (tile.polyBounds)
 		{
-			this.drawTile (tile);
+			tile.polyBounds.setVisible(false);
+		}
+	}
+	
+	showTile (tile)
+	{
+		// Show the tile if it at least overlaps the viewable area
+		var bounds = this.map.getBounds ();
+		
+		if (bounds.intersects(tile.bounds))
+		{
+			if (this.displayableZoomLevel(this.zoom))
+			{
+				if (tile.polyLines != undefined && tile.polyLines.length > 0)
+				{
+					for (let p in tile.polyLines)
+					{
+						tile.polyLines[p].setVisible(true);
+					}
+				}
+				else if (tile.trails)
+				{
+					this.drawTile (tile);
+				}
+				else
+				{
+					this.retrieveTile(tile.name);
+				}
+	
+				if (tile.polyBounds)
+				{
+					tile.polyBounds.setVisible(false);
+				}
+			}
+			else
+			{
+				for (let p in tile.polyLines)
+				{
+					removeContextMenu(tile.polyLines[p]);
+					tile.polyLines[p].setVisible(false);
+				}
+	
+				if (tile.polyBounds != undefined)
+				{
+					tile.polyBounds.setVisible(true);
+				}
+				else
+				{
+					tile.polyBounds = new google.maps.Rectangle ({
+						bounds: tile.bounds,
+						fillColor: "#000000",
+						fillOpacity: 0.10,
+						strokeOpacity: 0.0,
+						map: this.map
+					});
+				}
+			}
 		}
 	}
 	
@@ -247,31 +303,16 @@ class Trails
 	update ()
 	{
 		var zoom = this.map.getZoom ();
-		
-		if (!this.displayableZoomLevel(zoom))
-		{
-			if (this.displayableZoomLevel(this.zoom))
-			{
-				// We are zoomed too far out. Hide the trails.
-				this.hide ();
-			}
-		}
-		else
-		{
-			if (!this.displayableZoomLevel(this.zoom))
-			{
-				this.show ();
-			}
-			
-			var bounds = this.map.getBounds ();
+		var zoomDetailChanged = this.displayableZoomLevel(zoom) != this.displayableZoomLevel(this.zoom);
 
-			if (this.currentTileBounds == undefined || !rectContainsRect (this.currentTileBounds, bounds))
-			{
-				this.retrieveTileList (bounds);
-			}
-		}
-		
 		this.zoom = zoom;
+		
+		if (zoomDetailChanged)
+		{
+			this.show ();
+		}
+
+		this.retrieveTileList ();
 
 		if (this.tiles.length > 0)
 		{

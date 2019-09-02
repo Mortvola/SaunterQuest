@@ -144,6 +144,12 @@ function getTileOffsets ($lat, $lng)
     return [$lat, $lng];
 }
 
+function tileFileExists ($baseName)
+{
+    $fileName = "trails/" . $baseName . ".trails";
+    
+    return file_exists(base_path($fileName));
+}
 
 function getTileNames ($bounds)
 {
@@ -156,7 +162,12 @@ function getTileNames ($bounds)
     {
         for ($lng = $minLng; $lng <= $maxLng; $lng += 5)
         {
-            $files[] = getTrailBaseNameCompassFormat ($lat, $lng);
+            $baseName = getTrailBaseNameCompassFormat ($lat, $lng);
+            
+            if (tileFileExists ($baseName))
+            {
+                $files[] = (object)["name" => $baseName, "bounds" => [$lat / 10.0, $lng / 10.0, ($lat + 5) / 10.0, ($lng + 5) / 10.0]];
+            }
         }
     }
     
