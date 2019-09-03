@@ -821,6 +821,8 @@ function mapInitialize()
 		{title: "Measure route section", func: startRouteMeasurement},
 		{title: "Display Location", func:displayLocation},
 		{title: "Add Note", func: addNote},
+		{title:"Set Start Location", func:setStartLocation},
+		{title:"Set End Location", func:setEndLocation},
 	]);
 
 	vertexContextMenu = new ContextMenu ([
