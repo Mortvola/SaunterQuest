@@ -176,12 +176,19 @@ function readAndSanitizeFile($fileName)
 {
     $segments = json_decode(file_get_contents($fileName));
 
-    // Ensure the array is not an object and is indexed numerically
-    if (!is_array($segments)) {
-        $objectVars = get_object_vars($segments);
-
-        if ($objectVars) {
-            $segments = array_values($objectVars);
+    if ($segments == null)
+    {
+        $segments = [];
+    }
+    else
+    {
+        // Ensure the array is not an object and is indexed numerically
+        if (!is_array($segments)) {
+            $objectVars = get_object_vars($segments);
+    
+            if ($objectVars) {
+                $segments = array_values($objectVars);
+            }
         }
     }
 
