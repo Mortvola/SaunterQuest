@@ -9,7 +9,7 @@ class TrailMarker
 		this.marker = new google.maps.Marker({
 			icon: {
 				url: iconUrl
-			},
+			}
 		});
 	}
 
@@ -34,6 +34,24 @@ class TrailMarker
 	{
 		this.listener.remove ();
 		this.listener = null;
+	}
+	
+	setDraggable (draggable, listener)
+	{
+		if (draggable)
+		{
+			var trailMarker = this;
+			
+			this.dragListener = this.marker.addListener ("dragend", function ()
+				{
+					if (listener)
+					{
+						listener (trailMarker.marker.getPosition ());
+					}
+				});
+		}
+		
+		this.marker.setDraggable(draggable);
 	}
 	
 	setPosition (position)
