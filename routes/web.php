@@ -26,7 +26,11 @@ Route::get('/editHike', function () {
 Route::get('/tileList', 'TrailController@getList');
 Route::get('/tile', 'TrailController@get');
 
+Route::post('/hike', 'HikeController@post');
+Route::delete('/hike', 'HikeController@delete');
+
 Route::get('/route', 'RouteController@get');
+Route::put('/route', 'RouteController@put');
 
 Route::get('/schedule', 'ScheduleController@get');
 

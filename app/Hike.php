@@ -13,6 +13,8 @@ class Hike extends Model
 
     protected $hidden = [Hike::CREATED_AT, Hike::UPDATED_AT, 'userId'];
     
+    protected $fillable = ['userId', 'name'];
+    
     function user ()
     {
         return $this->belongsTo('App\User', 'userId');

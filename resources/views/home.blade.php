@@ -2,7 +2,7 @@
 
 @section('content')
     <!-- Modal -->
-    <div class="modal fade" id="addUserHike" role="dialog">
+    <div class="modal fade" id="hikeDialog" role="dialog">
         <div class="modal-dialog">
 
             <!-- Modal content-->
@@ -20,7 +20,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn" data-dismiss="modal">Cancel</button>
-                    <button id='addUserHikeSaveButton' type="button" class="btn btn-default" data-dismiss="modal">Save</button>
+                    <button id='addHikeSaveButton' type="button" class="btn btn-default" data-dismiss="modal">Save</button>
                 </div>
             </div>
 
@@ -39,7 +39,7 @@
                         foreach ($results as $hike) {
                             echo "<tr id='userHike_", $hike->id, "'>\n";
                             echo "<td>\n";
-                            echo "<a class='btn btn-sm' href='/editHike.php?id=", $hike->id, "'><i class='fas fa-pencil-alt'></i></a>\n";
+                            echo "<a class='btn btn-sm' href='/editHike?id=", $hike->id, "'><i class='fas fa-pencil-alt'></i></a>\n";
                             echo "<a class='btn btn-sm' href='javascript:deleteHike(", $hike->id, ")'><i class='fas fa-trash-alt'></i></a>\n";
                             echo "<a href=\""?> {{ url('/editHike?id=' . $hike->id) }} <?php echo "\">", $hike->name, "</a></td>\n";
                             echo "<td>", "</td>\n";
@@ -49,7 +49,7 @@
                          }
                     ?>
                     <tr id='userHikeLastRow'>
-                    <td><a class='btn btn-sm' href='javascript:addUserHike()'><i class='fas fa-plus'></i></a></td>
+                    <td><a class='btn btn-sm' href='javascript:showHikeDialog()'><i class='fas fa-plus'></i></a></td>
                     <td/><td/><td/><td/>
                     </tr>
         
@@ -67,53 +67,51 @@
     <script>
     "use strict";
 
-    function deleteHike (userHikeId)
+    function deleteHike (hikeId)
     {
         var xmlhttp = new XMLHttpRequest ();
         xmlhttp.onreadystatechange = function ()
         {
             if (this.readyState == 4 && this.status == 200)
             {
-                let userHike = document.getElementById("userHike_" + userHikeId);
-                userHike.parentElement.removeChild(userHike);
+                let hike = document.getElementById("userHike_" + userHikeId);
+                hike.parentElement.removeChild(hike);
             }
         }
 
-        var userHike = {}
-
-        userHike.userHikeId = userHikeId;
-
-        xmlhttp.open("DELETE", "userHike.php", true);
+        xmlhttp.open("DELETE", "hike", true);
         xmlhttp.setRequestHeader("Content-type", "application/json");
-        xmlhttp.send(JSON.stringify(userHike));
+    	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
+        xmlhttp.send(JSON.stringify(hikeId));
     }
 
-    function insertUserHike ()
+    function insertHike ()
     {
-        var userHike = objectifyForm($("#userHikeForm").serializeArray());
+        var hike = objectifyForm($("#userHikeForm").serializeArray());
 
         var xmlhttp = new XMLHttpRequest ();
         xmlhttp.onreadystatechange = function ()
         {
             if (this.readyState == 4 && this.status == 200)
             {
-                userHike = JSON.parse(this.responseText);
+                hike = JSON.parse(this.responseText);
 
-                document.location.href = "/editHike.php?id=" + userHike.userHikeId;
+                document.location.href = "/editHike.php?id=" + hike.userHikeId;
             }
         }
 
-        xmlhttp.open("POST", "userHike.php", true);
+        xmlhttp.open("POST", "hike", true);
         xmlhttp.setRequestHeader("Content-type", "application/json");
-        xmlhttp.send(JSON.stringify(userHike));
+    	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
+        xmlhttp.send(JSON.stringify(hike.name));
     }
 
-    function addUserHike ()
+    function showHikeDialog ()
     {
-        $("#addUserHikeSaveButton").off('click');
-        $("#addUserHikeSaveButton").click(insertUserHike);
+        $("#addHikeSaveButton").off('click');
+        $("#addHikeSaveButton").click(insertHike);
 
-        $("#addUserHike").modal ('show');
+        $("#hikeDialog").modal ('show');
     }
     </script>
 @endsection

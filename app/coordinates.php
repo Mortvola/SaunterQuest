@@ -352,7 +352,7 @@ function findTrail($point)
     $adjustedPoint = $point;
     $first = true;
 
-    $fileName = "trails/" . getTrailFileName($point->lat, $point->lng, ".trails");
+    $fileName = base_path("trails/" . getTrailFileName($point->lat, $point->lng, ".trails"));
 
     error_log("file name: " . $fileName);
 

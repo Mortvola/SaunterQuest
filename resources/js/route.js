@@ -31,8 +31,9 @@ class Route
 		
 		var routeUpdate = {userHikeId: userHikeId, mode: "setStart", point: {lat: position.lat (), lng: position.lng ()}};
 		
-		xmlhttp.open("PUT", "route.php", true);
+		xmlhttp.open("PUT", "route", true);
 		xmlhttp.setRequestHeader("Content-type", "application/json");
+    	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
 		xmlhttp.send(JSON.stringify(routeUpdate));
 	}
 
@@ -52,8 +53,9 @@ class Route
 		
 		var routeUpdate = {userHikeId: userHikeId, mode: "setEnd", point: {lat: position.lat (), lng: position.lng ()}};
 		
-		xmlhttp.open("PUT", "route.php", true);
+		xmlhttp.open("PUT", "route", true);
 		xmlhttp.setRequestHeader("Content-type", "application/json");
+    	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
 		xmlhttp.send(JSON.stringify(routeUpdate));
 	}
 
