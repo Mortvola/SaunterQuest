@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Trail;
+use App\Tile;
 
 class removeTileBackup extends Command
 {
@@ -40,7 +40,7 @@ class removeTileBackup extends Command
     {
         $tileName = $this->argument('tileName');
         
-        $tile = new Trail($tileName);
+        $tile = new Tile($tileName);
         
         $backups = $tile->getBackupList ();
         

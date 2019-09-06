@@ -6,7 +6,7 @@ require_once app_path('coordinates.php');
 require_once app_path('routeFile.php');
 
 
-class Trail
+class Tile
 {
     private $tileName;
     private $trails;
@@ -29,7 +29,7 @@ class Trail
     
     public static function getTileNames ()
     {
-        $di = new \DirectoryIterator ($backupDir = Trail::getFolder ());
+        $di = new \DirectoryIterator ($backupDir = Tile::getFolder ());
         
         $files = [];
         
@@ -103,6 +103,47 @@ class Trail
         return $response;
     }
     
+    public function getTrail ($cn)
+    {
+        if (isset($trails))
+        {
+            
+        }
+        else
+        {
+            $fileName = $this->getFullPath ();
+            
+            if (file_exists($fileName))
+            {
+                $handle = fopen($fileName, "rb");
+                
+                if ($handle) {
+                    
+                    for (;;) {
+                        $jsonString = fgets($handle);
+                        
+                        if (!$jsonString) {
+                            break;
+                        }
+                        
+                        $trail = json_decode($jsonString);
+                        
+                        if (isset($trail) && isset($trail->cn) && $trail->cn == $cn) {
+                            break;
+                        }
+                    }
+                    
+                    fclose($handle);
+                }
+            }
+        }
+        
+        if (isset ($trail))
+        {
+            return $trail;
+        }
+    }
+    
     public function getFileName ()
     {
         return $this->tileName . ".trails";
@@ -110,7 +151,7 @@ class Trail
     
     public function getFullPath ()
     {
-        return Trail::getFolder () . $this->getFileName ();
+        return Tile::getFolder () . $this->getFileName ();
     }
     
     public static function getFolder ()
@@ -120,7 +161,7 @@ class Trail
     
     private static function getFullBackupPath ($backupName)
     {
-        return Trail::getFolder () . Trail::BACKUP_FOLDER . $backupName;
+        return Tile::getFolder () . Tile::BACKUP_FOLDER . $backupName;
     }
     
     public function load ()
@@ -379,7 +420,7 @@ class Trail
     
     public function createBackup ()
     {
-        $backupDir = Trail::getFolder () . Trail::BACKUP_FOLDER;
+        $backupDir = Tile::getFolder () . Tile::BACKUP_FOLDER;
         
         // Ensure backup folder exists.
         if (!is_dir ($backupDir))
@@ -411,12 +452,12 @@ class Trail
     
     public function restoreFromBackup ($backupName)
     {
-        copy (Trail::getFullBackupPath ($backupName), $this->getFullPath ());
+        copy (Tile::getFullBackupPath ($backupName), $this->getFullPath ());
     }
     
     public function getBackupList ()
     {
-        $di = new \DirectoryIterator ($backupDir = Trail::getFolder () . Trail::BACKUP_FOLDER);
+        $di = new \DirectoryIterator ($backupDir = Tile::getFolder () . Tile::BACKUP_FOLDER);
         
         $files = [];
         
@@ -435,14 +476,14 @@ class Trail
     
     public function backupExists ($backupName)
     {
-        return file_exists (Trail::getFullBackupPath ($backupName));
+        return file_exists (Tile::getFullBackupPath ($backupName));
     }
     
     public function removeBackup ($backupName)
     {
-        if (file_exists (Trail::getFullBackupPath ($backupName)))
+        if (file_exists (Tile::getFullBackupPath ($backupName)))
         {
-            unlink (Trail::getFullBackupPath ($backupName));
+            unlink (Tile::getFullBackupPath ($backupName));
         }
     }
 }

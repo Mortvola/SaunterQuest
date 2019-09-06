@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Trail;
+use App\Tile;
 
 class TrailController extends Controller
 {
@@ -29,7 +29,7 @@ class TrailController extends Controller
         $bounds = explode(",", $bounds);
         
         
-        return Trail::getTileList($bounds);
+        return Tile::getTileList($bounds);
     }
     
     /**
@@ -41,7 +41,7 @@ class TrailController extends Controller
     {
         $name = $request->input('n');
         
-        $trail = new Trail($name);
+        $trail = new Tile($name);
         
         return $trail->get();
     }

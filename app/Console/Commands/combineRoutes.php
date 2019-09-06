@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Trail;
+use App\Tile;
 
 class combineRoutes extends Command
 {
@@ -60,7 +60,7 @@ class combineRoutes extends Command
         $tileName = $this->argument('trailFile');
         $cn = $this->option('cn');
         
-        $tile = new Trail($tileName);
+        $tile = new Tile($tileName);
         $tile->load ();
 
         $analysis = $this->analyze ($tile);

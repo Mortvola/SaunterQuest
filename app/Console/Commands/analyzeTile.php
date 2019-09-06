@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Trail;
+use App\Tile;
 
 class analyzeTile extends Command
 {
@@ -44,7 +44,7 @@ class analyzeTile extends Command
         
         if ($tileName == 'All')
         {
-            $tileList = Trail::getTileNames ();
+            $tileList = Tile::getTileNames ();
             
             $bar = $this->output->createProgressBar(count($tileList));
             
@@ -56,7 +56,7 @@ class analyzeTile extends Command
             
             foreach ($tileList as $tileName)
             {
-                $tile = new Trail($tileName);
+                $tile = new Tile($tileName);
                 
                 $result = $tile->analyze ();
                 
@@ -82,7 +82,7 @@ class analyzeTile extends Command
         }
         else
         {
-            $tile = new Trail($tileName);
+            $tile = new Tile($tileName);
             
             $this->analyze ($tile);
         }

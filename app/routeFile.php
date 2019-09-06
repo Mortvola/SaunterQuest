@@ -73,31 +73,39 @@ function getFullTrailFromFile($fileName, $trailName)
 }
 
 
-function getFullTrail($lat, $lng, $trailName)
+function getFullTrail($lat, $lng, $cn)
 {
-    if (strpos($trailName, ":") !== false) {
-        $fileName = base_path("trails/" . getTrailFileName($lat, $lng, ".trails"));
+    $fileName = getTrailBaseNameCompassFormat ($lat, $lng);
+    
+    $tile = new Tile ($fileName);
 
-        $route = getFullTrailFromFile($fileName, $trailName);
-    } else {
-        $route = json_decode(file_get_contents($trailName));
-    }
+    $trail = $tile->getTrail (cn);
+    
+//        $route = getFullTrailFromFile($fileName, $trailName);
 
-    if (isset($route)) {
-        return $route;
+    if (isset($trail)) {
+        return $trail;
     }
 }
 
 
 function getTrail($lat, $lng, $trailName, $startIndex, $endIndex)
 {
-    $route = getFullTrail($lat, $lng, $trailName);
+    list($trailType, $cn, $routeIndex) = explode(":", $trailName);
+    
+    $trail = getFullTrail($lat, $lng, $cn);
 
-    if (isset($route))
+    if (isset($trail))
     {
-        error_log("trim route to " . $startIndex . " and " . $endIndex . " of " . count($route));
+        if ($routeIndex >= count($trail->routes))
+        {
+        }
+        else
+        {
+            error_log("trim route to " . $startIndex . " and " . $endIndex . " of " . count($route));
 
-        return trimRoute($route, $startIndex, $endIndex);
+            return trimRoute($route, $startIndex, $endIndex);
+        }
     }
     
     return $route;
