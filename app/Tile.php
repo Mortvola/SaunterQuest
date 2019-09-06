@@ -107,7 +107,7 @@ class Tile
     {
         if (isset($trails))
         {
-            
+            $trail = $trails[$cn];
         }
         else
         {
