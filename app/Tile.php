@@ -70,7 +70,7 @@ class Tile
                         break;
                     }
                     
-                    $trail = json_decode($jsonString);
+                    $trail = Trail::fromJSON ($jsonString);
                     
                     if (isset($trail)) {
                         if (isset($trail->routes)) {
@@ -126,7 +126,7 @@ class Tile
                             break;
                         }
                         
-                        $trail = json_decode($jsonString);
+                        $trail = Trail::fromJSON($jsonString);
                         
                         if (isset($trail) && isset($trail->cn) && $trail->cn == $cn) {
                             break;
@@ -180,7 +180,7 @@ class Tile
                     break;
                 }
                 
-                $trail = json_decode($jsonString);
+                $trail = Trail::fromJSON($jsonString);
 
                 $this->trails[$trail->cn] = $trail;
             }
@@ -221,7 +221,7 @@ class Tile
             {
                 foreach ($this->trails as $trail)
                 {
-                    $mergeCount = $this->combineTrailRoutes ($trail);
+                    $mergeCount = $trail->combineRoutes ();
                     
                     if ($mergeCount != 0)
                     {
@@ -234,7 +234,7 @@ class Tile
                 if (isset ($this->trails[$cn]))
                 {
                     $trail = $this->trails[$cn];
-                    $totalMergeCount = $this->combineTrailRoutes ($trail);
+                    $totalMergeCount = $trail->combineRoutes ();
                     $trailCount = 1;
                 }
                 else
@@ -275,17 +275,7 @@ class Tile
                 $result->routeCounts[$routeCount]++;
             }
             
-            // Determine bounds for each route and check to current bounds property.
-            // If they are different, record an error.
-            foreach ($trail->routes as $route)
-            {
-                $bounds = $this->getBounds ($route->route);
-                
-                if ($route->bounds != $bounds)
-                {
-                    $result->boundsErrorCount++;
-                }
-            }
+            $result->boundsErrorCount = $trail->analyze ();
         }
         
         return $result;
@@ -297,125 +287,9 @@ class Tile
         {
             foreach ($this->trails as $trail)
             {
-                // Determine bounds for each route and check to current bounds property.
-                // If they are different, record an error.
-                foreach ($trail->routes as $route)
-                {
-                    $bounds = $this->getBounds ($route->route);
-                    
-                    if ($route->bounds != $bounds)
-                    {
-                        $route->bounds = $bounds;
-                    }
-                }
+                $trail->setBounds ();
             }
         }
-    }
-    
-    private function getBounds ($route)
-    {
-        foreach ($route as $r) {
-            if (isset($r->lat) && isset($r->lng)) {
-                if (!isset($minLat)) {
-                    $minLat = $r->lat;
-                } else {
-                    $minLat = min($minLat, $r->lat);
-                }
-                
-                if (!isset($maxLat)) {
-                    $maxLat = $r->lat;
-                } else {
-                    $maxLat = max($maxLat, $r->lat);
-                }
-                
-                if (!isset($minLng)) {
-                    $minLng = $r->lng;
-                } else {
-                    $minLng = min($minLng, $r->lng);
-                }
-                
-                if (!isset($maxLng)) {
-                    $maxLng = $r->lng;
-                } else {
-                    $maxLng = max($maxLng, $r->lng);
-                }
-            }
-        }
-        
-        return [$minLat, $minLng, $maxLat, $maxLng];
-    }
-    
-    private function combineTrailRoutes ($trail)
-    {
-        $mergeCount = 0;
-        
-        for ($i = 0; $i < count($trail->routes);) {
-            $route1 = $trail->routes[$i]->route;
-            
-            unset($overallMin);
-            for ($j = $i + 1; $j < count($trail->routes); $j++) {
-                
-                $route2 = $trail->routes[$j]->route;
-                
-                $result = routeEndpointConnectivity($route1, $route2);
-                
-                if (!isset($overallMin)) {
-                    $overallMin = $result->distance;
-                    $bestRoute2 = $j;
-                    $bestResult = $result;
-                } else if ($result->distance < $overallMin) {
-                    $overallMin = $result->distance;
-                    $bestRoute2 = $j;
-                    $bestResult = $result;
-                }
-            }
-            
-            if (isset($overallMin) && $overallMin <= 30)
-            {
-                if ($bestResult->first == 0)
-                {
-                    if ($bestResult->reverse)
-                    {
-                        $trail->routes[$i]->route = array_merge ($route1, array_reverse($route2));
-                    }
-                    else
-                    {
-                        $trail->routes[$i]->route = array_merge ($route1, $route2);
-                    }
-                }
-                else
-                {
-                    if ($bestResult->reverse)
-                    {
-                        $trail->routes[$i]->route = array_merge (array_reverse($route2), $route1);
-                    }
-                    else
-                    {
-                        $trail->routes[$i]->route = array_merge ($route2, $route1);
-                    }
-                }
-                
-                // Remove the entry that was merged into the first
-                array_splice ($trail->routes, $bestRoute2, 1);
-                
-                $mergeCount++;
-                
-                // Since we merged then we need to compare the newly merged
-                // route against all the other routes so don't increment
-                // the index.
-            }
-            else
-            {
-                //todo: if the current route had merges then we need to recalculate the 
-                // bounds.
-                $trail->routes[$i]->bounds = $this->getBounds ($trail->routes[$i]->route);
-                
-                // Nothing to see here, so move on to the next route.
-                $i++;
-            }
-        }
-        
-        return $mergeCount;
     }
     
     public function createBackup ()
