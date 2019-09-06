@@ -285,6 +285,8 @@ class Trails
 		
 				polyLine.setMap(this.map);
 				
+				polyLine.set ('trail', {tile: tile, trail: t, route: r});
+				
 				setContextMenu (polyLine, trailContextMenu);
 				
 				if (tile.polyLines == undefined)

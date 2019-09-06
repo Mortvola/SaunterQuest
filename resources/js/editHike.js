@@ -720,6 +720,20 @@ function displayLocation (object, position)
 }
 
 
+function displayTrailInfo (object, position)
+{
+	var trailInfo = object.get ('trail');
+	
+	map.infoWindow.setContent (
+		"<div>Name:" + trailInfo.tile.trails[trailInfo.trail].name + "</div>" +
+		"<div>CN:" + trailInfo.tile.trails[trailInfo.trail].cn + "</div>" +
+		"<div>Type:" + trailInfo.tile.trails[trailInfo.trail].type + "</div>"
+		);
+	map.infoWindow.setPosition (position);
+	map.infoWindow.open(map);
+}
+
+
 function positionMapToBounds (map, p1, p2)
 {
 	var bounds = {};
@@ -805,7 +819,9 @@ function mapInitialize()
 		{title:"Create Resupply Location", func:addResupplyLocation},
 		{title:"Display Location", func:displayLocation},
 		{title:"Set Start Location", func:setStartLocation},
-		{title:"Set End Location", func:setEndLocation}]);
+		{title:"Set End Location", func:setEndLocation},
+		{title:"Trail Information", func:displayTrailInfo},
+	]);
 
 	pointOfInterestCM = new ContextMenu ([
 		{title:"Edit Point of Interest", func:editPointOfInterest},

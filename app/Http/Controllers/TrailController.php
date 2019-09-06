@@ -41,6 +41,8 @@ class TrailController extends Controller
     {
         $name = $request->input('n');
         
-        return Trail::getTile($name);
+        $trail = new Trail($name);
+        
+        return $trail->get();
     }
 }

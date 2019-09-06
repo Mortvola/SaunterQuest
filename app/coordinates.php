@@ -400,3 +400,55 @@ function findTrail($point)
     
     return [$point, $trailName, $trailIndex, $route, $routeIndex];
 }
+
+
+function routeEndpointConnectivity ($r1, $r2)
+{
+    $distance = haversineGreatCircleDistance(
+            $r1[count($r1) - 1]->lat,
+            $r1[count($r1) - 1]->lng,
+            $r2[0]->lat,
+            $r2[0]->lng
+            );
+
+    $result = (object)["first" => 0, "reverse" => false, "distance" => $distance];
+    
+    
+    $distance = haversineGreatCircleDistance(
+            $r1[0]->lat,
+            $r1[0]->lng,
+            $r2[count($r2) - 1]->lat,
+            $r2[count($r2) - 1]->lng
+            );
+
+    if ($distance < $result->distance)
+    {
+        $result = (object)["first" => 1, "reverse" => false, "distance" => $distance];
+    }
+    
+    $distance = haversineGreatCircleDistance(
+            $r1[count($r1) - 1]->lat,
+            $r1[count($r1) - 1]->lng,
+            $r2[count($r2) - 1]->lat,
+            $r2[count($r2) - 1]->lng
+            );
+    
+    if ($distance < $result->distance)
+    {
+        $result = (object)["first" => 0, "reverse" => true, "distance" => $distance];
+    }
+    
+    $distance = haversineGreatCircleDistance(
+            $r1[0]->lat,
+            $r1[0]->lng,
+            $r2[0]->lat,
+            $r2[0]->lng
+            );
+
+    if ($distance < $result->distance)
+    {
+        $result = (object)["first" => 1, "reverse" => true, "distance" => $distance];
+    }
+    
+    return $result;
+}
