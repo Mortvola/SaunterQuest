@@ -461,42 +461,9 @@ function setupInitialNodes ($startResult, $endResult, $graphFile, $graph, &$node
 }
 
 
-function findPath ($start, $end)
+function findRoute ($endResult, &$nodes, $graphFile)
 {
     global $handle;
-    global $endGraphFile;
-
-    $startResult = Map::getTrailFromPoint($start);
-
-    error_log("Start Information");
-    logTerminusInfo($startResult);
-
-    $endResult = Map::getTrailFromPoint($end);
-
-    error_log("End Information");
-    logTerminusInfo($endResult);
-
-    $startGraphFile = "trails/" . Map::getTileNameFromPoint($startResult->point) . ".inter.json";
-    $endGraphFile = "trails/" . Map::getTileNameFromPoint($endResult->point) . ".inter.json";
-
-    $graphFile = $startGraphFile;
-    $graph = getGraph($graphFile);
-
-    if ($handle)
-    {
-        fwrite($handle, "digraph G {\n");
-    }
-
-    $nodes = [ ];
-
-    setupInitialNodes ($startResult, $endResult, $graphFile, $graph, $nodes, $noNodeAnchors);
-
-    if (isset($noNodeAnchors) && count($noNodeAnchors) > 0)
-    {
-        error_log("No Node Segments: " . json_encode($noNodeAnchors));
-    }
-
-    // todo: get cost of trail to first nodes
 
     $foundEnd = false;
 
@@ -600,7 +567,49 @@ function findPath ($start, $end)
 
         fwrite($handle, "edge [color=red]\n");
     }
-    //
+
+    return [$foundEnd, $edge, $nodeIndex];
+}
+
+
+function findPath ($start, $end)
+{
+    global $handle;
+    global $endGraphFile;
+
+    $startResult = Map::getTrailFromPoint($start);
+
+    error_log("Start Information");
+    logTerminusInfo($startResult);
+
+    $endResult = Map::getTrailFromPoint($end);
+
+    error_log("End Information");
+    logTerminusInfo($endResult);
+
+    $startGraphFile = "trails/" . Map::getTileNameFromPoint($startResult->point) . ".inter.json";
+    $endGraphFile = "trails/" . Map::getTileNameFromPoint($endResult->point) . ".inter.json";
+
+    $graphFile = $startGraphFile;
+    $graph = getGraph($graphFile);
+
+    if ($handle)
+    {
+        fwrite($handle, "digraph G {\n");
+    }
+
+    $nodes = [ ];
+
+    setupInitialNodes ($startResult, $endResult, $graphFile, $graph, $nodes, $noNodeAnchors);
+
+    if (isset($noNodeAnchors) && count($noNodeAnchors) > 0)
+    {
+        error_log("No Node Segments: " . json_encode($noNodeAnchors));
+    }
+
+    // todo: get cost of trail to first nodes
+
+    list($foundEnd, $edge, $nodeIndex) = findRoute ($endResult, $nodes, $graphFile);
 
     $newAnchors = [ ];
 
