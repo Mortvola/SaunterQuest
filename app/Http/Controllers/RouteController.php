@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Route;
 
-require_once app_path('routeFile.php');
-
 
 class RouteController extends Controller
 {
@@ -31,134 +29,51 @@ class RouteController extends Controller
     {
         $routeUpdate = json_decode($request->getContent());
 
-        $fileName = getRouteFileName($routeUpdate->userHikeId);
+        $route = new Route($routeUpdate->userHikeId);
 
-        if ($fileName) {
-            // Read the data from the file.
-            $segments = readAndSanitizeFile($fileName);
+        switch ($routeUpdate->mode)
+        {
+            /*
+            case "updated":
 
-            if ($routeUpdate->mode == "update") {
                 // Update the point that was moved in the segments array.
                 modifyPoint($segments, $routeUpdate);
-            } elseif ($routeUpdate->mode == "insert") {
+
+                break;
+
+            case "insert":
+
                 array_splice($segments, $routeUpdate->index, 0, [ "0" => $routeUpdate->point]);
 
                 modifyPoint($segments, $routeUpdate);
-            } elseif ($routeUpdate->mode == "delete") {
+
+                break;
+
+            case "delete":
+
                 deletePoints($segments, $routeUpdate);
-            } elseif ($routeUpdate->mode == "addTrail") {
+
+                break;
+
+            case "addTrail":
+
                 addTrail($segments, $routeUpdate);
-            } elseif ($routeUpdate->mode == "setStart") {
-                if (!isset($segments) || count($segments) == 0) {
-                    $segments = [];
 
-                    array_push($segments, (object)[
-                            "lat" => $routeUpdate->point->lat,
-                            "lng" => $routeUpdate->point->lng,
-                            "dist" => 0,
-                            "ele" => getElevation($routeUpdate->point->lat, $routeUpdate->point->lng),
-                            "type" => "start"
-                    ]);
-                } else {
-                    // Find "start" and "end"
-                    for ($i = 0; $i < count($segments); $i++) {
-                        if (isset($segments[$i]->type)) {
-                            if ($segments[$i]->type == "end") {
-                                $endIndex = $i;
-                            } elseif ($segments[$i]->type == "start") {
-                                $startIndex = $i;
-                            }
-                        }
-                    }
+                break;
+*/
+            case "setStart":
 
-                    if (isset($startIndex)) {
-                        // Start exists, update it.
+                $route->setStart ($routeUpdate->point);
 
-                        $segments[$startIndex]->lat = $routeUpdate->point->lat;
-                        $segments[$startIndex]->lng = $routeUpdate->point->lng;
-                        $segments[$startIndex]->dist = 0;
-                        $segments[$startIndex]->ele = getElevation($routeUpdate->point->lat, $routeUpdate->point->lng);
-                    } else {
-                        // Start doesn't exist, add it
+                break;
 
-                        array_splice($segments, 0, 0, (object)[
-                                "lat" => $routeUpdate->point->lat,
-                                "lng" => $routeUpdate->point->lng,
-                                "dist" => 0,
-                                "ele" => getElevation($routeUpdate->point->lat, $routeUpdate->point->lng),
-                                "type" => "start"
-                        ]);
+            case "setEnd":
 
-                        $startIndex = 0;
-                        $endIndex = count($segments) - 1;
-                    }
+                $route->setEnd ($routeUpdate->point);
 
-                    if (isset($startIndex) && isset($endIndex)) {
-                        $newSegments = Route::findPath($segments[$startIndex], $segments[$endIndex]);
-
-                        if (isset($newSegments) && count($newSegments) > 0) {
-                            $segments = $newSegments;
-                        }
-                    }
-                }
-            } elseif ($routeUpdate->mode == "setEnd") {
-                if (!isset($segments) || count($segments) == 0) {
-                    $segments = [];
-
-                    array_push($segments, (object)[
-                            "lat" => $routeUpdate->point->lat,
-                            "lng" => $routeUpdate->point->lng,
-                            "dist" => 0,
-                            "ele" => getElevation($routeUpdate->point->lat, $routeUpdate->point->lng),
-                            "type" => "end"
-                    ]);
-                } else {
-                    // Find "start" and "end"
-                    for ($i = 0; $i < count($segments); $i++) {
-                        if (isset($segments[$i]->type)) {
-                            if ($segments[$i]->type == "end") {
-                                $endIndex = $i;
-
-                                break;
-                            } elseif ($segments[$i]->type == "start") {
-                                $startIndex = $i;
-                            }
-                        }
-                    }
-
-                    if (isset($endIndex)) {
-                        // End exists, update it.
-
-                        $segments[$endIndex]->lat = $routeUpdate->point->lat;
-                        $segments[$endIndex]->lng = $routeUpdate->point->lng;
-                        $segments[$endIndex]->dist = 0;
-                        $segments[$endIndex]->ele = getElevation($routeUpdate->point->lat, $routeUpdate->point->lng);
-                    } else {
-                        // End doesn't exist, add it
-
-                        array_push($segments, (object)[
-                                "lat" => $routeUpdate->point->lat,
-                                "lng" => $routeUpdate->point->lng,
-                                "dist" => 0,
-                                "ele" => getElevation($routeUpdate->point->lat, $routeUpdate->point->lng),
-                                "type" => "end"
-                        ]);
-
-                        $endIndex = count($segments) - 1;
-                    }
-
-                    if (isset($startIndex) && isset($endIndex)) {
-                        $newSegments = Route::findPath($segments[$startIndex], $segments[$endIndex]);
-
-                        if (isset($newSegments) && count($newSegments) > 0) {
-                            $segments = $newSegments;
-                        }
-                    }
-                }
-            }
-
-            // Write the data to the file.
-            file_put_contents($fileName, json_encode($segments));
+                break;
         }
+
+        $route->save ();
     }
 }
