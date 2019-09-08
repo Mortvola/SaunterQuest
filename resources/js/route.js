@@ -168,7 +168,7 @@ class Route
 				this.actualRoute.push({lat: this.anchors[r].lat, lng: this.anchors[r].lng, dist: this.anchors[r].dist, ele: this.anchors[r].ele});
 				this.anchors[r].actualRouteIndex = this.actualRoute.length - 1;
 				
-				if (this.anchors[r].trail != undefined)
+				if (this.anchors[r].trail != undefined && this.anchors[r].trail.length > 1)
 				{
 					if (this.anchors[r].lat == this.anchors[r].trail[0].lat && this.anchors[r].lng == this.anchors[r].trail[0].lng)
 					{

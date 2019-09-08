@@ -3,6 +3,7 @@
 namespace App;
 
 require_once app_path('routeFile.php');
+require_once app_path('routeFind.php');
 
 class Route
 {
@@ -17,5 +18,10 @@ class Route
         }
         
         return json_encode($segments);
+    }
+
+    public static function findPath($start, $end)
+    {
+        return findPath($start, $end);
     }
 }

@@ -95,6 +95,18 @@ function distToSegmentSquared($p, $v, $w)
 
 function pointOnPath($point, $segments, $tolerance)
 {
+    if (!isset($segments))
+    {
+        error_log ("Segments not set");
+        return;
+    }
+    
+    if (!is_array($segments))
+    {
+        error_log ("Segments is not an array");
+        var_dump ($segments);
+        return;
+    }
     //
     // There has to be at least two points in the array. Otherwise, we wouldn't have any edges.
     //
@@ -132,76 +144,6 @@ function pointOnPath($point, $segments, $tolerance)
 
     if (isset($result)) {
         return $result;
-    }
-}
-
-
-function getTileOffsets ($lat, $lng)
-{
-    $lat = floor($lat * 2) * 5;
-    $lng = floor($lng * 2) * 5;
-    
-    return [$lat, $lng];
-}
-
-function tileFileExists ($baseName)
-{
-    $fileName = "trails/" . $baseName . ".trails";
-    
-    return file_exists(base_path($fileName));
-}
-
-function getTileNames ($bounds)
-{
-    list($minLat, $minLng) = getTileOffsets ($bounds[0], $bounds[1]);
-    list($maxLat, $maxLng) = getTileOffsets ($bounds[2], $bounds[3]);
-    
-    $files = [];
-    
-    for ($lat = $minLat; $lat <= $maxLat; $lat += 5)
-    {
-        for ($lng = $minLng; $lng <= $maxLng; $lng += 5)
-        {
-            $baseName = getTrailBaseNameCompassFormat ($lat, $lng);
-            
-            if (tileFileExists ($baseName))
-            {
-                $files[] = (object)["name" => $baseName, "bounds" => [$lat / 10.0, $lng / 10.0, ($lat + 5) / 10.0, ($lng + 5) / 10.0]];
-            }
-        }
-    }
-    
-    return [$files, [$minLat / 10.0, $minLng / 10.0, ($maxLat + 5) / 10.0, ($maxLng + 5) / 10.0]];
-}
-
-
-function getTrailBaseNameCompassFormat ($lat, $lng)
-{
-    if ($lat >= 0) {
-        $fileName = "N" . $lat;
-    } else {
-        $fileName = "S" . - $lat;
-    }
-    
-    if ($lng >= 0) {
-        $fileName .= "E" . $lng;
-    } else {
-        $fileName .= "W" . - $lng;
-    }
-    
-    return $fileName;
-}
-
-
-function getTrailFileName($lat, $lng, $suffix)
-{
-    list($lat, $lng) = getTileOffsets ($lat, $lng);
-    
-    if ($lat && $lng) {
-        
-        $fileName = getTrailBaseNameCompassFormat ($lat, $lng);
-        
-        return $fileName . $suffix;
     }
 }
 
@@ -342,65 +284,6 @@ function boundsIntersect($b1, $b2, $inflation)
             && $b1[1] - $inflation <= $b2[3] + $inflation
             && $b1[3] + $inflation >= $b2[1] - $inflation);
 }
-
-
-
-function findTrail($point)
-{
-    $trails = [];
-    $closestTrail = -1;
-    $adjustedPoint = $point;
-    $first = true;
-
-    $fileName = base_path("trails/" . getTrailFileName($point->lat, $point->lng, ".trails"));
-
-    error_log("file name: " . $fileName);
-
-    $handle = fopen($fileName, "rb");
-
-    if ($handle) {
-        for (;;) {
-            $jsonString = fgets($handle);
-
-            if (!$jsonString) {
-                break;
-            }
-
-            $trail = json_decode($jsonString);
-
-            if (isset($trail) && isset($trail->routes)) {
-                for ($i = 0; $i < count($trail->routes); $i++) {
-                    if (!isset($trail->routes[$i]->bounds) || withinBounds($point, $trail->routes[$i]->bounds, 0.00027027)) {
-                        $result = pointOnPath($point, $trail->routes[$i]->route, 30);
-
-                        if (isset($result) && ($first || $result->distance < $shortestDistance)) {
-                            $first = false;
-
-                            $shortestDistance = $result->distance;
-                            $trailName = $trail->type . ":" . $trail->cn . ":" . $i;
-                            // The new point is on the closest segment found on the trail. Therefore, the trail
-                            // route will start at the next segment.
-                            $trailIndex = $i;
-                            $routeIndex = $result->index;
-                            $route = $trail->routes[$i]->route;
-
-                            $adjustedPoint = $result->point;
-                        }
-                    }
-                }
-            }
-        }
-
-        fclose($handle);
-    }
-
-
-    $point->lat = $adjustedPoint->lat;
-    $point->lng = $adjustedPoint->lng;
-    
-    return [$point, $trailName, $trailIndex, $route, $routeIndex];
-}
-
 
 function routeEndpointConnectivity ($r1, $r2)
 {

@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Foundation\Inspiring;
+use App\Map;
 use App\Trail;
 use App\Route;
 use App\Schedule;
@@ -79,4 +80,10 @@ Artisan::command('resupplyPlan:get {userId} {userHikeId}', function ($userId, $u
 
 Artisan::command('hike:get {userId}', function ($userId) {
     $this->info(Hike::where('userId', $userId)->get ());
+})->describe('Gets the hikes for the user specified by the provided userId');
+
+
+Artisan::command('map:getPathFromPoint {lat} {lng}', function ($lat, $lng) {
+    $result = Map::getTrailFromPoint ((object)["lat" => floatval($lat), "lng" => floatval($lng)]);
+    $this->info(json_encode($result));
 })->describe('Gets the hikes for the user specified by the provided userId');

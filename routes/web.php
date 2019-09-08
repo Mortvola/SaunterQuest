@@ -23,8 +23,8 @@ Route::get('/editHike', function () {
     return view('editHike');
 });
 
-Route::get('/tileList', 'TrailController@getList');
-Route::get('/tile', 'TrailController@get');
+Route::get('/tileList', 'MapController@getTileList');
+Route::get('/tile', 'TileController@get');
 
 Route::post('/hike', 'HikeController@post');
 Route::delete('/hike', 'HikeController@delete');

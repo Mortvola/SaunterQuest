@@ -1,11 +1,12 @@
 <?php
 
+namespace App;
+
 require_once "coordinates.php";
 require_once "routeFile.php";
 require_once "utilities.php";
 
 $handle = null;
-
 
 function dump_node($nodeIndex, $graph)
 {
@@ -13,26 +14,26 @@ function dump_node($nodeIndex, $graph)
         error_log("---------------");
         error_log("Node Index: " . $nodeIndex);
 
-        $node = &$graph->nodes[$nodeIndex];
+        $node = $graph->nodes[$nodeIndex];
 
         error_log("Number of edges: " . count($node->edges));
 
         for ($i = 0; $i < count($node->edges); $i++) {
-            $edge = &$graph->edges[$node->edges[$i]];
+            $edge = $graph->edges[$node->edges[$i]];
 
             if (isset($edge->file)) {
-                error_log("edge index: " . $node->edges[$i] . ", route to file " . $edge->file . ". " . isset($edge->visited));
+                error_log("edge index: " . $node->edges[$i] . ", route to file " . $edge->file . ". " . (isset($edge->visited) ? "Visited" : ""));
             } else {
                 if (!isset($edge->prev->nodeIndex)) {
-                    error_log("edge index: " . $node->edges[$i] . ", route " . $edge->cn . " to no node. " . isset($edge->visited));
+                    error_log("edge index: " . $node->edges[$i] . ", route " . $edge->cn . " to no node. " . (isset($edge->visited) ? "Visited" : ""));
                 } elseif ($edge->prev->nodeIndex != $nodeIndex) {
-                    error_log("edge index: " . $node->edges[$i] . ", route " . $edge->cn . " to " . $edge->prev->nodeIndex . ". " . isset($edge->visited));
+                    error_log("edge index: " . $node->edges[$i] . ", route " . $edge->cn . " to " . $edge->prev->nodeIndex . ". " . (isset($edge->visited) ? "Visited" : ""));
                 }
 
                 if (!isset($edge->next->nodeIndex)) {
-                    error_log("edge index: " . $node->edges[$i] . ", route " . $edge->cn . " to no node. " . isset($edge->visited));
+                    error_log("edge index: " . $node->edges[$i] . ", route " . $edge->cn . " to no node. " . (isset($edge->visited) ? "Visited" : ""));
                 } elseif ($edge->next->nodeIndex != $nodeIndex) {
-                    error_log("edge index: " . $node->edges[$i] . ", route " . $edge->cn . " to " . $edge->next->nodeIndex . ". " . isset($edge->visited));
+                    error_log("edge index: " . $node->edges[$i] . ", route " . $edge->cn . " to " . $edge->next->nodeIndex . ". " . (isset($edge->visited) ? "Visited" : ""));
                 }
 
                 if (!isset($edge->next->nodeIndex) && !isset($edge->prev->nodeIndex)) {
@@ -45,35 +46,35 @@ function dump_node($nodeIndex, $graph)
 }
 
 
-function addNewAnchor(&$newSegments, $segment)
+function addNewAnchor(&$newAnchors, $anchor)
 {
-    if ($segment->lat != $newSegments[0]->lat || $segment->lng != $newSegments[0]->lng) {
-        if (count($newSegments) >= 1 && isset($segment->next->file)) {
+    if ($anchor->lat != $newAnchors[0]->lat || $anchor->lng != $newAnchors[0]->lng) {
+        if (count($newAnchors) >= 1 && isset($anchor->next->file)) {
             // Push the anchor onto the front of the array
-            array_splice($newSegments, 0, 0, array($segment));
+            array_splice($newAnchors, 0, 0, array($anchor));
         } else {
-            if (count($newSegments) >= 1
-                    && $segment->next->trailName != $newSegments[0]->prev->trailName) {
-                error_log("next and previous trails don't match: next: " . $segment->next->trailName . ", prev: " . $newSegments[0]->prev->trailName);
-                error_log(json_encode($segment));
+            if (count($newAnchors) >= 1
+            && $anchor->next->trailName != $newAnchors[0]->prev->trailName) {
+                error_log("next and previous trails don't match: next: " . $anchor->next->trailName . ", prev: " . $newAnchors[0]->prev->trailName);
+                error_log(json_encode($anchor));
             }
 
             // Determine if we should replace the previously pushed anchor
             // or add a new one. If the anchor at position 0 is between
             // the new one and the one at position 1, then we can just replace
             // the one at position 0.
-            if (count($newSegments) > 1 && !isset($newSegments[0]->next->file)
-                && $segment->next->trailName == $newSegments[0]->prev->trailName
-                    && $segment->next->trailName == $newSegments[1]->prev->trailName
-                && (($segment->next->routeIndex > $newSegments[0]->prev->routeIndex && $newSegments[0]->next->routeIndex > $newSegments[1]->prev->routeIndex)
-                    || ($segment->next->routeIndex < $newSegments[0]->prev->routeIndex && $newSegments[0]->next->routeIndex < $newSegments[1]->prev->routeIndex))) {
-                error_log("Replacing " . json_encode($newSegments[0]));
-                error_log("with " . json_encode($segment));
+            if (count($newAnchors) > 1 && !isset($newAnchors[0]->next->file)
+            && $anchor->next->trailName == $newAnchors[0]->prev->trailName
+            && $anchor->next->trailName == $newAnchors[1]->prev->trailName
+            && (($anchor->next->routeIndex > $newAnchors[0]->prev->routeIndex && $newAnchors[0]->next->routeIndex > $newAnchors[1]->prev->routeIndex)
+            || ($anchor->next->routeIndex < $newAnchors[0]->prev->routeIndex && $newAnchors[0]->next->routeIndex < $newAnchors[1]->prev->routeIndex))) {
+                error_log("Replacing " . json_encode($newAnchors[0]));
+                error_log("with " . json_encode($anchor));
 
-                $newSegments[0] = $segment;
+                $newAnchors[0] = $anchor;
             } else {
                 // Push the anchor onto the front of the array
-                array_splice($newSegments, 0, 0, array($segment));
+                array_splice($newAnchors, 0, 0, array($anchor));
             }
         }
     }
@@ -91,9 +92,6 @@ function translateFileName($fileName)
 
 
 $fileGraphMap = [];
-$endCN = [];
-$endRoute = [];
-$endRouteIndex = [];
 
 function getGraph($fileName)
 {
@@ -124,13 +122,15 @@ function getOtherNodeIndex($edge, $nodeIndex)
 }
 
 
-function pushNode($edgeIndex, $fromNodeIndex, &$graph, $graphFile, &$nodes, &$foundEnd)
+function pushNode($edgeIndex, $fromNodeIndex, $graph, $graphFile, &$nodes, $endResult)
 {
-    global $endCN, $endRoute, $endRouteIndex, $endGraphFile;
+    global $endGraphFile;
     global $handle;
 
-    $node = &$graph->nodes[$fromNodeIndex];
-    $edge = &$graph->edges[$edgeIndex];
+    $foundEnd = false;
+
+    $node = $graph->nodes[$fromNodeIndex];
+    $edge = $graph->edges[$edgeIndex];
 
     if (!isset($edge)) {
         error_log("edge index: " . $edgeIndex);
@@ -142,17 +142,17 @@ function pushNode($edgeIndex, $fromNodeIndex, &$graph, $graphFile, &$nodes, &$fo
 
         $nextNodeIndex = $edge->nodeIndex;
 
-        $nextNode = &$graph->nodes[$nextNodeIndex];
+        $nextNode = $graph->nodes[$nextNodeIndex];
 
         $nextNode->bestEdge = $edgeIndex;
 
         array_push($nodes, (object)["index" => $nextNodeIndex, "file" => $graphFile]);
     } else {
-        error_log("End graph file: " . $endGraphFile . ", curent file: " . $graphFile);
+//        error_log("End graph file: " . $endGraphFile . ", curent file: " . $graphFile);
 
         if ($graphFile == $endGraphFile
-            && $edge->cn == $endCN && $edge->route == $endRoute
-            && ($endRouteIndex >= $edge->prev->routeIndex && $endRouteIndex <= $edge->next->routeIndex)) {
+         && $edge->cn == $endResult->trail->cn && $edge->route == $endResult->pathIndex
+         && ($endResult->pointIndex >= $edge->prev->routeIndex && $endResult->pointIndex <= $edge->next->routeIndex)) {
             error_log("Found end. Last edge " . $edgeIndex);
             error_log(var_dump_ret($edge));
             $foundEnd = true;
@@ -163,13 +163,13 @@ function pushNode($edgeIndex, $fromNodeIndex, &$graph, $graphFile, &$nodes, &$fo
 //          }
 //          else
             {
-                $cost = $node->cost + (isset($edge->cost) ? $edge->cost : 0);
+                $cost = $node->cost + $edge->cost;
             }
 
             $nextNodeIndex = getOtherNodeIndex($edge, $fromNodeIndex);
 
             if (isset($nextNodeIndex)) {
-                $nextNode = &$graph->nodes[$nextNodeIndex];
+                $nextNode = $graph->nodes[$nextNodeIndex];
 
                 if (!isset($nextNode->cost) || $cost < $nextNode->cost) {
                     $nextNode->bestEdge = $edgeIndex;
@@ -194,10 +194,12 @@ function pushNode($edgeIndex, $fromNodeIndex, &$graph, $graphFile, &$nodes, &$fo
     }
 
     $edge->visited = true;
+
+    return $foundEnd;
 }
 
 
-function getOtherGraphInfo($edge, &$otherFile, &$otherGraph, &$otherEdgeIndex, &$otherNodeIndex)
+function getOtherGraphInfo($edge)
 {
     $otherFile = translateFileName($edge->file);
 
@@ -223,6 +225,8 @@ function getOtherGraphInfo($edge, &$otherFile, &$otherGraph, &$otherEdgeIndex, &
     if (!isset($otherNodeIndex)) {
         error_log("file connector not found: file: " . $otherFile . ", id: " . $id);
     }
+
+    return [$otherFile, $otherGraph, $otherEdgeIndex, $otherNodeIndex];
 }
 
 function sortComparison($a, $b)
@@ -232,7 +236,9 @@ function sortComparison($a, $b)
 
     if ($aGraph->nodes[$a->index]->cost < $bGraph->nodes[$b->index]->cost) {
         return -1;
-    } elseif ($aGraph->nodes[$a->index]->cost > $bGraph->nodes[$b->index]->cost) {
+    }
+
+    if ($aGraph->nodes[$a->index]->cost > $bGraph->nodes[$b->index]->cost) {
         return 1;
     }
 
@@ -240,44 +246,33 @@ function sortComparison($a, $b)
 }
 
 
+function logTerminusInfo ($terminus)
+{
+    error_log("\tPoint: " . json_encode($terminus->point));
+    error_log("\ttrailName: " . $terminus->trail->name);
+    error_log("\ttrailType: " . $terminus->trail->type);
+    error_log("\ttrailCN: " . $terminus->trail->cn);
+    error_log("\tpathIndex: " . $terminus->pathIndex);
+    error_log("\tpointIndex: " . $terminus->pointIndex);
+}
+
 function findPath($start, $end)
 {
     global $handle;
-    global $endCN, $endRoute, $endRouteIndex, $endGraphFile;
+    global $endGraphFile;
 
-    list($start, $start->trailName, $startTrailIndex, $startRoute, $startRouteIndex) = findTrail($start);
+    $startResult = Map::getTrailFromPoint($start);
 
-    error_log(json_encode($start));
+    error_log("Start Information");
+    logTerminusInfo($startResult);
 
-    error_log("Start Route Index: " . json_encode($startRouteIndex));
-    error_log("start trailName: " . $start->trailName);
-    error_log("start trailIndex: " . $startTrailIndex);
-    error_log("start routeIndex: " . $startRouteIndex);
+    $endResult = Map::getTrailFromPoint($end);
 
-    $parts = explode(":", $start->trailName);
-    $startCN = $parts[1];
-    $startRoute = $parts[2];
+    error_log("End Information");
+    logTerminusInfo($endResult);
 
-    error_log("Start CN/Route: " . $startCN . "/" . $startRoute);
-
-    list($end, $end->trailName, $endTrailIndex, $endRoute, $endRouteIndex) = findTrail($end);
-
-    error_log(json_encode($end));
-    error_log("end trailName: " . $end->trailName);
-    error_log("end trailIndex: " . $endTrailIndex);
-    error_log("end routeIndex: " . $endRouteIndex);
-//  var_dump ($end->trailName);
-//  var_dump ($endTrailIndex);
-//  var_dump ($endRouteIndex);
-
-    $parts = explode(":", $end->trailName);
-    $endCN = $parts[1];
-    $endRoute = $parts[2];
-
-    error_log("End CN/Route: " . $endCN . "/" . $endRoute);
-
-    $startGraphFile = "trails/" . getTrailFileName($start->lat, $start->lng, ".inter.json");
-    $endGraphFile = "trails/" . getTrailFileName($end->lat, $end->lng, ".inter.json");
+    $startGraphFile = "trails/" . Map::getTileNameFromPoint ($start->lat, $start->lng) . ".inter.json";
+    $endGraphFile = "trails/" . Map::getTileNameFromPoint ($end->lat, $end->lng) . ".inter.json";
 
     $graphFile = $startGraphFile;
     $graph = getGraph($graphFile);
@@ -290,25 +285,25 @@ function findPath($start, $end)
 
     // Find the edge we are starting on and push its connected nodes onto the queue.
     for ($i = 0; $i < count($graph->edges); $i++) {
-        $edge = &$graph->edges[$i];
+        $edge = $graph->edges[$i];
 
         if (!isset($edge->file)) {
-            if ($edge->cn == $startCN && $edge->route == $startRoute) {
-                error_log("Start Route Index: " . $startRouteIndex);
+            if ($edge->cn == $startResult->trail->cn && $edge->route == $startResult->pathIndex) {
+                error_log("Start Route Index: " . $startResult->pointIndex);
                 error_log("Edge start route index: " . $edge->prev->routeIndex);
                 error_log("Edge end route index: " . $edge->next->routeIndex);
             }
 
-            if ($edge->cn == $startCN && $edge->route == $startRoute
-             && ($edge->prev->routeIndex <= $startRouteIndex)
-             && ($edge->next->routeIndex > $startRouteIndex)) {
+            if ($edge->cn == $startResult->trail->cn && $edge->route == $startResult->pathIndex
+                    && ($edge->prev->routeIndex <= $startResult->pointIndex)
+                    && ($edge->next->routeIndex > $startResult->pointIndex)) {
                 error_log(json_encode($edge));
 
                 // If the end is also on this same edge...
-                if ($edge->cn == $endCN && $edge->route == $endRoute
-                    && ($edge->prev->routeIndex <= $endRouteIndex)
-                    && ($edge->next->routeIndex > $endRouteIndex)) {
-                    if ($startRouteIndex > $endRouteIndex) {
+                if ($edge->cn == $endResult->trail->cn && $edge->route == $endResult->pathIndex
+                 && ($edge->prev->routeIndex <= $endResult->pointIndex)
+                 && ($edge->next->routeIndex > $endResult->pointIndex)) {
+                    if ($startResult->pointIndex > $endResult->pointIndex) {
                         if (isset($edge->next->nodeIndex)) {
                             $graph->nodes[$edge->next->nodeIndex]->bestEdge = $i;
                             $graph->nodes[$edge->next->nodeIndex]->cost = 0;
@@ -320,7 +315,7 @@ function findPath($start, $end)
 
                             dump_node($edge->next->nodeIndex, $graph);
                         }
-                    } elseif ($startRouteIndex < $endRouteIndex) {
+                    } elseif ($startResult->pointIndex < $endResult->pointIndex) {
                         if (isset($edge->prev->nodeIndex)) {
                             $graph->nodes[$edge->prev->nodeIndex]->bestEdge = $i;
                             $graph->nodes[$edge->prev->nodeIndex]->cost = 0;
@@ -336,8 +331,8 @@ function findPath($start, $end)
 
                     $noNodeSegments = [];
 
-                    $start->routeIndex = $startRouteIndex;
-                    $end->routeIndex = $endRouteIndex;
+                    $start->routeIndex = $startResult->pointIndex;
+                    $end->routeIndex = $endResult->pointIndex;
 
                     array_push($noNodeSegments, $start);
                     array_push($noNodeSegments, $end);
@@ -389,7 +384,7 @@ function findPath($start, $end)
 
     while (count($nodes) > 0) {
         // Sort the nodes from lowest cost to highest cost
-        usort($nodes, "sortComparison");
+        usort($nodes, "App\sortComparison");
 
         error_log("current node queue:");
 //        var_dump($nodes);
@@ -406,14 +401,14 @@ function findPath($start, $end)
 
         error_log("current node:" . $nodeIndex);
 
-        $node = &$graph->nodes[$nodeIndex];
+        $node = $graph->nodes[$nodeIndex];
 
         error_log("node: " . json_encode($node));
         error_log("Best edge: " . $node->bestEdge);
 
         // For each edge connected to this node...
         foreach ($node->edges as $edgeIndex) {
-            $edge = &$graph->edges[$edgeIndex];
+            $edge = $graph->edges[$edgeIndex];
 
             if (isset($edge->file)) {
                 error_log("edge index: " . $edgeIndex . ", edge file: " . $edge->file);
@@ -422,13 +417,13 @@ function findPath($start, $end)
             }
 
             if (!isset($edge->visited)) {
-//                 var_dump($endCN);
+                //                 var_dump($endResult->trail->cn);
 //                 var_dump($edge);
 
                 if (isset($edge->file)) {
                     // Find edge that has matching "file" connection identifier and get the node index
 
-                    getOtherGraphInfo($edge, $otherFile, $otherGraph, $otherEdgeIndex, $otherNodeIndex);
+                    list ($otherFile, $otherGraph, $otherEdgeIndex, $otherNodeIndex) = getOtherGraphInfo($edge);
 
                     if (isset($otherNodeIndex)) {
                         if ($otherNodeIndex >= count($otherGraph->nodes)) {
@@ -443,14 +438,14 @@ function findPath($start, $end)
                         error_log("Other node index: " . $otherNodeIndex);
                         error_log("Other node: " . json_encode($otherNode));
 
-                        pushNode($otherEdgeIndex, $otherNodeIndex, $otherGraph, $otherFile, $nodes, $foundEnd);
+                        $foundEnd = pushNode($otherEdgeIndex, $otherNodeIndex, $otherGraph, $otherFile, $nodes, $endResult);
                     } else {
                         error_log("corresponding node not found in " . $otherFile);
                     }
 
                     $edge->visited = true;
                 } else {
-                    pushNode($edgeIndex, $nodeIndex, $graph, $graphFile, $nodes, $foundEnd);
+                    $foundEnd = pushNode($edgeIndex, $nodeIndex, $graph, $graphFile, $nodes, $endResult);
                 }
             }
 
@@ -472,7 +467,7 @@ function findPath($start, $end)
     }
     //
 
-    $newSegments = [];
+    $newAnchors = [];
 
     if ($foundEnd) {
         error_log("******** find path backwards ******");
@@ -482,17 +477,17 @@ function findPath($start, $end)
         $anchor->lng = $end->lng;
         $anchor->type = "end";
 
-        $anchor->prev = (object)[];
-        $anchor->prev->trailName = $end->trailName;
-        $anchor->prev->routeIndex = $endRouteIndex;
+        $trailName = $endResult->trail->type . ':' . $endResult->trail->cn . ':' . $endResult->pathIndex;
 
-        array_push($newSegments, $anchor);
+        $anchor->prev = (object)[];
+        $anchor->prev->trailName = $trailName;
+        $anchor->prev->routeIndex = $endResult->pointIndex;
+
+        array_push($newAnchors, $anchor);
 
         if ($handle && isset($nodeIndex)) {
             fwrite($handle, $nodeIndex . " -> E;\n");
         }
-
-        $trailName = $end->trailName;
 
         if (isset($edge->prev->nodeIndex) && $edge->prev->nodeIndex == $nodeIndex) {
             $nextRouteIndex = $edge->prev->routeIndex;
@@ -501,11 +496,12 @@ function findPath($start, $end)
         }
 
         while (isset($nodeIndex)) {
-            $node = &$graph->nodes[$nodeIndex];
+            $node = $graph->nodes[$nodeIndex];
             error_log("node index: " . $nodeIndex);
 
             if (isset($node->bestEdge)) {
-                $edge = &$graph->edges[$node->bestEdge];
+                $edge = $graph->edges[$node->bestEdge];
+                error_log("edge index : " . $node->bestEdge);
 
                 $anchor = (object)[];
 
@@ -513,12 +509,11 @@ function findPath($start, $end)
                 $anchor->lng = $node->lng;
 
                 $anchor->next = (object)[];
-
                 $anchor->next->trailName = $trailName;
                 $anchor->next->routeIndex = $nextRouteIndex;
 
                 if (isset($edge->file)) {
-                    getOtherGraphInfo($edge, $otherFile, $otherGraph, $otherEdgeIndex, $otherNodeIndex);
+                    list ($otherFile, $otherGraph, $otherEdgeIndex, $otherNodeIndex) = getOtherGraphInfo($edge);
 
                     if (isset($otherNodeIndex)) {
                         error_log("other edge: " . json_encode($otherGraph->edges[$otherEdgeIndex]));
@@ -537,10 +532,8 @@ function findPath($start, $end)
 
                 error_log("trail name: " . $trailName);
                 error_log("edge: " . json_encode($edge));
-                error_log("node index : " . $nodeIndex);
 
                 $anchor->prev = (object)[];
-
                 $anchor->prev->trailName = $trailName;
 
                 if (isset($edge->prev->nodeIndex) && $edge->prev->nodeIndex == $nodeIndex) {
@@ -565,14 +558,14 @@ function findPath($start, $end)
                     unset($nodeIndex);
                 }
 
-                error_log("startGraphFile: " . $startGraphFile . ", startCN: " . $startCN . ", startRoute: " . $startRoute);
-                error_log("graphFile: " . $graphFile . ", edge CN: " . $edge->cn . ", edge route: " . $edge->route);
+//                error_log("startGraphFile: " . $startGraphFile . ", startCN: " . $startResult->trail->cn . ", startRoute: " . $startResult->pathIndex);
+//                error_log("graphFile: " . $graphFile . ", edge CN: " . $edge->cn . ", edge route: " . $edge->route);
 
                 // Are we back at the start? If so, unset the node index so that we can exit the loop.
                 if ($graphFile == $startGraphFile
-                    && $edge->cn == $startCN && $edge->route == $startRoute
-                    && ($startRouteIndex >= $edge->prev->routeIndex && $startRouteIndex <= $edge->next->routeIndex)) {
-                    error_log("Found start: startRoute: " . $startRoute);
+                && $edge->cn == $startResult->trail->cn && $edge->route == $startResult->pathIndex
+                && ($startResult->pointIndex >= $edge->prev->routeIndex && $startResult->pointIndex <= $edge->next->routeIndex)) {
+                        error_log("Found start: startRoute: " . $startResult->pathIndex);
                     unset($nodeIndex);
                 }
             } else {
@@ -583,7 +576,7 @@ function findPath($start, $end)
 
             error_log(json_encode($anchor));
 
-            addNewAnchor($newSegments, $anchor);
+            addNewAnchor($newAnchors, $anchor);
         }
 
         $anchor = (object)[];
@@ -591,15 +584,17 @@ function findPath($start, $end)
         $anchor->lng = $start->lng;
         $anchor->type = "start";
 
+        $trailName = $startResult->trail->type . ':' . $startResult->trail->cn . ':' . $startResult->pathIndex;
+
         $anchor->next = (object)[];
-        $anchor->next->trailName = $start->trailName;
-        $anchor->next->routeIndex = $startRouteIndex;
+        $anchor->next->trailName = $trailName;
+        $anchor->next->routeIndex = $startResult->pointIndex;
 
-        addNewAnchor($newSegments, $anchor);
+        addNewAnchor($newAnchors, $anchor);
 
-    //  error_log(json_encode($newSegments));
+        //  error_log(json_encode($newAnchors));
     } elseif (isset($noNodeSegments)) {
-        $newSegments = $noNodeSegments;
+        $newAnchors = $noNodeSegments;
     }
 
     if ($handle) {
@@ -607,36 +602,5 @@ function findPath($start, $end)
         fclose($handle);
     }
 
-    return $newSegments;
-}
-
-function test($fileName)
-{
-    global $handle;
-    global $fileGraphMap;
-
-    if ($fileName) {
-        $handle = fopen("paths.dot", "wb");
-
-        // Read the data from the file.
-        $segments = readAndSanitizeFile($fileName);
-
-        for ($i = 0; $i < count($segments); $i++) {
-            if (isset($segments[$i]->type)) {
-                if ($segments[$i]->type == "end") {
-                    $endIndex = $i;
-                } elseif ($segments[$i]->type == "start") {
-                    $startIndex = $i;
-                }
-            }
-        }
-
-        $segments = findPath($segments[$startIndex], $segments[$endIndex]);
-
-        error_log("Final route: " . json_encode($segments));
-
-        foreach ($fileGraphMap as $file => $graph) {
-            error_log($file);
-        }
-    }
+    return $newAnchors;
 }

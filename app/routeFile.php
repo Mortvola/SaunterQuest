@@ -1,5 +1,7 @@
 <?php
 
+use App\Map;
+
 require_once "coordinates.php";
 
 
@@ -73,28 +75,18 @@ function getFullTrailFromFile($fileName, $trailName)
 }
 
 
-function getFullTrail($lat, $lng, $cn)
-{
-    $fileName = getTrailBaseNameCompassFormat ($lat, $lng);
-    
-    $tile = new Tile ($fileName);
-
-    $trail = $tile->getTrail (cn);
-    
-//        $route = getFullTrailFromFile($fileName, $trailName);
-
-    if (isset($trail)) {
-        return $trail;
-    }
-}
-
-
-function getTrail($lat, $lng, $trailName, $startIndex, $endIndex)
+function getPath($lat, $lng, $trailName, $startIndex, $endIndex)
 {
     list($trailType, $cn, $routeIndex) = explode(":", $trailName);
     
-    $trail = getFullTrail($lat, $lng, $cn);
+    $tile = Map::getTilefromPoint ($lat, $lng);
 
+    $trail = $tile->getTrail ($cn);
+    
+//     if (isset($trail)) {
+//         return $trail;
+//     }
+    
     if (isset($trail))
     {
         if ($routeIndex >= count($trail->routes))
@@ -102,13 +94,13 @@ function getTrail($lat, $lng, $trailName, $startIndex, $endIndex)
         }
         else
         {
+            $route = $trail->routes[$routeIndex]->route;
+            
             error_log("trim route to " . $startIndex . " and " . $endIndex . " of " . count($route));
 
             return trimRoute($route, $startIndex, $endIndex);
         }
     }
-    
-    return $route;
 }
 
 
@@ -219,9 +211,9 @@ function getRouteFromFile($fileName)
                     error_log("Points on same trail" . $segments[$s]->next->trailName);
 
                     if ($segments[$s]->next->routeIndex < $segments[$s + 1]->prev->routeIndex) {
-                        $trail = getTrail($segments[$s]->lat, $segments[$s]->lng, $segments[$s]->next->trailName, $segments[$s]->next->routeIndex + 1, $segments[$s + 1]->prev->routeIndex);
+                        $trail = getPath($segments[$s]->lat, $segments[$s]->lng, $segments[$s]->next->trailName, $segments[$s]->next->routeIndex + 1, $segments[$s + 1]->prev->routeIndex);
                     } else {
-                        $trail = getTrail($segments[$s]->lat, $segments[$s]->lng, $segments[$s]->next->trailName, $segments[$s]->next->routeIndex, $segments[$s + 1]->prev->routeIndex + 1);
+                        $trail = getPath($segments[$s]->lat, $segments[$s]->lng, $segments[$s]->next->trailName, $segments[$s]->next->routeIndex, $segments[$s + 1]->prev->routeIndex + 1);
                     }
 
                     //              array_splice ($segments, $s + 1, 0, $trail);

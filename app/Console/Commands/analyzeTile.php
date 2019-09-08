@@ -12,7 +12,7 @@ class analyzeTile extends Command
      *
      * @var string
      */
-    protected $signature = 'trail:analyze {--tile=All} {--repair}';
+    protected $signature = 'trail:analyze {--tile=All} {--repair} {--remove-point-duplicates}';
 
     /**
      * The console command description.
@@ -41,70 +41,142 @@ class analyzeTile extends Command
         $tileName = $this->option('tile');
 
         $repair = $this->option('repair');
-        
+
+        $removePathPointDuplicates = $this->option('remove-point-duplicates');
+
         if ($tileName == 'All')
         {
-            $tileList = Tile::getTileNames ();
-            
+            $result = (object)[];
+            $result->trailCount = 0;
+
+            $tileList = Map::getAllTileNames ();
+
             $bar = $this->output->createProgressBar(count($tileList));
-            
+
             $this->info ("Number of tiles to analyze: " . count($tileList));
-            
+
             $bar->start();
-            
+
             $tileErrorCount = 0;
-            
+
             foreach ($tileList as $tileName)
             {
                 $tile = new Tile($tileName);
-                
-                $result = $tile->analyze ();
-                
-                if ($result->boundsErrorCount > 0)
+
+                $tileResult = $tile->analyze ();
+
+                $this->countRollup ($result, $tileResult, "routeCounts");
+                $this->countRollup ($result, $tileResult, "distanceCounts");
+                $result->trailCount += $tileResult->trailCount;
+
+                if ($tileResult->boundsErrorCount > 0)
                 {
                     if ($repair)
                     {
-                        $tile->repair ($result);
-                     
+                        $tile->repair ($tileResult);
+
                         $tile->createBackup ();
                         $tile->save ();
                     }
-                    
+
                     $tileErrorCount++;
                 }
-                
+
+                if ($removePathPointDuplicates && $tileResult->intraPathDuplicatePoints > 0)
+                {
+                    $tile->removePathPointDuplicates ();
+                }
+
                 $bar->advance();
             }
-            
+
             $bar->finish();
-            
+
+            $this->displayResults ($result);
+
             $this->info ("\nNumber of tiles with errors: " . $tileErrorCount);
         }
         else
         {
+            $modified = false;
             $tile = new Tile($tileName);
-            
-            $this->analyze ($tile);
+
+            $tileResult = $tile->analyze ();
+
+            $this->displayResults ($tileResult);
+
+            if ($tileResult->boundsErrorCount > 0)
+            {
+                if ($repair)
+                {
+                    $tile->repair ($tileResult);
+                    $modified = true;
+                }
+            }
+
+            if ($removePathPointDuplicates && $tileResult->intraPathDuplicatePoints > 0)
+            {
+                $tile->removePathPointDuplicates ();
+                $modified = true;
+            }
+
+            if ($modified)
+            {
+                $tile->createBackup ();
+                $tile->save ();
+            }
         }
     }
 
-    private function analyze ($tile)
+    private function displayResults ($result)
     {
-        $result = $tile->analyze ();
-        
         $this->info ("Number of trails: " . $result->trailCount);
-        
+
+        ksort ($result->routeCounts, SORT_NUMERIC);
         foreach ($result->routeCounts as $key => $value)
         {
             $this->info ("Number of trails with " . $key . " routes: " . $value);
         }
-        
-        if ($result->boundsErrorCount > 0)
+
+        if (isset ($result->longestDistance))
+        {
+            $this->info ("Longest distance between path points: " . $result->longestDistance);
+        }
+
+        if (isset ($result->boundsErrorCount) && $result->boundsErrorCount > 0)
         {
             $this->error ("Number of routes with bounds error: " . $result->boundsErrorCount);
         }
-        
-        return $result;
+
+        ksort ($result->distanceCounts, SORT_NUMERIC);
+        foreach ($result->distanceCounts as $key => $value)
+        {
+            $this->info ("Number of trails with " . $key . " distance between points: " . $value);
+        }
+
+        $this->info("Duplicate intra-path points: " . $result->intraPathDuplicatePoints);
+        $this->info("Duplicate intra-trail inter-path points: " . $result->intraTrailInterPathDuplicatePoints);
     }
-    
+
+    private function countRollup ($result, $otherResult, $member)
+    {
+        if (!isset($result->$member))
+        {
+            $result->$member = $otherResult->$member;
+        }
+        else
+        {
+            foreach ($otherResult->$member as $key => $value)
+            {
+                if (!isset ($result->$member[$key]))
+                {
+                    $result->$member[$key] = $value;
+                }
+                else
+                {
+                    $result->$member[$key] += $value;
+                }
+            }
+        }
+    }
 }
