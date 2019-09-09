@@ -1,7 +1,5 @@
 <?php
 namespace App;
-require_once "coordinates.php";
-require_once "routeFile.php";
 require_once "utilities.php";
 
 $handle = null;
@@ -171,7 +169,7 @@ function getOtherNodeIndex ($edge, $nodeIndex)
     }
     else
     {
-        error_log("no matching previous or next");
+//        error_log("no matching previous or next");
     }
 }
 
@@ -220,14 +218,10 @@ function pushNode ($edgeIndex, $fromNodeIndex, $graph, $graphFile, &$nodes, $end
         }
         else
         {
-            // if ($edge->cn == "5059.002691")
-            // {
-            // $cost = $node->cost;
-            // }
-            // else
-            {
-                $cost = $node->cost + $edge->cost;
-            }
+            // We carry the costs forward. The cost is the cost
+            // to get to the previous node (the node's cost) and
+            // the cost of this edge.
+            $cost = $node->cost + $edge->cost;
 
             $nextNodeIndex = getOtherNodeIndex($edge, $fromNodeIndex);
 
@@ -237,14 +231,14 @@ function pushNode ($edgeIndex, $fromNodeIndex, $graph, $graphFile, &$nodes, $end
 
                 if (!isset($nextNode->cost) || $cost < $nextNode->cost)
                 {
+                    // The cost to get to the next node on this edge
+                    // is less than the previously "best edge". Set
+                    // the "best edge" to this edge and push the node
+                    // onto the queue.
                     $nextNode->bestEdge = $edgeIndex;
 
-                    if (!isset($nextNode->cost))
-                    {
-                        error_log("found cheaper path to node");
-                    }
-
                     $nextNode->cost = $cost;
+
                     array_push($nodes, (object)[
                         "index" => $nextNodeIndex,
                         "file" => $graphFile
@@ -254,11 +248,6 @@ function pushNode ($edgeIndex, $fromNodeIndex, $graph, $graphFile, &$nodes, $end
                     {
                         fwrite($handle, $fromNodeIndex . " -> " . $nextNodeIndex . ";\n");
                     }
-
-                    // For now, until we get an edge cost, use the last edge
-                    // traversed
-                    // as the best edge.
-                    // $node->bestEdge = $edgeIndex;
                 }
             }
         }
@@ -352,8 +341,8 @@ function setupInitialNodes ($startResult, $endResult, $graphFile, $graph, &$node
             if ($edge->cn == $startResult->trail->cn && $edge->pathIndex == $startResult->pathIndex)
             {
                 error_log("Start Route Index: " . $startResult->pointIndex);
-                error_log("Edge start route index: " . $edge->prev->pointIndex);
-                error_log("Edge end route index: " . $edge->next->pointIndex);
+                error_log("Edge start point index: " . $edge->prev->pointIndex);
+                error_log("Edge end point index: " . $edge->next->pointIndex);
             }
 
             if ($edge->cn == $startResult->trail->cn && $edge->pathIndex == $startResult->pathIndex && ($edge->prev->pointIndex <= $startResult->pointIndex) &&
@@ -461,10 +450,11 @@ function setupInitialNodes ($startResult, $endResult, $graphFile, $graph, &$node
 }
 
 
-function findRoute ($endResult, &$nodes, $graphFile)
+function findRoute ($endResult, &$nodes)
 {
     global $handle;
 
+    $solutions = [];
     $foundEnd = false;
 
     while (count($nodes) > 0)
@@ -472,7 +462,7 @@ function findRoute ($endResult, &$nodes, $graphFile)
         // Sort the nodes from lowest cost to highest cost
         usort($nodes, "App\sortComparison");
 
-        error_log("current node queue:");
+//        error_log("current node queue:");
         // var_dump($nodes);
 
         // Pop off a node from the queue
@@ -481,32 +471,32 @@ function findRoute ($endResult, &$nodes, $graphFile)
 
         $graph = getGraph($graphFile);
 
-        dump_node($nodeIndex, $graph);
+//        dump_node($nodeIndex, $graph);
 
         array_splice($nodes, 0, 1);
 
-        error_log("current node:" . $nodeIndex);
+//        error_log("current node:" . $nodeIndex);
 
         $node = $graph->nodes[$nodeIndex];
 
-        error_log("node: " . json_encode($node));
-        error_log("Best edge: " . $node->bestEdge);
+//         error_log("node: " . json_encode($node));
+//         error_log("Best edge: " . $node->bestEdge);
 
         // For each edge connected to this node...
         foreach ($node->edges as $edgeIndex)
         {
             $edge = $graph->edges[$edgeIndex];
 
-            if (isset($edge->file))
-            {
-                error_log("edge index: " . $edgeIndex . ", edge file: " . $edge->file);
-            }
-            else
-            {
-                error_log("edge index: " . $edgeIndex . ", edge CN: " . $edge->cn);
-            }
+//             if (isset($edge->file))
+//             {
+//                 error_log("edge index: " . $edgeIndex . ", edge file: " . $edge->file);
+//             }
+//             else
+//             {
+//                 error_log("edge index: " . $edgeIndex . ", edge CN: " . $edge->cn);
+//             }
 
-            if (!isset($edge->visited))
+//            if (!isset($edge->visited))
             {
                 // var_dump($endResult->trail->cn);
                 // var_dump($edge);
@@ -534,6 +524,11 @@ function findRoute ($endResult, &$nodes, $graphFile)
                         error_log("Other node: " . json_encode($otherNode));
 
                         $foundEnd = pushNode($otherEdgeIndex, $otherNodeIndex, $otherGraph, $otherFile, $nodes, $endResult);
+
+                        if ($foundEnd)
+                        {
+                            array_push ($solutions, (object)["edgeIndex" => $edgeIndex, "nodeIndex" => $nodeIndex, "cost" => $node->cost]);
+                        }
                     }
                     else
                     {
@@ -545,16 +540,21 @@ function findRoute ($endResult, &$nodes, $graphFile)
                 else
                 {
                     $foundEnd = pushNode($edgeIndex, $nodeIndex, $graph, $graphFile, $nodes, $endResult);
+
+                    if ($foundEnd)
+                    {
+                        array_push ($solutions, (object)["edgeIndex" => $edgeIndex, "nodeIndex" => $nodeIndex, "cost" => $node->cost]);
+                    }
                 }
             }
 
-            if ($foundEnd)
-            {
-                error_log("End found");
-                // var_dump($nodes);
-                $nodes = [ ];
-                break;
-            }
+//             if ($foundEnd)
+//             {
+//                 error_log("End found");
+//                 // var_dump($nodes);
+//                 $nodes = [ ];
+//                 break;
+//             }
         }
     }
 
@@ -568,7 +568,29 @@ function findRoute ($endResult, &$nodes, $graphFile)
         fwrite($handle, "edge [color=red]\n");
     }
 
-    return [$foundEnd, $edge, $nodeIndex];
+    if (count($solutions) > 0)
+    {
+        error_log ("Found " . count($solutions) . " solutions");
+
+        $lowestCost = 0;
+        $cost = $solutions[0]->cost;
+        error_log("Cost of 0: " . $cost);
+
+        for ($i = 1; $i < count($solutions); $i++)
+        {
+            error_log("Cost of " . $i .": " . $solutions[$i]->cost);
+
+            if ($solutions[$i]->cost < $cost)
+            {
+                $lowestCost = $i;
+                $cost = $solutions[$i]->cost;
+            }
+        }
+
+        return [true, $solutions[$lowestCost]->edgeIndex, $solutions[$lowestCost]->nodeIndex];
+    }
+
+    return false;
 }
 
 
@@ -609,13 +631,15 @@ function findPath ($start, $end)
 
     // todo: get cost of trail to first nodes
 
-    list($foundEnd, $edge, $nodeIndex) = findRoute ($endResult, $nodes, $graphFile);
+    list($foundEnd, $edgeIndex, $nodeIndex) = findRoute ($endResult, $nodes);
 
     $newAnchors = [ ];
 
     if ($foundEnd)
     {
         error_log("******** find path backwards ******");
+
+        $edge = $graph->edges[$edgeIndex];
 
         $anchor = createAnchor ($endResult, "end");
         array_push($newAnchors, $anchor);
@@ -714,7 +738,7 @@ function findPath ($start, $end)
                 // " . $startResult->trail->cn . ", startRoute: " .
                 // $startResult->pathIndex);
                 // error_log("graphFile: " . $graphFile . ", edge CN: " .
-                // $edge->cn . ", edge route: " . $edge->pathIndex);
+                // $edge->cn . ", edge path: " . $edge->pathIndex);
 
                 // Are we back at the start? If so, unset the node index so that
                 // we can exit the loop.

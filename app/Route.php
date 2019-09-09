@@ -5,7 +5,6 @@ require_once app_path('routeFind.php');
 
 class Route
 {
-
     private $hikeId;
 
     private $segments;
@@ -185,6 +184,21 @@ class Route
                     $this->segments = $newSegments;
                 }
             }
+        }
+    }
+
+    public function findRoute ()
+    {
+        if (!isset($segments))
+        {
+            $this->load();
+        }
+
+        $newSegments = findPath($this->segments[0], $this->segments[count($this->segments) - 1]);
+
+        if (isset($newSegments) && count($newSegments) > 0)
+        {
+            $this->segments = $newSegments;
         }
     }
 
