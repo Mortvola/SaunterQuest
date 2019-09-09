@@ -13,7 +13,7 @@ class Graph
 
     private static $addConnectors = true;
 
-    private const MAX_CONNECTOR_LENGTH = 30;
+    private const MAX_CONNECTOR_LENGTH = 60;
 
     public function __construct ($name)
     {
@@ -84,11 +84,11 @@ class Graph
         }
     }
 
-    private static function findInterFileIntersections ($trail, $index)
+    private static function findInterFileIntersections ($trail, $pathIndex)
     {
         $intersections = [ ];
 
-        $path = $trail->routes[$index];
+        $path = $trail->routes[$pathIndex];
 
         //
         // Add the nodes at the start and end of this path
@@ -103,9 +103,9 @@ class Graph
                     (object)[
                         "type" => $trail->type,
                         "cn" => $trail->cn,
-                        "index" => $j,
-                        "routeIndex" => 0,
-                        "routeIndexMax" => count($path->route) - 1
+                        "pathIndex" => $j,
+                        "pointIndex" => 0,
+                        "pointIndexMax" => count($path->route) - 1
                     ],
                     (object)[
                         "file" => $path->route[0]->from
@@ -125,9 +125,9 @@ class Graph
                     (object)[
                         "type" => $trail->type,
                         "cn" => $trail->cn,
-                        "index" => $j,
-                        "routeIndex" => count($path->route) - 1,
-                        "routeIndexMax" => count($path->route) - 1
+                        "pathIndex" => $j,
+                        "pointIndex" => count($path->route) - 1,
+                        "pointIndexMax" => count($path->route) - 1
                     ],
                     (object)[
                         "file" => $path->route[count($path->route) - 1]->to
@@ -258,8 +258,8 @@ class Graph
                         if ($debug)
                         {
                             error_log(
-                                "search for other junction to match " . $node1->routes[$k]->cn . ", route " . $node1->routes[$k]->index . ", routeIndex " .
-                                $node1->routes[$k]->routeIndex);
+                                "search for other junction to match " . $node1->routes[$k]->cn . ", route " . $node1->routes[$k]->pathIndex . ", pointIndex " .
+                                $node1->routes[$k]->pointIndex);
                         }
 
                         unset($foundPrevTerminus);
@@ -271,23 +271,23 @@ class Graph
 
                             for ($l = 0; $l < count($node2->routes); $l++)
                             {
-                                if (!isset($node2->routes[$l]->file) && $node1->routes[$k]->cn == $node2->routes[$l]->cn && $node1->routes[$k]->index ==
-                                    $node2->routes[$l]->index)
+                                if (!isset($node2->routes[$l]->file) && $node1->routes[$k]->cn == $node2->routes[$l]->cn && $node1->routes[$k]->pathIndex ==
+                                    $node2->routes[$l]->pathIndex)
                                 {
-                                    if (!isset($node1->routes[$k]->prevConnected) && $node1->routes[$k]->routeIndex > $node2->routes[$l]->routeIndex && (!isset(
-                                        $foundPrevTerminus) || ($node2->routes[$l]->routeIndex > $foundPrevTerminus->routeIndex)))
+                                    if (!isset($node1->routes[$k]->prevConnected) && $node1->routes[$k]->pointIndex > $node2->routes[$l]->pointIndex && (!isset(
+                                        $foundPrevTerminus) || ($node2->routes[$l]->pointIndex > $foundPrevTerminus->pointIndex)))
                                     {
                                         $foundPrevTerminus = &$node2->routes[$l];
                                         $foundPrevNodeIndex = $j;
-                                        $foundPrevRouteIndex = $node2->routes[$l]->routeIndex;
+                                        $foundPrevRouteIndex = $node2->routes[$l]->pointIndex;
                                     }
 
-                                    if (!isset($node1->routes[$k]->nextConnected) && $node1->routes[$k]->routeIndex < $node2->routes[$l]->routeIndex && (!isset(
-                                        $foundNextTerminus) || ($node2->routes[$l]->routeIndex < $foundNextTerminus->routeIndex)))
+                                    if (!isset($node1->routes[$k]->nextConnected) && $node1->routes[$k]->pointIndex < $node2->routes[$l]->pointIndex && (!isset(
+                                        $foundNextTerminus) || ($node2->routes[$l]->pointIndex < $foundNextTerminus->pointIndex)))
                                     {
                                         $foundNextTerminus = &$node2->routes[$l];
                                         $foundNextNodeIndex = $j;
-                                        $foundNextRouteIndex = $node2->routes[$l]->routeIndex;
+                                        $foundNextRouteIndex = $node2->routes[$l]->pointIndex;
                                     }
                                 }
                             }
@@ -301,11 +301,11 @@ class Graph
                         {
                             $edge->type = $node1->routes[$k]->type;
                             $edge->cn = $node1->routes[$k]->cn;
-                            $edge->route = $node1->routes[$k]->index;
+                            $edge->pathIndex = $node1->routes[$k]->pathIndex;
 
                             $edge->next = (object)[ ];
                             $edge->next->nodeIndex = $i;
-                            $edge->next->routeIndex = $node1->routes[$k]->routeIndex;
+                            $edge->next->pointIndex = $node1->routes[$k]->pointIndex;
 
                             if (!isset($node1->edges))
                             {
@@ -319,7 +319,7 @@ class Graph
                             if (isset($foundPrevTerminus))
                             {
                                 $edge->prev->nodeIndex = $foundPrevNodeIndex;
-                                $edge->prev->routeIndex = $foundPrevRouteIndex;
+                                $edge->prev->pointIndex = $foundPrevRouteIndex;
 
                                 if ($debug)
                                 {
@@ -346,9 +346,9 @@ class Graph
                             }
                             else
                             {
-                                if ($edge->next->routeIndex != 0)
+                                if ($edge->next->pointIndex != 0)
                                 {
-                                    $edge->prev->routeIndex = 0;
+                                    $edge->prev->pointIndex = 0;
 
                                     if ($debug)
                                     {
@@ -369,11 +369,11 @@ class Graph
 
                             $edge->type = $node1->routes[$k]->type;
                             $edge->cn = $node1->routes[$k]->cn;
-                            $edge->route = $node1->routes[$k]->index;
+                            $edge->pathIndex = $node1->routes[$k]->pathIndex;
 
                             $edge->prev = (object)[ ];
                             $edge->prev->nodeIndex = $i;
-                            $edge->prev->routeIndex = $node1->routes[$k]->routeIndex;
+                            $edge->prev->pointIndex = $node1->routes[$k]->pointIndex;
 
                             if (!isset($node1->edges))
                             {
@@ -387,7 +387,7 @@ class Graph
                             if (isset($foundNextTerminus))
                             {
                                 $edge->next->nodeIndex = $foundNextNodeIndex;
-                                $edge->next->routeIndex = $foundNextRouteIndex;
+                                $edge->next->pointIndex = $foundNextRouteIndex;
 
                                 if ($debug)
                                 {
@@ -414,9 +414,9 @@ class Graph
                             }
                             else
                             {
-                                if ($edge->prev->routeIndex != $node1->routes[$k]->routeIndexMax)
+                                if ($edge->prev->pointIndex != $node1->routes[$k]->pointIndexMax)
                                 {
-                                    $edge->next->routeIndex = $node1->routes[$k]->routeIndexMax;
+                                    $edge->next->pointIndex = $node1->routes[$k]->pointIndexMax;
 
                                     if ($debug)
                                     {
@@ -470,12 +470,12 @@ class Graph
 
                     if ($edge->cn != "connector")
                     {
-                        $points = $trails[$edge->cn]->routes[$edge->route]->route;
+                        $points = $trails[$edge->cn]->routes[$edge->pathIndex]->route;
 
-                        // $direction = $edge->prev->routeIndex <
-                        // $edge->next->routeIndex ? 1 : -1;
+                        // $direction = $edge->prev->pointIndex <
+                        // $edge->next->pointIndex ? 1 : -1;
 
-                        for ($p = $edge->prev->routeIndex; $p < $edge->next->routeIndex - 1; $p++)
+                        for ($p = $edge->prev->pointIndex; $p < $edge->next->pointIndex - 1; $p++)
                         {
                             $dx = haversineGreatCircleDistance($points[$p]->lat, $points[$p]->lng, $points[$p + 1]->lat, $points[$p + 1]->lng);
 
@@ -497,14 +497,14 @@ class Graph
         }
     }
 
-    private static function findPathIntersections ($trail1, $index, $trail2, $startIndex, $connectors)
+    private static function findPathIntersections ($trail1, $pathIndex, $trail2, $startIndex, $connectors)
     {
         // global $duplicatePointCount;
         // global $overlappingTrailRectscount;
         // global $totalIntersectionsCount;
         $intersections = [ ];
 
-        $r1 = $trail1->routes[$index];
+        $r1 = $trail1->routes[$pathIndex];
 
         for ($k = $startIndex; $k < count($trail2->routes); $k++)
         {
@@ -552,16 +552,16 @@ class Graph
                                                         (object)[
                                                             "type" => $trail1->type,
                                                             "cn" => $trail1->cn,
-                                                            "index" => $index,
-                                                            "routeIndex" => $i,
-                                                            "routeIndexMax" => count($r1->route) - 1
+                                                            "pathIndex" => $pathIndex,
+                                                            "pointIndex" => $i,
+                                                            "pointIndexMax" => count($r1->route) - 1
                                                         ],
                                                         (object)[
                                                             "type" => $trail2->type,
                                                             "cn" => $trail2->cn,
-                                                            "index" => $k,
-                                                            "routeIndex" => $intersection->index,
-                                                            "routeIndexMax" => count($r2->route) - 1
+                                                            "pathIndex" => $k,
+                                                            "pointIndex" => $intersection->pointIndex,
+                                                            "pointIndexMax" => count($r2->route) - 1
                                                         ]
                                                     ]
                                                 ]);
@@ -603,16 +603,16 @@ class Graph
                                                 (object)[
                                                     "type" => $trail1->type,
                                                     "cn" => $trail1->cn,
-                                                    "index" => $index,
-                                                    "routeIndex" => 0,
-                                                    "routeIndexMax" => count($r1->route) - 1
+                                                    "pathIndex" => $pathIndex,
+                                                    "pointIndex" => 0,
+                                                    "pointIndexMax" => count($r1->route) - 1
                                                 ],
                                                 (object)[
                                                     "type" => "connector",
                                                     "cn" => "connector",
-                                                    "index" => $newIntersection->connectorIndex,
-                                                    "routeIndex" => 0,
-                                                    "routeIndexMax" => 1
+                                                    "pathIndex" => $newIntersection->connectorIndex,
+                                                    "pointIndex" => 0,
+                                                    "pointIndexMax" => 1
                                                 ]
                                             ]
                                         ]);
@@ -625,16 +625,16 @@ class Graph
                                                 (object)[
                                                     "type" => "connector",
                                                     "cn" => "connector",
-                                                    "index" => $newIntersection->connectorIndex,
-                                                    "routeIndex" => 1,
-                                                    "routeIndexMax" => 1
+                                                    "pathIndex" => $newIntersection->connectorIndex,
+                                                    "pointIndex" => 1,
+                                                    "pointIndexMax" => 1
                                                 ],
                                                 (object)[
                                                     "type" => $trail2->type,
                                                     "cn" => $trail2->cn,
-                                                    "index" => $k,
-                                                    "routeIndex" => $newIntersection->index,
-                                                    "routeIndexMax" => count($r2->route) - 1
+                                                    "pathIndex" => $k,
+                                                    "pointIndex" => $newIntersection->pointIndex,
+                                                    "pointIndexMax" => count($r2->route) - 1
                                                 ]
                                             ]
                                         ]);
@@ -654,16 +654,16 @@ class Graph
                                                 (object)[
                                                     "type" => $trail1->type,
                                                     "cn" => $trail1->cn,
-                                                    "index" => $index,
-                                                    "routeIndex" => count($r1->route) - 1,
-                                                    "routeIndexMax" => count($r1->route) - 1
+                                                    "pathIndex" => $pathIndex,
+                                                    "pointIndex" => count($r1->route) - 1,
+                                                    "pointIndexMax" => count($r1->route) - 1
                                                 ],
                                                 (object)[
                                                     "type" => "connector",
                                                     "cn" => "connector",
-                                                    "index" => $newIntersection->connectorIndex,
-                                                    "routeIndex" => 0,
-                                                    "routeIndexMax" => 1
+                                                    "pathIndex" => $newIntersection->connectorIndex,
+                                                    "pointIndex" => 0,
+                                                    "pointIndexMax" => 1
                                                 ]
                                             ]
                                         ]);
@@ -676,16 +676,16 @@ class Graph
                                                 (object)[
                                                     "type" => "connector",
                                                     "cn" => "connector",
-                                                    "index" => $newIntersection->connectorIndex,
-                                                    "routeIndex" => 1,
-                                                    "routeIndexMax" => 1
+                                                    "pathIndex" => $newIntersection->connectorIndex,
+                                                    "pointIndex" => 1,
+                                                    "pointIndexMax" => 1
                                                 ],
                                                 (object)[
                                                     "type" => $trail2->type,
                                                     "cn" => $trail2->cn,
-                                                    "index" => $k,
-                                                    "routeIndex" => $newIntersection->index,
-                                                    "routeIndexMax" => count($r2->route) - 1
+                                                    "pathIndex" => $k,
+                                                    "pointIndex" => $newIntersection->pointIndex,
+                                                    "pointIndexMax" => count($r2->route) - 1
                                                 ]
                                             ]
                                         ]);
@@ -717,16 +717,16 @@ class Graph
                                     (object)[
                                         "type" => $trail2->type,
                                         "cn" => $trail2->cn,
-                                        "index" => $k,
-                                        "routeIndex" => 0,
-                                        "routeIndexMax" => count($r2->route) - 1
+                                        "pathIndex" => $k,
+                                        "pointIndex" => 0,
+                                        "pointIndexMax" => count($r2->route) - 1
                                     ],
                                     (object)[
                                         "type" => "connector",
                                         "cn" => "connector",
-                                        "index" => $newIntersection->connectorIndex,
-                                        "routeIndex" => 0,
-                                        "routeIndexMax" => 1
+                                        "pathIndex" => $newIntersection->connectorIndex,
+                                        "pointIndex" => 0,
+                                        "pointIndexMax" => 1
                                     ]
                                 ]
                             ]);
@@ -739,16 +739,16 @@ class Graph
                                     (object)[
                                         "type" => "connector",
                                         "cn" => "connector",
-                                        "index" => $newIntersection->connectorIndex,
-                                        "routeIndex" => 1,
-                                        "routeIndexMax" => 1
+                                        "pathIndex" => $newIntersection->connectorIndex,
+                                        "pointIndex" => 1,
+                                        "pointIndexMax" => 1
                                     ],
                                     (object)[
                                         "type" => $trail1->type,
                                         "cn" => $trail1->cn,
-                                        "index" => $index,
-                                        "routeIndex" => $newIntersection->index,
-                                        "routeIndexMax" => count($r1->route) - 1
+                                        "pathIndex" => $pathIndex,
+                                        "pointIndex" => $newIntersection->pointIndex,
+                                        "pointIndexMax" => count($r1->route) - 1
                                     ]
                                 ]
                             ]);
@@ -766,16 +766,16 @@ class Graph
                                     (object)[
                                         "type" => $trail2->type,
                                         "cn" => $trail2->cn,
-                                        "index" => $k,
-                                        "routeIndex" => count($r2->route) - 1,
-                                        "routeIndexMax" => count($r2->route) - 1
+                                        "pathIndex" => $k,
+                                        "pointIndex" => count($r2->route) - 1,
+                                        "pointIndexMax" => count($r2->route) - 1
                                     ],
                                     (object)[
                                         "type" => "connector",
                                         "cn" => "connector",
-                                        "index" => $newIntersection->connectorIndex,
-                                        "routeIndex" => 0,
-                                        "routeIndexMax" => 1
+                                        "pathIndex" => $newIntersection->connectorIndex,
+                                        "pointIndex" => 0,
+                                        "pointIndexMax" => 1
                                     ]
                                 ]
                             ]);
@@ -788,16 +788,16 @@ class Graph
                                     (object)[
                                         "type" => "connector",
                                         "cn" => "connector",
-                                        "index" => $newIntersection->connectorIndex,
-                                        "routeIndex" => 1,
-                                        "routeIndexMax" => 1
+                                        "pathIndex" => $newIntersection->connectorIndex,
+                                        "pointIndex" => 1,
+                                        "pointIndexMax" => 1
                                     ],
                                     (object)[
                                         "type" => $trail1->type,
                                         "cn" => $trail1->cn,
-                                        "index" => $index,
-                                        "routeIndex" => $newIntersection->index,
-                                        "routeIndexMax" => count($r1->route) - 1
+                                        "pathIndex" => $pathIndex,
+                                        "pointIndex" => $newIntersection->pointIndex,
+                                        "pointIndexMax" => count($r1->route) - 1
                                     ]
                                 ]
                             ]);
@@ -837,7 +837,7 @@ class Graph
             {
                 foreach ($dest->routes as $r1)
                 {
-                    if (!isset($r1->file) && $r2->type == $r1->type && $r2->cn == $r1->cn && $r2->index == $r1->index)
+                    if (!isset($r1->file) && $r2->type == $r1->type && $r2->cn == $r1->cn && $r2->pathIndex == $r1->pathIndex)
                     {
                         $found = true;
                         break;
@@ -850,9 +850,9 @@ class Graph
                         (object)[
                             "type" => $r2->type,
                             "cn" => $r2->cn,
-                            "index" => $r2->index,
-                            "routeIndex" => $r2->routeIndex,
-                            "routeIndexMax" => $r2->routeIndexMax
+                            "pathIndex" => $r2->pathIndex,
+                            "pointIndex" => $r2->pointIndex,
+                            "pointIndexMax" => $r2->pointIndexMax
                         ]);
                 }
             }
@@ -904,9 +904,9 @@ class Graph
                                 (object)[
                                     "type" => $route->type,
                                     "cn" => $route->cn,
-                                    "index" => $route->index,
-                                    "routeIndex" => $route->routeIndex,
-                                    "routeIndexMax" => $route->routeIndexMax
+                                    "pathIndex" => $route->pathIndex,
+                                    "pointIndex" => $route->pointIndex,
+                                    "pointIndexMax" => $route->pointIndexMax
                                 ]);
                         }
                     }
@@ -967,7 +967,7 @@ class Graph
                 $intersection = (object)[ ];
 
                 $intersection->connectorIndex = count($connectors->routes) - 1;
-                $intersection->index = $result->index;
+                $intersection->pointIndex = $result->pointIndex;
                 $intersection->lat = $result->point->lat;
                 $intersection->lng = $result->point->lng;
 
@@ -976,18 +976,18 @@ class Graph
         }
     }
 
-    private static function segmentCrossesTrail ($coord1, $coord2, $route)
+    private static function segmentCrossesTrail ($coord1, $coord2, $points)
     {
         // global $duplicatePointCount;
         $intersections = [ ];
 
-        $prevPoint = $route[0];
+        $prevPoint = $points[0];
 
-        for ($i = 1; $i < count($route); $i++)
+        for ($i = 1; $i < count($points); $i++)
         {
-            if ($prevPoint->lat != $route[$i]->lat && $prevPoint->lng != $route[$i]->lng)
+            if ($prevPoint->lat != $points[$i]->lat && $prevPoint->lng != $points[$i]->lng)
             {
-                $intersection = Graph::segmentsIntersection($coord1, $coord2, $prevPoint, $route[$i]);
+                $intersection = Graph::segmentsIntersection($coord1, $coord2, $prevPoint, $points[$i]);
 
                 if (isset($intersection))
                 {
@@ -1012,7 +1012,7 @@ class Graph
                         // $intersection->lng));
                         // }
 
-                        $intersection->index = $i - 1;
+                        $intersection->pointIndex = $i - 1;
 
                         array_push($intersections, $intersection);
 
@@ -1020,7 +1020,7 @@ class Graph
                     }
                 }
 
-                $prevPoint = $route[$i];
+                $prevPoint = $points[$i];
             }
             else
             {

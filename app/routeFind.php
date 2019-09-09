@@ -74,13 +74,13 @@ function createAnchor ($anchorInfo, $anchorType)
     {
         $anchor->next = (object)[ ];
         $anchor->next->trailName = $trailName;
-        $anchor->next->routeIndex = $anchorInfo->pointIndex;
+        $anchor->next->pointIndex = $anchorInfo->pointIndex;
     }
     else
     {
         $anchor->prev = (object)[ ];
         $anchor->prev->trailName = $trailName;
-        $anchor->prev->routeIndex = $anchorInfo->pointIndex;
+        $anchor->prev->pointIndex = $anchorInfo->pointIndex;
     }
 
     return $anchor;
@@ -111,9 +111,9 @@ function addNewAnchor (&$newAnchors, $anchor)
             // the new one and the one at position 1, then we can just replace
             // the one at position 0.
             if (count($newAnchors) > 1 && !isset($newAnchors[0]->next->file) && $anchor->next->trailName == $newAnchors[0]->prev->trailName &&
-                $anchor->next->trailName == $newAnchors[1]->prev->trailName && (($anchor->next->routeIndex > $newAnchors[0]->prev->routeIndex &&
-                $newAnchors[0]->next->routeIndex > $newAnchors[1]->prev->routeIndex) ||
-                ($anchor->next->routeIndex < $newAnchors[0]->prev->routeIndex && $newAnchors[0]->next->routeIndex < $newAnchors[1]->prev->routeIndex)))
+                $anchor->next->trailName == $newAnchors[1]->prev->trailName && (($anchor->next->pointIndex > $newAnchors[0]->prev->pointIndex &&
+                    $newAnchors[0]->next->pointIndex > $newAnchors[1]->prev->pointIndex) ||
+                    ($anchor->next->pointIndex < $newAnchors[0]->prev->pointIndex && $newAnchors[0]->next->pointIndex < $newAnchors[1]->prev->pointIndex)))
             {
                 error_log("Replacing " . json_encode($newAnchors[0]));
                 error_log("with " . json_encode($anchor));
@@ -211,8 +211,8 @@ function pushNode ($edgeIndex, $fromNodeIndex, $graph, $graphFile, &$nodes, $end
         // error_log("End graph file: " . $endGraphFile . ", curent file: " .
         // $graphFile);
 
-        if ($graphFile == $endGraphFile && $edge->cn == $endResult->trail->cn && $edge->route == $endResult->pathIndex &&
-            ($endResult->pointIndex >= $edge->prev->routeIndex && $endResult->pointIndex <= $edge->next->routeIndex))
+        if ($graphFile == $endGraphFile && $edge->cn == $endResult->trail->cn && $edge->pathIndex == $endResult->pathIndex &&
+            ($endResult->pointIndex >= $edge->prev->pointIndex && $endResult->pointIndex <= $edge->next->pointIndex))
         {
             error_log("Found end. Last edge " . $edgeIndex);
             error_log(var_dump_ret($edge));
@@ -349,15 +349,15 @@ function setupInitialNodes ($startResult, $endResult, $graphFile, $graph, &$node
 
         if (!isset($edge->file))
         {
-            if ($edge->cn == $startResult->trail->cn && $edge->route == $startResult->pathIndex)
+            if ($edge->cn == $startResult->trail->cn && $edge->pathIndex == $startResult->pathIndex)
             {
                 error_log("Start Route Index: " . $startResult->pointIndex);
-                error_log("Edge start route index: " . $edge->prev->routeIndex);
-                error_log("Edge end route index: " . $edge->next->routeIndex);
+                error_log("Edge start route index: " . $edge->prev->pointIndex);
+                error_log("Edge end route index: " . $edge->next->pointIndex);
             }
 
-            if ($edge->cn == $startResult->trail->cn && $edge->route == $startResult->pathIndex && ($edge->prev->routeIndex <= $startResult->pointIndex) &&
-                ($startResult->pointIndex < $edge->next->routeIndex))
+            if ($edge->cn == $startResult->trail->cn && $edge->pathIndex == $startResult->pathIndex && ($edge->prev->pointIndex <= $startResult->pointIndex) &&
+                ($startResult->pointIndex < $edge->next->pointIndex))
             {
                 error_log(json_encode($edge));
 
@@ -365,8 +365,8 @@ function setupInitialNodes ($startResult, $endResult, $graphFile, $graph, &$node
                 // want to push on to the node list the node in the opposite side
                 // of the edge from the end point.
                 // Otherwise, just push on the tweo nodes on the current edge, if any.
-                if ($edge->cn == $endResult->trail->cn && $edge->route == $endResult->pathIndex && ($edge->prev->routeIndex <= $endResult->pointIndex) &&
-                    ($endResult->pointIndex < $edge->next->routeIndex))
+                if ($edge->cn == $endResult->trail->cn && $edge->pathIndex == $endResult->pathIndex && ($edge->prev->pointIndex <= $endResult->pointIndex) &&
+                    ($endResult->pointIndex < $edge->next->pointIndex))
                 {
                     error_log ("Edge is on same edge as start");
 
@@ -627,11 +627,11 @@ function findPath ($start, $end)
 
         if (isset($edge->prev->nodeIndex) && $edge->prev->nodeIndex == $nodeIndex)
         {
-            $nextRouteIndex = $edge->prev->routeIndex;
+            $nextRouteIndex = $edge->prev->pointIndex;
         }
         elseif (isset($edge->next->nodeIndex) && $edge->next->nodeIndex == $nodeIndex)
         {
-            $nextRouteIndex = $edge->next->routeIndex;
+            $nextRouteIndex = $edge->next->pointIndex;
         }
 
         $trailName = $endResult->trail->type . ':' . $endResult->trail->cn . ':' . $endResult->pathIndex;
@@ -653,7 +653,7 @@ function findPath ($start, $end)
 
                 $anchor->next = (object)[ ];
                 $anchor->next->trailName = $trailName;
-                $anchor->next->routeIndex = $nextRouteIndex;
+                $anchor->next->pointIndex = $nextRouteIndex;
 
                 if (isset($edge->file))
                 {
@@ -673,7 +673,7 @@ function findPath ($start, $end)
                     }
                 }
 
-                $trailName = $edge->type . ":" . $edge->cn . ":" . $edge->route;
+                $trailName = $edge->type . ":" . $edge->cn . ":" . $edge->pathIndex;
 
                 error_log("trail name: " . $trailName);
                 error_log("edge: " . json_encode($edge));
@@ -688,9 +688,9 @@ function findPath ($start, $end)
                         fwrite($handle, $edge->next->nodeIndex . " -> " . $nodeIndex . ";\n");
                     }
 
-                    $anchor->prev->routeIndex = $edge->prev->routeIndex;
+                    $anchor->prev->pointIndex = $edge->prev->pointIndex;
                     $nodeIndex = $edge->next->nodeIndex;
-                    $nextRouteIndex = $edge->next->routeIndex;
+                    $nextRouteIndex = $edge->next->pointIndex;
                 }
                 elseif (isset($edge->next->nodeIndex) && $edge->next->nodeIndex == $nodeIndex)
                 {
@@ -699,9 +699,9 @@ function findPath ($start, $end)
                         fwrite($handle, $edge->prev->nodeIndex . " -> " . $nodeIndex . ";\n");
                     }
 
-                    $anchor->prev->routeIndex = $edge->next->routeIndex;
+                    $anchor->prev->pointIndex = $edge->next->pointIndex;
                     $nodeIndex = $edge->prev->nodeIndex;
-                    $nextRouteIndex = $edge->prev->routeIndex;
+                    $nextRouteIndex = $edge->prev->pointIndex;
                 }
                 else
                 {
@@ -714,12 +714,12 @@ function findPath ($start, $end)
                 // " . $startResult->trail->cn . ", startRoute: " .
                 // $startResult->pathIndex);
                 // error_log("graphFile: " . $graphFile . ", edge CN: " .
-                // $edge->cn . ", edge route: " . $edge->route);
+                // $edge->cn . ", edge route: " . $edge->pathIndex);
 
                 // Are we back at the start? If so, unset the node index so that
                 // we can exit the loop.
-                if ($graphFile == $startGraphFile && $edge->cn == $startResult->trail->cn && $edge->route == $startResult->pathIndex &&
-                    ($startResult->pointIndex >= $edge->prev->routeIndex && $startResult->pointIndex <= $edge->next->routeIndex))
+                if ($graphFile == $startGraphFile && $edge->cn == $startResult->trail->cn && $edge->pathIndex == $startResult->pathIndex &&
+                    ($startResult->pointIndex >= $edge->prev->pointIndex && $startResult->pointIndex <= $edge->next->pointIndex))
                 {
                     error_log("Found start: startRoute: " . $startResult->pathIndex);
                     unset($nodeIndex);

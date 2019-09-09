@@ -100,7 +100,7 @@ function pointOnPath($point, $segments, $tolerance)
         error_log ("Segments not set");
         return;
     }
-    
+
     if (!is_array($segments))
     {
         error_log ("Segments is not an array");
@@ -136,7 +136,7 @@ function pointOnPath($point, $segments, $tolerance)
         if ($shortestDistance <= $tolerance) {
             $result = (object)[];
 
-            $result->index = $closestEdge;
+            $result->pointIndex = $closestEdge;
             $result->point = $closestPoint;
             $result->distance = $shortestDistance;
         }
@@ -295,8 +295,8 @@ function routeEndpointConnectivity ($r1, $r2)
             );
 
     $result = (object)["first" => 0, "reverse" => false, "distance" => $distance];
-    
-    
+
+
     $distance = haversineGreatCircleDistance(
             $r1[0]->lat,
             $r1[0]->lng,
@@ -308,19 +308,19 @@ function routeEndpointConnectivity ($r1, $r2)
     {
         $result = (object)["first" => 1, "reverse" => false, "distance" => $distance];
     }
-    
+
     $distance = haversineGreatCircleDistance(
             $r1[count($r1) - 1]->lat,
             $r1[count($r1) - 1]->lng,
             $r2[count($r2) - 1]->lat,
             $r2[count($r2) - 1]->lng
             );
-    
+
     if ($distance < $result->distance)
     {
         $result = (object)["first" => 0, "reverse" => true, "distance" => $distance];
     }
-    
+
     $distance = haversineGreatCircleDistance(
             $r1[0]->lat,
             $r1[0]->lng,
@@ -332,6 +332,6 @@ function routeEndpointConnectivity ($r1, $r2)
     {
         $result = (object)["first" => 1, "reverse" => true, "distance" => $distance];
     }
-    
+
     return $result;
 }
