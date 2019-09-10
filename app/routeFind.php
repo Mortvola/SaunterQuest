@@ -58,36 +58,91 @@ function dump_node ($nodeIndex, $graph)
 }
 
 
-// Convenience method for creating start and end anchors
-function createAnchor ($anchorInfo, $anchorType)
+function dumpBestEdgeNodes ($graph)
 {
-    $anchor = (object)[ ];
-    $anchor->lat = $anchorInfo->point->lat;
-    $anchor->lng = $anchorInfo->point->lng;
-    $anchor->type = $anchorType;
+    static $deadEndCount = 0;
 
-    $trailName = $anchorInfo->trail->type . ':' . $anchorInfo->trail->cn . ':' . $anchorInfo->pathIndex;
+    $handle = fopen("graph.dot", "wb");
 
-    if ($anchorType == "start")
+    if ($handle)
     {
-        $anchor->next = (object)[ ];
-        $anchor->next->trailName = $trailName;
-        $anchor->next->pointIndex = $anchorInfo->pointIndex;
-    }
-    else
-    {
-        $anchor->prev = (object)[ ];
-        $anchor->prev->trailName = $trailName;
-        $anchor->prev->pointIndex = $anchorInfo->pointIndex;
-    }
+        fwrite($handle, "graph G {\n");
 
-    return $anchor;
+        $nodes = $graph->nodes;
+
+        for ($i = 0; $i < count($nodes); $i++)
+        {
+            $node = $nodes[$i];
+
+            if (isset($node->bestEdge))
+            {
+                $edge = $graph->edges[$node->bestEdge];
+
+                if (isset($edge->file))
+                {
+                    fwrite($handle, "n" . $edge->nodeIndex . " -- " . $edge->file . " [ " . $attributes . "];\n");
+                }
+                else
+                {
+                    //$label = "label = \"" . $edge->cn . ":" . $edge->pathIndex . "\"";
+                    $label = "label=\"" . $edge->cost . "\"";
+                    $attributes = "";
+
+                    if (isset($edge->prev->nodeIndex) && isset($edge->next->nodeIndex))
+                    {
+                        fwrite($handle, "n" . $edge->prev->nodeIndex . " -- n" . $edge->next->nodeIndex . " [ " . $label . $attributes . "];\n");
+                    }
+                    elseif (isset($edge->prev->nodeIndex))
+                    {
+                        $deadEndCount++;
+                        fwrite($handle, "n" . $edge->prev->nodeIndex . " -- DE" . $deadEndCount . " [ " . $label . $attributes . "];\n");
+                    }
+                    elseif (isset($edge->next->nodeIndex))
+                    {
+                        $deadEndCount++;
+                        fwrite($handle, "n" . $edge->next->nodeIndex . " -- DE" . $deadEndCount . " [ " . $label . $attributes . "];\n");
+                    }
+                }
+            }
+
+            if (isset($node->type))
+            {
+                if ($node->type == "start")
+                {
+                    fwrite($handle, "n" . $i . " [ label=\"" . $node->cost . "\", color=green, penwidth=5 ];\n");
+                }
+                else
+                {
+                    fwrite($handle, "n" . $i . " [ label=\"" . $node->cost . "\", color=red, penwidth=5 ];\n");
+                }
+            }
+            else if (isset ($node->cost))
+            {
+                if (isset ($node->prior))
+                {
+                    fwrite ($handle, "n" . $i . " [ label=\"" . $node->cost . "\", color=red ];\n");
+                }
+                else
+                {
+                    fwrite ($handle, "n" . $i . " [ label=\"" . $node->cost . "\"];\n");
+                }
+            }
+        }
+
+        fwrite($handle, "}\n");
+
+        fclose ($handle);
+    }
 }
 
 
 function addNewAnchor (&$newAnchors, $anchor)
 {
-    if ($anchor->lat != $newAnchors[0]->lat || $anchor->lng != $newAnchors[0]->lng)
+    if (count($newAnchors) == 0)
+    {
+        $newAnchors[] = $anchor;
+    }
+    else if ($anchor->lat != $newAnchors[0]->lat || $anchor->lng != $newAnchors[0]->lng)
     {
         if (count($newAnchors) >= 1 && isset($anchor->next->file))
         {
@@ -173,12 +228,10 @@ function getOtherNodeIndex ($edge, $nodeIndex)
     }
 }
 
-function pushNode ($edgeIndex, $fromNodeIndex, $graph, $graphFile, &$nodes, $endResult)
+function pushNode ($edgeIndex, $fromNodeIndex, $bestCost, $graph, $graphFile, &$nodes)
 {
-    global $endGraphFile;
-    global $handle;
-
     $foundEnd = false;
+    $cost = null;
 
     $node = $graph->nodes[$fromNodeIndex];
     $edge = $graph->edges[$edgeIndex];
@@ -206,56 +259,56 @@ function pushNode ($edgeIndex, $fromNodeIndex, $graph, $graphFile, &$nodes, $end
     }
     else
     {
-        // error_log("End graph file: " . $endGraphFile . ", curent file: " .
-        // $graphFile);
+        $nextNodeIndex = getOtherNodeIndex($edge, $fromNodeIndex);
 
-        if ($graphFile == $endGraphFile && $edge->cn == $endResult->trail->cn && $edge->pathIndex == $endResult->pathIndex &&
-            ($endResult->pointIndex >= $edge->prev->pointIndex && $endResult->pointIndex <= $edge->next->pointIndex))
+        if (isset($nextNodeIndex))
         {
-            error_log("Found end. Last edge " . $edgeIndex);
-            error_log(var_dump_ret($edge));
-            $foundEnd = true;
-        }
-        else
-        {
+            $nextNode = $graph->nodes[$nextNodeIndex];
+
             // We carry the costs forward. The cost is the cost
             // to get to the previous node (the node's cost) and
             // the cost of this edge.
-            $cost = $node->cost + $edge->cost;
+            $cost = $edge->cost;
 
-            $nextNodeIndex = getOtherNodeIndex($edge, $fromNodeIndex);
-
-            if (isset($nextNodeIndex))
+            if (isset ($node->cost))
             {
-                $nextNode = $graph->nodes[$nextNodeIndex];
+                $cost += $node->cost;
+            }
 
-                if (!isset($nextNode->cost) || $cost < $nextNode->cost)
+            if (($bestCost == null || $cost < $bestCost) &&
+                (!isset($nextNode->cost) || $cost < $nextNode->cost))
+            {
+                // The cost to get to the next node on this edge
+                // is less than the previously "best edge". Set
+                // the "best edge" to this edge and push the node
+                // onto the queue.
+                $nextNode->bestEdge = $edgeIndex;
+
+                $nextNode->cost = $cost;
+
+                if (isset($nextNode->type) && $nextNode->type == "end")
                 {
-                    // The cost to get to the next node on this edge
-                    // is less than the previously "best edge". Set
-                    // the "best edge" to this edge and push the node
-                    // onto the queue.
-                    $nextNode->bestEdge = $edgeIndex;
-
-                    $nextNode->cost = $cost;
-
+                    $node->prior = true;
+                    $foundEnd = true;
+                }
+                else
+                {
                     array_push($nodes, (object)[
                         "index" => $nextNodeIndex,
                         "file" => $graphFile
                     ]);
-
-                    if ($handle)
-                    {
-                        fwrite($handle, $fromNodeIndex . " -> " . $nextNodeIndex . ";\n");
-                    }
                 }
+            }
+            else if (isset($nextNode->type) && $nextNode->type == "end")
+            {
+                $node->prior = true;
             }
         }
     }
 
     $edge->visited = true;
 
-    return $foundEnd;
+    return [$foundEnd, $cost];
 }
 
 function getOtherGraphInfo ($edge)
@@ -326,144 +379,153 @@ function logTerminusInfo ($terminus)
 }
 
 
-function setupInitialNodes ($startResult, $endResult, $graphFile, $graph, &$nodes, &$noNodeAnchors)
+function substituteEdgeIndex ($node, $oldIndex, $newIndex)
+{
+    for ($j = 0; $j < count ($node->edges); $j++)
+    {
+        if ($node->edges[$j] == $oldIndex)
+        {
+            $node->edges[$j] = $newIndex;
+
+            break;
+        }
+    }
+}
+
+
+function computeCost ($startPointIndex, $endPointIndex, $points)
+{
+    $cost = 0;
+
+    for ($p = $startPointIndex; $p < $endPointIndex; $p++)
+    {
+        $dx = haversineGreatCircleDistance($points[$p]->lat, $points[$p]->lng, $points[$p + 1]->lat, $points[$p + 1]->lng);
+
+        if ($dx != 0)
+        {
+            $ele1 = getElevation($points[$p]->lat, $points[$p]->lng);
+            $ele2 = getElevation($points[$p + 1]->lat, $points[$p + 1]->lng);
+
+            $dh = $ele2 - $ele1;
+
+            $cost += $dx / metersPerHourGet($dh, $dx);
+        }
+    }
+
+    return $cost;
+}
+
+
+function insertNode ($point, $pointIndex, $edgeIndex, $cost1, $cost2, $graph)
+{
+    $edge = $graph->edges[$edgeIndex];
+
+    $newNode = (object)[
+        "lat" => $point->lat,
+        "lng" => $point->lng,
+        "edges" => [count($graph->edges), count($graph->edges) + 1]
+    ];
+
+    $edge1 = (object)[
+        "type" => $edge->type,
+        "cn" => $edge->cn,
+        "pathIndex" => $edge->pathIndex,
+        "cost" => $cost1,
+        "prev" => (object)[
+            "nodeIndex" => $edge->prev->nodeIndex,
+            "pointIndex" => $edge->prev->pointIndex
+        ],
+        "next" => (object)[
+            "nodeIndex" => count($graph->nodes),
+            "pointIndex" => $pointIndex
+        ],
+    ];
+
+    $edge2 = (object)[
+        "type" => $edge->type,
+        "cn" => $edge->cn,
+        "pathIndex" => $edge->pathIndex,
+        "cost" => $cost2,
+        "prev" => (object)[
+            "nodeIndex" => count($graph->nodes),
+            "pointIndex" => $pointIndex
+        ],
+        "next" => (object)[
+            "nodeIndex" => $edge->next->nodeIndex,
+            "pointIndex" => $edge->next->pointIndex
+        ],
+    ];
+
+    substituteEdgeIndex ($graph->nodes[$edge->prev->nodeIndex], $edgeIndex, count($graph->edges));
+    substituteEdgeIndex ($graph->nodes[$edge->next->nodeIndex], $edgeIndex, count($graph->edges) + 1);
+
+    array_push($graph->nodes, $newNode);
+    array_push($graph->edges, $edge1);
+    array_push($graph->edges, $edge2);
+
+    return count($graph->nodes) - 1; // Return the new node index
+}
+
+
+function setupTerminusNode ($terminus, $type, $graphFile)
 {
     global $handle;
 
-    // Find the edge we are starting on and push its connected nodes onto the
-    // queue.
-    for ($i = 0; $i < count($graph->edges); $i++)
+    $graph = getGraph($graphFile);
+
+    // Find the edge the terminus is on and split, inserting a new node
+    // into the node list and two edges.
+    for ($edgeIndex = 0; $edgeIndex < count($graph->edges); $edgeIndex++)
     {
-        $edge = $graph->edges[$i];
+        $edge = $graph->edges[$edgeIndex];
 
         if (!isset($edge->file))
         {
-            if ($edge->cn == $startResult->trail->cn && $edge->pathIndex == $startResult->pathIndex)
+            if ($edge->cn == $terminus->trail->cn && $edge->pathIndex == $terminus->pathIndex &&
+                $edge->prev->pointIndex <= $terminus->pointIndex && $terminus->pointIndex < $edge->next->pointIndex)
             {
-                error_log("Start Route Index: " . $startResult->pointIndex);
-                error_log("Edge start point index: " . $edge->prev->pointIndex);
-                error_log("Edge end point index: " . $edge->next->pointIndex);
-            }
+                // Found the start edge. Insert a node and add two edges to replace the current edge.
 
-            if ($edge->cn == $startResult->trail->cn && $edge->pathIndex == $startResult->pathIndex && ($edge->prev->pointIndex <= $startResult->pointIndex) &&
-                ($startResult->pointIndex < $edge->next->pointIndex))
-            {
-                error_log(json_encode($edge));
+                $cost1 = computeCost ($edge->prev->pointIndex, $terminus->pointIndex, $terminus->trail->routes[$terminus->pathIndex]->route);
+                $cost2 = computeCost ($terminus->pointIndex, $edge->next->pointIndex, $terminus->trail->routes[$terminus->pathIndex]->route);
 
-                // If the end is also on this same edge then we
-                // want to push on to the node list the node in the opposite side
-                // of the edge from the end point.
-                // Otherwise, just push on the tweo nodes on the current edge, if any.
-                if ($edge->cn == $endResult->trail->cn && $edge->pathIndex == $endResult->pathIndex && ($edge->prev->pointIndex <= $endResult->pointIndex) &&
-                    ($endResult->pointIndex < $edge->next->pointIndex))
+                $newNodeIndex = insertNode ($terminus->point, $terminus->pointIndex, $edgeIndex, $cost1, $cost2, $graph);
+
+                $graph->nodes[$newNodeIndex]->type = $type;
+
+                if ($graph->nodes[$newNodeIndex]->type == "start")
                 {
-                    error_log ("Edge is on same edge as start");
-
-                    if ($startResult->pointIndex > $endResult->pointIndex)
-                    {
-                        if (isset($edge->next->nodeIndex))
-                        {
-                            $graph->nodes[$edge->next->nodeIndex]->bestEdge = $i;
-                            $graph->nodes[$edge->next->nodeIndex]->cost = 0;
-                            array_push($nodes, (object)[
-                                "index" => $edge->next->nodeIndex,
-                                "file" => $graphFile
-                            ]);
-
-                            if ($handle)
-                            {
-                                fwrite($handle, "S -> " . $edge->next->nodeIndex . ";\n");
-                            }
-
-                            dump_node($edge->next->nodeIndex, $graph);
-                        }
-                    }
-                    elseif ($startResult->pointIndex < $endResult->pointIndex)
-                    {
-                        if (isset($edge->prev->nodeIndex))
-                        {
-                            $graph->nodes[$edge->prev->nodeIndex]->bestEdge = $i;
-                            $graph->nodes[$edge->prev->nodeIndex]->cost = 0;
-                            array_push($nodes, (object)[
-                                "index" => $edge->prev->nodeIndex,
-                                "file" => $graphFile
-                            ]);
-
-                            if ($handle)
-                            {
-                                fwrite($handle, "S -> " . $edge->prev->nodeIndex . ";\n");
-                            }
-
-                            dump_node($edge->prev->nodeIndex, $graph);
-                        }
-                    }
-
-                    // These are used if a path is not found by navigating the nodes
-                    $noNodeAnchors = [ ];
-
-                    array_push($noNodeAnchors, createAnchor($startResult, "start"));
-                    array_push($noNodeAnchors, createAnchor($endResult, "end"));
-                }
-                else
-                {
-                    if (isset($edge->prev->nodeIndex))
-                    {
-                        $graph->nodes[$edge->prev->nodeIndex]->bestEdge = $i;
-                        $graph->nodes[$edge->prev->nodeIndex]->cost = 0;
-                        array_push($nodes, (object)[
-                            "index" => $edge->prev->nodeIndex,
-                            "file" => $graphFile
-                        ]);
-
-                        if ($handle)
-                        {
-                            fwrite($handle, "S -> " . $edge->prev->nodeIndex . ";\n");
-                        }
-
-                        dump_node($edge->prev->nodeIndex, $graph);
-                    }
-
-                    if (isset($edge->next->nodeIndex))
-                    {
-                        $graph->nodes[$edge->next->nodeIndex]->bestEdge = $i;
-                        $graph->nodes[$edge->next->nodeIndex]->cost = 0;
-                        array_push($nodes, (object)[
-                            "index" => $edge->next->nodeIndex,
-                            "file" => $graphFile
-                        ]);
-
-                        if ($handle)
-                        {
-                            fwrite($handle, "S -> " . $edge->next->nodeIndex . ";\n");
-                        }
-
-                        dump_node($edge->next->nodeIndex, $graph);
-                    }
+                    $graph->nodes[$newNodeIndex]->cost = 0;
                 }
 
-                $edge->visited = true;
-
-                break;
+                return $newNodeIndex;
             }
         }
     }
 }
 
 
-function findRoute ($endResult, &$nodes)
+function findRoute ($startNodeIndex, $startGraphFile)
 {
     global $handle;
 
-    $solutions = [];
     $foundEnd = false;
+    $bestCost = null;
+
+    $nodes = [];
+
+    array_push($nodes, (object)[
+        "index" => $startNodeIndex,
+        "file" => $startGraphFile
+    ]);
 
     while (count($nodes) > 0)
     {
         // Sort the nodes from lowest cost to highest cost
         usort($nodes, "App\sortComparison");
 
-//        error_log("current node queue:");
-        // var_dump($nodes);
+//         error_log("current node queue:");
+//         var_dump($nodes);
 
         // Pop off a node from the queue
         $nodeIndex = $nodes[0]->index;
@@ -523,11 +585,18 @@ function findRoute ($endResult, &$nodes)
                         error_log("Other node index: " . $otherNodeIndex);
                         error_log("Other node: " . json_encode($otherNode));
 
-                        $foundEnd = pushNode($otherEdgeIndex, $otherNodeIndex, $otherGraph, $otherFile, $nodes, $endResult);
+                        list ($foundEnd, $cost) = pushNode($otherEdgeIndex, $otherNodeIndex, $bestCost, $otherGraph, $otherFile, $nodes);
 
                         if ($foundEnd)
                         {
-                            array_push ($solutions, (object)["edgeIndex" => $edgeIndex, "nodeIndex" => $nodeIndex, "cost" => $node->cost]);
+                            if ($bestCost == null)
+                            {
+                                $bestCost = $cost;
+                            }
+                            else if ($cost < $bestCost)
+                            {
+                                $bestCost = $cost;
+                            }
                         }
                     }
                     else
@@ -539,11 +608,18 @@ function findRoute ($endResult, &$nodes)
                 }
                 else
                 {
-                    $foundEnd = pushNode($edgeIndex, $nodeIndex, $graph, $graphFile, $nodes, $endResult);
+                    list ($foundEnd, $cost) = pushNode($edgeIndex, $nodeIndex, $bestCost, $graph, $graphFile, $nodes);
 
                     if ($foundEnd)
                     {
-                        array_push ($solutions, (object)["edgeIndex" => $edgeIndex, "nodeIndex" => $nodeIndex, "cost" => $node->cost]);
+                        if (!isset($bestCost))
+                        {
+                            $bestCost = $cost;
+                        }
+                        else if ($cost < $bestCost)
+                        {
+                            $bestCost = $cost;
+                        }
                     }
                 }
             }
@@ -567,30 +643,6 @@ function findRoute ($endResult, &$nodes)
 
         fwrite($handle, "edge [color=red]\n");
     }
-
-    if (count($solutions) > 0)
-    {
-        error_log ("Found " . count($solutions) . " solutions");
-
-        $lowestCost = 0;
-        $cost = $solutions[0]->cost;
-        error_log("Cost of 0: " . $cost);
-
-        for ($i = 1; $i < count($solutions); $i++)
-        {
-            error_log("Cost of " . $i .": " . $solutions[$i]->cost);
-
-            if ($solutions[$i]->cost < $cost)
-            {
-                $lowestCost = $i;
-                $cost = $solutions[$i]->cost;
-            }
-        }
-
-        return [true, $solutions[$lowestCost]->edgeIndex, $solutions[$lowestCost]->nodeIndex];
-    }
-
-    return false;
 }
 
 
@@ -612,148 +664,117 @@ function findPath ($start, $end)
     $startGraphFile = "trails/" . Map::getTileNameFromPoint($startResult->point) . ".inter.json";
     $endGraphFile = "trails/" . Map::getTileNameFromPoint($endResult->point) . ".inter.json";
 
-    $graphFile = $startGraphFile;
-    $graph = getGraph($graphFile);
-
     if ($handle)
     {
         fwrite($handle, "digraph G {\n");
     }
 
-    $nodes = [ ];
+    $startNodeIndex = setupTerminusNode ($startResult, "start", $startGraphFile);
+    $endNodeIndex = setupTerminusNode ($endResult, "end", $endGraphFile);
 
-    setupInitialNodes ($startResult, $endResult, $graphFile, $graph, $nodes, $noNodeAnchors);
-
-    if (isset($noNodeAnchors) && count($noNodeAnchors) > 0)
-    {
-        error_log("No Node Segments: " . json_encode($noNodeAnchors));
-    }
-
-    // todo: get cost of trail to first nodes
-
-    list($foundEnd, $edgeIndex, $nodeIndex) = findRoute ($endResult, $nodes);
+    findRoute ($startNodeIndex, $startGraphFile);
 
     $newAnchors = [ ];
 
-    if ($foundEnd)
+//    if ($foundEnd)
     {
         error_log("******** find path backwards ******");
 
-        $edge = $graph->edges[$edgeIndex];
+        $graph = getGraph($endGraphFile);
+        $nodeIndex = $endNodeIndex;
 
-        $anchor = createAnchor ($endResult, "end");
-        array_push($newAnchors, $anchor);
-
-        if ($handle && isset($nodeIndex))
-        {
-            fwrite($handle, $nodeIndex . " -> E;\n");
-        }
-
-        if (isset($edge->prev->nodeIndex) && $edge->prev->nodeIndex == $nodeIndex)
-        {
-            $nextRouteIndex = $edge->prev->pointIndex;
-        }
-        elseif (isset($edge->next->nodeIndex) && $edge->next->nodeIndex == $nodeIndex)
-        {
-            $nextRouteIndex = $edge->next->pointIndex;
-        }
-
-        $trailName = $endResult->trail->type . ':' . $endResult->trail->cn . ':' . $endResult->pathIndex;
+//        dumpBestEdgeNodes ($graph);
 
         while (isset($nodeIndex))
         {
             $node = $graph->nodes[$nodeIndex];
             error_log("node index: " . $nodeIndex);
 
+            $anchor = (object)[ ];
+
+            $anchor->lat = $node->lat;
+            $anchor->lng = $node->lng;
+
+            if (isset($prevEdge))
+            {
+                $anchor->next = (object)[ ];
+                $anchor->next->trailName = $prevEdge->type . ":" . $prevEdge->cn . ":" . $prevEdge->pathIndex;
+
+                if (isset($prevEdge->prev->nodeIndex) && $prevEdge->prev->nodeIndex == $nodeIndex)
+                {
+                    $anchor->next->pointIndex = $prevEdge->prev->pointIndex;
+                }
+                elseif (isset($prevEdge->next->nodeIndex) && $prevEdge->next->nodeIndex == $nodeIndex)
+                {
+                    $anchor->next->pointIndex = $prevEdge->next->pointIndex;
+                }
+            }
+            else
+            {
+                $anchor->type = "end";
+            }
+
             if (isset($node->bestEdge))
             {
                 $edge = $graph->edges[$node->bestEdge];
                 error_log("edge index : " . $node->bestEdge);
 
-                $anchor = (object)[ ];
+//                 if (isset($edge->file))
+//                 {
+//                     list ($otherFile, $otherGraph, $otherEdgeIndex, $otherNodeIndex) = getOtherGraphInfo($edge);
 
-                $anchor->lat = $node->lat;
-                $anchor->lng = $node->lng;
+//                     if (isset($otherNodeIndex))
+//                     {
+//                         error_log("other edge: " . json_encode($otherGraph->edges[$otherEdgeIndex]));
+//                         $graphFile = $otherFile;
+//                         $graph = $otherGraph;
+//                         $nodeIndex = $otherNodeIndex;
+//                         $node = $graph->nodes[$nodeIndex];
 
-                $anchor->next = (object)[ ];
-                $anchor->next->trailName = $trailName;
-                $anchor->next->pointIndex = $nextRouteIndex;
+//                         $edge = $graph->edges[$node->bestEdge];
 
-                if (isset($edge->file))
-                {
-                    list ($otherFile, $otherGraph, $otherEdgeIndex, $otherNodeIndex) = getOtherGraphInfo($edge);
+//                         $anchor->next->file = $graph->edges[$otherEdgeIndex]->file;
+//                     }
+//                 }
 
-                    if (isset($otherNodeIndex))
-                    {
-                        error_log("other edge: " . json_encode($otherGraph->edges[$otherEdgeIndex]));
-                        $graphFile = $otherFile;
-                        $graph = $otherGraph;
-                        $nodeIndex = $otherNodeIndex;
-                        $node = $graph->nodes[$nodeIndex];
-
-                        $edge = $graph->edges[$node->bestEdge];
-
-                        $anchor->next->file = $graph->edges[$otherEdgeIndex]->file;
-                    }
-                }
-
-                $trailName = $edge->type . ":" . $edge->cn . ":" . $edge->pathIndex;
-
-                error_log("trail name: " . $trailName);
-                error_log("edge: " . json_encode($edge));
+//                 error_log("trail name: " . $trailName);
+//                 error_log("edge: " . json_encode($edge));
 
                 $anchor->prev = (object)[ ];
-                $anchor->prev->trailName = $trailName;
+                $anchor->prev->trailName = $edge->type . ":" . $edge->cn . ":" . $edge->pathIndex;
 
                 if (isset($edge->prev->nodeIndex) && $edge->prev->nodeIndex == $nodeIndex)
                 {
-                    if ($handle)
-                    {
-                        fwrite($handle, $edge->next->nodeIndex . " -> " . $nodeIndex . ";\n");
-                    }
-
                     $anchor->prev->pointIndex = $edge->prev->pointIndex;
                     $nodeIndex = $edge->next->nodeIndex;
-                    $nextRouteIndex = $edge->next->pointIndex;
                 }
                 elseif (isset($edge->next->nodeIndex) && $edge->next->nodeIndex == $nodeIndex)
                 {
-                    if ($handle)
-                    {
-                        fwrite($handle, $edge->prev->nodeIndex . " -> " . $nodeIndex . ";\n");
-                    }
-
                     $anchor->prev->pointIndex = $edge->next->pointIndex;
                     $nodeIndex = $edge->prev->nodeIndex;
-                    $nextRouteIndex = $edge->prev->pointIndex;
                 }
                 else
                 {
                     error_log("**** no previous or next ****");
-
-                    unset($nodeIndex);
                 }
 
-                // error_log("startGraphFile: " . $startGraphFile . ", startCN:
-                // " . $startResult->trail->cn . ", startRoute: " .
-                // $startResult->pathIndex);
-                // error_log("graphFile: " . $graphFile . ", edge CN: " .
-                // $edge->cn . ", edge path: " . $edge->pathIndex);
-
-                // Are we back at the start? If so, unset the node index so that
-                // we can exit the loop.
-                if ($graphFile == $startGraphFile && $edge->cn == $startResult->trail->cn && $edge->pathIndex == $startResult->pathIndex &&
-                    ($startResult->pointIndex >= $edge->prev->pointIndex && $startResult->pointIndex <= $edge->next->pointIndex))
-                {
-                    error_log("Found start: startRoute: " . $startResult->pathIndex);
-                    unset($nodeIndex);
-                }
+                $prevEdge = $edge;
             }
             else
             {
-                error_log("**** no best edge ****");
-
+                // No best edge from this node? Are we at the start node?
                 unset($nodeIndex);
+
+                error_log ("reached last node");
+
+                if ($node->type == "start")
+                {
+                    $anchor->type = "start";
+                }
+                else
+                {
+                    error_log ("Not at the start node");
+                }
             }
 
             error_log(json_encode($anchor));
@@ -761,15 +782,14 @@ function findPath ($start, $end)
             addNewAnchor($newAnchors, $anchor);
         }
 
-        $anchor = createAnchor ($startResult, "start");
-        addNewAnchor($newAnchors, $anchor);
-
-        // error_log(json_encode($newAnchors));
-    }
-    elseif (isset($noNodeAnchors))
-    {
-        error_log ("Using no node anchors\n");
-        $newAnchors = $noNodeAnchors;
+        // If we have less than two anchors or if the start
+        // and end anchors were not tagged correctly then
+        // assume there was an error and clear out all anchors.
+        if (count($newAnchors) < 2 ||
+            ($newAnchors[0]->type != "start" && $newAnchors[count($newAnchors) - 1]->type != "end"))
+        {
+            $newAnchors = [];
+        }
     }
 
     if ($handle)

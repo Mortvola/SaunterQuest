@@ -466,16 +466,38 @@ class Graph
                 }
                 else
                 {
-                    // $node = $allIntersections[$edge->prev->nodeIndex];
+                    if ($edge->cn == "connector")
+                    {
+                        if (!isset($edge->prev->nodeIndex) || !isset($edge->next->nodeIndex))
+                        {
+                            error_log("no node index: " . json_encode($edge));
+                        }
+                        else
+                        {
+                            $node1 = $allIntersections[$edge->prev->nodeIndex];
+                            $node2 = $allIntersections[$edge->next->nodeIndex];
 
-                    if ($edge->cn != "connector")
+                            $dx = haversineGreatCircleDistance($node1->lat, $node1->lng, $node2->lat, $node2->lng);
+
+                            if ($dx != 0)
+                            {
+                                $ele1 = getElevation($node1->lat, $node1->lng);
+                                $ele2 = getElevation($node2->lat, $node2->lng);
+
+                                $dh = $ele2 - $ele1;
+
+                                $cost += $dx / metersPerHourGet($dh, $dx);
+                            }
+                        }
+                    }
+                    else
                     {
                         $points = $trails[$edge->cn]->routes[$edge->pathIndex]->route;
 
                         // $direction = $edge->prev->pointIndex <
                         // $edge->next->pointIndex ? 1 : -1;
 
-                        for ($p = $edge->prev->pointIndex; $p < $edge->next->pointIndex - 1; $p++)
+                        for ($p = $edge->prev->pointIndex; $p < $edge->next->pointIndex; $p++)
                         {
                             $dx = haversineGreatCircleDistance($points[$p]->lat, $points[$p]->lng, $points[$p + 1]->lat, $points[$p + 1]->lng);
 
