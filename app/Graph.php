@@ -456,7 +456,8 @@ class Graph
     {
         foreach ($edges as $edge)
         {
-            $cost = 0;
+            $forwardCost = 0;
+            $backwardCost = 0;
 
             if (!isset($edge->file))
             {
@@ -486,7 +487,8 @@ class Graph
 
                                 $dh = $ele2 - $ele1;
 
-                                $cost += $dx / metersPerHourGet($dh, $dx);
+                                $forwardCost += $dx / metersPerHourGet($dh, $dx);
+                                $backwardCost += $dx / metersPerHourGet(-$dh, $dx);
                             }
                         }
                     }
@@ -508,14 +510,16 @@ class Graph
 
                                 $dh = $ele2 - $ele1;
 
-                                $cost += $dx / metersPerHourGet($dh, $dx);
+                                $forwardCost += $dx / metersPerHourGet($dh, $dx);
+                                $backwardCost += $dx / metersPerHourGet(-$dh, $dx);
                             }
                         }
                     }
                 }
             }
 
-            $edge->cost = $cost;
+            $edge->forwardCost = $forwardCost;
+            $edge->backwardCost = $backwardCost;
         }
     }
 

@@ -85,7 +85,7 @@ function dumpBestEdgeNodes ($graph)
                 else
                 {
                     //$label = "label = \"" . $edge->cn . ":" . $edge->pathIndex . "\"";
-                    $label = "label=\"" . $edge->cost . "\"";
+                    $label = "label=\"" . $edge->forwardCost . "\"";
                     $attributes = "";
 
                     if (isset($edge->prev->nodeIndex) && isset($edge->next->nodeIndex))
@@ -268,7 +268,14 @@ function pushNode ($edgeIndex, $fromNodeIndex, $bestCost, $graph, $graphFile, &$
             // We carry the costs forward. The cost is the cost
             // to get to the previous node (the node's cost) and
             // the cost of this edge.
-            $cost = $edge->cost;
+            if ($edge->prev->nodeIndex == $fromNodeIndex)
+            {
+                $cost = $edge->forwardCost;
+            }
+            else
+            {
+                $cost = $edge->backwardCost;
+            }
 
             if (isset ($node->cost))
             {
@@ -395,7 +402,8 @@ function substituteEdgeIndex ($node, $oldIndex, $newIndex)
 
 function computeCost ($startPointIndex, $endPointIndex, $points)
 {
-    $cost = 0;
+    $forwardCost = 0;
+    $backwardCost = 0;
 
     for ($p = $startPointIndex; $p < $endPointIndex; $p++)
     {
@@ -408,11 +416,12 @@ function computeCost ($startPointIndex, $endPointIndex, $points)
 
             $dh = $ele2 - $ele1;
 
-            $cost += $dx / metersPerHourGet($dh, $dx);
+            $forwardCost += $dx / metersPerHourGet($dh, $dx);
+            $backwardCost += $dx / metersPerHourGet(-$dh, $dx);
         }
     }
 
-    return $cost;
+    return [$forwardCost, $backwardCost];
 }
 
 
@@ -430,7 +439,8 @@ function insertNode ($point, $pointIndex, $edgeIndex, $cost1, $cost2, $graph)
         "type" => $edge->type,
         "cn" => $edge->cn,
         "pathIndex" => $edge->pathIndex,
-        "cost" => $cost1,
+        "forwardCost" => $cost1[0],
+        "backwardCost" => $cost1[1],
         "prev" => (object)[
             "nodeIndex" => $edge->prev->nodeIndex,
             "pointIndex" => $edge->prev->pointIndex
@@ -445,7 +455,8 @@ function insertNode ($point, $pointIndex, $edgeIndex, $cost1, $cost2, $graph)
         "type" => $edge->type,
         "cn" => $edge->cn,
         "pathIndex" => $edge->pathIndex,
-        "cost" => $cost2,
+        "forwardCost" => $cost2[0],
+        "backwardCost" => $cost2[1],
         "prev" => (object)[
             "nodeIndex" => count($graph->nodes),
             "pointIndex" => $pointIndex
