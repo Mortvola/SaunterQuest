@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Tile;
+use App\Map;
 
 class analyzeTile extends Command
 {
