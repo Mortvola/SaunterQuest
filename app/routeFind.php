@@ -442,7 +442,6 @@ function insertNode ($point, $pointIndex, $edgeIndex, $cost1, $cost2, $graph)
         "forwardCost" => $cost1[0],
         "backwardCost" => $cost1[1],
         "prev" => (object)[
-            "nodeIndex" => $edge->prev->nodeIndex,
             "pointIndex" => $edge->prev->pointIndex
         ],
         "next" => (object)[
@@ -450,6 +449,12 @@ function insertNode ($point, $pointIndex, $edgeIndex, $cost1, $cost2, $graph)
             "pointIndex" => $pointIndex
         ],
     ];
+
+    if (isset($edge->prev->nodeIndex))
+    {
+        $edge1->prev->nodeIndex = $edge->prev->nodeIndex;
+        substituteEdgeIndex ($graph->nodes[$edge->prev->nodeIndex], $edgeIndex, count($graph->edges));
+    }
 
     $edge2 = (object)[
         "type" => $edge->type,
@@ -462,13 +467,15 @@ function insertNode ($point, $pointIndex, $edgeIndex, $cost1, $cost2, $graph)
             "pointIndex" => $pointIndex
         ],
         "next" => (object)[
-            "nodeIndex" => $edge->next->nodeIndex,
             "pointIndex" => $edge->next->pointIndex
         ],
     ];
 
-    substituteEdgeIndex ($graph->nodes[$edge->prev->nodeIndex], $edgeIndex, count($graph->edges));
-    substituteEdgeIndex ($graph->nodes[$edge->next->nodeIndex], $edgeIndex, count($graph->edges) + 1);
+    if (isset($edge->next->nodeIndex))
+    {
+        $edge2->next->nodeIndex = $edge->next->nodeIndex;
+        substituteEdgeIndex ($graph->nodes[$edge->next->nodeIndex], $edgeIndex, count($graph->edges) + 1);
+    }
 
     array_push($graph->nodes, $newNode);
     array_push($graph->edges, $edge1);
