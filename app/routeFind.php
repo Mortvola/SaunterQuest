@@ -84,8 +84,8 @@ function dumpBestEdgeNodes ($graph)
                 }
                 else
                 {
-                    //$label = "label = \"" . $edge->cn . ":" . $edge->pathIndex . "\"";
-                    $label = "label=\"" . $edge->forwardCost . "\"";
+                    $label = "label = \"" . $edge->cn . ":" . $edge->pathIndex . "\"";
+                    //$label = "label=\"" . $edge->forwardCost . "\"";
                     $attributes = "";
 
                     if (isset($edge->prev->nodeIndex) && isset($edge->next->nodeIndex))
@@ -105,26 +105,30 @@ function dumpBestEdgeNodes ($graph)
                 }
             }
 
+            $label = $i;
+            //$label = $node->cost;
+
             if (isset($node->type))
             {
+
                 if ($node->type == "start")
                 {
-                    fwrite($handle, "n" . $i . " [ label=\"" . $node->cost . "\", color=green, penwidth=5 ];\n");
+                    fwrite($handle, "n" . $i . " [ label=\"" . $label . "\", color=green, penwidth=5 ];\n");
                 }
                 else
                 {
-                    fwrite($handle, "n" . $i . " [ label=\"" . $node->cost . "\", color=red, penwidth=5 ];\n");
+                    fwrite($handle, "n" . $i . " [ label=\"" . $label . "\", color=red, penwidth=5 ];\n");
                 }
             }
             else if (isset ($node->cost))
             {
                 if (isset ($node->prior))
                 {
-                    fwrite ($handle, "n" . $i . " [ label=\"" . $node->cost . "\", color=red ];\n");
+                    fwrite ($handle, "n" . $i . " [ label=\"" . $label . "\", color=red ];\n");
                 }
                 else
                 {
-                    fwrite ($handle, "n" . $i . " [ label=\"" . $node->cost . "\"];\n");
+                    fwrite ($handle, "n" . $i . " [ label=\"" . $label . "\"];\n");
                 }
             }
         }
@@ -497,7 +501,7 @@ function setupTerminusNode ($terminus, $type, $graphFile)
     {
         $edge = $graph->edges[$edgeIndex];
 
-        if (!isset($edge->file))
+        if (!isset($edge->file) && !isset($edge->split))
         {
             if ($edge->cn == $terminus->trail->cn && $edge->pathIndex == $terminus->pathIndex &&
                 $edge->prev->pointIndex <= $terminus->pointIndex && $terminus->pointIndex < $edge->next->pointIndex)
@@ -508,6 +512,8 @@ function setupTerminusNode ($terminus, $type, $graphFile)
                 $cost2 = computeCost ($terminus->pointIndex, $edge->next->pointIndex, $terminus->trail->routes[$terminus->pathIndex]->route);
 
                 $newNodeIndex = insertNode ($terminus->point, $terminus->pointIndex, $edgeIndex, $cost1, $cost2, $graph);
+
+                $edge->split = true;
 
                 $graph->nodes[$newNodeIndex]->type = $type;
 
