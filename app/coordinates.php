@@ -285,7 +285,7 @@ function boundsIntersect($b1, $b2, $inflation)
             && $b1[3] + $inflation >= $b2[1] - $inflation);
 }
 
-function routeEndpointConnectivity ($r1, $r2)
+function pointsEndpointConnectivity ($r1, $r2)
 {
     $distance = haversineGreatCircleDistance(
             $r1[count($r1) - 1]->lat,

@@ -4,6 +4,8 @@
 const zoomDisplayThreshold = 10;
 const maxDetailedTiles = 16;
 
+const nodeUrl = "http://maps.google.com/mapfiles/ms/micons/yellow-dot.png";
+
 class Trails
 {
 	constructor (map)
@@ -123,6 +125,11 @@ class Trails
 					this.tiles[i].trails = tile.trails;
 				}
 
+				if (this.tiles[i].graph == undefined)
+				{
+					this.tiles[i].graph = tile.graph;
+				}
+
 				this.showTile (this.tiles[i]);
 				
 				break;
@@ -153,10 +160,21 @@ class Trails
 	
 	releaseTile (tile)
 	{
-		for (let p in tile.polyLines)
+		if (tile.polyLines != undefined)
 		{
-			removeContextMenu(tile.polyLines[p]);
-			tile.polyLines[p].setMap(null);
+			for (let p in tile.polyLines)
+			{
+				removeContextMenu(tile.polyLines[p]);
+				tile.polyLines[p].setMap(null);
+			}
+		}
+		
+		if (tile.markers != undefined)
+		{
+			for (let m of tile.markers)
+			{
+				m.setMap(null);
+			}
 		}
 
 		if (tile.polyBounds)
@@ -185,10 +203,12 @@ class Trails
 	{
 		for (let p in tile.polyLines)
 		{
-			if (tile.polyLines)
-			{
-				tile.polyLines[p].setVisible(false);
-			}
+			tile.polyLines[p].setVisible(false);
+		}
+		
+		for (let m of tile.markers)
+		{
+			m.setVisible(false);
 		}
 		
 		if (tile.polyBounds)
@@ -212,10 +232,16 @@ class Trails
 					{
 						tile.polyLines[p].setVisible(true);
 					}
+					
+					for (let m of tile.markers)
+					{
+						m.setVisible(true);
+					}
 				}
 				else if (tile.trails)
 				{
 					this.generatePolyLines (tile);
+					this.generateNodes (tile);
 				}
 				else
 				{
@@ -233,6 +259,11 @@ class Trails
 				{
 					removeContextMenu(tile.polyLines[p]);
 					tile.polyLines[p].setVisible(false);
+				}
+				
+				for (let m of tile.markers)
+				{
+					m.setVisible(false);
 				}
 	
 				if (tile.polyBounds != undefined)
@@ -272,10 +303,10 @@ class Trails
 				color = "#FF0000";
 			}
 
-			for (let r in tile.trails[t].routes)
+			for (let r in tile.trails[t].paths)
 			{
 				let polyLine = new google.maps.Polyline({
-					path: tile.trails[t].routes[r].route,
+					path: tile.trails[t].paths[r].points,
 					editable: false,
 					geodesic: true,
 					strokeColor: color,
@@ -285,7 +316,7 @@ class Trails
 		
 				polyLine.setMap(this.map);
 				
-				polyLine.set ('trail', {tile: tile, trail: t, route: r});
+				polyLine.set ('trail', {tile: tile, trail: t, path: r});
 				
 				setContextMenu (polyLine, trailContextMenu);
 				
@@ -296,6 +327,27 @@ class Trails
 				
 				tile.polyLines.push(polyLine);
 			}
+		}
+	}
+	
+	generateNodes (tile)
+	{
+		for (let node of tile.graph.nodes)
+		{
+			let marker = new google.maps.Marker({
+				position: node,
+				map: this.map,
+				icon: {
+					url: nodeUrl,
+				}
+			});
+			
+			if (tile.markers == undefined)
+			{
+				tile.markers = [];
+			}
+			
+			tile.markers.push(marker);
 		}
 	}
 	

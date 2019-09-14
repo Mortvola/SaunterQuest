@@ -41,8 +41,8 @@ class Tile
                     $trail = Trail::fromJSON ($jsonString);
 
                     if (isset($trail)) {
-                        if (isset($trail->routes)) {
-                            $t = (object)[ "type" => $trail->type, "cn" => $trail->cn, "routes" => $trail->routes];
+                        if (isset($trail->paths)) {
+                            $t = (object)[ "type" => $trail->type, "cn" => $trail->cn, "paths" => $trail->paths];
 
                             if (isset ($trail->name))
                             {
@@ -66,7 +66,13 @@ class Tile
             }
         }
 
-        $response .= ']}';
+        $response .= ']';
+
+//        $response .= ', "graph":';
+
+//        $response .= file_get_contents (Tile::getFolder () . $this->tileName . '.inter.json');
+
+        $response .= '}';
 
         return $response;
     }
@@ -212,7 +218,14 @@ class Tile
 
                 $trail = Trail::fromJSON($jsonString);
 
-                $this->trails[$trail->cn] = $trail;
+                if (isset ($this->trails[$trail->cn]))
+                {
+                    $this->trails[$trail->cn]->mergeTrail ($trail);
+                }
+                else
+                {
+                    $this->trails[$trail->cn] = $trail;
+                }
             }
 
             fclose($handle);
@@ -256,7 +269,7 @@ class Tile
     }
 
 
-    public function combineRoutes ($cn)
+    public function combinePaths ($cn)
     {
         if (isset($this->trails)) {
 
@@ -267,7 +280,7 @@ class Tile
             {
                 foreach ($this->trails as $trail)
                 {
-                    $mergeCount = $trail->combineRoutes ();
+                    $mergeCount = $trail->combinePaths ();
 
                     if ($mergeCount != 0)
                     {
@@ -280,7 +293,7 @@ class Tile
                 if (isset ($this->trails[$cn]))
                 {
                     $trail = $this->trails[$cn];
-                    $totalMergeCount = $trail->combineRoutes ();
+                    $totalMergeCount = $trail->combinePaths ();
                     $trailCount = 1;
                 }
                 else
@@ -310,10 +323,12 @@ class Tile
         $result->boundsErrorCount = 0;
         $result->intraPathDuplicatePoints = 0;
         $result->intraTrailInterPathDuplicatePoints = 0;
+        $result->interFileFromConnections = 0;
+        $result->interFileToConnections = 0;
 
         foreach ($this->trails as $trail)
         {
-            $routeCount = count ($trail->routes);
+            $routeCount = count ($trail->paths);
 
             if (!isset ($result->routeCounts[$routeCount]))
             {
@@ -355,6 +370,9 @@ class Tile
                 }
             }
 
+            $result->interFileFromConnections += $trailResult->interFileFromConnections;
+            $result->interFileToConnections += $trailResult->interFileToConnections;
+
             $result->intraPathDuplicatePoints += $trailResult->intraPathDuplicatePoints;
             $result->intraTrailInterPathDuplicatePoints += $trailResult->intraTrailInterPathDuplicatePoints;
         }
@@ -362,14 +380,11 @@ class Tile
         return $result;
     }
 
-    public function repair ($errors)
+    public function setBounds ()
     {
-        if ($errors->boundsErrorCount > 0)
+        foreach ($this->trails as $trail)
         {
-            foreach ($this->trails as $trail)
-            {
-                $trail->setBounds ();
-            }
+            $trail->setBounds ();
         }
     }
 
@@ -378,6 +393,14 @@ class Tile
         foreach ($this->trails as $trail)
         {
             $trail->removePathPointDuplicates ();
+        }
+    }
+
+    public function clean ()
+    {
+        foreach ($this->trails as $trail)
+        {
+            $trail->clean ();
         }
     }
 

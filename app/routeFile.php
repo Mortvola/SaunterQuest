@@ -1,22 +1,24 @@
 <?php
-
 use App\Map;
 
 require_once "coordinates.php";
 
-
-function trimRoute($route, $startIndex, $endIndex)
+function trimRoute ($route, $startIndex, $endIndex)
 {
-    if (isset($route) && count($route) > 1) {
+    if (isset($route) && count($route) > 1)
+    {
         // Remove the portions that are not between the indexes.
 
-        if ($startIndex < $endIndex) {
+        if ($startIndex < $endIndex)
+        {
             array_splice($route, $endIndex + 1);
             array_splice($route, 0, $startIndex);
             $route = array_values($route);
 
             return $route;
-        } elseif ($startIndex > $endIndex) {
+        }
+        elseif ($startIndex > $endIndex)
+        {
             array_splice($route, $startIndex + 1);
             array_splice($route, 0, $endIndex);
 
@@ -26,87 +28,101 @@ function trimRoute($route, $startIndex, $endIndex)
             $route = array_values($route);
 
             return $route;
-        } else {
-            return array($route[$startIndex]);
+        }
+        else
+        {
+            return array (
+                $route[$startIndex]
+            );
         }
     }
 }
 
-
-function getFullTrailFromFile($fileName, $trailName)
+function getFullTrailFromFile ($fileName, $trailName)
 {
     $handle = fopen($fileName, "rb");
 
-    if ($handle) {
+    if ($handle)
+    {
         $parts = explode(":", $trailName);
 
-        for (;;) {
+        for (;;)
+        {
             $jsonString = fgets($handle);
 
-            if (!$jsonString) {
+            if (!$jsonString)
+            {
                 break;
             }
 
             $trail = json_decode($jsonString);
 
-            if (isset($trail) && isset($trail->routes)) {
-                if ($parts[0] == $trail->type && $parts[1] == $trail->cn) {
+            if (isset($trail) && isset($trail->routes))
+            {
+                if ($parts[0] == $trail->type && $parts[1] == $trail->cn)
+                {
                     error_log("number of routes: " . count($trail->routes));
 
-                    if (isset($parts[2])) {
+                    if (isset($parts[2]))
+                    {
                         return $trail->routes[$parts[2]]->route;
-                    } else {
+                    }
+                    else
+                    {
                         return $trail;
                     }
                 }
-            } else {
+            }
+            else
+            {
                 error_log("No routes");
             }
         }
 
-        if (!isset($route)) {
+        if (!isset($route))
+        {
             error_log("Unable to find route in " . $fileName);
         }
 
         fclose($handle);
-    } else {
+    }
+    else
+    {
         error_log("Unable to open file " . $fileName);
     }
 }
 
-
-function getPath($point, $trailName, $startIndex, $endIndex)
+function getPath ($point, $trailName, $startIndex, $endIndex)
 {
-    list($trailType, $cn, $pathIndex) = explode(":", $trailName);
+    list ($trailType, $cn, $pathIndex) = explode(":", $trailName);
 
-    $tile = Map::getTilefromPoint ($point);
+    $tile = Map::getTilefromPoint($point);
 
-    $trail = $tile->getTrail ($cn);
+    $trail = $tile->getTrail($cn);
 
-//     if (isset($trail)) {
-//         return $trail;
-//     }
+    // if (isset($trail)) {
+    // return $trail;
+    // }
 
     if (isset($trail))
     {
-        if ($pathIndex >= count($trail->routes))
-        {
-        }
+        if ($pathIndex >= count($trail->paths))
+        {}
         else
         {
-            $route = $trail->routes[$pathIndex]->route;
+            $points = $trail->paths[$pathIndex]->points;
 
-            error_log("trim route to " . $startIndex . " and " . $endIndex . " of " . count($route));
+            error_log("trim route to " . $startIndex . " and " . $endIndex . " of " . count($points));
 
-            return trimRoute($route, $startIndex, $endIndex);
+            return trimRoute($points, $startIndex, $endIndex);
         }
     }
 }
 
-
-function assignTrailDistances($trail, $distance, $prevLat, $prevLng)
+function assignTrailDistances ($trail, $distance, $prevLat, $prevLng)
 {
-    for ($t = 0; $t < count($trail); $t++) {
+    for ($t = 0; $t < count($trail); $t++)
+    {
         $distance += haversineGreatCircleDistance($prevLat, $prevLng, $trail[$t]->lat, $trail[$t]->lng);
 
         $trail[$t]->dist = $distance;
@@ -116,27 +132,37 @@ function assignTrailDistances($trail, $distance, $prevLat, $prevLng)
         $prevLng = $trail[$t]->lng;
     }
 
-    return [$distance, $prevLat, $prevLng];
+    return [
+        $distance,
+        $prevLat,
+        $prevLng
+    ];
 }
 
-
-function assignDistances(&$segments, $startIndex)
+function assignDistances (&$segments, $startIndex)
 {
     // Sanitize the data by recomputing the distances and elevations.
-    for ($i = $startIndex; $i < count($segments); $i++) {
+    for ($i = $startIndex; $i < count($segments); $i++)
+    {
         // Remove the anchor if it appears to be malformed
-        if (!isset($segments[$i]->lat) || !isset($segments[$i]->lng)) {
+        if (!isset($segments[$i]->lat) || !isset($segments[$i]->lng))
+        {
             array_splice($segments, $i, 1);
 
-            if ($i >= count($segments)) {
+            if ($i >= count($segments))
+            {
                 break;
             }
         }
 
-        if ($i == $startIndex) {
-            if ($i == 0) {
+        if ($i == $startIndex)
+        {
+            if ($i == 0)
+            {
                 $distance = 0;
-            } else {
+            }
+            else
+            {
                 $distance = $segments[$i]->dist;
             }
         }
@@ -144,49 +170,53 @@ function assignDistances(&$segments, $startIndex)
         $segments[$i]->dist = $distance;
         $segments[$i]->ele = getElevation($segments[$i]->lat, $segments[$i]->lng);
 
-        if ($i < count($segments) - 1) {
-            // Find distance to next anchor, either via trail or straight line distance.
-            if (isset($segments[$i]->trail)) {
+        if ($i < count($segments) - 1)
+        {
+            // Find distance to next anchor, either via trail or straight line
+            // distance.
+            if (isset($segments[$i]->trail))
+            {
                 $prevLat = $segments[$i]->lat;
                 $prevLng = $segments[$i]->lng;
 
-                list($distance, $prevLat, $prevLng) = assignTrailDistances($segments[$i]->trail, $distance, $prevLat, $prevLng);
+                list ($distance, $prevLat, $prevLng) = assignTrailDistances($segments[$i]->trail, $distance, $prevLat, $prevLng);
                 $distance += haversineGreatCircleDistance($prevLat, $prevLng, $segments[$i + 1]->lat, $segments[$i + 1]->lng);
-            } else {
+            }
+            else
+            {
                 $distance += haversineGreatCircleDistance($segments[$i]->lat, $segments[$i]->lng, $segments[$i + 1]->lat, $segments[$i + 1]->lng);
             }
         }
     }
 }
 
-
-function getHikeFolder($userHikeId)
+function getHikeFolder ($userHikeId)
 {
     return base_path("data/" . $userHikeId . "/");
 }
 
-
-function getRouteFileName($userHikeId)
+function getRouteFileName ($userHikeId)
 {
     return getHikeFolder($userHikeId) . "route.json";
 }
 
-
-function readAndSanitizeFile($fileName)
+function readAndSanitizeFile ($fileName)
 {
     $segments = json_decode(file_get_contents($fileName));
 
     if ($segments == null)
     {
-        $segments = [];
+        $segments = [ ];
     }
     else
     {
         // Ensure the array is not an object and is indexed numerically
-        if (!is_array($segments)) {
+        if (!is_array($segments))
+        {
             $objectVars = get_object_vars($segments);
 
-            if ($objectVars) {
+            if ($objectVars)
+            {
                 $segments = array_values($objectVars);
             }
         }
@@ -195,31 +225,39 @@ function readAndSanitizeFile($fileName)
     return $segments;
 }
 
-
-function getRouteFromFile($fileName)
+function getRouteFromFile ($fileName)
 {
-    if (isset($fileName) && $fileName != "") {
+    if (isset($fileName) && $fileName != "")
+    {
         $segments = readAndSanitizeFile($fileName);
 
-        if (isset($segments)) {
-            for ($s = 0; $s < count($segments) - 1; $s++) {
+        if (isset($segments))
+        {
+            for ($s = 0; $s < count($segments) - 1; $s++)
+            {
                 // If this segment and the next start on the same trail then
                 // find the route along the trail.
                 if (isset($segments[$s]->next->trailName) && isset($segments[$s + 1]->prev->trailName) &&
                     $segments[$s]->next->trailName == $segments[$s + 1]->prev->trailName &&
-                    $segments[$s]->next->pointIndex != $segments[$s + 1]->prev->pointIndex) {
-                    error_log("Points on same trail" . $segments[$s]->next->trailName);
+                    $segments[$s]->next->pointIndex != $segments[$s + 1]->prev->pointIndex)
+                {
+                    error_log("Points on same trail: " . $segments[$s]->next->trailName);
 
-                    if ($segments[$s]->next->pointIndex < $segments[$s + 1]->prev->pointIndex) {
+                    if ($segments[$s]->next->pointIndex < $segments[$s + 1]->prev->pointIndex)
+                    {
                         $trail = getPath($segments[$s], $segments[$s]->next->trailName, $segments[$s]->next->pointIndex + 1, $segments[$s + 1]->prev->pointIndex);
-                    } else {
+                    }
+                    else
+                    {
                         $trail = getPath($segments[$s], $segments[$s]->next->trailName, $segments[$s]->next->pointIndex, $segments[$s + 1]->prev->pointIndex + 1);
                     }
 
-                    //              array_splice ($segments, $s + 1, 0, $trail);
-                    //              $s += count($trail);
+                    // array_splice ($segments, $s + 1, 0, $trail);
+                    // $s += count($trail);
                     $segments[$s]->trail = $trail;
-                } else {
+                }
+                else
+                {
                     error_log("prev: " . json_encode($segments[$s]));
                     error_log("next: " . json_encode($segments[$s + 1]));
                 }
@@ -232,19 +270,21 @@ function getRouteFromFile($fileName)
     }
 }
 
-
-function getRoutePointsFromUserHike($userHikeId)
+function getRoutePointsFromUserHike ($userHikeId)
 {
     $fileName = getRouteFileName($userHikeId);
     $route = getRouteFromFile($fileName);
 
-    $points = [];
+    $points = [ ];
 
-    foreach ($route as $r) {
+    foreach ($route as $r)
+    {
         array_push($points, $r);
 
-        if (isset($r->trail)) {
-            foreach ($r->trail as $t) {
+        if (isset($r->trail))
+        {
+            foreach ($r->trail as $t)
+            {
                 array_push($points, $t);
             }
         }

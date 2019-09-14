@@ -8,7 +8,7 @@ class Trail
     public $name;
     public $type;
     public $cn;
-    public $routes;
+    public $paths;
 
     public static function fromJSON ($jsonString)
     {
@@ -18,84 +18,173 @@ class Trail
 
         $trail->type = $input->type;
         $trail->cn = $input->cn;
-        $trail->routes = $input->routes;
 
         if (isset ($input->name))
         {
             $trail->name = $input->name;
         }
 
+        if (isset($input->routes))
+        {
+            $trail->paths = $input->routes;
+        }
+        else
+        {
+            $trail->paths = $input->paths;
+        }
+
+        for ($i = 0; $i < count($trail->paths); $i++)
+        {
+            $path = $trail->paths[$i];
+
+            if (isset ($path->route))
+            {
+                $path->points = $path->route;
+                unset($path->route);
+            }
+
+            if (isset($path->feature))
+            {
+                unset($path->feature);
+            }
+
+            if (isset($path->from))
+            {
+                $path->from = Trail::updateFileConnection ($path->from);
+            }
+
+            if (isset ($path->to))
+            {
+                $path->to = Trail::updateFileConnection ($path->to);
+            }
+        }
+
         return $trail;
     }
 
-    public function combineRoutes ()
+    private static function updateFileConnection ($connection)
+    {
+        if (!preg_match('/[NS]\d{3,4}[EW]\d{3,4}:\d+/', $connection))
+        {
+            if (preg_match ('/.*([NS]\d{3,4}[EW]\d{3,4}).*:(\d+)/', $connection, $matches))
+            {
+                if ($matches[1] && $matches[2])
+                {
+                    $connection = $matches[1] . ':' . $matches[2];
+                }
+                else
+                {
+                    error_log ("Invalid from property");
+                }
+            }
+            else
+            {
+                error_log ("Invalid from property");
+            }
+        }
+
+        return $connection;
+    }
+
+
+    public function combinePaths ()
     {
         $mergeCount = 0;
 
-        for ($i = 0; $i < count($this->routes);) {
-            $route1 = $this->routes[$i]->route;
+        for ($i = 0; $i < count($this->paths);)
+        {
+            $path1 = $this->paths[$i];
+            $points1 = $path1->points;
 
             unset($overallMin);
-            for ($j = $i + 1; $j < count($this->routes); $j++) {
+            for ($j = $i + 1; $j < count($this->paths); $j++)
+            {
+                $path2 = $this->paths[$j];
 
-                $route2 = $this->routes[$j]->route;
+                if ((isset($path1->from) && isset($path2->from)) || (isset($path1->to) && isset($path2->to)))
+                {
+                    continue;
+                }
 
-                $result = routeEndpointConnectivity($route1, $route2);
+                $points2 = $path2->points;
+
+                $result = pointsEndpointConnectivity($points1, $points2);
 
                 if (!isset($overallMin)) {
                     $overallMin = $result->distance;
-                    $bestRoute2 = $j;
+                    $bestPath2 = $j;
                     $bestResult = $result;
                 } else if ($result->distance < $overallMin) {
                     $overallMin = $result->distance;
-                    $bestRoute2 = $j;
+                    $bestPath2 = $j;
                     $bestResult = $result;
                 }
             }
 
             if (isset($overallMin) && $overallMin <= 33)
             {
-                echo "Combining $i and " . $bestRoute2 . "\n";
-
                 if ($bestResult->first == 0)
                 {
                     if ($bestResult->reverse)
                     {
-                        $this->routes[$i]->route = array_merge ($route1, array_reverse($this->routes[$bestRoute2]->route));
+                        $this->paths[$i]->points = array_merge ($points1, array_reverse($this->paths[$bestPath2]->points));
                     }
                     else
                     {
-                        $this->routes[$i]->route = array_merge ($route1, $this->routes[$bestRoute2]->route);
+                        $this->paths[$i]->points = array_merge ($points1, $this->paths[$bestPath2]->points);
                     }
                 }
                 else
                 {
                     if ($bestResult->reverse)
                     {
-                        $this->routes[$i]->route = array_merge (array_reverse($this->routes[$bestRoute2]->route), $route1);
+                        $this->paths[$i]->points = array_merge (array_reverse($this->paths[$bestPath2]->points), $points1);
                     }
                     else
                     {
-                        $this->routes[$i]->route = array_merge ($this->routes[$bestRoute2]->route, $route1);
+                        $this->paths[$i]->points = array_merge ($this->paths[$bestPath2]->points, $points1);
                     }
                 }
 
+                // Move any file connection information to the path from the other path
+                if (isset($this->paths[$bestPath2]->from))
+                {
+                    var_dump ($this->paths[$bestPath2]);
+
+                    if (isset ($this->paths[$i]->from))
+                    {
+                        error_log ("Path merging into already has 'from' information (cn: " . $this->cn . ", dst pathIndex: " . $i . ", src pathIndex: " . $bestPath2);
+                    }
+
+                    $this->paths[$i]->from = $this->paths[$bestPath2]->from;
+                }
+
+                if (isset($this->paths[$bestPath2]->to))
+                {
+                    if (isset ($this->paths[$i]->to))
+                    {
+                        error_log ("Path merging into already has 'to' information (cn: " . $this->cn . ", dst pathIndex: " . $i . ", src pathIndex: " . $bestPath2);
+                    }
+
+                    $this->paths[$i]->to = $this->paths[$bestPath2]->to;
+                }
+
                 // Remove the entry that was merged into the first
-                array_splice ($this->routes, $bestRoute2, 1);
+                array_splice ($this->paths, $bestPath2, 1);
 
                 $mergeCount++;
 
                 // Since we merged then we need to compare the newly merged
-                // route against all the other routes so don't increment
+                // points against all the other paths so don't increment
                 // the index.
             }
             else
             {
-                //todo: if the current route had merges then we need to recalculate the
+                //todo: if the current path had merges then we need to recalculate the
                 // bounds.
-                $this->routes[$i]->bounds = $this->getBounds ($this->routes[$i]->route);
+                $this->paths[$i]->bounds = $this->getBounds ($this->paths[$i]->points);
 
-                // Nothing to see here, so move on to the next route.
+                // Nothing to see here, so move on to the next path.
                 $i++;
             }
         }
@@ -103,16 +192,24 @@ class Trail
         return $mergeCount;
     }
 
+    public function mergeTrail ($trail)
+    {
+        foreach ($trail->paths as $path)
+        {
+            $this->paths[] = $path;
+        }
+    }
+
     public function setBounds ()
     {
-        // Update bounds information for each route.
-        foreach ($this->routes as $route)
+        // Update bounds information for each path.
+        foreach ($this->paths as $path)
         {
-            $bounds = $this->getBounds ($route->route);
+            $bounds = $this->getBounds ($path->points);
 
-            if ($route->bounds != $bounds)
+            if ($path->bounds != $bounds)
             {
-                $route->bounds = $bounds;
+                $path->bounds = $bounds;
             }
         }
     }
@@ -126,23 +223,35 @@ class Trail
 
         $result->intraPathDuplicatePoints = 0;
         $result->intraTrailInterPathDuplicatePoints = 0;
+        $result->interFileFromConnections = 0;
+        $result->interFileToConnections = 0;
 
-        // Determine bounds for each route and check to current bounds property.
+        // Determine bounds for each path and check to current bounds property.
         // If they are different, record an error.
-        for ($p1 = 0; $p1 < count($this->routes); $p1++)
+        for ($p1 = 0; $p1 < count($this->paths); $p1++)
         {
-            $path = $this->routes[$p1];
+            $path = $this->paths[$p1];
 
-            $bounds = $this->getBounds ($path->route);
+            $bounds = $this->getBounds ($path->points);
 
             if ($path->bounds != $bounds)
             {
                 $result->boundsErrorCount++;
             }
 
-            // Determine longest distance between points in route.
-            $points = $path->route;
-            for ($i = 0; $i < count ($path->route) - 1; $i++)
+            if (isset($path->from))
+            {
+                $result->interFileFromConnections++;
+            }
+
+            if (isset($path->to))
+            {
+                $result->interFileToConnections++;
+            }
+
+            // Determine longest distance between points in path.
+            $points = $path->points;
+            for ($i = 0; $i < count ($path->points) - 1; $i++)
             {
                 $distance = haversineGreatCircleDistance($points[$i]->lat, $points[$i]->lng, $points[$i + 1]->lat, $points[$i + 1]->lng);
 
@@ -164,27 +273,27 @@ class Trail
             }
 
             // Check for point duplication
-            for ($i = 0; $i < count($path->route); $i++)
+            for ($i = 0; $i < count($path->points); $i++)
             {
                 // Check point duplication within the path
-                for ($j = $i + 1; $j < count($path->route); $j++)
+                for ($j = $i + 1; $j < count($path->points); $j++)
                 {
-                    if ($path->route[$i]->lat == $path->route[$j]->lat
-                        && $path->route[$i]->lng == $path->route[$j]->lng)
+                    if ($path->points[$i]->lat == $path->points[$j]->lat
+                        && $path->points[$i]->lng == $path->points[$j]->lng)
                     {
                         $result->intraPathDuplicatePoints++;
                     }
                 }
 
                 // Check for point duplication amongst the other paths
-                for ($p2 = $p1 + 1; $p2 < count($this->routes); $p2++)
+                for ($p2 = $p1 + 1; $p2 < count($this->paths); $p2++)
                 {
-                    $path2 = $this->routes[$p2];
+                    $path2 = $this->paths[$p2];
 
-                    for ($j = 0; $j < count($path2->route); $j++)
+                    for ($j = 0; $j < count($path2->points); $j++)
                     {
-                        if ($path->route[$i]->lat == $path2->route[$j]->lat
-                            && $path->route[$i]->lng == $path2->route[$j]->lng)
+                        if ($path->points[$i]->lat == $path2->points[$j]->lat
+                            && $path->points[$i]->lng == $path2->points[$j]->lng)
                         {
                             $result->intraTrailInterPathDuplicatePoints++;
                         }
@@ -203,16 +312,16 @@ class Trail
 
     public function removePathPointDuplicates ()
     {
-        foreach ($this->routes as $route)
+        foreach ($this->paths as $path)
         {
-            for ($i = 0; $i < count($route->route); $i++)
+            for ($i = 0; $i < count($path->points); $i++)
             {
-                for ($j = $i + 1; $j < count($route->route);)
+                for ($j = $i + 1; $j < count($path->points);)
                 {
-                    if ($route->route[$i]->lat == $route->route[$j]->lat
-                        && $route->route[$i]->lng == $route->route[$j]->lng)
+                    if ($path->points[$i]->lat == $path->points[$j]->lat
+                        && $path->points[$i]->lng == $path->points[$j]->lng)
                     {
-                        array_splice($route->route, $j, 1);
+                        array_splice($path->points, $j, 1);
                     }
                     else
                     {
@@ -227,9 +336,9 @@ class Trail
     {
         $first = true;
 
-        for ($i = 0; $i < count($this->routes); $i++) {
-            if (!isset($this->routes[$i]->bounds) || withinBounds($point, $this->routes[$i]->bounds, 0.00027027)) {
-                $result = $this->nearestPointOnRoute($point, $this->routes[$i]->route);
+        for ($i = 0; $i < count($this->paths); $i++) {
+            if (!isset($this->paths[$i]->bounds) || withinBounds($point, $this->paths[$i]->bounds, 0.00027027)) {
+                $result = $this->nearestPointOnPoints($point, $this->paths[$i]->points);
 
                 if (($result->distance <= $tolerance) && ($first || $result->distance < $shortestDistance)) {
                     $first = false;
@@ -255,13 +364,13 @@ class Trail
         }
     }
 
-    private function nearestPointOnRoute ($point, $route)
+    private function nearestPointOnPoints ($point, $points)
     {
-        for ($s = 0; $s < count($route) - 1; $s++) {
+        for ($s = 0; $s < count($points) - 1; $s++) {
             $p = nearestPointOnSegment(
                     (object)["x" => $point->lat, "y" => $point->lng],
-                    (object)["x" => $route[$s]->lat, "y" => $route[$s]->lng],
-                    (object)["x" => $route[$s + 1]->lat, "y" => $route[$s + 1]->lng]
+                (object)["x" => $points[$s]->lat, "y" => $points[$s]->lng],
+                (object)["x" => $points[$s + 1]->lat, "y" => $points[$s + 1]->lng]
                     );
 
             $d = distSquared((object)["x" => $point->lat, "y" => $point->lng], $p);
@@ -282,9 +391,9 @@ class Trail
         return $result;
     }
 
-    private function getBounds ($route)
+    private function getBounds ($points)
     {
-        foreach ($route as $r) {
+        foreach ($points as $r) {
             if (isset($r->lat) && isset($r->lng)) {
                 if (!isset($minLat)) {
                     $minLat = $r->lat;

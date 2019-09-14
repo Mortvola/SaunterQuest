@@ -72,15 +72,20 @@ class analyzeTile extends Command
 
                 if ($tileResult->boundsErrorCount > 0)
                 {
-                    if ($repair)
-                    {
-                        $tile->repair ($tileResult);
+                    $tileErrorCount++;
+                }
 
-                        $tile->createBackup ();
-                        $tile->save ();
+                if ($repair)
+                {
+                    if ($tileResult->boundsErrorCount > 0)
+                    {
+                        $tile->setBounds ($tileResult);
                     }
 
-                    $tileErrorCount++;
+                    $tile->clean ();
+
+                    $tile->createBackup ();
+                    $tile->save ();
                 }
 
                 if ($removePathPointDuplicates && $tileResult->intraPathDuplicatePoints > 0)
@@ -110,7 +115,7 @@ class analyzeTile extends Command
             {
                 if ($repair)
                 {
-                    $tile->repair ($tileResult);
+                    $tile->setBounds ();
                     $modified = true;
                 }
             }
@@ -136,7 +141,7 @@ class analyzeTile extends Command
         ksort ($result->routeCounts, SORT_NUMERIC);
         foreach ($result->routeCounts as $key => $value)
         {
-            $this->info ("Number of trails with " . $key . " routes: " . $value);
+            $this->info ("Number of trails with " . $key . " paths: " . $value);
         }
 
         if (isset ($result->longestDistance))
@@ -146,7 +151,7 @@ class analyzeTile extends Command
 
         if (isset ($result->boundsErrorCount) && $result->boundsErrorCount > 0)
         {
-            $this->error ("Number of routes with bounds error: " . $result->boundsErrorCount);
+            $this->error ("Number of paths with bounds error: " . $result->boundsErrorCount);
         }
 
         ksort ($result->distanceCounts, SORT_NUMERIC);
@@ -154,6 +159,9 @@ class analyzeTile extends Command
         {
             $this->info ("Number of trails with " . $key . " distance between points: " . $value);
         }
+
+        $this->info("Number of inter file 'From' connections: " . $result->interFileFromConnections);
+        $this->info("Number of inter file 'To' connections: " . $result->interFileToConnections);
 
         $this->info("Duplicate intra-path points: " . $result->intraPathDuplicatePoints);
         $this->info("Duplicate intra-trail inter-path points: " . $result->intraTrailInterPathDuplicatePoints);

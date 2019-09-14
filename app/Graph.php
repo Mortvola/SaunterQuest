@@ -90,52 +90,52 @@ class Graph
     {
         $intersections = [ ];
 
-        $path = $trail->routes[$pathIndex];
+        $path = $trail->paths[$pathIndex];
 
         //
         // Add the nodes at the start and end of this path
         // that go to another file, if any.
         //
-        if (isset($path->route[0]->from))
+        if (isset($path->from))
         {
             $intersection = (object)[
-                "lat" => $path->route[0]->lat,
-                "lng" => $path->route[0]->lng,
+                "lat" => $path->points[0]->lat,
+                "lng" => $path->points[0]->lng,
                 "route" => [
                     (object)[
                         "type" => $trail->type,
                         "cn" => $trail->cn,
-                        "pathIndex" => $j,
+                        "pathIndex" => $pathIndex,
                         "pointIndex" => 0,
-                        "pointIndexMax" => count($path->route) - 1
-                    ],
-                    (object)[
-                        "file" => $path->route[0]->from
+                        "pointIndexMax" => count($path->points) - 1
                     ]
                 ]
             ];
+
+            list($file, $connectionId) = explode (":", $path->from);
+            $intersection->fileConnection = (object)["file" => $file, "id" => $connectionId];
 
             $intersections[] = $intersection;
         }
 
-        if (isset($path->route[count($path->route) - 1]->to))
+        if (isset($path->to))
         {
             $intersection = (object)[
-                "lat" => $path->route[count($path->route) - 1]->lat,
-                "lng" => $path->route[count($path->route) - 1]->lng,
+                "lat" => $path->points[count($path->points) - 1]->lat,
+                "lng" => $path->points[count($path->points) - 1]->lng,
                 "route" => [
                     (object)[
                         "type" => $trail->type,
                         "cn" => $trail->cn,
-                        "pathIndex" => $j,
-                        "pointIndex" => count($path->route) - 1,
-                        "pointIndexMax" => count($path->route) - 1
-                    ],
-                    (object)[
-                        "file" => $path->route[count($path->route) - 1]->to
+                        "pathIndex" => $pathIndex,
+                        "pointIndex" => count($path->points) - 1,
+                        "pointIndexMax" => count($path->points) - 1
                     ]
                 ]
             ];
+
+            list($file, $connectionId) = explode (":", $path->to);
+            $intersection->fileConnection = (object)["file" => $file, "id" => $connectionId];
 
             $intersections[] = $intersection;
         }
@@ -153,7 +153,7 @@ class Graph
 
             echo "processing trail ", $i, "\n";
 
-            for ($j = 0; $j < count($trail->routes); $j++)
+            for ($j = 0; $j < count($trail->paths); $j++)
             {
 
                 $intersections = Graph::findInterFileIntersections($trail, $j);
@@ -179,7 +179,7 @@ class Graph
                     if ($otherTrail->type != Graph::CONNECTOR_TRAIL_TYPE)
                     {
                         // error_log("count of other trail routes: ".
-                        // count($otherTrail->routes));
+                        // count($otherTrail->paths));
 
                         $intersections = Graph::findPathIntersections($trail, $j, $otherTrail, 0, $connectors);
                         $duplicates = Graph::addIntersections($intersections, $allIntersections);
@@ -202,23 +202,26 @@ class Graph
 
         for ($i = 0; $i < count($allIntersections) - 1; $i++)
         {
-            for ($j = $i + 1; $j < count($allIntersections);)
+            if (!isset($allIntersections[$i]->fileConnection))
             {
-                if ($allIntersections[$i]->lat == $allIntersections[$j]->lat && $allIntersections[$i]->lng == $allIntersections[$j]->lng)
+                for ($j = $i + 1; $j < count($allIntersections);)
                 {
-                    // Nodes are the same...
-                    // Move the routes from the latter node to the earlier one
+                    if (!isset($allIntersections[$j]->fileConnection) && $allIntersections[$i]->lat == $allIntersections[$j]->lat && $allIntersections[$i]->lng == $allIntersections[$j]->lng)
+                    {
+                        // Nodes are the same...
+                        // Move the routes from the latter node to the earlier one
 
-                    Graph::mergeIntersectionPaths ($allIntersections[$i], $allIntersections[$j]);
+                        Graph::mergeIntersectionPaths ($allIntersections[$i], $allIntersections[$j]);
 
-                    // Delete the node
-                    array_splice($allIntersections, $j, 1);
+                        // Delete the node
+                        array_splice($allIntersections, $j, 1);
 
-                    $consolidationCount++;
-                }
-                else
-                {
-                    $j++;
+                        $consolidationCount++;
+                    }
+                    else
+                    {
+                        $j++;
+                    }
                 }
             }
         }
@@ -239,177 +242,145 @@ class Graph
                 $node1->edges = [ ];
             }
 
-            $debug = false;
-            // foreach ($node1->routes as $route)
-            // {
-            // if ($route->cn == "440010391")
-            // {
-            // $debug = true;
-            // break;
-            // }
-            // }
-
-            if ($debug)
-            {
-                error_log("Node: " . json_encode($node1));
-            }
-
             // For each of the paths connected to this node, look for nodes that
             // are connected to the same path.
             for ($k = 0; $k < count($node1->routes); $k++)
             {
                 $path1 = $node1->routes[$k];
 
-                if (!isset($path1->file))
+                if (!isset($path1->startConnected) || !isset($path1->endConnected))
                 {
-                    if (!isset($path1->startConnected) || !isset($path1->endConnected))
+                    unset($foundStartTerminus);
+                    unset($foundEndTerminus);
+
+                    for ($j = $i + 1; $j < count($allIntersections); $j++)
                     {
-                        unset($foundStartTerminus);
-                        unset($foundEndTerminus);
+                        $node2 = $allIntersections[$j];
 
-                        for ($j = $i + 1; $j < count($allIntersections); $j++)
+                        for ($l = 0; $l < count($node2->routes); $l++)
                         {
-                            $node2 = $allIntersections[$j];
+                            $path2 = $node2->routes[$l];
 
-                            for ($l = 0; $l < count($node2->routes); $l++)
+                            if ($path1->cn == $path2->cn && $path1->pathIndex == $path2->pathIndex)
                             {
-                                $path2 = $node2->routes[$l];
-
-                                if (!isset($path2->file) && $path1->cn == $path2->cn && $path1->pathIndex ==
-                                    $path2->pathIndex)
+                                if (!isset($path1->startConnected) && $path1->pointIndex > $path2->pointIndex && (!isset(
+                                    $foundStartTerminus) || ($path2->pointIndex > $foundStartTerminus->pointIndex)))
                                 {
-                                    if (!isset($path1->startConnected) && $path1->pointIndex > $path2->pointIndex && (!isset(
-                                        $foundStartTerminus) || ($path2->pointIndex > $foundStartTerminus->pointIndex)))
-                                    {
-                                        $foundStartTerminus = $path2;
-                                        $foundStartNodeIndex = $j;
-                                        $foundStartPointIndex = $path2->pointIndex;
-                                    }
-
-                                    if (!isset($path1->endConnected) && $path1->pointIndex < $path2->pointIndex && (!isset(
-                                        $foundEndTerminus) || ($path2->pointIndex < $foundEndTerminus->pointIndex)))
-                                    {
-                                        $foundEndTerminus = $path2;
-                                        $foundEndNodeIndex = $j;
-                                        $foundEndPointIndex = $path2->pointIndex;
-                                    }
-                                }
-                            }
-                        }
-
-                        // There are three possible cases:
-                        // 1. The path pass through the node.
-                        // 2. The path starts at the node.
-                        // 3. the path ends at the node.
-
-                        // Add the edge that precedes this node.
-
-                        if (!isset($path1->startConnected))
-                        {
-                            $edge = (object)[ ];
-
-                            $edge->type = $path1->type;
-                            $edge->cn = $path1->cn;
-                            $edge->pathIndex = $path1->pathIndex;
-
-                            $edge->next = (object)[ ];
-                            $edge->next->nodeIndex = $i;
-                            $edge->next->pointIndex = $path1->pointIndex;
-
-                            $edge->prev = (object)[ ];
-
-                            if (isset($foundStartTerminus))
-                            {
-                                $edge->prev->nodeIndex = $foundStartNodeIndex;
-                                $edge->prev->pointIndex = $foundStartPointIndex;
-
-                                array_push($edges, $edge);
-
-                                array_push($node1->edges, count($edges) - 1);
-
-                                if (!isset($allIntersections[$foundStartNodeIndex]->edges))
-                                {
-                                    $allIntersections[$foundStartNodeIndex]->edges = [ ];
+                                    $foundStartTerminus = $path2;
+                                    $foundStartNodeIndex = $j;
+                                    $foundStartPointIndex = $path2->pointIndex;
                                 }
 
-                                array_push($allIntersections[$foundStartNodeIndex]->edges, count($edges) - 1);
-
-                                $foundStartTerminus->endConnected = true;
-                            }
-                            else if ($path1->pointIndex != 0)
-                            {
-                                // If the path doesn't start at this node (the point index is not zero)
-                                // then add an edge that represents an edge that goes to no node (a dead end).
-                                $edge->prev->pointIndex = 0;
-
-                                array_push($edges, $edge);
-
-                                array_push($node1->edges, count($edges) - 1);
-                            }
-
-                            $path1->startConnected = true;
-                        }
-
-                        // Add the edge that follows this node
-                        if (!isset($path1->endConnected))
-                        {
-                            $edge = (object)[ ];
-
-                            $edge->type = $path1->type;
-                            $edge->cn = $path1->cn;
-                            $edge->pathIndex = $path1->pathIndex;
-
-                            $edge->prev = (object)[ ];
-                            $edge->prev->nodeIndex = $i;
-                            $edge->prev->pointIndex = $path1->pointIndex;
-
-                            $edge->next = (object)[ ];
-
-                            if (isset($foundEndTerminus))
-                            {
-                                $edge->next->nodeIndex = $foundEndNodeIndex;
-                                $edge->next->pointIndex = $foundEndPointIndex;
-
-                                array_push($edges, $edge);
-
-                                array_push($node1->edges, count($edges) - 1);
-
-                                if (!isset($allIntersections[$foundEndNodeIndex]->edges))
+                                if (!isset($path1->endConnected) && $path1->pointIndex < $path2->pointIndex && (!isset(
+                                    $foundEndTerminus) || ($path2->pointIndex < $foundEndTerminus->pointIndex)))
                                 {
-                                    $allIntersections[$foundEndNodeIndex]->edges = [ ];
+                                    $foundEndTerminus = $path2;
+                                    $foundEndNodeIndex = $j;
+                                    $foundEndPointIndex = $path2->pointIndex;
                                 }
-
-                                array_push($allIntersections[$foundEndNodeIndex]->edges, count($edges) - 1);
-
-                                $foundEndTerminus->startConnected = true;
                             }
-                            else if ($path1->pointIndex != $path1->pointIndexMax)
-                            {
-                                // If the path doesn't end at this node (the point index is not the max index)
-                                // then add an edge that represents an edge that goes to no node (a dead end).
-                                $edge->next->pointIndex = $path1->pointIndexMax;
-
-                                array_push($edges, $edge);
-
-                                array_push($node1->edges, count($edges) - 1);
-                            }
-
-                            $path1->endConnected = true;
                         }
                     }
-                }
-                else
-                {
-                    $edge = (object)[ ];
 
-                    error_log("node: " . $i . ", route: " . $k . ", file: " . $path1->file);
+                    // There are three possible cases:
+                    // 1. The path pass through the node.
+                    // 2. The path starts at the node.
+                    // 3. the path ends at the node.
 
-                    $edge->file = $path1->file;
-                    $edge->nodeIndex = $i;
+                    // Add the edge that precedes this node.
 
-                    array_push($edges, $edge);
+                    if (!isset($path1->startConnected))
+                    {
+                        $edge = (object)[ ];
 
-                    array_push($node1->edges, count($edges) - 1);
+                        $edge->type = $path1->type;
+                        $edge->cn = $path1->cn;
+                        $edge->pathIndex = $path1->pathIndex;
+
+                        $edge->next = (object)[ ];
+                        $edge->next->nodeIndex = $i;
+                        $edge->next->pointIndex = $path1->pointIndex;
+
+                        $edge->prev = (object)[ ];
+
+                        if (isset($foundStartTerminus))
+                        {
+                            $edge->prev->nodeIndex = $foundStartNodeIndex;
+                            $edge->prev->pointIndex = $foundStartPointIndex;
+
+                            array_push($edges, $edge);
+
+                            array_push($node1->edges, count($edges) - 1);
+
+                            if (!isset($allIntersections[$foundStartNodeIndex]->edges))
+                            {
+                                $allIntersections[$foundStartNodeIndex]->edges = [ ];
+                            }
+
+                            array_push($allIntersections[$foundStartNodeIndex]->edges, count($edges) - 1);
+
+                            $foundStartTerminus->endConnected = true;
+                        }
+                        else if ($path1->pointIndex != 0)
+                        {
+                            // If the path doesn't start at this node (the point index is not zero)
+                            // then add an edge that represents an edge that goes to no node (a dead end).
+                            $edge->prev->pointIndex = 0;
+
+                            array_push($edges, $edge);
+
+                            array_push($node1->edges, count($edges) - 1);
+                        }
+
+                        $path1->startConnected = true;
+                    }
+
+                    // Add the edge that follows this node
+                    if (!isset($path1->endConnected))
+                    {
+                        $edge = (object)[ ];
+
+                        $edge->type = $path1->type;
+                        $edge->cn = $path1->cn;
+                        $edge->pathIndex = $path1->pathIndex;
+
+                        $edge->prev = (object)[ ];
+                        $edge->prev->nodeIndex = $i;
+                        $edge->prev->pointIndex = $path1->pointIndex;
+
+                        $edge->next = (object)[ ];
+
+                        if (isset($foundEndTerminus))
+                        {
+                            $edge->next->nodeIndex = $foundEndNodeIndex;
+                            $edge->next->pointIndex = $foundEndPointIndex;
+
+                            array_push($edges, $edge);
+
+                            array_push($node1->edges, count($edges) - 1);
+
+                            if (!isset($allIntersections[$foundEndNodeIndex]->edges))
+                            {
+                                $allIntersections[$foundEndNodeIndex]->edges = [ ];
+                            }
+
+                            array_push($allIntersections[$foundEndNodeIndex]->edges, count($edges) - 1);
+
+                            $foundEndTerminus->startConnected = true;
+                        }
+                        else if ($path1->pointIndex != $path1->pointIndexMax)
+                        {
+                            // If the path doesn't end at this node (the point index is not the max index)
+                            // then add an edge that represents an edge that goes to no node (a dead end).
+                            $edge->next->pointIndex = $path1->pointIndexMax;
+
+                            array_push($edges, $edge);
+
+                            array_push($node1->edges, count($edges) - 1);
+                        }
+
+                        $path1->endConnected = true;
+                    }
                 }
             }
 
@@ -426,60 +397,57 @@ class Graph
             $forwardCost = 0;
             $backwardCost = 0;
 
-            if (!isset($edge->file))
+            if (!isset($edge->prev->nodeIndex) && !isset($edge->next->nodeIndex))
             {
-                if (!isset($edge->prev->nodeIndex) && !isset($edge->next->nodeIndex))
+                error_log("no node index: " . json_encode($edge));
+            }
+            else
+            {
+                if ($edge->cn == Graph::CONNECTOR_CN)
                 {
-                    error_log("no node index: " . json_encode($edge));
-                }
-                else
-                {
-                    if ($edge->cn == Graph::CONNECTOR_CN)
+                    if (!isset($edge->prev->nodeIndex) || !isset($edge->next->nodeIndex))
                     {
-                        if (!isset($edge->prev->nodeIndex) || !isset($edge->next->nodeIndex))
-                        {
-                            error_log("no node index: " . json_encode($edge));
-                        }
-                        else
-                        {
-                            $node1 = $allIntersections[$edge->prev->nodeIndex];
-                            $node2 = $allIntersections[$edge->next->nodeIndex];
-
-                            $dx = haversineGreatCircleDistance($node1->lat, $node1->lng, $node2->lat, $node2->lng);
-
-                            if ($dx != 0)
-                            {
-                                $ele1 = getElevation($node1->lat, $node1->lng);
-                                $ele2 = getElevation($node2->lat, $node2->lng);
-
-                                $dh = $ele2 - $ele1;
-
-                                $forwardCost += $dx / metersPerHourGet($dh, $dx);
-                                $backwardCost += $dx / metersPerHourGet(-$dh, $dx);
-                            }
-                        }
+                        error_log("no node index: " . json_encode($edge));
                     }
                     else
                     {
-                        $points = $trails[$edge->cn]->routes[$edge->pathIndex]->route;
+                        $node1 = $allIntersections[$edge->prev->nodeIndex];
+                        $node2 = $allIntersections[$edge->next->nodeIndex];
 
-                        // $direction = $edge->prev->pointIndex <
-                        // $edge->next->pointIndex ? 1 : -1;
+                        $dx = haversineGreatCircleDistance($node1->lat, $node1->lng, $node2->lat, $node2->lng);
 
-                        for ($p = $edge->prev->pointIndex; $p < $edge->next->pointIndex; $p++)
+                        if ($dx != 0)
                         {
-                            $dx = haversineGreatCircleDistance($points[$p]->lat, $points[$p]->lng, $points[$p + 1]->lat, $points[$p + 1]->lng);
+                            $ele1 = getElevation($node1->lat, $node1->lng);
+                            $ele2 = getElevation($node2->lat, $node2->lng);
 
-                            if ($dx != 0)
-                            {
-                                $ele1 = getElevation($points[$p]->lat, $points[$p]->lng);
-                                $ele2 = getElevation($points[$p + 1]->lat, $points[$p + 1]->lng);
+                            $dh = $ele2 - $ele1;
 
-                                $dh = $ele2 - $ele1;
+                            $forwardCost += $dx / metersPerHourGet($dh, $dx);
+                            $backwardCost += $dx / metersPerHourGet(-$dh, $dx);
+                        }
+                    }
+                }
+                else
+                {
+                    $points = $trails[$edge->cn]->paths[$edge->pathIndex]->points;
 
-                                $forwardCost += $dx / metersPerHourGet($dh, $dx);
-                                $backwardCost += $dx / metersPerHourGet(-$dh, $dx);
-                            }
+                    // $direction = $edge->prev->pointIndex <
+                    // $edge->next->pointIndex ? 1 : -1;
+
+                    for ($p = $edge->prev->pointIndex; $p < $edge->next->pointIndex; $p++)
+                    {
+                        $dx = haversineGreatCircleDistance($points[$p]->lat, $points[$p]->lng, $points[$p + 1]->lat, $points[$p + 1]->lng);
+
+                        if ($dx != 0)
+                        {
+                            $ele1 = getElevation($points[$p]->lat, $points[$p]->lng);
+                            $ele2 = getElevation($points[$p + 1]->lat, $points[$p + 1]->lng);
+
+                            $dh = $ele2 - $ele1;
+
+                            $forwardCost += $dx / metersPerHourGet($dh, $dx);
+                            $backwardCost += $dx / metersPerHourGet(-$dh, $dx);
                         }
                     }
                 }
@@ -492,11 +460,11 @@ class Graph
 
     private static function addConnectorIntersections (&$intersections, $trail1, $pathIndex1, $pointIndex1, $trail2, $pathIndex2, $newIntersection)
     {
-        $path1 = $trail1->routes[$pathIndex1];
-        $path2 = $trail2->routes[$pathIndex2];
+        $path1 = $trail1->paths[$pathIndex1];
+        $path2 = $trail2->paths[$pathIndex2];
 
-        if ($path1->route[$pointIndex1]->lat == $newIntersection->lat
-            && $path1->route[$pointIndex1]->lng == $newIntersection->lng)
+        if ($path1->points[$pointIndex1]->lat == $newIntersection->lat
+            && $path1->points[$pointIndex1]->lng == $newIntersection->lng)
         {
             error_log ("Connector connecting the same point!");
         }
@@ -504,15 +472,15 @@ class Graph
         {
             array_push($intersections,
                 (object)[
-                    "lat" => $path1->route[$pointIndex1]->lat,
-                    "lng" => $path1->route[$pointIndex1]->lng,
+                    "lat" => $path1->points[$pointIndex1]->lat,
+                    "lng" => $path1->points[$pointIndex1]->lng,
                     "route" => [
                         (object)[
                             "type" => $trail1->type,
                             "cn" => $trail1->cn,
                             "pathIndex" => $pathIndex1,
                             "pointIndex" => $pointIndex1,
-                            "pointIndexMax" => count($path1->route) - 1
+                            "pointIndexMax" => count($path1->points) - 1
                         ],
                         (object)[
                             "type" => Graph::CONNECTOR_TRAIL_TYPE,
@@ -541,7 +509,7 @@ class Graph
                             "cn" => $trail2->cn,
                             "pathIndex" => $pathIndex2,
                             "pointIndex" => $newIntersection->pointIndex,
-                            "pointIndexMax" => count($path2->route) - 1
+                            "pointIndexMax" => count($path2->points) - 1
                         ]
                     ]
                 ]);
@@ -555,32 +523,32 @@ class Graph
         // global $totalIntersectionsCount;
         $intersections = [ ];
 
-        $r1 = $trail1->routes[$pathIndex];
+        $r1 = $trail1->paths[$pathIndex];
 
-        for ($k = $startIndex; $k < count($trail2->routes); $k++)
+        for ($k = $startIndex; $k < count($trail2->paths); $k++)
         {
-            $r2 = $trail2->routes[$k];
+            $r2 = $trail2->paths[$k];
 
             if (count($r1->bounds) == 0 || count($r2->bounds) == 0 || boundsIntersect($r1->bounds, $r2->bounds, 0.00027027))
             {
-                $prevPoint = $r1->route[0];
+                $prevPoint = $r1->points[0];
                 // $junctionCount = 0;
                 $contiguousJunctionCount = 0;
                 $prevHadJunction = false;
 
                 $prevIntersectionCount = count($intersections);
 
-                for ($i = 1; $i < count($r1->route); $i++)
+                for ($i = 1; $i < count($r1->points); $i++)
                 {
-                    if ($prevPoint->lat != $r1->route[$i]->lat && $prevPoint->lng != $r1->route[$i]->lng)
+                    if ($prevPoint->lat != $r1->points[$i]->lat && $prevPoint->lng != $r1->points[$i]->lng)
                     {
                         $newIntersections = [ ];
 
-                        if (count($r2->bounds) == 0 || withinBounds($prevPoint, $r2->bounds, 0) || withinBounds($r1->route[$i], $r2->bounds, 0))
+                        if (count($r2->bounds) == 0 || withinBounds($prevPoint, $r2->bounds, 0) || withinBounds($r1->points[$i], $r2->bounds, 0))
                         {
                             // $overlappingTrailRectscount++;
 
-                            $newIntersections = Graph::segmentCrossesTrail($prevPoint, $r1->route[$i], $r2->route);
+                            $newIntersections = Graph::segmentCrossesTrail($prevPoint, $r1->points[$i], $r2->points);
 
                             if (count($newIntersections) > 0)
                             {
@@ -605,14 +573,14 @@ class Graph
                                                             "cn" => $trail1->cn,
                                                             "pathIndex" => $pathIndex,
                                                             "pointIndex" => $i,
-                                                            "pointIndexMax" => count($r1->route) - 1
+                                                            "pointIndexMax" => count($r1->points) - 1
                                                         ],
                                                         (object)[
                                                             "type" => $trail2->type,
                                                             "cn" => $trail2->cn,
                                                             "pathIndex" => $k,
                                                             "pointIndex" => $intersection->pointIndex,
-                                                            "pointIndexMax" => count($r2->route) - 1
+                                                            "pointIndexMax" => count($r2->points) - 1
                                                         ]
                                                     ]
                                                 ]);
@@ -642,16 +610,16 @@ class Graph
                             // connector if close enough.
                             if ($i == 1)
                             {
-                                $newIntersection = Graph::addConnector($r1->route[0], $r2->route, $connectors);
+                                $newIntersection = Graph::addConnector($r1->points[0], $r2->points, $connectors);
 
                                 if (isset($newIntersection))
                                 {
                                     Graph::addConnectorIntersections ($intersections, $trail1, $pathIndex, 0, $trail2, $k, $newIntersection);
                                 }
                             }
-                            elseif ($i == count($r1->route) - 1)
+                            elseif ($i == count($r1->points) - 1)
                             {
-                                $newIntersection = Graph::addConnector($r1->route[$i], $r2->route, $connectors);
+                                $newIntersection = Graph::addConnector($r1->points[$i], $r2->points, $connectors);
 
                                 if (isset($newIntersection))
                                 {
@@ -660,7 +628,7 @@ class Graph
                             }
                         }
 
-                        $prevPoint = $r1->route[$i];
+                        $prevPoint = $r1->points[$i];
                     }
                     else
                     {
@@ -672,18 +640,18 @@ class Graph
                 // see if they are close enough to connect
                 if ($prevIntersectionCount >= count($intersections))
                 {
-                    $newIntersection = Graph::addConnector($r2->route[0], $r1->route, $connectors);
+                    $newIntersection = Graph::addConnector($r2->points[0], $r1->points, $connectors);
 
                     if (isset($newIntersection))
                     {
                         Graph::addConnectorIntersections ($intersections, $trail2, $k, 0, $trail1, $pathIndex, $newIntersection);
                     }
 
-                    $newIntersection = Graph::addConnector($r2->route[count($r2->route) - 1], $r1->route, $connectors);
+                    $newIntersection = Graph::addConnector($r2->points[count($r2->points) - 1], $r1->points, $connectors);
 
                     if (isset($newIntersection))
                     {
-                        Graph::addConnectorIntersections ($intersections, $trail2, $k, count($r2->route) - 1, $trail1, $pathIndex, $newIntersection);
+                        Graph::addConnectorIntersections ($intersections, $trail2, $k, count($r2->points) - 1, $trail1, $pathIndex, $newIntersection);
                     }
                 }
             }
@@ -700,44 +668,25 @@ class Graph
         {
             $found = false;
 
-            if (isset($r2->file))
+            foreach ($dest->routes as $r1)
             {
-                foreach ($dest->routes as $r1)
+                if ($r2->type == $r1->type && $r2->cn == $r1->cn && $r2->pathIndex == $r1->pathIndex)
                 {
-                    if (isset($r1->file) && $r2->file == $r1->file)
-                    {
-                        $found = true;
-                        break;
-                    }
-                }
-
-                if (!found)
-                {
-                    array_push($dest->routes, $r2);
+                    $found = true;
+                    break;
                 }
             }
-            else
-            {
-                foreach ($dest->routes as $r1)
-                {
-                    if (!isset($r1->file) && $r2->type == $r1->type && $r2->cn == $r1->cn && $r2->pathIndex == $r1->pathIndex)
-                    {
-                        $found = true;
-                        break;
-                    }
-                }
 
-                if (!$found)
-                {
-                    array_push($dest->routes,
-                        (object)[
-                            "type" => $r2->type,
-                            "cn" => $r2->cn,
-                            "pathIndex" => $r2->pathIndex,
-                            "pointIndex" => $r2->pointIndex,
-                            "pointIndexMax" => $r2->pointIndexMax
-                        ]);
-                }
+            if (!$found)
+            {
+                array_push($dest->routes,
+                    (object)[
+                        "type" => $r2->type,
+                        "cn" => $r2->cn,
+                        "pathIndex" => $r2->pathIndex,
+                        "pointIndex" => $r2->pointIndex,
+                        "pointIndexMax" => $r2->pointIndexMax
+                    ]);
             }
         }
     }
@@ -753,16 +702,19 @@ class Graph
             {
                 $found = false;
 
-                // First determine if we already have an intersection at this
-                // lat/lng
-                foreach ($allIntersections as $oldIntersection)
+                if (!isset($newIntersection->fileConnection)) // We don't combine file connection nodes
                 {
-                    if ($oldIntersection->lat == $newIntersection->lat && $oldIntersection->lng == $newIntersection->lng)
+                    // First determine if we already have an intersection at this
+                    // lat/lng
+                    foreach ($allIntersections as $oldIntersection)
                     {
-                        Graph::mergeIntersectionPaths ($oldIntersection, $newIntersection);
+                        if (!isset($oldIntersection->fileConnection) && $oldIntersection->lat == $newIntersection->lat && $oldIntersection->lng == $newIntersection->lng)
+                        {
+                            Graph::mergeIntersectionPaths ($oldIntersection, $newIntersection);
 
-                        $found = true;
-                        break;
+                            $found = true;
+                            break;
+                        }
                     }
                 }
 
@@ -773,25 +725,23 @@ class Graph
                         "lng" => $newIntersection->lng
                     ];
 
+                    if (isset($newIntersection->fileConnection))
+                    {
+                        $intersection->fileConnection = $newIntersection->fileConnection;
+                    }
+
                     $intersection->routes = [ ];
 
                     foreach ($newIntersection->route as $route)
                     {
-                        if (isset($route->file))
-                        {
-                            array_push($intersection->routes, $route);
-                        }
-                        else
-                        {
-                            array_push($intersection->routes,
-                                (object)[
-                                    "type" => $route->type,
-                                    "cn" => $route->cn,
-                                    "pathIndex" => $route->pathIndex,
-                                    "pointIndex" => $route->pointIndex,
-                                    "pointIndexMax" => $route->pointIndexMax
-                                ]);
-                        }
+                        array_push($intersection->routes,
+                            (object)[
+                                "type" => $route->type,
+                                "cn" => $route->cn,
+                                "pathIndex" => $route->pathIndex,
+                                "pointIndex" => $route->pointIndex,
+                                "pointIndexMax" => $route->pointIndexMax
+                            ]);
                     }
 
                     if (!isset($intersection->routes))

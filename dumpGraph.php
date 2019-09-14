@@ -43,7 +43,6 @@ function dump_node($nodeIndex, $graph)
 
 function writeEdge ($edge, $color, $weight, $graph, $handle)
 {
-    global $deadEndCount;
     global $nodesToDraw;
     static $deadEndCount = 0;
 
@@ -56,7 +55,7 @@ function writeEdge ($edge, $color, $weight, $graph, $handle)
     if (isset($edge->file)) {
         fwrite($handle, "n" . $edge->nodeIndex . " -- " . $edge->file . " [ " . $attributes . "];\n");
     } else {
-        $label = "label = \"" . $edge->cn . ":" . $edge->route . "\"";
+        $label = "label = \"" . $edge->cn . ":" . $edge->pathIndex . "\"";
 
         if (isset($edge->prev->nodeIndex) && isset($edge->next->nodeIndex)) {
             fwrite($handle, "n" . $edge->prev->nodeIndex . " -- n" . $edge->next->nodeIndex . " [ " . $label . $attributes . "];\n");
@@ -133,7 +132,15 @@ function writeNodeAttributes ($graph, $handle)
     {
         $node = $graph->nodes[$nodeIndex];
 
-        fwrite($handle, "n" . $nodeIndex . ' [ pos="' . $node->lat . ',' . $node->lng . '!"' . "];\n");
+        $color = "";
+
+        if (isset($node->fileConnections))
+        {
+            $color = 'color=blue';
+        }
+
+//        fwrite($handle, "n" . $nodeIndex . ' [ pos="' . $node->lat . ',' . $node->lng . '!"' . "];\n");
+        fwrite($handle, "n" . $nodeIndex . ' [ ' . $color . "];\n");
     }
 }
 
@@ -158,7 +165,7 @@ function dumpGraph($graph, $cn, $pathIndex, $depth)
         for ($i = 0; $i < count($graph->edges); $i++) {
             $edge = $graph->edges[$i];
 
-            if ($edge->cn != $cn || $edge->route != $pathIndex)
+            if ($edge->cn != $cn)// || $edge->pathIndex != $pathIndex)
             {
             	continue;
             }
@@ -188,7 +195,7 @@ function dumpGraph($graph, $cn, $pathIndex, $depth)
             }
         }
 
-//        writeNodeAttributes ($graph, $handle);
+        writeNodeAttributes ($graph, $handle);
 
         fwrite($handle, "}\n");
 
@@ -197,10 +204,11 @@ function dumpGraph($graph, $cn, $pathIndex, $depth)
 }
 
 
-if (isset($argv[1])) {
+if (isset($argv[1]) && isset($argv[2]))
+{
     $graph = json_decode(file_get_contents($argv[1]));
 
-    dump_node(58, $graph);
+//    dump_node(58, $graph);
 
-    dumpGraph($graph, "5167.002291", 3, 2);
+    dumpGraph($graph, $argv[2], 3, 2);
 }
