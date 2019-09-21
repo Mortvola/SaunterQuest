@@ -47,7 +47,7 @@ Artisan::command('export:get {userId} {userHikeId} {maxSegmentPoints} {maxDistan
 
 Artisan::command('hikeSchedule:get {userId} {userHikeId}', function ($userId, $userHikeId) {
     $schedule = new Schedule ($userId, $userHikeId);
-    
+
     $days = $schedule->get();
     $this->info(json_encode($days));
 })->describe('Gets the sechedule for the route specified by the provided userId and userHikeId');

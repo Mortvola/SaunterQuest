@@ -17,7 +17,7 @@ class MapController extends Controller
     {
         $this->middleware('auth');
     }
-    
+
     /**
      * Show the application dashboard.
      *
@@ -26,12 +26,22 @@ class MapController extends Controller
     public function getTileList(Request $request)
     {
         $bounds = $request->input('b');
-        
+
         $bounds = explode(",", $bounds);
-        
+
         $result = Map::getTileList($bounds);
-        
+
         return json_encode($result);
     }
-    
+
+    public function getIntersections (Request $request)
+    {
+        $bounds = $request->input('b');
+
+        $bounds = explode(",", $bounds);
+
+        $result = Map::getIntersections($bounds);
+
+        return json_encode($result);
+    }
 }

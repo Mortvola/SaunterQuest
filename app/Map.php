@@ -100,4 +100,24 @@ class Map
 
         return $tile->getTrailFromPoint ($point);
     }
+
+    public static function getIntersections ($bounds)
+    {
+        $boundingBox = "ST_SetSRID(ST_MakeBox2D(ST_Transform('SRID=4326;POINT(" .
+            $bounds[1] . " " . $bounds[0] . ")'::geometry, 3857), ST_Transform('SRID=4326;POINT(" .
+            $bounds[3] . " " . $bounds[2] . ")'::geometry, 3857)), 3857)";
+
+        $intersections = \DB::connection('pgsql')->select (
+           "select ST_AsGeoJSON(ST_Transform(ST_Intersection(l1.way, l2.way), 4326)) coordinate
+            from planet_osm_line l1
+            join planet_osm_line l2 on l1.ctid != l2.ctid and ST_Intersects(l1.way, l2.way) and l2.highway is not null
+            where l1.highway is not null
+            and GeometryType(ST_Intersection(l1.way, l2.way)) = 'POINT'
+            and l1.way && " . $boundingBox . "
+            and l2.way && " . $boundingBox . "
+            and ST_ContainsProperly (" . $boundingBox . ", ST_Intersection(l1.way, l2.way))"
+        );
+
+        return $intersections;
+    }
 }

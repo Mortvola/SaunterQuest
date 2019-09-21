@@ -776,9 +776,62 @@ function setEndLocation (object, position)
 }
 
 
+let intersections = [];
+
+function showIntersections ()
+{
+	var trails = this;
+	
+	var xmlhttp = new XMLHttpRequest ();
+	xmlhttp.onreadystatechange = function ()
+	{
+		if (this.readyState == 4 && this.status == 200)
+		{
+			for (let i of intersections)
+			{
+				i.setMap(null);
+			}
+
+			intersections = [];
+			
+			let coords = JSON.parse(this.responseText);
+
+			for (let c of coords)
+			{
+				let coordinate = JSON.parse(c.coordinate);
+				
+				let marker = new google.maps.Marker({
+					position: {lat: coordinate.coordinates[1], lng: coordinate.coordinates[0]},
+					map: map,
+					icon: {
+						url: nodeUrl,
+					}
+				});
+				
+				intersections.push(marker);
+			}
+		}
+	}
+	
+	var bounds = map.getBounds ();
+
+	xmlhttp.open("GET", "map/intersections?b=" + bounds.toUrlValue(), true);
+	xmlhttp.send();
+}
+
+
 function mapInitialize()
 {
-	var mapProp =
+    var mapTypeIds = [];
+    for(var type in google.maps.MapTypeId)
+    {
+        mapTypeIds.push(google.maps.MapTypeId[type]);
+    }
+    mapTypeIds.push("OSM");
+
+    var maxZoom = 18;
+    
+    var mapProp =
 	{
 		center:new google.maps.LatLng(31.4971635304391,-108.210319317877),
 		zoom:5,
@@ -786,14 +839,26 @@ function mapInitialize()
 		fullscreenControl:false,
 		scaleControl:true,
 		minZoom:5,
-		maxZoom:16,
-		mapTypeId:"terrain",
+		maxZoom:maxZoom,
+		mapTypeId:"OSM",
 		mapTypeControlOptions: {
-		    style: google.maps.MapTypeControlStyle.DROPDOWN_MENU
+			mapTypeIds: mapTypeIds
+//		    style: google.maps.MapTypeControlStyle.DROPDOWN_MENU
 		  }
 	};
 	
 	map = new google.maps.Map(document.getElementById("googleMap"), mapProp);
+
+    map.mapTypes.set("OSM", new google.maps.ImageMapType(
+    {
+        getTileUrl: function(coord, zoom)
+        {
+            return "http://localhost/hot/" + zoom + "/" + coord.x + "/" + coord.y + ".png";
+        },
+        tileSize: new google.maps.Size(256, 256),
+        name: "OpenStreetMap",
+        maxZoom: maxZoom
+    }));
 
 	window.onkeydown = function(e)
 	{
@@ -812,7 +877,9 @@ function mapInitialize()
 		{title:"Create Resupply Location", func:addResupplyLocation},
 		{title:"Display Location", func:displayLocation},
 		{title:"Set Start Location", func:setStartLocation},
-		{title:"Set End Location", func:setEndLocation}]);
+		{title:"Set End Location", func:setEndLocation},
+		{title:"Show Intersections", func:showIntersections},
+	]);
 
 	trailContextMenu = new ContextMenu ([
 		{title:"Add Point of Interest", func:showAddPointOfInterest},

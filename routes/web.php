@@ -23,6 +23,7 @@ Route::get('/editHike', function () {
     return view('editHike');
 });
 
+Route::get('/map/intersections', 'MapController@getIntersections');
 Route::get('/tileList', 'MapController@getTileList');
 Route::get('/tile', 'TileController@get');
 
