@@ -31,7 +31,8 @@ Route::post('/hike', 'HikeController@post');
 Route::delete('/hike', 'HikeController@delete');
 
 Route::get('/route', 'RouteController@get');
-Route::put('/route', 'RouteController@put');
+Route::put('/route/startPoint', 'RouteController@setStartPoint');
+Route::put('/route/endPoint', 'RouteController@setEndPoint');
 
 Route::get('/schedule', 'ScheduleController@get');
 

@@ -49,8 +49,7 @@ class Route
         {
             array_push($this->segments,
                 (object)[
-                    "lat" => $point->lat,
-                    "lng" => $point->lng,
+                    "point" => $point,
                     "dist" => 0,
                     "ele" => getElevation($point->lat, $point->lng),
                     "type" => "start"
@@ -78,8 +77,7 @@ class Route
             {
                 // Start exists, update it.
 
-                $this->segments[$startIndex]->lat = $point->lat;
-                $this->segments[$startIndex]->lng = $point->lng;
+                $this->segments[$startIndex]->point = $point;
                 $this->segments[$startIndex]->dist = 0;
                 $this->segments[$startIndex]->ele = getElevation($point->lat, $point->lng);
             }
@@ -89,8 +87,7 @@ class Route
 
                 array_splice($this->segments, 0, 0,
                     (object)[
-                        "lat" => $point->lat,
-                        "lng" => $point->lng,
+                        "point" => $point,
                         "dist" => 0,
                         "ele" => getElevation($point->lat, $point->lng),
                         "type" => "start"
@@ -102,7 +99,7 @@ class Route
 
             if (isset($startIndex) && isset($endIndex))
             {
-                $newSegments = findPath($this->segments[$startIndex], $this->segments[$endIndex]);
+                $newSegments = findPath($this->segments[$startIndex]->point, $this->segments[$endIndex]->point);
 
                 if (isset($newSegments) && count($newSegments) > 0)
                 {
@@ -123,8 +120,7 @@ class Route
         {
             array_push($this->segments,
                 (object)[
-                    "lat" => $point->lat,
-                    "lng" => $point->lng,
+                    "point" => $point,
                     "dist" => 0,
                     "ele" => getElevation($point->lat, $point->lng),
                     "type" => "end"
@@ -154,8 +150,7 @@ class Route
             {
                 // End exists, update it.
 
-                $this->segments[$endIndex]->lat = $point->lat;
-                $this->segments[$endIndex]->lng = $point->lng;
+                $this->segments[$endIndex]->point = $point;
                 $this->segments[$endIndex]->dist = 0;
                 $this->segments[$endIndex]->ele = getElevation($point->lat, $point->lng);
             }
@@ -165,8 +160,7 @@ class Route
 
                 array_push($this->segments,
                     (object)[
-                        "lat" => $point->lat,
-                        "lng" => $point->lng,
+                        "point" => $point,
                         "dist" => 0,
                         "ele" => getElevation($point->lat, $point->lng),
                         "type" => "end"
@@ -177,7 +171,7 @@ class Route
 
             if (isset($startIndex) && isset($endIndex))
             {
-                $newSegments = findPath($this->segments[$startIndex], $this->segments[$endIndex]);
+                $newSegments = findPath($this->segments[$startIndex]->point, $this->segments[$endIndex]->point);
 
                 if (isset($newSegments) && count($newSegments) > 0)
                 {
@@ -187,14 +181,14 @@ class Route
         }
     }
 
-    public function findRoute ()
+    public function findRoute ($dumpGraph = false)
     {
         if (!isset($segments))
         {
             $this->load();
         }
 
-        $newSegments = findPath($this->segments[0], $this->segments[count($this->segments) - 1]);
+        $newSegments = findPath($this->segments[0]->point, $this->segments[count($this->segments) - 1]->point, $dumpGraph);
 
         if (isset($newSegments) && count($newSegments) > 0)
         {

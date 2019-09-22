@@ -29,9 +29,9 @@ class Route
 			}
 		}
 		
-		var routeUpdate = {userHikeId: userHikeId, mode: "setStart", point: {lat: position.lat (), lng: position.lng ()}};
+		var routeUpdate = {userHikeId: userHikeId, point: {lat: position.lat (), lng: position.lng ()}};
 		
-		xmlhttp.open("PUT", "route", true);
+		xmlhttp.open("PUT", "route/startPoint", true);
 		xmlhttp.setRequestHeader("Content-type", "application/json");
     	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
 		xmlhttp.send(JSON.stringify(routeUpdate));
@@ -51,9 +51,9 @@ class Route
 			}
 		}
 		
-		var routeUpdate = {userHikeId: userHikeId, mode: "setEnd", point: {lat: position.lat (), lng: position.lng ()}};
+		var routeUpdate = {userHikeId: userHikeId, point: {lat: position.lat (), lng: position.lng ()}};
 		
-		xmlhttp.open("PUT", "route", true);
+		xmlhttp.open("PUT", "route/endPoint", true);
 		xmlhttp.setRequestHeader("Content-type", "application/json");
     	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
 		xmlhttp.send(JSON.stringify(routeUpdate));
@@ -91,12 +91,12 @@ class Route
 			//
 			// Add start of trail marker
 			//
-			this.startOfTrailMarker.setPosition(this.anchors[0]);
+			this.startOfTrailMarker.setPosition(this.anchors[0].point);
 
 			//
 			// Add end of trail marker
 			//
-			this.endOfTrailMarker.setPosition(this.anchors[this.anchors.length - 1]);
+			this.endOfTrailMarker.setPosition(this.anchors[this.anchors.length - 1].point);
 		}
 		
 		if (this.anchors.length > 1)
@@ -129,55 +129,55 @@ class Route
 			{
 				if (r == 0)
 				{
-					this.bounds.east = this.anchors[r].lng;
-					this.bounds.west = this.anchors[r].lng;
-					this.bounds.north = this.anchors[r].lat;
-					this.bounds.south = this.anchors[r].lat;
+					this.bounds.east = this.anchors[r].point.lng;
+					this.bounds.west = this.anchors[r].point.lng;
+					this.bounds.north = this.anchors[r].point.lat;
+					this.bounds.south = this.anchors[r].point.lat;
 				}
 				else
 				{
-					if (this.anchors[r].lng > this.bounds.east)
+					if (this.anchors[r].point.lng > this.bounds.east)
 					{
-						this.bounds.east = this.anchors[r].lng;
+						this.bounds.east = this.anchors[r].point.lng;
 					}
 
-					if (this.anchors[r].lng < this.bounds.west)
+					if (this.anchors[r].point.lng < this.bounds.west)
 					{
-						this.bounds.west = this.anchors[r].lng;
+						this.bounds.west = this.anchors[r].point.lng;
 					}
 					
-					if (this.anchors[r].lat > this.bounds.north)
+					if (this.anchors[r].point.lat > this.bounds.north)
 					{
-						this.bounds.north = this.anchors[r].lat;
+						this.bounds.north = this.anchors[r].point.lat;
 					}
 
-					if (this.anchors[r].lat < this.bounds.south)
+					if (this.anchors[r].point.lat < this.bounds.south)
 					{
-						this.bounds.south = this.anchors[r].lat;
+						this.bounds.south = this.anchors[r].point.lat;
 					}
 				}
 
 				if (r > 0)
 				{
-					if (this.anchors[r].lat == this.anchors[r - 1].lat && this.anchors[r].lng == this.anchors[r - 1].lng)
+					if (this.anchors[r].point.lat == this.anchors[r - 1].point.lat && this.anchors[r].point.lng == this.anchors[r - 1].point.lng)
 					{
 						console.log ("same coordinate");
 					}
 				}
 				
-				this.actualRoute.push({lat: this.anchors[r].lat, lng: this.anchors[r].lng, dist: this.anchors[r].dist, ele: this.anchors[r].ele});
+				this.actualRoute.push({lat: this.anchors[r].point.lat, lng: this.anchors[r].point.lng, dist: this.anchors[r].dist, ele: this.anchors[r].ele});
 				this.anchors[r].actualRouteIndex = this.actualRoute.length - 1;
 				
 				if (this.anchors[r].trail != undefined && this.anchors[r].trail.length > 1)
 				{
-					if (this.anchors[r].lat == this.anchors[r].trail[0].lat && this.anchors[r].lng == this.anchors[r].trail[0].lng)
+					if (this.anchors[r].lat == this.anchors[r].trail[0].lat && this.anchors[r].point.lng == this.anchors[r].trail[0].point.lng)
 					{
 						console.log ("same coordinate");
 					}
 					
 					for (let t in this.anchors[r].trail)
 					{
-						this.actualRoute.push({lat: this.anchors[r].trail[t].lat, lng: this.anchors[r].trail[t].lng, dist: this.anchors[r].trail[t].dist, ele: this.anchors[r].trail[t].ele});
+						this.actualRoute.push({lat: this.anchors[r].trail[t].point.lat, lng: this.anchors[r].trail[t].point.lng, dist: this.anchors[r].trail[t].dist, ele: this.anchors[r].trail[t].ele});
 					}
 				}
 			}

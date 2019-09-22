@@ -365,7 +365,9 @@ class GenerateGraph extends Command
             $columns = [
                 "start_fraction" => $edge->start,
                 "end_fraction" => $edge->end,
-                "line_id" => $edge->lineId
+                "line_id" => $edge->lineId,
+                "forward_cost" => $edge->forwardCost,
+                "backward_cost" => $edge->backwardCost
             ];
 
             if (isset ($edge->startNode))
