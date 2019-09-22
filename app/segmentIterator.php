@@ -49,7 +49,7 @@ class SegmentIterator implements \Iterator
 
     public function elevationChange()
     {
-        return $this->nextSegment()->ele - $this->current()->ele;
+        return $this->nextSegment()->point->ele - $this->current()->point->ele;
     }
 
     public function rewind()

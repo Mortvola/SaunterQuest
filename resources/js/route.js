@@ -165,7 +165,7 @@ class Route
 					}
 				}
 				
-				this.actualRoute.push({lat: this.anchors[r].point.lat, lng: this.anchors[r].point.lng, dist: this.anchors[r].dist, ele: this.anchors[r].ele});
+				this.actualRoute.push({lat: this.anchors[r].point.lat, lng: this.anchors[r].point.lng, dist: this.anchors[r].dist, ele: this.anchors[r].point.ele});
 				this.anchors[r].actualRouteIndex = this.actualRoute.length - 1;
 				
 				if (this.anchors[r].trail != undefined && this.anchors[r].trail.length > 1)
@@ -177,7 +177,7 @@ class Route
 					
 					for (let t in this.anchors[r].trail)
 					{
-						this.actualRoute.push({lat: this.anchors[r].trail[t].point.lat, lng: this.anchors[r].trail[t].point.lng, dist: this.anchors[r].trail[t].dist, ele: this.anchors[r].trail[t].ele});
+						this.actualRoute.push({lat: this.anchors[r].trail[t].point.lat, lng: this.anchors[r].trail[t].point.lng, dist: this.anchors[r].trail[t].dist, ele: this.anchors[r].trail[t].point.ele});
 					}
 				}
 			}

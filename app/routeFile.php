@@ -136,7 +136,7 @@ function assignTrailDistances ($trail, $distance, $prevLat, $prevLng)
         $distance += haversineGreatCircleDistance($prevLat, $prevLng, $trail[$t]->point->lat, $trail[$t]->point->lng);
 
         $trail[$t]->dist = $distance;
-        $trail[$t]->ele = getElevation($trail[$t]->point->lat, $trail[$t]->point->lng);
+        $trail[$t]->point->ele = getElevation($trail[$t]->point->lat, $trail[$t]->point->lng);
 
         $prevLat = $trail[$t]->point->lat;
         $prevLng = $trail[$t]->point->lng;
@@ -178,7 +178,7 @@ function assignDistances (&$segments, $startIndex)
         }
 
         $segments[$i]->dist = $distance;
-        $segments[$i]->ele = getElevation($segments[$i]->point->lat, $segments[$i]->point->lng);
+        $segments[$i]->point->ele = getElevation($segments[$i]->point->lat, $segments[$i]->point->lng);
 
         if ($i < count($segments) - 1)
         {

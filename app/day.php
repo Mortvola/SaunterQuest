@@ -7,13 +7,11 @@ class Day implements \JsonSerializable
     private $meters = 0;
     private $startMeters = 0;
 
-    private $lat;
-    private $lng;
-    private $ele;
-    
+    private $point;
+
     private $gain = 0;
     private $loss = 0;
-    
+
     public $foodPlanId;
     public $foodWeight = 0;
     public $accumWeight = 0;
@@ -21,7 +19,7 @@ class Day implements \JsonSerializable
     private $elapsedTime = 0;
     private $startTime;
     public $endTime;
-    
+
     public $notes;
     public $segment = 0;
     public $segmentMeters = 0;
@@ -34,38 +32,36 @@ class Day implements \JsonSerializable
                 "endTime" => $this->endTime,
                 "startMeters" => $this->startMeters,
                 "meters" => $this->meters,
-                "lat" => $this->lat,
-                "lng" => $this->lng,
-                "ele" => $this->ele,
+                "point" => $this->point,
                 "gain" => $this->gain,
                 "loss" => $this->loss,
                 "accumWeight" => $this->accumWeight,
                 "foodPlanId" => $this->foodPlanId
         ];
-        
+
         if (isset ($this->endLat))
         {
             $array["endLat"] = $this->endLat;
         }
-        
+
         if (isset ($this->endLng))
         {
             $array["endLng"] = $this->endLng;
         }
-        
+
         if (isset ($this->endEle))
         {
             $array["endEle"] = $this->endEle;
         }
-        
+
         if (isset ($this->endMeters))
         {
             $array["endMeters"] = $this->endMeters;
         }
-        
+
         return $array;
     }
-    
+
     //
     // Initialize the day
     //
@@ -87,46 +83,47 @@ class Day implements \JsonSerializable
             $this->endTime = $hikerProfile->endTime;
         }
 
-        $this->lat = $point->lat;
-        $this->lng = $point->lng;
-        $this->ele = $point->ele;
+        $this->point = (object)[];
+        $this->point->lat = $point->lat;
+        $this->point->lng = $point->lng;
+        $this->point->ele = $point->ele;
 
         $this->segment = $segment;
         $this->segmentMeters = $segmentMeters;
 
         $this->events = [];
     }
-    
+
     public function end ()
     {
         $this->endTime = $this->startTime + $this->elapsedTime;
     }
-    
+
     public function metersAdd ($meters)
     {
         $this->meters += $meters;
     }
-    
+
     public function metersGet ()
     {
         return $this->meters;
     }
-    
+
     public function totalMetersGet ()
     {
         return $this->startMeters + $this->meters;
     }
-    
+
     public function currentTimeGet ()
     {
         return $this->startTime + $this->elapsedTime;
     }
-    
+
     public function timeAdd ($hours)
     {
         $this->elapsedTime += $hours;
     }
-    
+
     public function updateGainLoss ($eleDelta)
     {
         if ($eleDelta > 0) {
@@ -135,12 +132,12 @@ class Day implements \JsonSerializable
             $this->loss += -$eleDelta;
         }
     }
-    
+
     public function pointGet ()
     {
-        return (object)["lat" => $this->lat, "lng" => $this->lng];
+        return $this->point;
     }
-    
+
     public function reset ()
     {
         $this->meters = 0;
