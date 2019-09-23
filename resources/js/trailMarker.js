@@ -115,7 +115,7 @@ class EndOfDayMarker extends TrailMarker
 	setDay (dayNumber, day)
 	{
 		this.dayNumber = dayNumber;
-		this.setPosition({lat: day.lat, lng: day.lng, ele: day.ele, dist: day.startMeters});
+		this.setPosition({lat: day.point.lat, lng: day.point.lng, ele: day.point.ele, dist: day.startMeters});
 	}
 
 	infoMessage ()

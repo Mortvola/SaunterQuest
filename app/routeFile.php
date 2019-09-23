@@ -92,44 +92,54 @@ function getFullTrailFromFile ($fileName, $trailName)
     }
 }
 
-function getPath ($point, $trailName, $startIndex, $endIndex)
+function getPath ($lineId, $startFraction, $endFraction)
 {
-    list ($trailType, $cn, $pathIndex) = explode(":", $trailName);
-
-    $tile = Map::getTilefromPoint($point);
-
-    $trail = $tile->getTrail($cn);
-
-    // if (isset($trail)) {
-    // return $trail;
-    // }
-
-    if (isset($trail))
+    if ($startFraction > $endFraction)
     {
-        if ($pathIndex >= count($trail->paths))
-        {}
-        else
-        {
-            $points = $trail->paths[$pathIndex]->points;
+        $startFraction = 1 - $startFraction;
+        $endFraction = 1 -$endFraction;
 
-            error_log("trim route to " . $startIndex . " and " . $endIndex . " of " . count($points));
-
-            return trimRoute($points, $startIndex, $endIndex);
-        }
+        $way = 'ST_Reverse(way)';
     }
+    else
+    {
+        $way = 'way';
+    }
+
+    $sql = "select ST_AsGeoJSON(ST_Transform(ST_LineSubstring (:way:, :start:, :end:), 4326)) AS linestring
+            from planet_osm_line
+            where line_id = :lineId:
+            limit 1";
+
+    $sql = str_replace (":way:", $way, $sql);
+    $sql = str_replace (":start:", $startFraction, $sql);
+    $sql = str_replace (":end:", $endFraction, $sql);
+    $sql = str_replace (":lineId:", $lineId, $sql);
+
+    $result = \DB::connection('pgsql')->select ($sql);
+
+    $coordinates = json_decode($result[0]->linestring)->coordinates;
+    $points = [];
+
+    foreach ($coordinates as $coord)
+    {
+        $points[] = (object)["point" => (object)["lat" => $coord[1], "lng" => $coord[0]]];
+    }
+
+    return $points;
 }
 
 function assignTrailDistances ($trail, $distance, $prevLat, $prevLng)
 {
     for ($t = 0; $t < count($trail); $t++)
     {
-        $distance += haversineGreatCircleDistance($prevLat, $prevLng, $trail[$t]->lat, $trail[$t]->lng);
+        $distance += haversineGreatCircleDistance($prevLat, $prevLng, $trail[$t]->point->lat, $trail[$t]->point->lng);
 
         $trail[$t]->dist = $distance;
-        $trail[$t]->ele = getElevation($trail[$t]->lat, $trail[$t]->lng);
+        $trail[$t]->point->ele = getElevation($trail[$t]->point->lat, $trail[$t]->point->lng);
 
-        $prevLat = $trail[$t]->lat;
-        $prevLng = $trail[$t]->lng;
+        $prevLat = $trail[$t]->point->lat;
+        $prevLng = $trail[$t]->point->lng;
     }
 
     return [
@@ -145,7 +155,7 @@ function assignDistances (&$segments, $startIndex)
     for ($i = $startIndex; $i < count($segments); $i++)
     {
         // Remove the anchor if it appears to be malformed
-        if (!isset($segments[$i]->lat) || !isset($segments[$i]->lng))
+        if (!isset($segments[$i]->point->lat) || !isset($segments[$i]->point->lng))
         {
             array_splice($segments, $i, 1);
 
@@ -168,7 +178,7 @@ function assignDistances (&$segments, $startIndex)
         }
 
         $segments[$i]->dist = $distance;
-        $segments[$i]->ele = getElevation($segments[$i]->lat, $segments[$i]->lng);
+        $segments[$i]->point->ele = getElevation($segments[$i]->point->lat, $segments[$i]->point->lng);
 
         if ($i < count($segments) - 1)
         {
@@ -176,15 +186,15 @@ function assignDistances (&$segments, $startIndex)
             // distance.
             if (isset($segments[$i]->trail))
             {
-                $prevLat = $segments[$i]->lat;
-                $prevLng = $segments[$i]->lng;
+                $prevLat = $segments[$i]->point->lat;
+                $prevLng = $segments[$i]->point->lng;
 
                 list ($distance, $prevLat, $prevLng) = assignTrailDistances($segments[$i]->trail, $distance, $prevLat, $prevLng);
-                $distance += haversineGreatCircleDistance($prevLat, $prevLng, $segments[$i + 1]->lat, $segments[$i + 1]->lng);
+                $distance += haversineGreatCircleDistance($prevLat, $prevLng, $segments[$i + 1]->point->lat, $segments[$i + 1]->point->lng);
             }
             else
             {
-                $distance += haversineGreatCircleDistance($segments[$i]->lat, $segments[$i]->lng, $segments[$i + 1]->lat, $segments[$i + 1]->lng);
+                $distance += haversineGreatCircleDistance($segments[$i]->point->lat, $segments[$i]->point->lng, $segments[$i + 1]->point->lat, $segments[$i + 1]->point->lng);
             }
         }
     }
@@ -237,20 +247,13 @@ function getRouteFromFile ($fileName)
             {
                 // If this segment and the next start on the same trail then
                 // find the route along the trail.
-                if (isset($segments[$s]->next->trailName) && isset($segments[$s + 1]->prev->trailName) &&
-                    $segments[$s]->next->trailName == $segments[$s + 1]->prev->trailName &&
-                    $segments[$s]->next->pointIndex != $segments[$s + 1]->prev->pointIndex)
+                if (isset($segments[$s]->next->line_id) && isset($segments[$s + 1]->prev->line_id) &&
+                    $segments[$s]->next->line_id == $segments[$s + 1]->prev->line_id &&
+                    $segments[$s]->next->fraction != $segments[$s + 1]->prev->fraction)
                 {
-                    error_log("Points on same trail: " . $segments[$s]->next->trailName);
+                    error_log("Points on same trail: " . $segments[$s]->next->line_id);
 
-                    if ($segments[$s]->next->pointIndex < $segments[$s + 1]->prev->pointIndex)
-                    {
-                        $trail = getPath($segments[$s], $segments[$s]->next->trailName, $segments[$s]->next->pointIndex + 1, $segments[$s + 1]->prev->pointIndex);
-                    }
-                    else
-                    {
-                        $trail = getPath($segments[$s], $segments[$s]->next->trailName, $segments[$s]->next->pointIndex, $segments[$s + 1]->prev->pointIndex + 1);
-                    }
+                    $trail = getPath($segments[$s]->next->line_id, $segments[$s]->next->fraction, $segments[$s + 1]->prev->fraction);
 
                     // array_splice ($segments, $s + 1, 0, $trail);
                     // $s += count($trail);

@@ -61,18 +61,29 @@ class RouteController extends Controller
 
                 break;
 */
-            case "setStart":
-
-                $route->setStart ($routeUpdate->point);
-
-                break;
-
-            case "setEnd":
-
-                $route->setEnd ($routeUpdate->point);
-
-                break;
         }
+
+        $route->save ();
+    }
+
+    public function setStartPoint (Request $request)
+    {
+        $routeUpdate = json_decode($request->getContent());
+
+        $route = new Route($routeUpdate->userHikeId);
+
+        $route->setStart ($routeUpdate->point);
+
+        $route->save ();
+    }
+
+    public function setEndPoint (Request $request)
+    {
+        $routeUpdate = json_decode($request->getContent());
+
+        $route = new Route($routeUpdate->userHikeId);
+
+        $route->setEnd ($routeUpdate->point);
 
         $route->save ();
     }

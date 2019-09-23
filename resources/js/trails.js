@@ -201,14 +201,20 @@ class Trails
 
 	hideTile (tile)
 	{
-		for (let p in tile.polyLines)
+		if (tile.polyLines)
 		{
-			tile.polyLines[p].setVisible(false);
+			for (let p in tile.polyLines)
+			{
+				tile.polyLines[p].setVisible(false);
+			}
 		}
 		
-		for (let m of tile.markers)
+		if (tile.markers != undefined)
 		{
-			m.setVisible(false);
+			for (let m of tile.markers)
+			{
+				m.setVisible(false);
+			}
 		}
 		
 		if (tile.polyBounds)
@@ -233,15 +239,18 @@ class Trails
 						tile.polyLines[p].setVisible(true);
 					}
 					
-					for (let m of tile.markers)
+					if (tile.markers != undefined)
 					{
-						m.setVisible(true);
+						for (let m of tile.markers)
+						{
+							m.setVisible(true);
+						}
 					}
 				}
 				else if (tile.trails)
 				{
-					this.generatePolyLines (tile);
-					this.generateNodes (tile);
+//					this.generatePolyLines (tile);
+//					this.generateNodes (tile);
 				}
 				else
 				{
@@ -255,15 +264,21 @@ class Trails
 			}
 			else
 			{
-				for (let p in tile.polyLines)
+				if (tile.polyLines)
 				{
-					removeContextMenu(tile.polyLines[p]);
-					tile.polyLines[p].setVisible(false);
+					for (let p in tile.polyLines)
+					{
+						removeContextMenu(tile.polyLines[p]);
+						tile.polyLines[p].setVisible(false);
+					}
 				}
 				
-				for (let m of tile.markers)
+				if (tile.markers != undefined)
 				{
-					m.setVisible(false);
+					for (let m of tile.markers)
+					{
+						m.setVisible(false);
+					}
 				}
 	
 				if (tile.polyBounds != undefined)
@@ -332,22 +347,25 @@ class Trails
 	
 	generateNodes (tile)
 	{
-		for (let node of tile.graph.nodes)
+		if (tile.graph !== undefined)
 		{
-			let marker = new google.maps.Marker({
-				position: node,
-				map: this.map,
-				icon: {
-					url: nodeUrl,
-				}
-			});
-			
-			if (tile.markers == undefined)
+			for (let node of tile.graph.nodes)
 			{
-				tile.markers = [];
+				let marker = new google.maps.Marker({
+					position: node,
+					map: this.map,
+					icon: {
+						url: nodeUrl,
+					}
+				});
+				
+				if (tile.markers == undefined)
+				{
+					tile.markers = [];
+				}
+				
+				tile.markers.push(marker);
 			}
-			
-			tile.markers.push(marker);
 		}
 	}
 	
@@ -385,7 +403,7 @@ class Trails
 		{
 			this.show ();
 		}
-
+/*
 		this.retrieveTileList ();
 
 		if (this.tiles.length > 0)
@@ -409,6 +427,7 @@ class Trails
 				}
 			}
 		}
+		*/
 	}
 
 }
