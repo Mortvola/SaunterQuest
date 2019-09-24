@@ -11,11 +11,11 @@
     	<script src="{{ asset('js/popper-1.14.7.min.js') }}"></script>
         <script src="{{ asset('js/bootstrap-4.3.1.min.js') }}"></script>
         <script src="{{ asset('js/utilities.js') }}"></script>
-    
+
         <!-- Fonts -->
         <link rel="dns-prefetch" href="//fonts.gstatic.com">
         <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
-    
+
         <!-- Styles -->
         <link href="{{ asset('css/bootstrap-4.3.1.css') }}" rel="stylesheet">
     	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
@@ -72,7 +72,7 @@
             .m-b-md {
                 margin-bottom: 30px;
             }
-            
+
             body {
                 background-color: black;
                 background-image: url({{ asset ('Forester.jpg') }});
@@ -81,7 +81,29 @@
                 background-position: center;
                 background-size: cover;
             }
-        </style>
+
+            @media screen and (max-width: 575.98px) {
+              .title {
+                font-size: 1.6rem;
+              }
+            }
+
+            @media screen and (max-width: 767.98px) {
+              .title {
+                font-size: 1.8rem;
+              }
+            }
+
+            @media screen and (max-width: 991.98px) {
+              .title {
+                font-size: 2.0rem;
+              }
+
+            @media screen and (max-width: 1199.98px) {
+              .title {
+                font-size: 2.2rem;
+              }
+          </style>
     </head>
     <body>
         <div class="flex-center position-ref full-height">
@@ -90,7 +112,7 @@
                     @auth
                         <a href="{{ url('/home') }}" style="color:white">Home</a>
                     @else
-                        <!-- a href="{{ route('login') }}" style="color:white">Login</a -->
+                        <!-- a href="{{ route('login', null, false) }}" style="color:white">Login</a -->
                         <a href="javascript:showLoginDialog()" style="color:white">Login</a>
                         <a href="javascript:showRegisterDialog()" style="color:white">Register</a>
                     @endauth
@@ -98,12 +120,12 @@
             @endif
 
             <div class="content">
-                <div class="title m-b-md" style="color: white; background-color: rgba(0, 0, 0, 0.65)">
+                <div class="title" style="color: white; background-color: rgba(0, 0, 0, 0.65)">
                     Backpacker's Planner
                 </div>
             </div>
         </div>
-        
+
         <!-- Modal -->
         <div class="modal fade" id="loginDialog" role="dialog">
             <div class="modal-dialog">
@@ -116,15 +138,15 @@
                     <div class="tab-content">
                         <div id="login" class="tab-pane fade show active">
         			        <div class="card-body">
-                                <form method="POST" action="{{ route('login') }}">
+                                <form method="POST" action="{{ route('login', null, false) }}">
                                     @csrf
-            
+
                                     <div class="form-group row">
                                         <label for="username" class="col-md-3 col-form-label text-md-right">{{ __('Username') }}</label>
-            
+
                                         <div class="col-md-8">
                                             <input id="username" type="username" class="form-control @error('username') is-invalid @enderror" name="username" value="{{ old('username') }}" required autocomplete="username" autofocus>
-            
+
                                             @error('username')
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $message }}</strong>
@@ -132,13 +154,13 @@
                                             @enderror
                                         </div>
                                     </div>
-            
+
                                     <div class="form-group row">
                                         <label for="password" class="col-md-3 col-form-label text-md-right">{{ __('Password') }}</label>
-            
+
                                         <div class="col-md-8">
                                             <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password">
-            
+
                                             @error('password')
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $message }}</strong>
@@ -146,19 +168,19 @@
                                             @enderror
                                         </div>
                                     </div>
-            
+
                                     <div class="form-group row">
                                         <div class="col-md-8 offset-md-3">
                                             <div class="form-check">
                                                 <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
-            
+
                                                 <label class="form-check-label" for="remember">
                                                     {{ __('Remember Me') }}
                                                 </label>
                                             </div>
                                         </div>
                                     </div>
-            
+
                                     <div class="form-group row mb-0">
                                         <div class="col-md-8 offset-md-3">
                                             <button type="submit" class="btn btn-primary">
@@ -169,7 +191,7 @@
                                 </form>
                             </div>
                         </div>
-                        
+
                         <div id="forgotpassword" class="tab-pane fade">
                             <div class="card-body">
                                 @if (session('status'))
@@ -177,16 +199,16 @@
                                         {{ session('status') }}
                                     </div>
                                 @endif
-            
-                                <form method="POST" action="{{ route('password.email') }}">
+
+                                <form method="POST" action="{{ route('password.email', null, false) }}">
                                     @csrf
-            
+
                                     <div class="form-group row">
                                         <label for="email" class="col-md-3 col-form-label text-md-right">{{ __('E-Mail Address') }}</label>
-            
+
                                         <div class="col-md-8">
                                             <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
-            
+
                                             @error('email')
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $message }}</strong>
@@ -194,7 +216,7 @@
                                             @enderror
                                         </div>
                                     </div>
-            
+
                                     <div class="form-group row mb-0">
                                         <div class="col-md-8 offset-md-3">
                                             <button type="submit" class="btn btn-primary">
@@ -205,7 +227,7 @@
                                 </form>
                             </div>
                         </div>
-                        
+
                 	</div>
                 </div>
             </div>
@@ -218,15 +240,15 @@
         	    <div class="modal-content">
 	                <div class="card-header">{{ __('Register') }}</div>
                     <div class="card-body">
-                        <form method="POST" action="{{ route('register') }}">
+                        <form method="POST" action="{{ route('register', null, false) }}">
                             @csrf
-    
+
                             <div class="form-group row">
                                 <label for="username" class="col-md-3 col-form-label text-md-right">{{ __('Username') }}</label>
-    
+
                                 <div class="col-md-8">
                                     <input id="username" type="text" class="form-control @error('username') is-invalid @enderror" name="username" value="{{ old('username') }}" required autocomplete="username" autofocus>
-    
+
                                     @error('username')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
@@ -234,13 +256,13 @@
                                     @enderror
                                 </div>
                             </div>
-    
+
                             <div class="form-group row">
                                 <label for="name" class="col-md-3 col-form-label text-md-right">{{ __('Name') }}</label>
-    
+
                                 <div class="col-md-8">
                                     <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name') }}" required autocomplete="name" autofocus>
-    
+
                                     @error('name')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
@@ -248,13 +270,13 @@
                                     @enderror
                                 </div>
                             </div>
-    
+
                             <div class="form-group row">
                                 <label for="email" class="col-md-3 col-form-label text-md-right">{{ __('E-Mail Address') }}</label>
-    
+
                                 <div class="col-md-8">
                                     <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email">
-    
+
                                     @error('email')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
@@ -262,13 +284,13 @@
                                     @enderror
                                 </div>
                             </div>
-    
+
                             <div class="form-group row">
                                 <label for="password" class="col-md-3 col-form-label text-md-right">{{ __('Password') }}</label>
-    
+
                                 <div class="col-md-8">
                                     <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="new-password">
-    
+
                                     @error('password')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
@@ -276,15 +298,15 @@
                                     @enderror
                                 </div>
                             </div>
-    
+
                             <div class="form-group row">
                                 <label for="password-confirm" class="col-md-3 col-form-label text-md-right">{{ __('Confirm Password') }}</label>
-    
+
                                 <div class="col-md-8">
                                     <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required autocomplete="new-password">
                                 </div>
                             </div>
-    
+
                             <div class="form-group row mb-0">
                                 <div class="col-md-8 offset-md-3">
                                     <button type="submit" class="btn btn-primary">
@@ -298,7 +320,7 @@
                 </div>
             </div>
         </div> <!--  Modal -->
-        
+
         <script>
             function showLoginDialog ()
             {
