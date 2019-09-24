@@ -98,12 +98,14 @@
               .title {
                 font-size: 2.0rem;
               }
+            }
 
             @media screen and (max-width: 1199.98px) {
               .title {
                 font-size: 2.2rem;
               }
-          </style>
+            }
+        </style>
     </head>
     <body>
         <div class="flex-center position-ref full-height">
