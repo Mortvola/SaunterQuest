@@ -853,7 +853,7 @@ function mapInitialize()
     {
         getTileUrl: function(coord, zoom)
         {
-            return "http://localhost/hot/" + zoom + "/" + coord.x + "/" + coord.y + ".png";
+            return "/hot/" + zoom + "/" + coord.x + "/" + coord.y + ".png";
         },
         tileSize: new google.maps.Size(256, 256),
         name: "OpenStreetMap",
