@@ -82,29 +82,10 @@
                 background-size: cover;
             }
 
-            @media screen and (max-width: 575.98px) {
-              .title {
-                font-size: 1.6rem;
-              }
+            .title {
+                font-size: calc(15px + 5vw);
             }
 
-            @media screen and (max-width: 767.98px) {
-              .title {
-                font-size: 1.8rem;
-              }
-            }
-
-            @media screen and (max-width: 991.98px) {
-              .title {
-                font-size: 2.0rem;
-              }
-            }
-
-            @media screen and (max-width: 1199.98px) {
-              .title {
-                font-size: 2.2rem;
-              }
-            }
         </style>
     </head>
     <body>
