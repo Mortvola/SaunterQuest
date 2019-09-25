@@ -169,6 +169,7 @@
                                             <button type="submit" class="btn btn-primary">
                                                 {{ __('Login') }}
                                             </button>
+						                    <button type="button" class="btn" data-dismiss="modal">Cancel</button>
                                         </div>
                                     </div>
                                 </form>
@@ -205,6 +206,7 @@
                                             <button type="submit" class="btn btn-primary">
                                                 {{ __('Send Password Reset Link') }}
                                             </button>
+						                    <button type="button" class="btn" data-dismiss="modal">Cancel</button>
                                         </div>
                                     </div>
                                 </form>
@@ -221,7 +223,10 @@
             <div class="modal-dialog">
                 <!-- Modal content-->
         	    <div class="modal-content">
-	                <div class="card-header">{{ __('Register') }}</div>
+	                <div class="card-header">
+	                	{{ __('Register') }}
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+	                </div>
                     <div class="card-body">
                         <form method="POST" action="{{ route('register', null, false) }}">
                             @csrf
@@ -295,6 +300,7 @@
                                     <button type="submit" class="btn btn-primary">
                                         {{ __('Register') }}
                                     </button>
+				                    <button type="button" class="btn" data-dismiss="modal">Cancel</button>
                                 </div>
                             </div>
                         </form>
