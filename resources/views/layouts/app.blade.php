@@ -28,7 +28,7 @@
     <div id="app" style="display:grid;grid-template-rows: min-content auto;position:absolute;top:0px;bottom:0px;left:0px;right:0px">
         <nav class="navbar navbar-expand-md navbar-light shadow-sm" style="background-color:#228B22">
             <div class="container">
-                <a class="navbar-brand" href="{{ url('/') }}">
+                <a class="navbar-brand" href="/">
                     {{ config('app.name', 'Laravel') }}
                 </a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
@@ -38,7 +38,7 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav mr-auto">
-	                    <a class="nav-link" href="{{ url('/home') }}" style="color:white">Home</a>
+	                    <a class="nav-link" href="/home" style="color:white">Home</a>
 	                    <a class="nav-link" href="javascript:showExportTrailModal()" style="color:white">Export Trail</a>
 	                    <a class="nav-link" href="#" style="color:white">Food</a>
 	                    <a class="nav-link" href="#" style="color:white">Gear</a>
@@ -85,7 +85,7 @@
 	        @yield('content')
     	</div>
     </div>
-    
+
     @include('profileDialog')
 </body>
 </html>

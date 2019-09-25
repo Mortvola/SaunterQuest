@@ -35,13 +35,13 @@
                 <tbody>
                     <?php
                         $results = Auth::user()->hikes()->get ();
-        
+
                         foreach ($results as $hike) {
                             echo "<tr id='userHike_", $hike->id, "'>\n";
                             echo "<td>\n";
                             echo "<a class='btn btn-sm' href='/editHike?id=", $hike->id, "'><i class='fas fa-pencil-alt'></i></a>\n";
                             echo "<a class='btn btn-sm' href='javascript:deleteHike(", $hike->id, ")'><i class='fas fa-trash-alt'></i></a>\n";
-                            echo "<a href=\""?> {{ url('/editHike?id=' . $hike->id) }} <?php echo "\">", $hike->name, "</a></td>\n";
+                            echo "<a href=\"/editHike?id=", $hike->id, "\">", $hike->name, "</a></td>\n";
                             echo "<td>", "</td>\n";
                             echo "<td>", "</td>\n";
                             echo "<td>", "None", "</td>\n";
@@ -52,7 +52,7 @@
                     <td><a class='btn btn-sm' href='javascript:showHikeDialog()'><i class='fas fa-plus'></i></a></td>
                     <td/><td/><td/><td/>
                     </tr>
-        
+
                 </tbody>
             </table>
             <h4>Completed Hikes</h4>
