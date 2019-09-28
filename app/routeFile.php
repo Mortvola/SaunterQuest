@@ -212,22 +212,27 @@ function getRouteFileName ($userHikeId)
 
 function readAndSanitizeFile ($fileName)
 {
-    $segments = json_decode(file_get_contents($fileName));
+    $segments = [ ];
 
-    if ($segments == null)
+    if (file_exists($fileName))
     {
-        $segments = [ ];
-    }
-    else
-    {
-        // Ensure the array is not an object and is indexed numerically
-        if (!is_array($segments))
+        $segments = json_decode(file_get_contents($fileName));
+
+        if ($segments == null)
         {
-            $objectVars = get_object_vars($segments);
-
-            if ($objectVars)
+            $segments = [ ];
+        }
+        else
+        {
+            // Ensure the array is not an object and is indexed numerically
+            if (!is_array($segments))
             {
-                $segments = array_values($objectVars);
+                $objectVars = get_object_vars($segments);
+
+                if ($objectVars)
+                {
+                    $segments = array_values($objectVars);
+                }
             }
         }
     }

@@ -198,6 +198,13 @@ class Route
 
     public function save ()
     {
+        $folder = getHikeFolder ($this->hikeId);
+
+        if (!file_exists($folder))
+        {
+            mkdir($folder);
+        }
+
         // Write the data to the file.
         $fileName = getRouteFileName($this->hikeId);
         file_put_contents($fileName, json_encode($this->segments));
