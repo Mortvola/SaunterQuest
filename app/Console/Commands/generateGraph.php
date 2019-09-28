@@ -96,15 +96,15 @@ class GenerateGraph extends Command
 //         }
     }
 
-    private function findIntersections ($x, $y)
+    private function findIntersections ($lng, $lat)
     {
-        $bounds = [$x, $y, $x + 1, $y + 1];
+        $bounds = [$lng, $lat, $lng + 1, $lat + 1];
 
-        error_log("Finding intersections within (" . $x . ", " . $y . ")-(" . ($x + 1) . ", " . ($y + 1) . ")");
+        error_log("Finding intersections within (" . $lng . ", " . $lat . ")-(" . ($lng + 1) . ", " . ($lat + 1) . ")");
 
         $boundingBox = "ST_SetSRID(ST_MakeBox2D(ST_Transform('SRID=4326;POINT(" .
-            $bounds[1] . " " . $bounds[0] . ")'::geometry, 3857), ST_Transform('SRID=4326;POINT(" .
-            $bounds[3] . " " . $bounds[2] . ")'::geometry, 3857)), 3857)";
+            $bounds[0] . " " . $bounds[1] . ")'::geometry, 3857), ST_Transform('SRID=4326;POINT(" .
+            $bounds[2] . " " . $bounds[3] . ")'::geometry, 3857)), 3857)";
 
         $intersections = \DB::connection('pgsql')->select (
             "select
