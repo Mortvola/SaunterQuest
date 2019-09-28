@@ -15,7 +15,7 @@ class GenerateGraph extends Command
      *
      * @var string
      */
-    protected $signature = 'tile:generateGraph {tileName}';
+    protected $signature = 'tile:generateGraph {bounds}';
 
     /**
      * The console command description.
@@ -52,7 +52,55 @@ class GenerateGraph extends Command
      */
     public function handle()
     {
-        $bounds = [33.0, -108.5, 33.5, -108.0];
+        list($left,$bottom,$right,$top) = explode(',', $this->argument('bounds'));
+
+        $left = intval($left);
+        $bottom = intval($bottom);
+        $right = intval($right);
+        $top = intval($top);
+
+        if ($left >= $right || $bottom >= $top)
+        {
+            throw new Exception("Malformed bounding box: (" . $left . ", " . $bottom . ")-(" . $right . ", " . $top . ")");
+        }
+
+        for ($y = $bottom; $y < $top; $y++)
+        {
+            for ($x = $left; $x < $right; $x++)
+            {
+                $this->findIntersections ($x, $y);
+            }
+        }
+
+
+        // Insert edges and nodes into the tables
+
+//            return $intersections;
+
+
+//         $tileName = $this->argument('tileName');
+
+//         $tile = new Tile($tileName);
+
+//         $graph = $tile->generateGraph ();
+
+//         if ($this->confirm ("Do you want to save the tile?"))
+//         {
+// //             $backupName = $tile->createBackup ();
+
+// //             $this->info("Backed up existing tile to " . $backupName);
+
+//             $this->info ("Saving tile");
+
+//             $graph->save ();
+//         }
+    }
+
+    private function findIntersections ($x, $y)
+    {
+        $bounds = [$x, $y, $x + 1, $y + 1];
+
+        error_log("Finding intersections within (" . $x . ", " . $y . ")-(" . ($x + 1) . ", " . ($y + 1) . ")");
 
         $boundingBox = "ST_SetSRID(ST_MakeBox2D(ST_Transform('SRID=4326;POINT(" .
             $bounds[1] . " " . $bounds[0] . ")'::geometry, 3857), ST_Transform('SRID=4326;POINT(" .
@@ -60,24 +108,24 @@ class GenerateGraph extends Command
 
         $intersections = \DB::connection('pgsql')->select (
             "select
-                ST_AsGeoJSON(ST_Transform(ST_Intersection(l1.way, l2.way), 4326)) coordinate,
-                l1.ctid ctid,
-                ST_LineLocatePoint(l1.way, ST_Intersection(l1.way, l2.way)) fraction,
-                l1.osm_id osmid,
-                l1.line_id lineid
-            from planet_osm_line l1
-            join planet_osm_line l2 on l1.ctid != l2.ctid and ST_Intersects(l1.way, l2.way) and l2.highway is not null
-            where l1.highway is not null
-            and GeometryType(ST_Intersection(l1.way, l2.way)) = 'POINT'
-            and l1.way && " . $boundingBox . "
-            and l2.way && " . $boundingBox . "
-            and ST_ContainsProperly (" . $boundingBox . ", ST_Intersection(l1.way, l2.way))"
+            ST_AsGeoJSON(ST_Transform(ST_Intersection(l1.way, l2.way), 4326)) coordinate,
+            l1.ctid ctid,
+            ST_LineLocatePoint(l1.way, ST_Intersection(l1.way, l2.way)) fraction,
+            l1.osm_id osmid,
+            l1.line_id lineid
+        from planet_osm_line l1
+        join planet_osm_line l2 on l1.ctid != l2.ctid and ST_Intersects(l1.way, l2.way) and l2.highway is not null
+        where l1.highway is not null
+        and GeometryType(ST_Intersection(l1.way, l2.way)) = 'POINT'
+        and l1.way && " . $boundingBox . "
+        and l2.way && " . $boundingBox . "
+        and ST_ContainsProperly (" . $boundingBox . ", ST_Intersection(l1.way, l2.way))"
         );
 
-        error_log("count = " .count($intersections));
-        var_dump($intersections[0]);
-
         $nodes = [];
+
+        $bar = $this->output->createProgressBar(count($intersections));
+        $bar->start();
 
         for ($i = 0; $i < count($intersections); $i++)
         {
@@ -105,9 +153,9 @@ class GenerateGraph extends Command
                     foreach ($node->paths as $path)
                     {
                         if ($path->osmId == $intersection->osmId
-                         && $path->ctId == $intersection->ctId
-                         && $path->lineId == $intersection->lineId
-                         && $path->fraction == $intersection->fraction)
+                            && $path->ctId == $intersection->ctId
+                            && $path->lineId == $intersection->lineId
+                            && $path->fraction == $intersection->fraction)
                         {
                             $found = true;
                         }
@@ -127,9 +175,11 @@ class GenerateGraph extends Command
             }
 
             $nodes[] = $node;
+            $bar->advance ();
         }
 
-        error_log ("nodes = " . count($nodes));
+        $bar->finish ();
+        error_log ("");
 
         $edges = [];
 
@@ -282,7 +332,7 @@ class GenerateGraph extends Command
         {
             $line = \DB::connection('pgsql')->select (
                 "select ST_AsGeoJSON(ST_Transform(ST_LineSubString(way, " . $edges[$i]->start . ", " . $edges[$i]->end ."), 4326)) as line
-                from planet_osm_line where ctid = '" . $edges[$i]->ctId . "'");
+            from planet_osm_line where ctid = '" . $edges[$i]->ctId . "'");
 
             $lineString = json_decode($line[0]->line);
             $points = $lineString->coordinates;
@@ -316,28 +366,6 @@ class GenerateGraph extends Command
         error_log ("");
 
         $this->insertIntoDB ($nodes, $edges);
-
-        // Insert edges and nodes into the tables
-
-//            return $intersections;
-
-
-//         $tileName = $this->argument('tileName');
-
-//         $tile = new Tile($tileName);
-
-//         $graph = $tile->generateGraph ();
-
-//         if ($this->confirm ("Do you want to save the tile?"))
-//         {
-// //             $backupName = $tile->createBackup ();
-
-// //             $this->info("Backed up existing tile to " . $backupName);
-
-//             $this->info ("Saving tile");
-
-//             $graph->save ();
-//         }
     }
 
     private function insertIntoDB ($nodes, $edges)
