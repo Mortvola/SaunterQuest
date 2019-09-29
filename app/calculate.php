@@ -204,17 +204,17 @@ function pointsOfInterestGet ($userId, $userHikeId, $points)
 
         if ($s != -1)
         {
-            $distance = haversineGreatCircleDistance($points[$s]->lat, $points[$s]->lng, $poi->lat, $poi->lng);
+            $distance = haversineGreatCircleDistance($points[$s]->point->lat, $points[$s]->point->lng, $poi->lat, $poi->lng);
 
             $segmentPercentage = percentageOfPointOnSegment((object)[
                 "x" => $poi->lat,
                 "y" => $poi->lng
             ], (object)[
-                "x" => $points[$s]->lat,
-                "y" => $points[$s]->lng
+                "x" => $points[$s]->point->lat,
+                "y" => $points[$s]->point->lng
             ], (object)[
-                "x" => $points[$s + 1]->lat,
-                "y" => $points[$s + 1]->lng
+                "x" => $points[$s + 1]->point->lat,
+                "y" => $points[$s + 1]->point->lng
             ]);
 
             // echo "Found segment $s\n";
@@ -232,15 +232,15 @@ function pointsOfInterestGet ($userId, $userHikeId, $points)
                     "segmentPercentage" => $segmentPercentage,
                     "segments" => [
                         (object)[
-                            "lat" => $points[$s]->lat,
-                            "lng" => $points[$s]->lng,
-                            "ele" => $points[$s]->ele,
+                            "lat" => $points[$s]->point->lat,
+                            "lng" => $points[$s]->point->lng,
+                            "ele" => $points[$s]->point->ele,
                             "dist" => 0
                         ],
                         (object)[
                             "lat" => $poi->lat,
                             "lng" => $poi->lng,
-                            "ele" => $points[$s]->ele,
+                            "ele" => $points[$s]->point->ele,
                             "dist" => $distance
                         ]
                     ]
@@ -288,11 +288,11 @@ function trailConditionsGet ($userHikeId, $points)
                     "x" => $trailConditions[$t]->startLat,
                     "y" => $trailConditions[$t]->startLng
                 ], (object)[
-                    "x" => $points[$s]->lat,
-                    "y" => $points[$s]->lng
+                    "x" => $points[$s]->point->lat,
+                    "y" => $points[$s]->point->lng
                 ], (object)[
-                    "x" => $points[$s + 1]->lat,
-                    "y" => $points[$s + 1]->lng
+                    "x" => $points[$s + 1]->point->lat,
+                    "y" => $points[$s + 1]->point->lng
                 ]);
 
                 $points[$s]->subsegments[strval($startSegmentPercentage)]->events[] = (object)[
@@ -308,11 +308,11 @@ function trailConditionsGet ($userHikeId, $points)
                     "x" => $trailConditions[$t]->endLat,
                     "y" => $trailConditions[$t]->endLng
                 ], (object)[
-                    "x" => $points[$e]->lat,
-                    "y" => $points[$e]->lng
+                    "x" => $points[$e]->point->lat,
+                    "y" => $points[$e]->point->lng
                 ], (object)[
-                    "x" => $points[$e + 1]->lat,
-                    "y" => $points[$e + 1]->lng
+                    "x" => $points[$e + 1]->point->lat,
+                    "y" => $points[$e + 1]->point->lng
                 ]);
 
                 $points[$e]->subsegments[strval($endSegmentPercentage)]->events[] = (object)[

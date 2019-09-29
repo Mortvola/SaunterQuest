@@ -9,6 +9,7 @@ use App\Http\Controllers\ResupplyLocationController;
 use App\Http\Controllers\HikerProfileController;
 use App\Http\Controllers\TrailConditionController;
 use App\Http\Controllers\ResupplyPlanController;
+use App\Http\Controllers\ExportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -152,7 +153,12 @@ Route::get('/hike/{hikeId}/resupplyPlan', function ($hikeId)
     return $c->get($hikeId);
 });
 
-Route::get('/exportTrail', 'ExportController@get');
+Route::get('/hike/{hikeId}/export', function ($hikeId, Request $request)
+{
+    $c = new ExportController();
+
+    return $c->get($hikeId, $request);
+});
 
 Route::get('/elevation', 'ElevationController@get');
 

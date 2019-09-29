@@ -28,11 +28,11 @@ function nearestSegmentFind($lat, $lng, $segments)
     if (count($segments) > 1) {
         $k = 0;
 
-        $closest = haversineGreatCircleDistance($lat, $lng, $segments[$k]->lat, $segments[$k]->lng);
+        $closest = haversineGreatCircleDistance($lat, $lng, $segments[$k]->point->lat, $segments[$k]->point->lng);
         $closestIndex = $k;
 
         for ($k++; $k < count($segments) - 1; $k++) {
-            $d = haversineGreatCircleDistance($lat, $lng, $segments[$k]->lat, $segments[$k]->lng);
+            $d = haversineGreatCircleDistance($lat, $lng, $segments[$k]->point->lat, $segments[$k]->point->lng);
 
             if ($d < $closest) {
                 //echo "found one: $k, $d\n";

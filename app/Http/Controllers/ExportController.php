@@ -17,16 +17,15 @@ class ExportController extends Controller
     {
         $this->middleware('auth');
     }
-    
-    public function get (Request $request)
+
+    public function get ($hikeId, Request $request)
     {
         $userId = Auth::user()->id;
-        $userHikeId = $request->input('id');
         $maxNumberOfPointsPerSegment = $request->input('segmentMax');
         $maximumDistanceBetweenPoints = $request->input('maxDistance');
-        
-        $export = new Export ($userId, $userHikeId, $maxNumberOfPointsPerSegment, $maximumDistanceBetweenPoints);
-        
+
+        $export = new Export ($userId, $hikeId, $maxNumberOfPointsPerSegment, $maximumDistanceBetweenPoints);
+
         return $export->get ();
     }
 }
