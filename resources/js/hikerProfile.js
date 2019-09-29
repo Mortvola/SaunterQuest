@@ -147,7 +147,6 @@ function toTimeFloat (time)
 function updateHikerProfile (hikerProfileId)
 {
 	var profile = objectifyForm($("#hikerProfileForm").serializeArray());
-	profile.id = hikerProfileId;
 	
 	if (profile.startDay != "")
 	{
@@ -162,6 +161,11 @@ function updateHikerProfile (hikerProfileId)
 	profile.startTime = toTimeFloat(profile.startTime);
 	profile.endTime = toTimeFloat(profile.endTime);
 	
+	if (profile.breakDuration != "")
+	{
+		profile.breakDuration = parseInt(profile.breakDuration);
+	}
+
 	var xmlhttp = new XMLHttpRequest ();
 	xmlhttp.onreadystatechange = function ()
 	{
@@ -178,7 +182,7 @@ function updateHikerProfile (hikerProfileId)
 		}
 	}
 	
-	xmlhttp.open("PUT", "hikerProfile", true);
+	xmlhttp.open("PUT", userHikeId + "/hikerProfile/" + hikerProfileId, true);
 	xmlhttp.setRequestHeader("Content-type", "application/json");
 	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
 	xmlhttp.send(JSON.stringify(profile));
@@ -201,6 +205,11 @@ function insertHikerProfile ()
 	
 	profile.startTime = toTimeFloat(profile.startTime);
 	profile.endTime = toTimeFloat(profile.endTime);
+	
+	if (profile.breakDuration != "")
+	{
+		profile.breakDuration = parseInt(profile.breakDuration);
+	}
 
 	var xmlhttp = new XMLHttpRequest ();
 	xmlhttp.onreadystatechange = function ()
@@ -218,7 +227,7 @@ function insertHikerProfile ()
 	
 	profile.userHikeId = userHikeId;
 	
-	xmlhttp.open("POST", "hikerProfile", true);
+	xmlhttp.open("POST", userHikeId + "/hikerProfile", true);
 	xmlhttp.setRequestHeader("Content-type", "application/json");
 	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
 	xmlhttp.send(JSON.stringify(profile));
@@ -237,9 +246,8 @@ function removeHikerProfile (hikerProfileId)
 		}
 	}
 	
-	xmlhttp.open("DELETE", "hikerProfile", true);
-	xmlhttp.setRequestHeader("Content-type", "application/json");
+	xmlhttp.open("DELETE", userHikeId + "/hikerProfile/" + hikerProfileId, true);
 	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
-	xmlhttp.send(JSON.stringify(hikerProfileId));
+	xmlhttp.send();
 }
 </script>

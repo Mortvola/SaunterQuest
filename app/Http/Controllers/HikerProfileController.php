@@ -8,7 +8,7 @@ use App\HikerProfile;
 
 function ifNotSetOrEmpty ($value, $alternate)
 {
-    if (!isset ($value) || $value == null || $value == '')
+    if (!isset ($value) || $value === null || $value === '')
     {
         return $alternate;
     }
@@ -34,46 +34,44 @@ class HikerProfileController extends Controller
         return HikerProfile::where ('hike_id', $hikeId)->get ();
     }
 
-    public function post (Request $request)
+    public function post ($hikeId, Request $request)
     {
-        $hikerProfile = (object)$request->input ();
+        $hikerProfile = json_decode($request->getContent());
 
         $profile = new HikerProfile ([
-                "startDay" => ifNotSetOrEmpty($hikerProfile->startDay, null),
-                "endDay" => ifNotSetOrEmpty($hikerProfile->endDay, null),
-                "speedFactor" => ifNotSetOrEmpty($hikerProfile->speedFactor, null),
-                "startTime" => ifNotSetOrEmpty($hikerProfile->startTime, null),
-                "endTime" => ifNotSetOrEmpty($hikerProfile->endTime, null),
-                "breakDuration" => ifNotSetOrEmpty($hikerProfile->breakDuration, null),
-                "userHikeId" => $hikerProfile->userHikeId]);
+                "start_day" => ifNotSetOrEmpty($hikerProfile->startDay, null),
+                "end_day" => ifNotSetOrEmpty($hikerProfile->endDay, null),
+                "speed_factor" => ifNotSetOrEmpty($hikerProfile->speedFactor, null),
+                "start_time" => ifNotSetOrEmpty($hikerProfile->startTime, null),
+                "end_time" => ifNotSetOrEmpty($hikerProfile->endTime, null),
+                "break_duration" => ifNotSetOrEmpty($hikerProfile->breakDuration, null),
+                "hike_id" => $hikeId]);
 
         $profile->save ();
 
         return $profile;
     }
 
-    public function put (Request $request)
+    public function put ($hikeId, $hikerProfileId, Request $request)
     {
-        $hikerProfile = (object)$request->input ();
+        $hikerProfile = json_decode($request->getContent());
 
-        $profile = HikerProfile::find ($hikerProfile->id);
+        $profile = HikerProfile::find ($hikerProfileId);
 
-        $profile->startDay = ifNotSetOrEmpty($hikerProfile->startDay, null);
-        $profile->endDay = ifNotSetOrEmpty($hikerProfile->endDay, null);
-        $profile->speedFactor = ifNotSetOrEmpty($hikerProfile->speedFactor, null);
-        $profile->startTime = ifNotSetOrEmpty($hikerProfile->startTime, null);
-        $profile->endTime = ifNotSetOrEmpty($hikerProfile->endTime, null);
-        $profile->breakDuration = ifNotSetOrEmpty($profile->breakDuration, null);
+        $profile->start_day = ifNotSetOrEmpty($hikerProfile->startDay, null);
+        $profile->end_day = ifNotSetOrEmpty($hikerProfile->endDay, null);
+        $profile->speed_factor = ifNotSetOrEmpty($hikerProfile->speedFactor, null);
+        $profile->start_time = ifNotSetOrEmpty($hikerProfile->startTime, null);
+        $profile->end_time = ifNotSetOrEmpty($hikerProfile->endTime, null);
+        $profile->break_duration = ifNotSetOrEmpty($hikerProfile->breakDuration, null);
 
         $profile->save ();
 
         return $profile;
     }
 
-    public function delete (Request $request)
+    public function delete ($hikeId, $hikerProfileId)
     {
-        $hikerProfileId = $request->input ();
-
         HikerProfile::where('id', $hikerProfileId)->delete ();
     }
 }

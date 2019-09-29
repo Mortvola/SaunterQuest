@@ -117,9 +117,26 @@ Route::get('/hike/{hikeId}/hikerProfile', function ($hikeId)
     return $c->get($hikeId);
 });
 
-Route::post('/hikerProfile', 'HikerProfileController@post');
-Route::put('/hikerProfile', 'HikerProfileController@put');
-Route::delete('/hikerProfile', 'HikerProfileController@delete');
+Route::post('/hike/{hikeId}/hikerProfile', function ($hikeId, Request $request)
+{
+    $c = new HikerProfileController();
+
+    return $c->post($hikeId, $request);
+});
+
+Route::put('/hike/{hikeId}/hikerProfile/{hikerProfileId}', function ($hikeId, $hikerProfileId, Request $request)
+{
+    $c = new HikerProfileController();
+
+    return $c->put($hikeId, $hikerProfileId, $request);
+});
+
+Route::delete('/hike/{hikeId}/hikerProfile/{hikerProfileId}', function ($hikeId, $hikerProfileId)
+{
+    $c = new HikerProfileController();
+
+    return $c->delete($hikeId, $hikerProfileId);
+});
 
 Route::get('/hike/{hikeId}/trailCondition', function ($hikeId)
 {
