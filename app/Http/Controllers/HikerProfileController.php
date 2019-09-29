@@ -33,7 +33,7 @@ class HikerProfileController extends Controller
     {
         $userHikeId = $request->input('id');
 
-        $profiles = HikerProfile::where ('user_hike_id', $userHikeId)->get ();
+        $profiles = HikerProfile::where ('hike_id', $userHikeId)->get ();
 
         return $profiles;
     }

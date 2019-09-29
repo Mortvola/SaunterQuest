@@ -22,7 +22,7 @@ class Schedule
         $this->userId = $userId;
         $this->userHikeId = $userHikeId;
 
-        $this->hikerProfiles = HikerProfile::where('user_hike_id', $userHikeId)->get ();
+        $this->hikerProfiles = HikerProfile::where('hike_id', $userHikeId)->get ();
     }
 
     public function get ()

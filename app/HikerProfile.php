@@ -11,10 +11,10 @@ class HikerProfile extends Model
 
     protected $hidden = [PointOfInterestConstraint::CREATED_AT, PointOfInterestConstraint::UPDATED_AT, "userId", "userHikeId"];
 
-    protected $fillable = ["start_day", "end_day", "speed_factor", "start_time", "end_time", "break_duration", "user_hike_id"];
+    protected $fillable = ["start_day", "end_day", "speed_factor", "start_time", "end_time", "break_duration", "hike_id"];
 
     function hike ()
     {
-        return $this->belongsTo('App\Hike', 'user_hike_id');
+        return $this->belongsTo('App\Hike', 'hike_id');
     }
 }

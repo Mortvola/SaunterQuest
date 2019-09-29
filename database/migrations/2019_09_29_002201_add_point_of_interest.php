@@ -21,7 +21,7 @@ class AddPointOfInterest extends Migration
             $table->string('description')->nullable ();
             $table->float('lat');
             $table->float('lng');
-            $table->bigInteger('user_hike_id')->nullable ();
+            $table->bigInteger('hike_id')->nullable ();
         });
 
         DB::statement(

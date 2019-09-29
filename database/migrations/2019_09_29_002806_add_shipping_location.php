@@ -17,7 +17,7 @@ class AddShippingLocation extends Migration
             $table->bigIncrements('id');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
-            $table->bigInteger('user_hike_id')->nullable ();
+            $table->bigInteger('hike_id')->nullable ();
             $table->float('lat');
             $table->float('lng');
             $table->string('address1');

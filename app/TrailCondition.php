@@ -9,10 +9,10 @@ class TrailCondition extends Model
     protected $table = 'trail_condition';
     public $timestamps = false;
 
-    protected $hidden = [TrailCondition::CREATED_AT, TrailCondition::UPDATED_AT, "user_hike_id"];
+    protected $hidden = [TrailCondition::CREATED_AT, TrailCondition::UPDATED_AT, "hike_id"];
 
     function hike ()
     {
-        return $this->belongsTo('App\Hike', 'user_hike_id');
+        return $this->belongsTo('App\Hike', 'hike_id');
     }
 }

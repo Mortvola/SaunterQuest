@@ -17,7 +17,7 @@ class AddHikerProfile extends Migration
             $table->bigIncrements('id');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
-            $table->bigInteger('user_hike_id')->nullable();
+            $table->bigInteger('hike_id')->nullable();
             $table->integer('start_day')->nullable();
             $table->integer('end_day')->nullable();
             $table->integer('speed_factor')->nullable();

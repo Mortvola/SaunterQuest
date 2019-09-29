@@ -190,7 +190,7 @@ function findEvent ($eventType, $events)
 
 function pointsOfInterestGet ($userId, $userHikeId, $points)
 {
-    $pointsOfInterest = PointOfInterest::where('user_hike_id', $userHikeId)->has('constraints')->get();
+    $pointsOfInterest = PointOfInterest::where('hike_id', $userHikeId)->has('constraints')->get();
 
     $pointsOfInterest->load('constraints');
 
@@ -254,7 +254,7 @@ function pointsOfInterestGet ($userId, $userHikeId, $points)
 
 function trailConditionsGet ($userHikeId, $points)
 {
-    $trailConditions = \App\TrailCondition::where('user_hike_id', $userHikeId)->get();
+    $trailConditions = \App\TrailCondition::where('hike_id', $userHikeId)->get();
 
     $s = -1;
 

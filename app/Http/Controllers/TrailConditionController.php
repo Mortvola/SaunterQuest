@@ -22,7 +22,7 @@ class TrailConditionController extends Controller
     {
         $userHikeId = $request->input('id');
 
-        $trailConditions = TrailCondition::where ('user_hike_id', $userHikeId)->get ();
+        $trailConditions = TrailCondition::where ('hike_id', $userHikeId)->get ();
 
         return $trailConditions;
     }

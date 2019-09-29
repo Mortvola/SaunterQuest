@@ -15,9 +15,9 @@ class PointOfInterest extends Model
         "description",
         "lat",
         "lng",
-        "user_hike_id"];
+        "hike_id"];
 
-    protected $hidden = [PointOfInterest::CREATED_AT, PointOfInterest::UPDATED_AT, "user_hike_id"];
+    protected $hidden = [PointOfInterest::CREATED_AT, PointOfInterest::UPDATED_AT, "hike_id"];
 
     public function constraints ()
     {
@@ -26,6 +26,6 @@ class PointOfInterest extends Model
 
     function hike ()
     {
-        return $this->belongsTo('App\Hike', 'user_hike_id');
+        return $this->belongsTo('App\Hike', 'hike_id');
     }
 }
