@@ -714,7 +714,7 @@ function displayLocation (object, position)
 		}
 	}
 	
-	xmlhttp.open("GET", "elevation?lat=" + position.lat () + "&lng=" + position.lng (), true);
+	xmlhttp.open("GET", "/elevation?lat=" + position.lat () + "&lng=" + position.lng (), true);
 	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xmlhttp.send();
 }

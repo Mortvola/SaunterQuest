@@ -29,7 +29,7 @@ class HikeController extends Controller
             return abort(404);
         }
 
-        return view('editHike', ['hikeId' => $hikeId]);
+        return view('hike', ['hikeId' => $hikeId]);
     }
 
     public function post (Request $request)

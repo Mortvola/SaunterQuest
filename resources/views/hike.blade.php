@@ -187,7 +187,7 @@
     <?php require_once resource_path('js/route.js'); ?>
     <?php require_once resource_path('js/schedule.js'); ?>
     <?php require_once resource_path('js/pointOfInterest.js'); ?>
-    <?php require_once resource_path('js/editHike.js'); ?>
+    <?php require_once resource_path('js/hike.js'); ?>
     <?php require_once resource_path('js/trails.js'); ?>
     <?php require_once resource_path('js/hikerProfile.js'); ?>
     <?php require_once resource_path('js/resupplyPlan.js'); ?>

@@ -28,6 +28,8 @@ Auth::routes();
 
 Route::get('/home', 'HomeController@index')->name('home');
 
+Route::post('/hike', 'HikeController@post');
+
 Route::get('/hike/{hikeId}', function ($hikeId)
 {
     $c = new HikeController();
@@ -35,11 +37,6 @@ Route::get('/hike/{hikeId}', function ($hikeId)
     return $c->get($hikeId);
 });
 
-Route::get('/map/intersections', 'MapController@getIntersections');
-Route::get('/tileList', 'MapController@getTileList');
-Route::get('/tile', 'TileController@get');
-
-Route::post('/hike', 'HikeController@post');
 Route::delete('/hike/{hikeId}', function ($hikeId)
 {
     $c = new HikeController();
@@ -161,4 +158,8 @@ Route::get('/hike/{hikeId}/export', function ($hikeId, Request $request)
 });
 
 Route::get('/elevation', 'ElevationController@get');
+
+Route::get('/map/intersections', 'MapController@getIntersections');
+Route::get('/tileList', 'MapController@getTileList');
+Route::get('/tile', 'TileController@get');
 
