@@ -17,14 +17,13 @@ class ScheduleController extends Controller
     {
         $this->middleware('auth');
     }
-    
-    public function get (Request $request)
+
+    public function get ($hikeId)
     {
         $userId = Auth::user()->id;
-        $userHikeId = $request->input('id');
-        
-        $schedule = new Schedule ($userId, $userHikeId);
-        
+
+        $schedule = new Schedule ($userId, $hikeId);
+
         return json_encode($schedule->get ());
     }
 }

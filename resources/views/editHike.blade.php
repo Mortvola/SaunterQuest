@@ -30,7 +30,7 @@
 
 	@component('addLingerDialog')
 	@endcomponent
-	
+
 	@component('exportTrailDialog')
 	@endcomponent
 
@@ -47,12 +47,12 @@
                             <option value=2>Other</option>
                         </select>
                         </div>
-    
+
                         <div>
                         <label>Description:</label>
                         <input type="text" class='form-control' name='description'/>
                         </div>
-    
+
                         <div>
                         <label>Speed Factor:</label>
                         <input type="number" class='form-control' name='speedFactor' value='100'/>
@@ -179,7 +179,7 @@
     </div>
 
     <script>
-        var userHikeId = {{ $_GET["id"] }};
+        var userHikeId = {{ $hikeId }};
     </script>
 
     <?php require_once resource_path('js/contextMenu.js'); ?>

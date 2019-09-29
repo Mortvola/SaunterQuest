@@ -61,7 +61,7 @@ require_once "checkLogin.php";
 				floor(sum(fi.totalCarbohydrates * dtfi.numberOfServings * (IFNULL(fiss.grams, fi.gramsServingSize) / fi.gramsServingSize)) + 0.5) AS carbs,
 				floor(sum(fi.protein * dtfi.numberOfServings * (IFNULL(fiss.grams, fi.gramsServingSize) / fi.gramsServingSize)) + 0.5) AS protein,
 				sum(dtfi.numberOfServings * IFNULL(fiss.grams, fi.gramsServingSize)) as weight
-				from dayTemplate dt
+				from day_template dt
 				join dayTemplateFoodItem dtfi on dtfi.dayTemplateId = dt.id
 				join foodItem fi on fi.foodItemId = dtfi.foodItemId
 				left join foodItemServingSize fiss on fiss.foodItemId = fi.foodItemId and fiss.foodItemServingSizeId = dtfi.foodItemServingSizeId

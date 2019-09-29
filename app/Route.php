@@ -14,9 +14,9 @@ class Route
         $this->hikeId = $hikeId;
     }
 
-    public static function get ($userHikeId)
+    public static function get ($hikeId)
     {
-        $fileName = getRouteFileName($userHikeId);
+        $fileName = getRouteFileName($hikeId);
         $segments = getRouteFromFile($fileName);
 
         if ($segments == null)

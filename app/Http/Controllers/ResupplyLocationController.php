@@ -16,11 +16,9 @@ class ResupplyLocationController extends Controller
     {
         $this->middleware('auth');
     }
-    
-    public function get (Request $request)
+
+    public function get ($hikeId)
     {
-        $userHikeId = $request->input('id');
-        
-        return ResupplyLocation::get ($userHikeId);
+        return ResupplyLocation::get ($hikeId);
     }
 }

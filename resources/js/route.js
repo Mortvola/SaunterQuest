@@ -77,7 +77,7 @@ class Route
 			}
 		}
 		
-		xmlhttp.open("GET", "route?id=" + userHikeId, true);
+		xmlhttp.open("GET", userHikeId + "/route", true);
 		//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 		xmlhttp.send();
 	}

@@ -147,7 +147,7 @@ function retrieveTrailConditions ()
 		}
 	}
 	
-	xmlhttp.open("GET", "trailCondition?id=" + userHikeId, true);
+	xmlhttp.open("GET", userHikeId + "/trailCondition", true);
 	//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xmlhttp.send();
 }

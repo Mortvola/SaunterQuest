@@ -18,12 +18,8 @@ class TrailConditionController extends Controller
         $this->middleware('auth');
     }
 
-    public function get (Request $request)
+    public function get ($hikeId)
     {
-        $userHikeId = $request->input('id');
-
-        $trailConditions = TrailCondition::where ('hike_id', $userHikeId)->get ();
-
-        return $trailConditions;
+        return TrailCondition::where ('hike_id', $hikeId)->get ();
     }
 }

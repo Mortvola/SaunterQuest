@@ -1,5 +1,14 @@
 <?php
 
+use App\Http\Controllers\HikeController;
+use App\Http\Controllers\RouteController;
+use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\PointOfInterestController;
+use App\Http\Controllers\ResupplyLocationController;
+use App\Http\Controllers\HikerProfileController;
+use App\Http\Controllers\TrailConditionController;
+use App\Http\Controllers\ResupplyPlanController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -11,16 +20,17 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::view ('/', 'welcome');
 
 Auth::routes();
 
 Route::get('/home', 'HomeController@index')->name('home');
 
-Route::get('/editHike', function () {
-    return view('editHike');
+Route::get('/hike/{hikeId}', function ($hikeId)
+{
+    $c = new HikeController();
+
+    return $c->get($hikeId);
 });
 
 Route::get('/map/intersections', 'MapController@getIntersections');
@@ -28,30 +38,73 @@ Route::get('/tileList', 'MapController@getTileList');
 Route::get('/tile', 'TileController@get');
 
 Route::post('/hike', 'HikeController@post');
-Route::delete('/hike', 'HikeController@delete');
+Route::delete('/hike/{hikeId}', function ($hikeId)
+{
+    $c = new HikeController();
 
-Route::get('/route', 'RouteController@get');
+    return $c->delete($hikeId);
+});
+
+Route::get('/hike/{hikeId}/route', function ($hikeId)
+{
+    $r = new RouteController();
+
+    return $r->get($hikeId);
+});
+
 Route::put('/route/startPoint', 'RouteController@setStartPoint');
 Route::put('/route/endPoint', 'RouteController@setEndPoint');
 
-Route::get('/schedule', 'ScheduleController@get');
+Route::get('/hike/{hikeId}/schedule', function ($hikeId)
+{
+    $c = new ScheduleController();
+
+    return $c->get($hikeId);
+});
 
 // Point of Interest operations
-Route::get('/pointOfInterest', 'PointOfInterestController@get');
+Route::get('/hike/{hikeId}/pointOfInterest', function ($hikeId)
+{
+    $c = new PointOfInterestController();
+
+    return $c->get($hikeId);
+});
+
 Route::post('/pointOfInterest', 'PointOfInterestController@post');
 Route::put('/pointOfInterest', 'PointOfInterestController@put');
 Route::delete('/pointOfInterest', 'PointOfInterestController@delete');
 
-Route::get('/resupplyLocation', 'ResupplyLocationController@get');
+Route::get('/hike/{hikeId}/resupplyLocation', function ($hikeId)
+{
+    $c = new ResupplyLocationController();
 
-Route::get('/hikerProfile', 'HikerProfileController@get');
+    return $c->get($hikeId);
+});
+
+Route::get('/hike/{hikeId}/hikerProfile', function ($hikeId)
+{
+    $c = new HikerProfileController();
+
+    return $c->get($hikeId);
+});
+
 Route::post('/hikerProfile', 'HikerProfileController@post');
 Route::put('/hikerProfile', 'HikerProfileController@put');
 Route::delete('/hikerProfile', 'HikerProfileController@delete');
 
-Route::get('/trailCondition', 'TrailConditionController@get');
+Route::get('/hike/{hikeId}/trailCondition', function ($hikeId)
+{
+    $c = new TrailConditionController();
 
-Route::get('/resupplyPlan', 'ResupplyPlanController@get');
+    return $c->get($hikeId);
+});
+
+Route::get('/hike/{hikeId}/resupplyPlan', function ($hikeId)
+{
+    $c = new ResupplyPlanController();
+
+    return $c->get($hikeId);
+});
 
 Route::get('/exportTrail', 'ExportController@get');
 

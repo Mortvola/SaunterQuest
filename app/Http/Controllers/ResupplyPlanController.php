@@ -17,12 +17,11 @@ class resupplyPlanController extends Controller
     {
         $this->middleware('auth');
     }
-    
-    public function get (Request $request)
+
+    public function get ($hikeId)
     {
         $userId = Auth::user()->id;
-        $userHikeId = $request->input('id');
-        
-        return ResupplyPlan::get ($userId, $userHikeId);
+
+        return ResupplyPlan::get ($userId, $hikeId);
     }
 }

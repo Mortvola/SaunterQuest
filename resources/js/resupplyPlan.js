@@ -80,7 +80,7 @@
 			}
 		}
 		
-		xmlhttp.open("GET", "resupplyPlan?id=" + userHikeId, true);
+		xmlhttp.open("GET", userHikeId + "/resupplyPlan", true);
 		//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 		xmlhttp.send();
 	}
@@ -168,7 +168,7 @@
 			}
 		}
 		
-		xmlhttp.open("GET", "resupplyLocation?id=" + userHikeId, true);
+		xmlhttp.open("GET", userHikeId + "/resupplyLocation", true);
 		//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 		xmlhttp.send();
 	}

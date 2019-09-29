@@ -43,7 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
 
     //
     if (!property_exists($obj, "dayTemplateId")) {
-        $sql = "INSERT INTO dayTemplate (creationDate, modificationDate, name, userId) VALUES (now(), now(), :name, :userId)";
+        $sql = "INSERT INTO day_template (creationDate, modificationDate, name, userId) VALUES (now(), now(), :name, :userId)";
 
         if ($stmt = $pdo->prepare($sql)) {
             $stmt->bindParam(":userId", $paramUserId, PDO::PARAM_INT);
@@ -177,7 +177,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
             unset($stmt);
         }
 
-        $stmt = "DELETE FROM dayTemplate WHERE id = :dayTemplateId AND userId = :userId";
+        $stmt = "DELETE FROM day_template WHERE id = :dayTemplateId AND userId = :userId";
 
         if ($stmt = $pdo->prepare($stmt)) {
             $stmt->bindParam(":dayTemplateId", $paramDayTemplateId, PDO::PARAM_INT);

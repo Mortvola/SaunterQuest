@@ -29,13 +29,9 @@ class HikerProfileController extends Controller
         $this->middleware('auth');
     }
 
-    public function get (Request $request)
+    public function get ($hikeId)
     {
-        $userHikeId = $request->input('id');
-
-        $profiles = HikerProfile::where ('hike_id', $userHikeId)->get ();
-
-        return $profiles;
+        return HikerProfile::where ('hike_id', $hikeId)->get ();
     }
 
     public function post (Request $request)

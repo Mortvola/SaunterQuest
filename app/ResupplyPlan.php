@@ -8,13 +8,13 @@ require_once app_path("routeFile.php");
 function foodPlanGet($userId, $foodPlanId)
 {
     $foodPlan = \DB::select (\DB::raw (
-        "select fi.manufacturer, fi.name, sum(dtfi.numberOfServings) AS totalServings, IFNULL(fiss.description, fi.servingSizeDescription) AS servingDescription
-		from dayTemplate dt
-		join dayTemplateFoodItem dtfi on dtfi.dayTemplateId = dt.id
-		join foodItem fi on fi.id = dtfi.foodItemId
-		left join foodItemServingSize fiss on fiss.foodItemId = dtfi.foodItemId and fiss.id = dtfi.foodItemServingSizeId
-		where dt.id = :foodPlanId and dt.userId = :userId
-		group by fi.manufacturer, fi.name, IFNULL(fiss.description, fi.servingSizeDescription)"),
+        "select fi.manufacturer, fi.name, sum(dtfi.number_of_servings) AS totalServings, COALESCE(fiss.description, fi.serving_size_description) AS servingDescription
+		from day_template dt
+		join day_template_food_item dtfi on dtfi.day_template_id = dt.id
+		join food_item fi on fi.id = dtfi.food_item_id
+		left join food_item_serving_size fiss on fiss.food_item_id = dtfi.food_item_id and fiss.id = dtfi.food_item_serving_size_id
+		where dt.id = :foodPlanId and dt.user_id = :userId
+		group by fi.manufacturer, fi.name, COALESCE(fiss.description, fi.serving_size_description)"),
         array ("userId" => $userId, "foodPlanId" => $foodPlanId));
 
     return $foodPlan;

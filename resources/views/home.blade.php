@@ -39,9 +39,9 @@
                         foreach ($results as $hike) {
                             echo "<tr id='userHike_", $hike->id, "'>\n";
                             echo "<td>\n";
-                            echo "<a class='btn btn-sm' href='/editHike?id=", $hike->id, "'><i class='fas fa-pencil-alt'></i></a>\n";
+                            echo "<a class='btn btn-sm' href='/hike/", $hike->id, "'><i class='fas fa-pencil-alt'></i></a>\n";
                             echo "<a class='btn btn-sm' href='javascript:deleteHike(", $hike->id, ")'><i class='fas fa-trash-alt'></i></a>\n";
-                            echo "<a href=\"/editHike?id=", $hike->id, "\">", $hike->name, "</a></td>\n";
+                            echo "<a href=\"/hike/", $hike->id, "\">", $hike->name, "</a></td>\n";
                             echo "<td>", "</td>\n";
                             echo "<td>", "</td>\n";
                             echo "<td>", "None", "</td>\n";
@@ -74,15 +74,15 @@
         {
             if (this.readyState == 4 && this.status == 200)
             {
-                let hike = document.getElementById("userHike_" + userHikeId);
+                let hike = document.getElementById("userHike_" + hikeId);
                 hike.parentElement.removeChild(hike);
             }
         }
 
-        xmlhttp.open("DELETE", "hike", true);
+        xmlhttp.open("DELETE", "hike/" + hikeId, true);
         xmlhttp.setRequestHeader("Content-type", "application/json");
     	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
-        xmlhttp.send(JSON.stringify(hikeId));
+        xmlhttp.send();
     }
 
     function insertHike ()
@@ -92,11 +92,11 @@
         var xmlhttp = new XMLHttpRequest ();
         xmlhttp.onreadystatechange = function ()
         {
-            if (this.readyState == 4 && this.status == 200)
+            if (this.readyState == 4 && (this.status >= 200 && this.status < 300))
             {
                 hike = JSON.parse(this.responseText);
 
-                document.location.href = "/editHike.php?id=" + hike.userHikeId;
+                document.location.href = "/hike/" + hike.id;
             }
         }
 

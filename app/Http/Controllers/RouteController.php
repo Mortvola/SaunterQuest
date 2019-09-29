@@ -18,11 +18,9 @@ class RouteController extends Controller
         $this->middleware('auth');
     }
 
-    public function get (Request $request)
+    public function get ($id)
     {
-        $userHikeId = $request->input('id');
-
-        return Route::get ($userHikeId);
+        return Route::get ($id);
     }
 
     public function put (Request $request)

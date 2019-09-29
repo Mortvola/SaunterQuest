@@ -25,7 +25,7 @@ class Schedule
 			}
 		}
 
-		xmlhttp.open("GET", "schedule?id=" + userHikeId, true);
+		xmlhttp.open("GET", userHikeId + "/schedule", true);
 		//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 		xmlhttp.send();
 	}

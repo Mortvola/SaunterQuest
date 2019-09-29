@@ -17,38 +17,37 @@ class HikeController extends Controller
     {
         $this->middleware('auth');
     }
-    
-    public function get ()
+
+    public function get ($hikeId)
     {
         $userId = Auth::user()->id;
-        
-        $hikes = Hike::where ('userId', $userId)->get ();
-        
-        return $hikes;
+
+        $hike = Hike::where ('id', $hikeId)->get ();
+
+        if (count($hike) == 0)
+        {
+            return abort(404);
+        }
+
+        return view('editHike', ['hikeId' => $hikeId]);
     }
-    
+
     public function post (Request $request)
     {
         $name = $request->input ()[0];
         $userId = Auth::user()->id;
-        
+
         $hike = new Hike ([
                 "userId" => $userId,
                 "name" => $name]);
-        
+
         $hike->save ();
-        
-        // Create data directory and save an empty route file.
-        mkdir(getHikeFolder ($hike->id));
-        touch(getHikeFolder ($hike->id) . "route.json");
-        
+
         return $hike;
     }
 
-    public function delete (Request $request)
+    public function delete ($hikeId)
     {
-        $hikeId = $request->input ();
-        
         Hike::where('id', $hikeId)->delete ();
     }
 }
