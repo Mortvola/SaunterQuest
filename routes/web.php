@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Http\Request;
 use App\Http\Controllers\HikeController;
 use App\Http\Controllers\RouteController;
 use App\Http\Controllers\ScheduleController;
@@ -52,8 +53,19 @@ Route::get('/hike/{hikeId}/route', function ($hikeId)
     return $r->get($hikeId);
 });
 
-Route::put('/route/startPoint', 'RouteController@setStartPoint');
-Route::put('/route/endPoint', 'RouteController@setEndPoint');
+Route::put('/hike/{hikeId}/route/startPoint', function ($hikeId, Request $request)
+{
+    $c = new RouteController();
+
+    return $c->setStartPoint($hikeId, $request);
+});
+
+Route::put('/hike/{hikeId}/route/endPoint', function ($hikeId, Request $request)
+{
+    $c = new RouteController();
+
+    return $c->setEndPoint($hikeId, $request);
+});
 
 Route::get('/hike/{hikeId}/schedule', function ($hikeId)
 {

@@ -64,24 +64,24 @@ class RouteController extends Controller
         $route->save ();
     }
 
-    public function setStartPoint (Request $request)
+    public function setStartPoint ($hikeId, Request $request)
     {
-        $routeUpdate = json_decode($request->getContent());
+        $point = json_decode($request->getContent());
 
-        $route = new Route($routeUpdate->userHikeId);
+        $route = new Route($hikeId);
 
-        $route->setStart ($routeUpdate->point);
+        $route->setStart ($point);
 
         $route->save ();
     }
 
-    public function setEndPoint (Request $request)
+    public function setEndPoint ($hikeId, Request $request)
     {
-        $routeUpdate = json_decode($request->getContent());
+        $point = json_decode($request->getContent());
 
-        $route = new Route($routeUpdate->userHikeId);
+        $route = new Route($hikeId);
 
-        $route->setEnd ($routeUpdate->point);
+        $route->setEnd ($point);
 
         $route->save ();
     }

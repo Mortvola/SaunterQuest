@@ -29,12 +29,12 @@ class Route
 			}
 		}
 		
-		var routeUpdate = {userHikeId: userHikeId, point: {lat: position.lat (), lng: position.lng ()}};
+		var point = {lat: position.lat (), lng: position.lng ()};
 		
-		xmlhttp.open("PUT", "route/startPoint", true);
+		xmlhttp.open("PUT", userHikeId + "/route/startPoint", true);
 		xmlhttp.setRequestHeader("Content-type", "application/json");
     	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
-		xmlhttp.send(JSON.stringify(routeUpdate));
+		xmlhttp.send(JSON.stringify(point));
 	}
 
 
@@ -51,12 +51,12 @@ class Route
 			}
 		}
 		
-		var routeUpdate = {userHikeId: userHikeId, point: {lat: position.lat (), lng: position.lng ()}};
+		var point = {lat: position.lat (), lng: position.lng ()};
 		
-		xmlhttp.open("PUT", "route/endPoint", true);
+		xmlhttp.open("PUT", userHikeId + "/route/endPoint", true);
 		xmlhttp.setRequestHeader("Content-type", "application/json");
     	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
-		xmlhttp.send(JSON.stringify(routeUpdate));
+		xmlhttp.send(JSON.stringify(point));
 	}
 
 	getLength ()
