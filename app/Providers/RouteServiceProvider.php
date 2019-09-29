@@ -25,6 +25,7 @@ class RouteServiceProvider extends ServiceProvider
     {
         //
         Route::pattern('hikeId', '[0-9]+');
+        Route::pattern('poiId', '[0-9]+');
 
         parent::boot();
     }

@@ -25,23 +25,23 @@ class PointOfInterestController extends Controller
      */
     public function get($hikeId)
     {
-        $poi = PointOfInterest::get()->where ('userHikeId', $hikeId);
+        $poi = PointOfInterest::get()->where ('hike_id', $hikeId);
 
         $poi->load('constraints');
 
         return $poi;
     }
 
-    public function post (Request $request)
+    public function post ($hikeId, Request $request)
     {
-        $pointOfInterest = (object)$request->input ();
+        $pointOfInterest = json_decode($request->getContent());
 
         $poi = new PointOfInterest ([
             "name" => $pointOfInterest->name,
             "description" => $pointOfInterest->description,
             "lat" => $pointOfInterest->lat,
             "lng" => $pointOfInterest->lng,
-            "userHikeId" => $pointOfInterest->userHikeId]);
+            "hike_id" => $hikeId]);
 
         $poi->save ();
 
@@ -57,11 +57,11 @@ class PointOfInterestController extends Controller
         return $poi;
     }
 
-    public function put (Request $request)
+    public function put ($hikeId, $poiId, Request $request)
     {
-        $pointOfInterest = (object)$request->input ();
+        $pointOfInterest = json_decode($request->getContent());
 
-        $poi = PointOfInterest::find ($pointOfInterest->id);
+        $poi = PointOfInterest::find ($poiId);
 
         $poi->lat = $pointOfInterest->lat;
         $poi->lng = $pointOfInterest->lng;
@@ -101,11 +101,9 @@ class PointOfInterestController extends Controller
         return $poi;
     }
 
-    public function delete (Request $request)
+    public function delete ($hikeId, $poiId)
     {
-        $pointOfInterestId = $request->input ();
-
-        PointOfInterestConstraint::where('pointOfInterestId', $pointOfInterestId)->delete ();
-        PointOfInterest::where('id', $pointOfInterestId)->delete ();
+        PointOfInterestConstraint::where('point_of_interest_id', $poiId)->delete ();
+        PointOfInterest::where('id', $poiId)->delete ();
     }
 }

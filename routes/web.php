@@ -82,9 +82,26 @@ Route::get('/hike/{hikeId}/pointOfInterest', function ($hikeId)
     return $c->get($hikeId);
 });
 
-Route::post('/pointOfInterest', 'PointOfInterestController@post');
-Route::put('/pointOfInterest', 'PointOfInterestController@put');
-Route::delete('/pointOfInterest', 'PointOfInterestController@delete');
+Route::post('/hike/{hikeId}/pointOfInterest', function ($hikeId, Request $request)
+{
+    $c = new PointOfInterestController();
+
+    return $c->post($hikeId, $request);
+});
+
+Route::put('/hike/{hikeId}/pointOfInterest/{poiId}', function ($hikeId, $poiId, Request $request)
+{
+    $c = new PointOfInterestController();
+
+    return $c->put($hikeId, $poiId, $request);
+});
+
+Route::delete('/hike/{hikeId}/pointOfInterest/{poiId}', function ($hikeId, $poiId)
+{
+    $c = new PointOfInterestController();
+
+    return $c->delete($hikeId, $poiId);
+});
 
 Route::get('/hike/{hikeId}/resupplyLocation', function ($hikeId)
 {

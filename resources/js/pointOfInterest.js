@@ -35,10 +35,9 @@ function removePointOfInterest (object, position)
 		}
 	}
 	
-	xmlhttp.open("DELETE", "pointOfInterest", true);
-	xmlhttp.setRequestHeader("Content-type", "application/json");
+	xmlhttp.open("DELETE", userHikeId + "/pointOfInterest/" + object.id, true);
 	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
-	xmlhttp.send(JSON.stringify(object.id));
+	xmlhttp.send();
 }
 
 
@@ -106,7 +105,7 @@ function updatePointOfInterest (poiId)
 		}
 	}
 	
-	xmlhttp.open("PUT", "pointOfInterest", true);
+	xmlhttp.open("PUT", userHikeId + "/pointOfInterest/" + poiId, true);
 	xmlhttp.setRequestHeader("Content-type", "application/json");
 	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
 	xmlhttp.send(JSON.stringify(pointOfInterest));
@@ -193,7 +192,7 @@ function insertPointOfInterest (position)
 		}
 	}
 
-	xmlhttp.open("POST", "pointOfInterest", true);
+	xmlhttp.open("POST", userHikeId + "/pointOfInterest", true);
 	xmlhttp.setRequestHeader("Content-type", "application/json");
 	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
 	xmlhttp.send(JSON.stringify(pointOfInterest));
