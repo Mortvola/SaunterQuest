@@ -6,11 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class PointOfInterestConstraint extends Model
 {
-    protected $table = 'pointOfInterestConstraint';
+    protected $table = 'point_of_interest_constraint';
     public $timestamps = false;
-    const CREATED_AT = 'creationDate';
-    const UPDATED_AT = 'modificationDate';
-    
+
     protected $fillable = ['type', 'time'];
 
     protected $hidden = [PointOfInterestConstraint::CREATED_AT, PointOfInterestConstraint::UPDATED_AT, "pointOfInterestId"];

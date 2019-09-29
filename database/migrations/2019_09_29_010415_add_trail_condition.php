@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateHikeTable extends Migration
+class AddTrailCondition extends Migration
 {
     /**
      * Run the migrations.
@@ -13,17 +13,23 @@ class CreateHikeTable extends Migration
      */
     public function up()
     {
-        Schema::create('hike', function (Blueprint $table) {
+        Schema::create('trail_condition', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
-            $table->bigInteger('userId');
-            $table->string('name');
+            $table->bigInteger('user_hike_id')->nullable ();
+            $table->float('start_lat');
+            $table->float('start_lng');
+            $table->float('end_lat');
+            $table->float('end_lng');
+            $table->integer('type');
+            $table->string('description')->nullable ();
+            $table->integer('speed_factor')->nullable ();
         });
 
         DB::statement(
             "CREATE TRIGGER set_timestamp
-             BEFORE UPDATE ON hike
+             BEFORE UPDATE ON trail_condition
              FOR EACH ROW
              EXECUTE PROCEDURE trigger_set_timestamp()");
     }
@@ -35,7 +41,7 @@ class CreateHikeTable extends Migration
      */
     public function down()
     {
-        DB::statement("DROP TRIGGER IF EXISTS set_timestamp ON hike");
-        Schema::dropIfExists('hike');
+        DB::statement("DROP TRIGGER IF EXISTS set_timestamp ON trail_condition");
+        Schema::dropIfExists('trail_condition');
     }
 }

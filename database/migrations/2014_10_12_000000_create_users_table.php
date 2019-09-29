@@ -15,13 +15,20 @@ class CreateUsersTable extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('updated_at')->useCurrent();
             $table->string('username');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
-            $table->timestamps();
         });
+
+        DB::statement(
+            "CREATE TRIGGER set_timestamp
+         BEFORE UPDATE ON users
+         FOR EACH ROW
+         EXECUTE PROCEDURE trigger_set_timestamp()");
     }
 
     /**
@@ -31,6 +38,7 @@ class CreateUsersTable extends Migration
      */
     public function down()
     {
+        DB::statement("DROP TRIGGER IF EXISTS set_timestamp ON users");
         Schema::dropIfExists('users');
     }
 }

@@ -13,21 +13,21 @@ class AddNavEdges extends Migration
      */
     public function up()
     {
-	DB::statement("CREATE SEQUENCE nav_edge_id_seq INCREMENT 1");
+    	DB::statement("CREATE SEQUENCE nav_edge_id_seq INCREMENT 1");
 
-	DB::statement(
-	    "CREATE TABLE nav_edges
-		(
-		  id integer NOT NULL DEFAULT nextval('nav_edge_id_seq'::regclass),
-		  start_node integer,
-		  end_node integer,
-		  start_fraction double precision,
-		  end_fraction double precision,
-		  forward_cost double precision,
-		  backward_cost double precision,
-		  line_id bigint,
-		  CONSTRAINT nav_edge_pkey PRIMARY KEY (id)
-		)");
+    	DB::statement(
+    	    "CREATE TABLE nav_edges
+    		(
+    		  id integer NOT NULL DEFAULT nextval('nav_edge_id_seq'::regclass),
+    		  start_node integer,
+    		  end_node integer,
+    		  start_fraction double precision,
+    		  end_fraction double precision,
+    		  forward_cost double precision,
+    		  backward_cost double precision,
+    		  line_id bigint,
+    		  CONSTRAINT nav_edge_pkey PRIMARY KEY (id)
+    		)");
         //
     }
 

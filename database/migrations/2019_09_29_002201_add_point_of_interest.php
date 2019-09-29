@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateHikeTable extends Migration
+class AddPointOfInterest extends Migration
 {
     /**
      * Run the migrations.
@@ -13,17 +13,20 @@ class CreateHikeTable extends Migration
      */
     public function up()
     {
-        Schema::create('hike', function (Blueprint $table) {
+        Schema::create('point_of_interest', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
-            $table->bigInteger('userId');
-            $table->string('name');
+            $table->string('name')->nullable ();
+            $table->string('description')->nullable ();
+            $table->float('lat');
+            $table->float('lng');
+            $table->bigInteger('user_hike_id')->nullable ();
         });
 
         DB::statement(
             "CREATE TRIGGER set_timestamp
-             BEFORE UPDATE ON hike
+             BEFORE UPDATE ON point_of_interest
              FOR EACH ROW
              EXECUTE PROCEDURE trigger_set_timestamp()");
     }
@@ -35,7 +38,7 @@ class CreateHikeTable extends Migration
      */
     public function down()
     {
-        DB::statement("DROP TRIGGER IF EXISTS set_timestamp ON hike");
-        Schema::dropIfExists('hike');
+        DB::statement("DROP TRIGGER IF EXISTS set_timestamp ON point_of_interest");
+        Schema::dropIfExists('point_of_interest');
     }
 }

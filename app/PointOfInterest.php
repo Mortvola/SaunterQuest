@@ -7,27 +7,25 @@ use App\PointOfInterestConstraint;
 
 class PointOfInterest extends Model
 {
-    protected $table = 'pointOfInterest';
+    protected $table = 'point_of_interest';
     public $timestamps = false;
-    const CREATED_AT = 'creationDate';
-    const UPDATED_AT = 'modificationDate';
-    
+
     protected $fillable = [
         "name",
         "description",
         "lat",
         "lng",
-        "userHikeId"];
-    
-    protected $hidden = [PointOfInterestConstraint::CREATED_AT, PointOfInterestConstraint::UPDATED_AT, "hikeId", "userHikeId"];
-    
+        "user_hike_id"];
+
+    protected $hidden = [PointOfInterest::CREATED_AT, PointOfInterest::UPDATED_AT, "user_hike_id"];
+
     public function constraints ()
     {
-        return $this->hasMany('\App\PointOfInterestConstraint', 'pointOfInterestId');
+        return $this->hasMany('\App\PointOfInterestConstraint', 'point_of_interest_id');
     }
 
     function hike ()
     {
-        return $this->belongsTo('App\Hike', 'userHikeId');
+        return $this->belongsTo('App\Hike', 'user_hike_id');
     }
 }

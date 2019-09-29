@@ -6,17 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class HikerProfile extends Model
 {
-    protected $table = 'hikerProfile';
+    protected $table = 'hiker_profile';
     public $timestamps = false;
-    const CREATED_AT = 'creationDate';
-    const UPDATED_AT = 'modificationDate';
-    
+
     protected $hidden = [PointOfInterestConstraint::CREATED_AT, PointOfInterestConstraint::UPDATED_AT, "userId", "userHikeId"];
-    
-    protected $fillable = ["startDay", "endDay", "speedFactor", "startTime", "endTime", "breakDuration", "userHikeId"];
+
+    protected $fillable = ["start_day", "end_day", "speed_factor", "start_time", "end_time", "break_duration", "user_hike_id"];
 
     function hike ()
     {
-        return $this->belongsTo('App\Hike', 'userHikeId');
+        return $this->belongsTo('App\Hike', 'user_hike_id');
     }
 }

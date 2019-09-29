@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateHikeTable extends Migration
+class AddHikerProfile extends Migration
 {
     /**
      * Run the migrations.
@@ -13,17 +13,22 @@ class CreateHikeTable extends Migration
      */
     public function up()
     {
-        Schema::create('hike', function (Blueprint $table) {
+        Schema::create('hiker_profile', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
-            $table->bigInteger('userId');
-            $table->string('name');
+            $table->bigInteger('user_hike_id')->nullable();
+            $table->integer('start_day')->nullable();
+            $table->integer('end_day')->nullable();
+            $table->integer('speed_factor')->nullable();
+            $table->float('start_time')->nullable();
+            $table->float('end_time')->nullable();
+            $table->float('break_duration')->nullable();
         });
 
         DB::statement(
             "CREATE TRIGGER set_timestamp
-             BEFORE UPDATE ON hike
+             BEFORE UPDATE ON hiker_profile
              FOR EACH ROW
              EXECUTE PROCEDURE trigger_set_timestamp()");
     }
@@ -35,7 +40,7 @@ class CreateHikeTable extends Migration
      */
     public function down()
     {
-        DB::statement("DROP TRIGGER IF EXISTS set_timestamp ON hike");
-        Schema::dropIfExists('hike');
+        DB::statement("DROP TRIGGER IF EXISTS set_timestamp ON hiker_profile");
+        Schema::dropIfExists('hiker_profile');
     }
 }

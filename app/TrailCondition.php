@@ -6,15 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class TrailCondition extends Model
 {
-    protected $table = 'trailCondition';
+    protected $table = 'trail_condition';
     public $timestamps = false;
-    const CREATED_AT = 'creationDate';
-    const UPDATED_AT = 'modificationDate';
-    
-    protected $hidden = [TrailCondition::CREATED_AT, TrailCondition::UPDATED_AT, "userHikeId"];
-    
+
+    protected $hidden = [TrailCondition::CREATED_AT, TrailCondition::UPDATED_AT, "user_hike_id"];
+
     function hike ()
     {
-        return $this->belongsTo('App\Hike', 'userHikeId');
+        return $this->belongsTo('App\Hike', 'user_hike_id');
     }
 }

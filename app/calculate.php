@@ -190,7 +190,7 @@ function findEvent ($eventType, $events)
 
 function pointsOfInterestGet ($userId, $userHikeId, $points)
 {
-    $pointsOfInterest = PointOfInterest::where('userHikeId', $userHikeId)->has('constraints')->get();
+    $pointsOfInterest = PointOfInterest::where('user_hike_id', $userHikeId)->has('constraints')->get();
 
     $pointsOfInterest->load('constraints');
 
@@ -254,7 +254,7 @@ function pointsOfInterestGet ($userId, $userHikeId, $points)
 
 function trailConditionsGet ($userHikeId, $points)
 {
-    $trailConditions = \App\TrailCondition::where('userHikeId', $userHikeId)->get();
+    $trailConditions = \App\TrailCondition::where('user_hike_id', $userHikeId)->get();
 
     $s = -1;
 
@@ -334,39 +334,42 @@ function getFoodPlan ()
 {
     global $food, $foodPlanIndex;
 
-    if (!isset($foodPlanIndex))
+    if (count($food) > 0)
     {
-        $foodPlanIndex = array_rand($food);
-    }
-    else
-    {
-        $foodPlanIndex++;
-
-        if ($foodPlanIndex >= count($food))
+        if (!isset($foodPlanIndex))
         {
-            $foodPlanIndex = 0;
+            $foodPlanIndex = array_rand($food);
         }
+        else
+        {
+            $foodPlanIndex++;
+
+            if ($foodPlanIndex >= count($food))
+            {
+                $foodPlanIndex = 0;
+            }
+        }
+
+        $foodPlanId = $food[$foodPlanIndex]->id;
+        $foodPlanWeight = $food[$foodPlanIndex]->weight;
+
+        return [
+            $foodPlanId,
+            $foodPlanWeight
+        ];
     }
-
-    $foodPlanId = $food[$foodPlanIndex]->id;
-    $foodPlanWeight = $food[$foodPlanIndex]->weight;
-
-    return [
-        $foodPlanId,
-        $foodPlanWeight
-    ];
 }
 
 function foodPlansGet ($userId)
 {
     $food = \DB::select(
         \DB::raw(
-            "select dt.id, dt.name, sum(IFNULL(fiss.grams, fi.gramsServingSize) * dtfi.numberOfServings) as weight
-		from dayTemplateFoodItem dtfi
-		join foodItem fi on fi.id = dtfi.foodItemId
-		left join foodItemServingSize fiss on fiss.foodItemId = dtfi.foodItemId
-		join dayTemplate dt on dt.id = dtfi.dayTemplateId and userId = :userId
-		group by dtfi.dayTemplateId, dt.name"), array (
+            "select dt.id, dt.name, sum(coalesce(fiss.grams, fi.grams_serving_size) * dtfi.number_of_servings) as weight
+		from day_template_food_item dtfi
+		join food_item fi on fi.id = dtfi.food_item_id
+		left join food_item_serving_size fiss on fiss.food_item_id = dtfi.food_item_id
+		join day_template dt on dt.id = dtfi.day_template_id and user_id = :userId
+		group by dt.id, dtfi.day_template_id, dt.name"), array (
             "userId" => $userId
         ));
 

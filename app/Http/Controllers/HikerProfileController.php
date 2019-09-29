@@ -12,7 +12,7 @@ function ifNotSetOrEmpty ($value, $alternate)
     {
         return $alternate;
     }
-    
+
     return $value;
 }
 
@@ -28,20 +28,20 @@ class HikerProfileController extends Controller
     {
         $this->middleware('auth');
     }
-    
+
     public function get (Request $request)
     {
         $userHikeId = $request->input('id');
-        
-        $profiles = HikerProfile::where ('userHikeId', $userHikeId)->get ();
-        
+
+        $profiles = HikerProfile::where ('user_hike_id', $userHikeId)->get ();
+
         return $profiles;
     }
-    
+
     public function post (Request $request)
     {
         $hikerProfile = (object)$request->input ();
-        
+
         $profile = new HikerProfile ([
                 "startDay" => ifNotSetOrEmpty($hikerProfile->startDay, null),
                 "endDay" => ifNotSetOrEmpty($hikerProfile->endDay, null),
@@ -50,34 +50,34 @@ class HikerProfileController extends Controller
                 "endTime" => ifNotSetOrEmpty($hikerProfile->endTime, null),
                 "breakDuration" => ifNotSetOrEmpty($hikerProfile->breakDuration, null),
                 "userHikeId" => $hikerProfile->userHikeId]);
-        
+
         $profile->save ();
-        
+
         return $profile;
     }
-    
+
     public function put (Request $request)
     {
         $hikerProfile = (object)$request->input ();
-        
+
         $profile = HikerProfile::find ($hikerProfile->id);
-        
+
         $profile->startDay = ifNotSetOrEmpty($hikerProfile->startDay, null);
         $profile->endDay = ifNotSetOrEmpty($hikerProfile->endDay, null);
         $profile->speedFactor = ifNotSetOrEmpty($hikerProfile->speedFactor, null);
         $profile->startTime = ifNotSetOrEmpty($hikerProfile->startTime, null);
         $profile->endTime = ifNotSetOrEmpty($hikerProfile->endTime, null);
         $profile->breakDuration = ifNotSetOrEmpty($profile->breakDuration, null);
-        
+
         $profile->save ();
-        
+
         return $profile;
     }
-    
+
     public function delete (Request $request)
     {
         $hikerProfileId = $request->input ();
-        
+
         HikerProfile::where('id', $hikerProfileId)->delete ();
     }
 }
