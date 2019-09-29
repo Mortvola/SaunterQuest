@@ -22,14 +22,21 @@ class HikeController extends Controller
     {
         $userId = Auth::user()->id;
 
-        $hike = Hike::where ('id', $hikeId)->get ();
-
-        if (count($hike) == 0)
+        if ($hikeId !== null)
         {
-            return abort(404);
-        }
+            $hike = Hike::where ('id', $hikeId)->get ();
 
-        return view('hike', ['hikeId' => $hikeId]);
+            if (count($hike) == 0)
+            {
+                return abort(404);
+            }
+
+            return view('hike', ['hikeId' => $hikeId]);
+        }
+        else
+        {
+            return Auth::user()->hikes->get ();
+        }
     }
 
     public function post (Request $request)
@@ -38,7 +45,7 @@ class HikeController extends Controller
         $userId = Auth::user()->id;
 
         $hike = new Hike ([
-                "userId" => $userId,
+                "user_id" => $userId,
                 "name" => $name]);
 
         $hike->save ();

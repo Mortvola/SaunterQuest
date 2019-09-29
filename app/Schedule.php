@@ -12,31 +12,45 @@ use App\HikerProfile;
 class Schedule
 {
     private $userId;
-    private $userHikeId;
+    private $hikeId;
     private $days = [];
     private $currentDay = -1;
     private $hikerProfiles;
 
-    public function __construct ($userId, $userHikeId)
+    public function __construct ($userId, $hikeId)
     {
         $this->userId = $userId;
-        $this->userHikeId = $userHikeId;
+        $this->hikeId = $hikeId;
 
-        $this->hikerProfiles = HikerProfile::where('hike_id', $userHikeId)->get ();
+        $this->hikerProfiles = HikerProfile::where('hike_id', $hikeId)->get ();
     }
 
     public function get ()
     {
-        $points = getRoutePointsFromUserHike($this->userHikeId);
+        $points = getRoutePointsFromUserHike($this->hikeId);
 
         if (count($points) >= 2)
         {
-            \bpp\getSchedule($this, $this->userId, $this->userHikeId, $points);
+            \bpp\getSchedule($this, $this->userId, $this->hikeId, $points);
 
             $this->storeSchedule();
 
             return $this->days;
         }
+    }
+
+    public function getDuration ()
+    {
+        $points = getRoutePointsFromUserHike($this->hikeId);
+
+        if (count($points) >= 2)
+        {
+            \bpp\getSchedule($this, $this->userId, $this->hikeId, $points);
+
+            return count($this->days);
+        }
+
+        return 0;
     }
 
     public function nextDay ()
@@ -114,7 +128,7 @@ class Schedule
 
     private function storeSchedule()
     {
-        $fileName = getHikeFolder($this->userHikeId) . "schedule.json";
+        $fileName = getHikeFolder($this->hikeId) . "schedule.json";
 
         file_put_contents($fileName, json_encode($this->days));
     }

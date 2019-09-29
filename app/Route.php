@@ -14,17 +14,29 @@ class Route
         $this->hikeId = $hikeId;
     }
 
-    public static function get ($hikeId)
+    public function get ()
     {
-        $fileName = getRouteFileName($hikeId);
-        $segments = getRouteFromFile($fileName);
-
-        if ($segments == null)
+        if (!isset($this->segments))
         {
-            $segments = [ ];
+            $this->load ();
         }
 
-        return json_encode($segments);
+        return json_encode($this->segments);
+    }
+
+    public function getDistance ()
+    {
+        if (!isset($this->segments))
+        {
+            $this->load ();
+        }
+
+        if (count($this->segments) > 0)
+        {
+            return $this->segments[count($this->segments) - 1]->dist;
+        }
+
+        return 0;
     }
 
     public function load ()

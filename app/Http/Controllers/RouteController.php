@@ -20,7 +20,9 @@ class RouteController extends Controller
 
     public function get ($id)
     {
-        return Route::get ($id);
+        $route = new Route ($id);
+
+        return $route->get ();
     }
 
     public function put (Request $request)

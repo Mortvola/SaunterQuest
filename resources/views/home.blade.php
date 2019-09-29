@@ -31,19 +31,23 @@
         <div class="col-md-12" style="overflow-y:scroll;height:100%">
             <h4>Planned Hikes</h4>
             <table class="table table-condensed">
-                <thead><tr><th>Name</th><th>Length</th><th>Duration</th><th>Start Date</th></tr></thead>
+                <thead><tr><th>Name</th><th>Length (miles)</th><th>Duration (days)</th><th>Start Date</th></tr></thead>
                 <tbody>
                     <?php
                         $results = Auth::user()->hikes()->get ();
 
-                        foreach ($results as $hike) {
+                        foreach ($results as $hike)
+                        {
+                            $days = $hike->getDuration ();
+                            $distance = metersToMilesRounded($hike->getDistance ());
+
                             echo "<tr id='userHike_", $hike->id, "'>\n";
                             echo "<td>\n";
                             echo "<a class='btn btn-sm' href='/hike/", $hike->id, "'><i class='fas fa-pencil-alt'></i></a>\n";
                             echo "<a class='btn btn-sm' href='javascript:deleteHike(", $hike->id, ")'><i class='fas fa-trash-alt'></i></a>\n";
                             echo "<a href=\"/hike/", $hike->id, "\">", $hike->name, "</a></td>\n";
-                            echo "<td>", "</td>\n";
-                            echo "<td>", "</td>\n";
+                            echo "<td>", $distance, "</td>\n";
+                            echo "<td>", $days, "</td>\n";
                             echo "<td>", "None", "</td>\n";
                             echo "</tr>\n";
                          }

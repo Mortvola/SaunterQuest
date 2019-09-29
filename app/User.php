@@ -43,6 +43,6 @@ class User extends Authenticatable
 
     public function hikes ()
     {
-        return $this->hasMany('\App\Hike', 'userId');
+        return $this->hasMany('\App\Hike', 'user_id');
     }
 }

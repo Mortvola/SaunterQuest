@@ -17,7 +17,7 @@ class CreateHikeTable extends Migration
             $table->bigIncrements('id');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
-            $table->bigInteger('userId');
+            $table->bigInteger('user_id');
             $table->string('name');
         });
 

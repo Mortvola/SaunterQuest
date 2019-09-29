@@ -35,3 +35,9 @@ function metersPerHourGet($dh, $dx)
 
     return $metersPerHour;
 }
+
+
+function metersToMilesRounded ($meters)
+{
+    return round($meters / 1609.34 * 10) / 10;
+}
