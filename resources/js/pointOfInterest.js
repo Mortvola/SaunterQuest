@@ -214,9 +214,8 @@ function showAddPointOfInterest (object, position)
 
 function retrievePointsOfInterest ()
 {
-    $.ajax({
+    $.get({
         url: userHikeId + "/pointOfInterest",
-        type: "GET",
         dataType: "json"
     })
     .done (function(responseText)

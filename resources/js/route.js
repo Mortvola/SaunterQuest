@@ -68,9 +68,8 @@ class Route
 	{
 		var route = this;
 
-	    $.ajax({
+	    $.get({
 	        url: userHikeId + "/route",
-	        type: "GET",
 	        dataType: "json"
 	    })
 	    .done (function(responseText)

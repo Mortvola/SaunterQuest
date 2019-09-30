@@ -30,7 +30,7 @@ Route::get('/home', 'HomeController@index')->name('home');
 
 Route::post('/hike', 'HikeController@post');
 
-Route::get('/hike/{hikeId}', function ($hikeId)
+Route::get('/hike/{hikeId}', function ($hikeId = null)
 {
     $c = new HikeController();
 

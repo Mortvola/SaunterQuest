@@ -708,9 +708,8 @@ function distToSegment(p, v, w)
 
 function displayLocation (object, position)
 {
-    $.ajax({
+    $.get({
         url: "/elevation?lat=" + position.lat () + "&lng=" + position.lng (),
-        type: "GET",
         dataType: "json"
     })
     .done (function(responseText)
@@ -787,9 +786,8 @@ function showIntersections ()
 	var trails = this;
 	var bounds = map.getBounds ();
 
-    $.ajax({
+    $.get({
         url: "/map/intersections?b=" + bounds.toUrlValue(),
-        type: "GET",
         dataType: "json"
     })
     .done (function(responseText)

@@ -48,9 +48,8 @@ function hikerProfileRowGet (profile)
 
 function retrieveHikerProfiles ()
 {
-    $.ajax({
+    $.get({
         url: userHikeId + "/hikerProfile",
-        type: "GET",
         dataType: "json"
     })
     .done (function(responseText)

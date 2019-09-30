@@ -133,9 +133,8 @@ function getTrailConditionColor (type)
 
 function retrieveTrailConditions ()
 {
-    $.ajax({
+    $.get({
         url: userHikeId + "/trailCondition",
-        type: "GET",
         dataType: "json"
     })
     .done (function(trailConditions)
