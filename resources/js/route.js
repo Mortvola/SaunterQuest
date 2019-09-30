@@ -20,21 +20,21 @@ class Route
 	{
 		var route = this;
 		
-		var xmlhttp = new XMLHttpRequest ();
-		xmlhttp.onreadystatechange = function ()
-		{
-			if (this.readyState == 4 && this.status == 200)
-			{
-				route.retrieve ();
-			}
-		}
-		
-		var point = {lat: position.lat (), lng: position.lng ()};
-		
-		xmlhttp.open("PUT", userHikeId + "/route/startPoint", true);
-		xmlhttp.setRequestHeader("Content-type", "application/json");
-    	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
-		xmlhttp.send(JSON.stringify(point));
+	    $.ajax({
+	        url: userHikeId + "/route/startPoint",
+	        headers:
+	        {
+	            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+	            "Content-type": "application/json"
+	        },
+	        type: "PUT",
+	        data: JSON.stringify({lat: position.lat (), lng: position.lng ()}),
+	        dataType: "json"
+	    })
+	    .done (function(responseText)
+	    {
+			route.retrieve ();
+	    });
 	}
 
 
@@ -42,21 +42,21 @@ class Route
 	{
 		var route = this;
 		
-		var xmlhttp = new XMLHttpRequest ();
-		xmlhttp.onreadystatechange = function ()
-		{
-			if (this.readyState == 4 && this.status == 200)
-			{
-				route.retrieve ();
-			}
-		}
-		
-		var point = {lat: position.lat (), lng: position.lng ()};
-		
-		xmlhttp.open("PUT", userHikeId + "/route/endPoint", true);
-		xmlhttp.setRequestHeader("Content-type", "application/json");
-    	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
-		xmlhttp.send(JSON.stringify(point));
+	    $.ajax({
+	        url: userHikeId + "/route/endPoint",
+	        headers:
+	        {
+	            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+	            "Content-type": "application/json"
+	        },
+	        type: "PUT",
+	        data: JSON.stringify({lat: position.lat (), lng: position.lng ()}),
+	        dataType: "json"
+	    })
+	    .done (function(responseText)
+	    {
+			route.retrieve ();
+	    });
 	}
 
 	getLength ()
@@ -67,24 +67,21 @@ class Route
 	retrieve ()
 	{
 		var route = this;
-		
-		var xmlhttp = new XMLHttpRequest ();
-		xmlhttp.onreadystatechange = function ()
-		{
-			if (this.readyState == 4 && this.status == 200)
-			{
-				route.processResponse (this.responseText);
-			}
-		}
-		
-		xmlhttp.open("GET", userHikeId + "/route", true);
-		//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-		xmlhttp.send();
+
+	    $.ajax({
+	        url: userHikeId + "/route",
+	        type: "GET",
+	        dataType: "json"
+	    })
+	    .done (function(responseText)
+	    {
+			route.processResponse (responseText);
+	    });
 	}
 
 	processResponse (responseText)
 	{
-		this.anchors = JSON.parse(responseText);
+		this.anchors = responseText;
 
 		if (this.anchors.length > 0)
 		{
@@ -208,6 +205,18 @@ class Route
 			this.actualRoutePolyline.setMap(this.map);
 			
 			setContextMenu (this.actualRoutePolyline, routeContextMenu);
+		}
+	}
+	
+	setContextMenu (menu)
+	{
+		if (menu === null)
+		{
+			setContextMenu (this.actualRoutePolyline, routeContextMenu);
+		}
+		else
+		{
+			setContextMenu (this.actualRoutePolyline, menu);
 		}
 	}
 

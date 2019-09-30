@@ -73,41 +73,39 @@
 
     function deleteHike (hikeId)
     {
-        var xmlhttp = new XMLHttpRequest ();
-        xmlhttp.onreadystatechange = function ()
-        {
-            if (this.readyState == 4 && this.status == 200)
+        $.ajax({
+            url: "hike/" + hikeId,
+            headers:
             {
-                let hike = document.getElementById("userHike_" + hikeId);
-                hike.parentElement.removeChild(hike);
-            }
-        }
-
-        xmlhttp.open("DELETE", "hike/" + hikeId, true);
-        xmlhttp.setRequestHeader("Content-type", "application/json");
-    	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
-        xmlhttp.send();
+                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+            },
+            type: "DELETE"
+        })
+        .done (function()
+        {
+            $("#userHike_" + hikeId).remove ();
+        });
     }
 
     function insertHike ()
     {
         var hike = objectifyForm($("#userHikeForm").serializeArray());
 
-        var xmlhttp = new XMLHttpRequest ();
-        xmlhttp.onreadystatechange = function ()
-        {
-            if (this.readyState == 4 && (this.status >= 200 && this.status < 300))
+        $.ajax({
+            url: "hike",
+            headers:
             {
-                hike = JSON.parse(this.responseText);
-
-                document.location.href = "/hike/" + hike.id;
-            }
-        }
-
-        xmlhttp.open("POST", "hike", true);
-        xmlhttp.setRequestHeader("Content-type", "application/json");
-    	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
-        xmlhttp.send(JSON.stringify(hike.name));
+                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+                "Content-type": "application/json"
+            },
+            type: "POST",
+            data: JSON.stringify(hike.name),
+            dataType: "json"
+        })
+        .done (function(hike)
+        {
+            document.location.href = "/hike/" + hike.id;
+        });
     }
 
     function showHikeDialog ()

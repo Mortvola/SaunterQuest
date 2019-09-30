@@ -180,6 +180,7 @@
 
     <script>
         var userHikeId = {{ $hikeId }};
+        var tileServerUrl = "{{ env('TILE_SERVER_URL', '') }}";
     </script>
 
     <?php require_once resource_path('js/contextMenu.js'); ?>

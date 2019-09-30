@@ -20,24 +20,24 @@ function findPointOfInterestIndex (poiId)
 
 function removePointOfInterest (object, position)
 {
-	var xmlhttp = new XMLHttpRequest ();
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && this.status == 200)
-		{
-			var index = findPointOfInterestIndex(object.id);
-			pointsOfInterest[index].marker.setMap (null);
-			removeContextMenu (pointsOfInterest[index].marker);
-			
-			pointsOfInterest.splice (index);
-			
-			schedule.retrieve ();
-		}
-	}
-	
-	xmlhttp.open("DELETE", userHikeId + "/pointOfInterest/" + object.id, true);
-	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
-	xmlhttp.send();
+	$.ajax({
+        url: userHikeId + "/pointOfInterest/" + object.id,
+        headers:
+        {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+        },
+        type: "DELETE"
+    })
+    .done (function()
+    {
+		var index = findPointOfInterestIndex(object.id);
+		pointsOfInterest[index].marker.setMap (null);
+		removeContextMenu (pointsOfInterest[index].marker);
+		
+		pointsOfInterest.splice (index);
+		
+		schedule.retrieve ();
+    });
 }
 
 
@@ -88,27 +88,29 @@ function updatePointOfInterest (poiId)
 
 	delete pointOfInterest.hangOut;
 	
-	var xmlhttp = new XMLHttpRequest ();
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && this.status == 200)
-		{
-			let poi = JSON.parse(this.responseText);
+    $.ajax({
+        url: userHikeId + "/pointOfInterest/" + poiId,
+        headers:
+        {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+            "Content-type": "application/json"
+        },
+        type: "PUT",
+        data: JSON.stringify(pointOfInterest),
+        dataType: "json"
+    })
+    .done (function(responseText)
+    {
+		let poi = responseText;
 
-			pointsOfInterest[index].lat = poi.lat;
-			pointsOfInterest[index].lng = poi.lng;
-			pointsOfInterest[index].name = poi.name;
-			pointsOfInterest[index].description = poi.description;
-			pointsOfInterest[index].constraints = poi.constraints;
-			
-			pointsOfInterest[index].message = getInfoWindowMessage(poi);
-		}
-	}
-	
-	xmlhttp.open("PUT", userHikeId + "/pointOfInterest/" + poiId, true);
-	xmlhttp.setRequestHeader("Content-type", "application/json");
-	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
-	xmlhttp.send(JSON.stringify(pointOfInterest));
+		pointsOfInterest[index].lat = poi.lat;
+		pointsOfInterest[index].lng = poi.lng;
+		pointsOfInterest[index].name = poi.name;
+		pointsOfInterest[index].description = poi.description;
+		pointsOfInterest[index].constraints = poi.constraints;
+		
+		pointsOfInterest[index].message = getInfoWindowMessage(poi);
+    });
 }
 
 function editPointOfInterest (object, position)
@@ -179,23 +181,25 @@ function insertPointOfInterest (position)
 		delete pointOfInterest.hangOut;
 	}
 
-	var xmlhttp = new XMLHttpRequest ();
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && (this.status == 200 || this.status == 201))
-		{
-			let poi = JSON.parse(this.responseText);
+    $.ajax({
+        url: userHikeId + "/pointOfInterest",
+        headers:
+        {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+            "Content-type": "application/json"
+        },
+        type: "POST",
+        data: JSON.stringify(pointOfInterest),
+        dataType: "json"
+    })
+    .done (function(responseText)
+    {
+		let poi = responseText;
 
-			addPointOfInterest(poi);
+		addPointOfInterest(poi);
 
-			schedule.retrieve();
-		}
-	}
-
-	xmlhttp.open("POST", userHikeId + "/pointOfInterest", true);
-	xmlhttp.setRequestHeader("Content-type", "application/json");
-	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
-	xmlhttp.send(JSON.stringify(pointOfInterest));
+		schedule.retrieve();
+    });
 }
 
 
@@ -210,25 +214,22 @@ function showAddPointOfInterest (object, position)
 
 function retrievePointsOfInterest ()
 {
-	var xmlhttp = new XMLHttpRequest ();
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && this.status == 200)
-		{
-			var poi = JSON.parse(this.responseText);
+    $.ajax({
+        url: userHikeId + "/pointOfInterest",
+        type: "GET",
+        dataType: "json"
+    })
+    .done (function(responseText)
+    {
+		var poi = responseText;
 
-			if (map)
+		if (map)
+		{
+			for (let p in poi)
 			{
-				for (let p in poi)
-				{
-					addPointOfInterest (poi[p]);
-				}
+				addPointOfInterest (poi[p]);
 			}
 		}
-	}
-	
-	xmlhttp.open("GET", userHikeId + "/pointOfInterest", true);
-	//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	xmlhttp.send();
+    });
 }
 </script>

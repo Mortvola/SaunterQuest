@@ -16,23 +16,20 @@ class Schedule
 	{
 		var schedule = this;
 		
-		var xmlhttp = new XMLHttpRequest ();
-		xmlhttp.onreadystatechange = function ()
-		{
-			if (this.readyState == 4 && this.status == 200)
-			{
-				schedule.processResponse (this.responseText);
-			}
-		}
-
-		xmlhttp.open("GET", userHikeId + "/schedule", true);
-		//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-		xmlhttp.send();
+	    $.ajax({
+	        url: userHikeId + "/schedule",
+	        type: "GET",
+	        dataType: "json"
+	    })
+	    .done (function(responseText)
+	    {
+	    	schedule.processResponse (responseText);
+	    });
 	}
 	
 	processResponse (responseText)
 	{
-		this.days = JSON.parse(responseText);
+		this.days = responseText;
 
 		let txt = "";
 		let m = 0;

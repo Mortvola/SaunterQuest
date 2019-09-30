@@ -12,12 +12,26 @@ class RouteHighlighter
 		this.markers = [];
 		this.color = "#FF0000";
 		
-		let routePosition = this.route.getNearestPoint(position);
-		
-		this.setRouteHighlightMarker (0, routePosition);
-		this.setRouteHighlightMarker (1, routePosition);
+		if (position !== null)
+		{
+			let routePosition = this.route.getNearestPoint(position);
+			this.setRouteHighlightMarker (0, routePosition);
+			this.setRouteHighlightMarker (1, routePosition);
+		}
 	}
 
+	setStartPosition (position)
+	{
+		let routePosition = this.route.getNearestPoint(position);
+		this.setRouteHighlightMarker (0, routePosition);
+	}
+	
+	setEndPosition (position)
+	{
+		let routePosition = this.route.getNearestPoint(position);
+		this.setRouteHighlightMarker (1, routePosition);
+	}
+	
 	getStartPosition ()
 	{
 		if (this.markers[0])

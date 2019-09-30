@@ -73,6 +73,6 @@ class RegisterController extends Controller
 
     protected function registered(Request $request, $user)
     {
-        return $this->redirectPath();
+        return json_encode($this->redirectPath());
     }
 }

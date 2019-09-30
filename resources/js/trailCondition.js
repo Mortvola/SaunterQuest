@@ -2,8 +2,21 @@
 var trailConditions = [];
 var editingTrailConditionId = null;
 var trailConditionMenu;
+var trailConditionRouteHighlighter;
 
 const dialogSpeed = 250;
+
+
+function setRouteHighlightStartMarker (object, position)
+{
+	trailConditionRouteHighlighter.setStartPosition ({lat: position.lat(), lng: position.lng()})
+}
+
+
+function setRouteHighlightEndMarker (object, position)
+{
+	trailConditionRouteHighlighter.setEndPosition ({lat: position.lat(), lng: position.lng()})
+}
 
 
 function trailConditionMenuGet ()
@@ -12,7 +25,8 @@ function trailConditionMenuGet ()
 	{
 		trailConditionMenu = new ContextMenu ([
 			{title:"Set start marker", func:setRouteHighlightStartMarker},
-			{title:"Set end marker", func:setRouteHighlightEndMarker}]);
+			{title:"Set end marker", func:setRouteHighlightEndMarker}
+		]);
 	}
 	
 	return trailConditionMenu;
@@ -25,43 +39,38 @@ function insertTrailCondition ()
 	
 	trailCondition.userHikeId = userHikeId;
 	
+	trailCondition.start = trailConditionRouteHighlighter.getStartPosition ();
+	trailCondition.end = trailConditionRouteHighlighter.getEndPosition ();
+	
 	// Both markers must be placed on the map.
-	if (routeHighlightMarkers[0] && routeHighlightMarkers[0].map
-	 && routeHighlightMarkers[1] && routeHighlightMarkers[1].map)
+	if (trailCondition.start && trailCondition.end)
 	{
-		trailCondition.startLat = routeHighlightMarkers[0].position.lat ();
-		trailCondition.startLng = routeHighlightMarkers[0].position.lng ();
-		trailCondition.endLat = routeHighlightMarkers[1].position.lat ();
-		trailCondition.endLng = routeHighlightMarkers[1].position.lng ();
+        $.ajax({
+            url: userHikeId + "/trailCondition",
+            headers:
+            {
+                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+                "Content-type": "application/json"
+            },
+            type: "POST",
+            data: JSON.stringify(trailCondition),
+            dataType: "json"
+        })
+        .done (function(trailCondition)
+        {
+			trailCondition.polyLine = routeHighlightPolylineCreate (
+				new google.maps.LatLng({lat: parseFloat(trailCondition.startLat), lng: parseFloat(trailCondition.startLng)}),
+				new google.maps.LatLng({lat: parseFloat(trailCondition.endLat), lng: parseFloat(trailCondition.endLng)}),
+				'#FF0000');
+			
+			trailConditions.push(trailCondition);
 	
-		var xmlhttp = new XMLHttpRequest ();
-		xmlhttp.onreadystatechange = function ()
-		{
-			if (this.readyState == 4)
-			{
-				if (this.status == 200)
-				{
-					trailCondition = JSON.parse(this.responseText);
+			$("#conditionsLastRow").before(trailConditionRowGet (trailCondition));
+			
+			schedule.retrieve ();
 	
-					trailCondition.polyLine = routeHighlightPolylineCreate (
-						new google.maps.LatLng({lat: parseFloat(trailCondition.startLat), lng: parseFloat(trailCondition.startLng)}),
-						new google.maps.LatLng({lat: parseFloat(trailCondition.endLat), lng: parseFloat(trailCondition.endLng)}),
-						'#FF0000');
-					
-					trailConditions.push(trailCondition);
-	
-					$("#conditionsLastRow").before(trailConditionRowGet (trailCondition));
-					
-					schedule.retrieve ();
-				}
-
-				closeEditTrailConditions ();
-			}
-		}
-		
-		xmlhttp.open("POST", "/trailCondition.php", true);
-		xmlhttp.setRequestHeader("Content-type", "application/json");
-		xmlhttp.send(JSON.stringify(trailCondition));
+			closeEditTrailConditions ();
+        });
 	}
 }
 
@@ -113,43 +122,38 @@ function getTrailConditionColor (type)
 	}
 	else if (type == 1)
 	{
-		return '#FFA500'; //'#FFFF00'; //'#FFD700'
+		return '#FFA500'; // '#FFFF00'; //'#FFD700'
 	}
 	else
 	{
-		return '#FF00FF'; //'#C0C0C0'; //'#708090'
+		return '#FF00FF'; // '#C0C0C0'; //'#708090'
 	}
 }
 
 
 function retrieveTrailConditions ()
 {
-	var xmlhttp = new XMLHttpRequest ();
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && this.status == 200)
+    $.ajax({
+        url: userHikeId + "/trailCondition",
+        type: "GET",
+        dataType: "json"
+    })
+    .done (function(trailConditions)
+    {
+		let txt = "";
+
+		for (let t in trailConditions)
 		{
-			trailConditions = JSON.parse(this.responseText);
-			
-			let txt = "";
+			trailConditions[t].polyLine = routeHighlightPolylineCreate (
+				new google.maps.LatLng({lat: parseFloat(trailConditions[t].startLat), lng: parseFloat(trailConditions[t].startLng)}),
+				new google.maps.LatLng({lat: parseFloat(trailConditions[t].endLat), lng: parseFloat(trailConditions[t].endLng)}),
+				getTrailConditionColor(trailConditions[t].type));
 
-			for (let t in trailConditions)
-			{
-				trailConditions[t].polyLine = routeHighlightPolylineCreate (
-					new google.maps.LatLng({lat: parseFloat(trailConditions[t].startLat), lng: parseFloat(trailConditions[t].startLng)}),
-					new google.maps.LatLng({lat: parseFloat(trailConditions[t].endLat), lng: parseFloat(trailConditions[t].endLng)}),
-					getTrailConditionColor(trailConditions[t].type));
-
-				txt += trailConditionRowGet (trailConditions[t]);
-			}
-			
-			$("#conditionsLastRow").before(txt);
+			txt += trailConditionRowGet (trailConditions[t]);
 		}
-	}
-	
-	xmlhttp.open("GET", userHikeId + "/trailCondition", true);
-	//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	xmlhttp.send();
+		
+		$("#conditionsLastRow").before(txt);
+    });
 }
 
 
@@ -167,9 +171,23 @@ function findTrailConditionIndex (trailConditionId)
 }
 
 
+function trailConditionMarkerSet (highlighter)
+{
+	let startPosition = highlighter.getStartPosition ();
+	let endPosition = highlighter.getEndPosition ();
+
+	if (startPosition && endPosition)
+	{
+		measureRouteDistance (startPosition, endPosition);
+		displayRouteElevations (startPosition.segment, endPosition.segment);
+	}
+}
+
 function addTrailCondition ()
 {
-	setContextMenu (actualRoutePolyline, trailConditionMenuGet ());
+	trailConditionRouteHighlighter = new RouteHighlighter (route, null, trailConditionMarkerSet);
+
+	route.setContextMenu (trailConditionMenuGet ());
 
 	$("#trailConditionSaveButton").off('click');
 	$("#trailConditionSaveButton").click(function () { insertTrailCondition()});
@@ -260,85 +278,81 @@ function closeEditTrailConditions ()
 {
 	$("#editTrailConditions").hide(dialogSpeed);
 
-	endRouteHighlighting ();
+	trailConditionRouteHighlighter.end ();
+	trailConditionRouteHighlighter = null;
 	
-	setContextMenu (actualRoutePolyline, routeContextMenu);
+	route.setContextMenu (null);
 }
 
 
 function updateTrailCondition (trailConditionId)
 {
 	var trailCondition = objectifyForm($("#trailConditionForm").serializeArray());
-	trailCondition.id = trailConditionId;
 	
-	let t = findTrailConditionIndex (trailConditionId);
-
-	trailCondition.startLat = routeHighlightMarkers[0].position.lat ();
-	trailCondition.startLng = routeHighlightMarkers[0].position.lng ();
-	trailCondition.endLat = routeHighlightMarkers[1].position.lat ();
-	trailCondition.endLng = routeHighlightMarkers[1].position.lng ();
+	trailCondition.start = trailConditionRouteHighlighter.getStartPosition ();
+	trailCondition.end = trailConditionRouteHighlighter.getEndPosition ();
 	
-	var xmlhttp = new XMLHttpRequest ();
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4)
+    $.ajax({
+        url: userHikeId + "/trailCondition/" + trailConditionId,
+        headers:
+        {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+            "Content-type": "application/json"
+        },
+        type: "PUT",
+        data: JSON.stringify(trailCondition),
+        dataType: "json"
+    })
+    .done (function(trailCondition)
+    {
+		let t = findTrailConditionIndex (trailConditionId);
+		
+		// If there is an existing polyline then remove it from the map.
+		if (trailConditions[t].polyLine)
 		{
-			if (this.status == 200)
-			{
-				let t = findTrailConditionIndex (trailConditionId);
-	
-				// If there is an existing polyline then remove it from the map.
-				if (trailConditions[t].polyLine)
-				{
-					trailConditions[t].polyLine.setMap(null);
-				}
-				
-				trailConditions[t] = trailCondition;
-				
-				trailConditions[t].polyLine = routeHighlightPolylineCreate (
-					new google.maps.LatLng({lat: parseFloat(trailConditions[t].startLat), lng: parseFloat(trailConditions[t].startLng)}),
-					new google.maps.LatLng({lat: parseFloat(trailConditions[t].endLat), lng: parseFloat(trailConditions[t].endLng)}),
-					'#FF0000');
-	
-				$("#trailCondition_" + trailConditionId).replaceWith (trailConditionRowGet(trailCondition));
-	
-				schedule.retrieve ();
-			}
-
-			closeEditTrailConditions ();
+			trailConditions[t].polyLine.setMap(null);
 		}
-	}
-	
-	xmlhttp.open("PUT", "/trailCondition.php", true);
-	xmlhttp.setRequestHeader("Content-type", "application/json");
-	xmlhttp.send(JSON.stringify(trailCondition));
+		
+		trailConditions[t] = trailCondition;
+		
+		trailConditions[t].polyLine = routeHighlightPolylineCreate (
+			new google.maps.LatLng({lat: parseFloat(trailConditions[t].startLat), lng: parseFloat(trailConditions[t].startLng)}),
+			new google.maps.LatLng({lat: parseFloat(trailConditions[t].endLat), lng: parseFloat(trailConditions[t].endLng)}),
+			'#FF0000');
+
+		$("#trailCondition_" + trailConditionId).replaceWith (trailConditionRowGet(trailCondition));
+
+		schedule.retrieve ();
+		
+		closeEditTrailConditions ();
+    });
 }
 
 
 function removeTrailCondition (trailConditionId)
 {
-	var xmlhttp = new XMLHttpRequest ();
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && this.status == 200)
+    $.ajax({
+        url: userHikeId + "/trailCondition/" + trailConditionId,
+        headers:
+        {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+        },
+        type: "DELETE"
+    })
+    .done (function(trailCondition)
+    {
+		let t = findTrailConditionIndex (trailConditionId);
+		
+		// If there is an existing polyline then remove it from the map.
+		if (trailConditions[t].polyLine)
 		{
-			let t = findTrailConditionIndex (trailConditionId);
-			
-			// If there is an existing polyline then remove it from the map.
-			if (trailConditions[t].polyLine)
-			{
-				trailConditions[t].polyLine.setMap(null);
-			}
-
-			trailConditions.splice(t, 1);
-			
-			$("#trailCondition_" + trailConditionId).remove();
-			schedule.retrieve ();
+			trailConditions[t].polyLine.setMap(null);
 		}
-	}
-	
-	xmlhttp.open("DELETE", "/trailCondition.php", true);
-	xmlhttp.setRequestHeader("Content-type", "application/json");
-	xmlhttp.send(JSON.stringify(trailConditionId));
+
+		trailConditions.splice(t, 1);
+		
+		$("#trailCondition_" + trailConditionId).remove();
+		schedule.retrieve ();
+    });
 }
 </script>

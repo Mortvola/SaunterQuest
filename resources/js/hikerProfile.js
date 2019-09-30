@@ -48,27 +48,24 @@ function hikerProfileRowGet (profile)
 
 function retrieveHikerProfiles ()
 {
-	var xmlhttp = new XMLHttpRequest ();
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && this.status == 200)
+    $.ajax({
+        url: userHikeId + "/hikerProfile",
+        type: "GET",
+        dataType: "json"
+    })
+    .done (function(responseText)
+    {
+		hikerProfiles = responseText;
+		
+		let txt = "";
+		
+		for (let d in hikerProfiles)
 		{
-			hikerProfiles = JSON.parse(this.responseText);
-			
-			let txt = "";
-			
-			for (let d in hikerProfiles)
-			{
-				txt += hikerProfileRowGet (hikerProfiles[d]);
-			}
-
-			$("#hikerProfileLastRow").before(txt);
+			txt += hikerProfileRowGet (hikerProfiles[d]);
 		}
-	}
-	
-	xmlhttp.open("GET", userHikeId + "/hikerProfile", true);
-	//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	xmlhttp.send();
+
+		$("#hikerProfileLastRow").before(txt);
+    });
 }
 
 
@@ -166,26 +163,28 @@ function updateHikerProfile (hikerProfileId)
 		profile.breakDuration = parseInt(profile.breakDuration);
 	}
 
-	var xmlhttp = new XMLHttpRequest ();
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && (this.status == 200 || this.status == 201))
-		{
-			let profile = JSON.parse(this.responseText);
+    $.ajax({
+        url: userHikeId + "/hikerProfile/" + hikerProfileId,
+        headers:
+        {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+            "Content-type": "application/json"
+        },
+        type: "PUT",
+        data: JSON.stringify(profile),
+        dataType: "json"
+    })
+    .done (function(responseText)
+    {
+		let profile = responseText;
 
-			let h = findHikerProfileIndex (hikerProfileId);
-			hikerProfiles[h] = profile;
-			
-			$("#hikerProfile_" + hikerProfileId).replaceWith (hikerProfileRowGet(profile));
+		let h = findHikerProfileIndex (hikerProfileId);
+		hikerProfiles[h] = profile;
+		
+		$("#hikerProfile_" + hikerProfileId).replaceWith (hikerProfileRowGet(profile));
 
-			schedule.retrieve ();
-		}
-	}
-	
-	xmlhttp.open("PUT", userHikeId + "/hikerProfile/" + hikerProfileId, true);
-	xmlhttp.setRequestHeader("Content-type", "application/json");
-	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
-	xmlhttp.send(JSON.stringify(profile));
+		schedule.retrieve ();
+    });
 }
 
 
@@ -211,43 +210,45 @@ function insertHikerProfile ()
 		profile.breakDuration = parseInt(profile.breakDuration);
 	}
 
-	var xmlhttp = new XMLHttpRequest ();
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && (this.status == 200 || this.status == 201))
-		{
-			profile = JSON.parse(this.responseText);
-			hikerProfiles.push (profile);
-			
-			$("#hikerProfileLastRow").before(hikerProfileRowGet(profile));
-
-			schedule.retrieve ();
-		}
-	}
-	
 	profile.userHikeId = userHikeId;
 	
-	xmlhttp.open("POST", userHikeId + "/hikerProfile", true);
-	xmlhttp.setRequestHeader("Content-type", "application/json");
-	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
-	xmlhttp.send(JSON.stringify(profile));
+    $.ajax({
+        url: userHikeId + "/hikerProfile",
+        headers:
+        {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+            "Content-type": "application/json"
+        },
+        type: "POST",
+        data: JSON.stringify(profile),
+        dataType: "json"
+    })
+    .done (function(responseText)
+    {
+		profile = responseText;
+		hikerProfiles.push (profile);
+		
+		$("#hikerProfileLastRow").before(hikerProfileRowGet(profile));
+
+		schedule.retrieve ();
+    });
 }
 
 
 function removeHikerProfile (hikerProfileId)
 {
-	var xmlhttp = new XMLHttpRequest ();
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && this.status == 200)
-		{
-			$("#hikerProfile_" + hikerProfileId).remove();
-			schedule.retrieve ();
-		}
-	}
-	
-	xmlhttp.open("DELETE", userHikeId + "/hikerProfile/" + hikerProfileId, true);
-	xmlhttp.setRequestHeader("X-CSRF-TOKEN", $('meta[name="csrf-token"]').attr('content'));
-	xmlhttp.send();
+    $.ajax({
+        url: userHikeId + "/hikerProfile" + hikerProfileId,
+        headers:
+        {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+        },
+        type: "DELETE"
+    })
+    .done (function(responseText)
+    {
+		$("#hikerProfile_" + hikerProfileId).remove();
+		schedule.retrieve ();
+    });
 }
 </script>

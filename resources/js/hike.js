@@ -134,190 +134,197 @@ function addPointsToRoute (anchor, anchorIndex, trail)
 
 function moveAnchor (index, vertex)
 {
-	var xmlhttp = new XMLHttpRequest ();
+    var routeUpdate = {userHikeId: userHikeId, mode: "update", index: startSegment + index, point: {lat: vertex.lat (), lng: vertex.lng ()}};
 
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && this.status == 200)
+    $.ajax({
+        url: userHikeId + "route.php",
+        headers:
+        {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+            "Content-type": "application/json"
+        },
+        type: "PUT",
+        data: JSON.stringify(routeUpdate),
+        dataType: "json"
+    })
+    .done (function(responseText)
+    {
+		let updatedVertex = responseText;
+
+		let anchorIndex = startSegment + index;
+		let anchor = anchors[anchorIndex];
+		let prevAnchor;
+		
+		let updatedLatLng = new google.maps.LatLng({lat: updatedVertex.point.lat, lng: updatedVertex.point.lng});
+		
+		if (anchorIndex > 0)
 		{
-			let updatedVertex = JSON.parse(this.responseText);
-
-			let anchorIndex = startSegment + index;
-			let anchor = anchors[anchorIndex];
-			let prevAnchor;
-			
-			let updatedLatLng = new google.maps.LatLng({lat: updatedVertex.point.lat, lng: updatedVertex.point.lng});
-			
-			if (anchorIndex > 0)
-			{
-				prevAnchor = anchors[anchorIndex - 1];
-			}
-			
-			actualRoute[anchor.actualRouteIndex].lat = updatedVertex.point.lat;
-			actualRoute[anchor.actualRouteIndex].lng = updatedVertex.point.lng;
-			actualRoute[anchor.actualRouteIndex].ele = updatedVertex.point.ele;
-			actualRoute[anchor.actualRouteIndex].dist = updatedVertex.point.dist;
-	
-			anchor.lat = updatedVertex.point.lat;
-			anchor.lng = updatedVertex.point.lng;
-			anchor.ele = updatedVertex.point.ele;
-			anchor.dist = updatedVertex.point.dist;
-
-			editedRoute[index].lat = updatedVertex.point.lat;
-			editedRoute[index].lng = updatedVertex.point.lng;
-	
-			var path = editPolyLine.getPath ();
-			updatedLatLng.moved = true;
-			path.setAt(index, updatedLatLng);
-
-			// Set the vertex that moved
-			path = actualRoutePolyline.getPath ();
-			path.setAt (anchor.actualRouteIndex, updatedLatLng);
-
-			if (prevAnchor != undefined)
-			{
-				if (prevAnchor.trail != undefined)
-				{
-					removePointsFromRoute (prevAnchor, anchorIndex - 1);
-				}
-	
-				if (updatedVertex.previousTrail != undefined)
-				{
-					addPointsToRoute (prevAnchor, anchorIndex - 1, updatedVertex.previousTrail);
-				}
-			}
-
-			if (anchor.trail != undefined)
-			{
-				removePointsFromRoute (anchor, anchorIndex);
-			}
-
-			if (updatedVertex.nextTrail != undefined)
-			{
-				addPointsToRoute (anchor, anchorIndex, updatedVertex.nextTrail);
-			}
-			
-			if (anchorIndex == 0)
-			{
-				startOfTrailMarker.setPosition (updatedVertex.point);
-			}
-			else if (anchorIndex == anchors.length - 1)
-			{
-				endOfTrailMarker.setPosition (updatedVertex.point);
-			}
+			prevAnchor = anchors[anchorIndex - 1];
 		}
-	}
+		
+		actualRoute[anchor.actualRouteIndex].lat = updatedVertex.point.lat;
+		actualRoute[anchor.actualRouteIndex].lng = updatedVertex.point.lng;
+		actualRoute[anchor.actualRouteIndex].ele = updatedVertex.point.ele;
+		actualRoute[anchor.actualRouteIndex].dist = updatedVertex.point.dist;
 
-	var routeUpdate = {userHikeId: userHikeId, mode: "update", index: startSegment + index, point: {lat: vertex.lat (), lng: vertex.lng ()}};
-	
-	xmlhttp.open("PUT", "route.php", true);
-	xmlhttp.setRequestHeader("Content-type", "application/json");
-	xmlhttp.send(JSON.stringify(routeUpdate));
-}
+		anchor.lat = updatedVertex.point.lat;
+		anchor.lng = updatedVertex.point.lng;
+		anchor.ele = updatedVertex.point.ele;
+		anchor.dist = updatedVertex.point.dist;
 
+		editedRoute[index].lat = updatedVertex.point.lat;
+		editedRoute[index].lng = updatedVertex.point.lng;
 
-function insertAnchor (index, vertex)
-{
-	var xmlhttp = new XMLHttpRequest ();
+		var path = editPolyLine.getPath ();
+		updatedLatLng.moved = true;
+		path.setAt(index, updatedLatLng);
 
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && this.status == 200)
+		// Set the vertex that moved
+		path = actualRoutePolyline.getPath ();
+		path.setAt (anchor.actualRouteIndex, updatedLatLng);
+
+		if (prevAnchor != undefined)
 		{
-			let updatedVertex = JSON.parse(this.responseText);
-	
-			let anchorIndex = startSegment + index;
-			let prevAnchor = anchors[anchorIndex - 1];
-
-			removePointsFromRoute (prevAnchor, anchorIndex - 1);
+			if (prevAnchor.trail != undefined)
+			{
+				removePointsFromRoute (prevAnchor, anchorIndex - 1);
+			}
 
 			if (updatedVertex.previousTrail != undefined)
 			{
 				addPointsToRoute (prevAnchor, anchorIndex - 1, updatedVertex.previousTrail);
 			}
-
-			actualRoute.splice (anchors[anchorIndex].actualRouteIndex, 0, {lat: updatedVertex.point.lat, lng: updatedVertex.point.lng});
-			actualRoute[anchors[anchorIndex].actualRouteIndex].ele = updatedVertex.point.ele;
-			actualRoute[anchors[anchorIndex].actualRouteIndex].dist = updatedVertex.point.dist;
-
-			anchors.splice (anchorIndex, 0, {lat: updatedVertex.point.lat, lng: updatedVertex.point.lng, actualRouteIndex: anchors[anchorIndex].actualRouteIndex});
-			anchors[anchorIndex].ele = updatedVertex.point.ele;
-			anchors[anchorIndex].dist = updatedVertex.point.dist;
-
-			editedRoute[index].lat = updatedVertex.point.lat;
-			editedRoute[index].lng = updatedVertex.point.lng;
-
-			// Insert the vertex into the actual route polyline.
-			path = actualRoutePolyline.getPath ();
-			path.insertAt (anchors[anchorIndex].actualRouteIndex, new google.maps.LatLng({lat: updatedVertex.point.lat, lng: updatedVertex.point.lng}));
-
-			var path = editPolyLine.getPath ();
-			var vertex = new google.maps.LatLng({lat: editedRoute[index].lat, lng: editedRoute[index].lng});
-			vertex.moved = true;
-			path.setAt(index, vertex);
-
-			// update the anchor indexes into the actual trail now that we deleted some portion of the trail.
-			adjustAnchorRouteIndexes (anchorIndex + 1, 1);
-
-			if (updatedVertex.nextTrail != undefined)
-			{
-				addPointsToRoute (anchors[anchorIndex], anchorIndex, updatedVertex.nextTrail);
-			}
 		}
-	}
+
+		if (anchor.trail != undefined)
+		{
+			removePointsFromRoute (anchor, anchorIndex);
+		}
+
+		if (updatedVertex.nextTrail != undefined)
+		{
+			addPointsToRoute (anchor, anchorIndex, updatedVertex.nextTrail);
+		}
+		
+		if (anchorIndex == 0)
+		{
+			startOfTrailMarker.setPosition (updatedVertex.point);
+		}
+		else if (anchorIndex == anchors.length - 1)
+		{
+			endOfTrailMarker.setPosition (updatedVertex.point);
+		}
+    });
+}
+
+
+function insertAnchor (index, vertex)
+{
 	
-	var routeUpdate = {userHikeId: userHikeId, mode: "insert", index: startSegment + index, point: {lat: vertex.lat (), lng: vertex.lng ()}};
+    var routeUpdate = {userHikeId: userHikeId, mode: "insert", index: startSegment + index, point: {lat: vertex.lat (), lng: vertex.lng ()}};
 	
-	xmlhttp.open("PUT", "route.php", true);
-	xmlhttp.setRequestHeader("Content-type", "application/json");
-	xmlhttp.send(JSON.stringify(routeUpdate));
+    $.ajax({
+        url: userHikeId + "route.php",
+        headers:
+        {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+            "Content-type": "application/json"
+        },
+        type: "PUT",
+        data: JSON.stringify(routeUpdate),
+        dataType: "json"
+    })
+    .done (function(responseText)
+    {
+		let updatedVertex = responseText;
+		
+		let anchorIndex = startSegment + index;
+		let prevAnchor = anchors[anchorIndex - 1];
+
+		removePointsFromRoute (prevAnchor, anchorIndex - 1);
+
+		if (updatedVertex.previousTrail != undefined)
+		{
+			addPointsToRoute (prevAnchor, anchorIndex - 1, updatedVertex.previousTrail);
+		}
+
+		actualRoute.splice (anchors[anchorIndex].actualRouteIndex, 0, {lat: updatedVertex.point.lat, lng: updatedVertex.point.lng});
+		actualRoute[anchors[anchorIndex].actualRouteIndex].ele = updatedVertex.point.ele;
+		actualRoute[anchors[anchorIndex].actualRouteIndex].dist = updatedVertex.point.dist;
+
+		anchors.splice (anchorIndex, 0, {lat: updatedVertex.point.lat, lng: updatedVertex.point.lng, actualRouteIndex: anchors[anchorIndex].actualRouteIndex});
+		anchors[anchorIndex].ele = updatedVertex.point.ele;
+		anchors[anchorIndex].dist = updatedVertex.point.dist;
+
+		editedRoute[index].lat = updatedVertex.point.lat;
+		editedRoute[index].lng = updatedVertex.point.lng;
+
+		// Insert the vertex into the actual route polyline.
+		path = actualRoutePolyline.getPath ();
+		path.insertAt (anchors[anchorIndex].actualRouteIndex, new google.maps.LatLng({lat: updatedVertex.point.lat, lng: updatedVertex.point.lng}));
+
+		var path = editPolyLine.getPath ();
+		var vertex = new google.maps.LatLng({lat: editedRoute[index].lat, lng: editedRoute[index].lng});
+		vertex.moved = true;
+		path.setAt(index, vertex);
+
+		// update the anchor indexes into the actual trail now that we deleted some portion of the trail.
+		adjustAnchorRouteIndexes (anchorIndex + 1, 1);
+
+		if (updatedVertex.nextTrail != undefined)
+		{
+			addPointsToRoute (anchors[anchorIndex], anchorIndex, updatedVertex.nextTrail);
+		}
+    });
 }
 
 
 function deletePoints (index, length)
 {
-	var xmlhttp = new XMLHttpRequest ();
-
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && this.status == 200)
-		{
-			let trail = JSON.parse(this.responseText);
-
-			let anchorIndex = startSegment + index;
-			
-			let path = actualRoutePolyline.getPath ();
-
-			for (let i = 0; i < length; i++)
-			{
-				removePointsFromRoute (anchors[anchorIndex - 1], anchorIndex - 1);
-				removePointsFromRoute (anchors[anchorIndex], anchorIndex);
-
-				// Delete the anchor from the actual route and from the actual route polyline
-				actualRoute.splice(anchors[anchorIndex].actualRouteIndex, 1)
-				// update the anchor indexes into the actual trail now that we deleted some portion of the trail.
-				adjustAnchorRouteIndexes (anchorIndex + 1, -1);
-				path.removeAt(anchors[anchorIndex].actualRouteIndex);
-
-				anchors.splice (anchorIndex, 1);
-				
-				editPolyLine.getPath ().removeAt (index);
-				editedRoute.splice(index, 1);
-			}
-			
-			// Add in the points for the specified new trail between the anchors
-			if (trail != undefined)
-			{
-				addPointsToRoute (anchors[anchorIndex - 1], anchorIndex - 1, trail);
-			}
-		}
-	}
-
-	var routeUpdate = {userHikeId: userHikeId, mode: "delete", index: startSegment + index, length: length};
+    var routeUpdate = {userHikeId: userHikeId, mode: "delete", index: startSegment + index, length: length};
 	
-	xmlhttp.open("PUT", "route.php", true);
-	xmlhttp.setRequestHeader("Content-type", "application/json");
-	xmlhttp.send(JSON.stringify(routeUpdate));
+    $.ajax({
+        url: userHikeId + "route.php",
+        headers:
+        {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+            "Content-type": "application/json"
+        },
+        type: "PUT",
+        data: JSON.stringify(routeUpdate),
+        dataType: "json"
+    })
+    .done (function(responseText)
+    {
+		let trail = responseText;
+
+		let anchorIndex = startSegment + index;
+		
+		let path = actualRoutePolyline.getPath ();
+
+		for (let i = 0; i < length; i++)
+		{
+			removePointsFromRoute (anchors[anchorIndex - 1], anchorIndex - 1);
+			removePointsFromRoute (anchors[anchorIndex], anchorIndex);
+
+			// Delete the anchor from the actual route and from the actual route polyline
+			actualRoute.splice(anchors[anchorIndex].actualRouteIndex, 1)
+			// update the anchor indexes into the actual trail now that we deleted some portion of the trail.
+			adjustAnchorRouteIndexes (anchorIndex + 1, -1);
+			path.removeAt(anchors[anchorIndex].actualRouteIndex);
+
+			anchors.splice (anchorIndex, 1);
+			
+			editPolyLine.getPath ().removeAt (index);
+			editedRoute.splice(index, 1);
+		}
+		
+		// Add in the points for the specified new trail between the anchors
+		if (trail != undefined)
+		{
+			addPointsToRoute (anchors[anchorIndex - 1], anchorIndex - 1, trail);
+		}
+    });
 }
 
 //function startRouteEdit (position)
@@ -701,22 +708,19 @@ function distToSegment(p, v, w)
 
 function displayLocation (object, position)
 {
-	var xmlhttp = new XMLHttpRequest ();
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && this.status == 200)
-		{
-			let elevation = JSON.parse(this.responseText);
+    $.ajax({
+        url: "/elevation?lat=" + position.lat () + "&lng=" + position.lng (),
+        type: "GET",
+        dataType: "json"
+    })
+    .done (function(responseText)
+    {
+		let elevation = responseText;
 
-			map.infoWindow.setContent ("<div>Lat: " + position.lat() + "</div><div>Lng: " + position.lng() + "</div><div>Elevation: " + metersToFeet(elevation) + "</div>");
-			map.infoWindow.setPosition (position);
-			map.infoWindow.open(map);
-		}
-	}
-	
-	xmlhttp.open("GET", "/elevation?lat=" + position.lat () + "&lng=" + position.lng (), true);
-	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	xmlhttp.send();
+		map.infoWindow.setContent ("<div>Lat: " + position.lat() + "</div><div>Lng: " + position.lng() + "</div><div>Elevation: " + metersToFeet(elevation) + "</div>");
+		map.infoWindow.setPosition (position);
+		map.infoWindow.open(map);
+    });
 }
 
 
@@ -781,42 +785,39 @@ let intersections = [];
 function showIntersections ()
 {
 	var trails = this;
-	
-	var xmlhttp = new XMLHttpRequest ();
-	xmlhttp.onreadystatechange = function ()
-	{
-		if (this.readyState == 4 && this.status == 200)
-		{
-			for (let i of intersections)
-			{
-				i.setMap(null);
-			}
-
-			intersections = [];
-			
-			let coords = JSON.parse(this.responseText);
-
-			for (let c of coords)
-			{
-				let coordinate = JSON.parse(c.coordinate);
-				
-				let marker = new google.maps.Marker({
-					position: {lat: coordinate.coordinates[1], lng: coordinate.coordinates[0]},
-					map: map,
-					icon: {
-						url: nodeUrl,
-					}
-				});
-				
-				intersections.push(marker);
-			}
-		}
-	}
-	
 	var bounds = map.getBounds ();
 
-	xmlhttp.open("GET", "map/intersections?b=" + bounds.toUrlValue(), true);
-	xmlhttp.send();
+    $.ajax({
+        url: "/map/intersections?b=" + bounds.toUrlValue(),
+        type: "GET",
+        dataType: "json"
+    })
+    .done (function(responseText)
+    {
+		for (let i of intersections)
+		{
+			i.setMap(null);
+		}
+
+		intersections = [];
+		
+		let coords = responseText;
+
+		for (let c of coords)
+		{
+			let coordinate = c.coordinate;
+			
+			let marker = new google.maps.Marker({
+				position: {lat: coordinate.coordinates[1], lng: coordinate.coordinates[0]},
+				map: map,
+				icon: {
+					url: nodeUrl,
+				}
+			});
+			
+			intersections.push(marker);
+		}
+    });
 }
 
 
@@ -853,7 +854,7 @@ function mapInitialize()
     {
         getTileUrl: function(coord, zoom)
         {
-            return "/hot/" + zoom + "/" + coord.x + "/" + coord.y + ".png";
+            return tileServerUrl + "/hot/" + zoom + "/" + coord.x + "/" + coord.y + ".png";
         },
         tileSize: new google.maps.Size(256, 256),
         name: "OpenStreetMap",

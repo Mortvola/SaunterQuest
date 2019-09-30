@@ -7,7 +7,7 @@
         <title>Backpacker's Planner</title>
 
         <!-- Scripts -->
-        <script src="{{ asset('js/jquery-3.3.1.slim.min.js') }}"></script>
+        <script src="{{ asset('js/jquery-3.4.1.min.js') }}"></script>
         <script src="{{ asset('js/popper-1.14.7.min.js') }}"></script>
         <script src="{{ asset('js/bootstrap-4.3.1.min.js') }}"></script>
         <script src="{{ asset('js/utilities.js') }}"></script>
@@ -403,37 +403,35 @@
 
             function submitForm (event, type, url, success)
             {
-                var xmlhttp = new XMLHttpRequest ();
-
-                xmlhttp.onreadystatechange = function ()
-                {
-                    if (this.readyState == 4)
+                $.ajax({
+                    url: url,
+                    headers:
                     {
-                        if (this.status == 200)
-                        {
-                            success (this.responseText);
-                        }
-                        else if (this.status == 422)
-                        {
-                            var response = JSON.parse(this.responseText);
+                        "Content-type": "application/x-www-form-urlencoded"
+                    },
+                    type: "POST",
+                    data: $('#' + type + 'Form').serialize (),
+                    dataType: "json"
+                })
+                .done (function(response)
+                {
+                    success(response);
+                })
+                .fail (function (xhr, status, errorThrown)
+            	{
+                    if (xhr.status == 422)
+                    {
+                        var response = xhr.responseJSON;
 
-                            displayErrors (response.errors.username, '#' + type + 'UsernameErrors');
-                            displayErrors (response.errors.email, '#' + type + 'EmailErrors');
-                            displayErrors (response.errors.password, '#' + type + 'PasswordErrors');
-                        }
-                        else if (this.status >= 400)
-                        {
-                            displayErrors (["An error occured. Please try again later."], '#' + type + 'GeneralErrors');
-                        }
+                        displayErrors (response.errors.username, '#' + type + 'UsernameErrors');
+                        displayErrors (response.errors.email, '#' + type + 'EmailErrors');
+                        displayErrors (response.errors.password, '#' + type + 'PasswordErrors');
                     }
-                }
-
-                var txt = $('#' + type + 'Form').serialize ();
-
-                xmlhttp.open("POST", url, true);
-                xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-                xmlhttp.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-                xmlhttp.send(txt);
+                    else
+                    {
+                        displayErrors (["An error occured. Please try again later."], '#' + type + 'GeneralErrors');
+                    }
+            	});
 
                 event.preventDefault();
             }
