@@ -2,8 +2,6 @@
 namespace App;
 require_once "utilities.php";
 
-$handle = null;
-
 function dump_node ($nodeIndex, $graph)
 {
     if (isset($nodeIndex))
@@ -610,8 +608,6 @@ function setupTerminusNode ($terminus, $type, $graph)
 
 function findRoute ($graph)
 {
-    global $handle;
-
     $foundEnd = false;
     $bestCost = null;
 
@@ -685,16 +681,6 @@ function findRoute ($graph)
                 }
             }
         }
-    }
-
-    if ($handle)
-    {
-        if (isset($nodeIndex))
-        {
-            fwrite($handle, $nodeIndex . " -> E;\n");
-        }
-
-        fwrite($handle, "edge [color=red]\n");
     }
 }
 
@@ -795,8 +781,6 @@ function generateAnchors ($graph)
 
 function findPath ($start, $end, $dumpGraph = false)
 {
-    global $handle;
-
     $startResult = Map::getTrailFromPoint($start);
 
     error_log("Start Information");
