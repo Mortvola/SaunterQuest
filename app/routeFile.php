@@ -1,96 +1,9 @@
 <?php
 use App\Map;
+use App\Route;
 
 require_once "coordinates.php";
 
-function trimRoute ($route, $startIndex, $endIndex)
-{
-    if (isset($route) && count($route) > 1)
-    {
-        // Remove the portions that are not between the indexes.
-
-        if ($startIndex < $endIndex)
-        {
-            array_splice($route, $endIndex + 1);
-            array_splice($route, 0, $startIndex);
-            $route = array_values($route);
-
-            return $route;
-        }
-        elseif ($startIndex > $endIndex)
-        {
-            array_splice($route, $startIndex + 1);
-            array_splice($route, 0, $endIndex);
-
-            error_log("new route length: " . count($route));
-
-            $route = array_reverse($route);
-            $route = array_values($route);
-
-            return $route;
-        }
-        else
-        {
-            return array (
-                $route[$startIndex]
-            );
-        }
-    }
-}
-
-function getFullTrailFromFile ($fileName, $trailName)
-{
-    $handle = fopen($fileName, "rb");
-
-    if ($handle)
-    {
-        $parts = explode(":", $trailName);
-
-        for (;;)
-        {
-            $jsonString = fgets($handle);
-
-            if (!$jsonString)
-            {
-                break;
-            }
-
-            $trail = json_decode($jsonString);
-
-            if (isset($trail) && isset($trail->routes))
-            {
-                if ($parts[0] == $trail->type && $parts[1] == $trail->cn)
-                {
-                    error_log("number of routes: " . count($trail->routes));
-
-                    if (isset($parts[2]))
-                    {
-                        return $trail->routes[$parts[2]]->route;
-                    }
-                    else
-                    {
-                        return $trail;
-                    }
-                }
-            }
-            else
-            {
-                error_log("No routes");
-            }
-        }
-
-        if (!isset($route))
-        {
-            error_log("Unable to find route in " . $fileName);
-        }
-
-        fclose($handle);
-    }
-    else
-    {
-        error_log("Unable to open file " . $fileName);
-    }
-}
 
 function getPath ($lineId, $startFraction, $endFraction)
 {
@@ -205,87 +118,47 @@ function getHikeFolder ($userHikeId)
     return base_path("data/" . $userHikeId . "/");
 }
 
-function getRouteFileName ($userHikeId)
+function getRouteFromFile ($anchors)
 {
-    return getHikeFolder($userHikeId) . "route.json";
-}
-
-function readAndSanitizeFile ($fileName)
-{
-    $segments = [ ];
-
-    if (file_exists($fileName))
+    if (isset($anchors) && count($anchors) > 0)
     {
-        $segments = json_decode(file_get_contents($fileName));
-
-        if ($segments == null)
+        for ($s = 0; $s < count($anchors) - 1; $s++)
         {
-            $segments = [ ];
-        }
-        else
-        {
-            // Ensure the array is not an object and is indexed numerically
-            if (!is_array($segments))
+            // If this segment and the next start on the same trail then
+            // find the route along the trail.
+            if (isset($anchors[$s]->next->line_id) && isset($anchors[$s + 1]->prev->line_id) &&
+                $anchors[$s]->next->line_id == $anchors[$s + 1]->prev->line_id &&
+                $anchors[$s]->next->fraction != $anchors[$s + 1]->prev->fraction)
             {
-                $objectVars = get_object_vars($segments);
+                error_log("Points on same trail: " . $anchors[$s]->next->line_id);
 
-                if ($objectVars)
-                {
-                    $segments = array_values($objectVars);
-                }
+                $trail = getPath($anchors[$s]->next->line_id, $anchors[$s]->next->fraction, $anchors[$s + 1]->prev->fraction);
+
+                // array_splice ($anchors, $s + 1, 0, $trail);
+                // $s += count($trail);
+                $anchors[$s]->trail = $trail;
+            }
+            else
+            {
+                error_log("prev: " . json_encode($anchors[$s]));
+                error_log("next: " . json_encode($anchors[$s + 1]));
             }
         }
-    }
 
-    return $segments;
-}
+        assignDistances($anchors, 0);
 
-function getRouteFromFile ($fileName)
-{
-    if (isset($fileName) && $fileName != "")
-    {
-        $segments = readAndSanitizeFile($fileName);
-
-        if (isset($segments))
-        {
-            for ($s = 0; $s < count($segments) - 1; $s++)
-            {
-                // If this segment and the next start on the same trail then
-                // find the route along the trail.
-                if (isset($segments[$s]->next->line_id) && isset($segments[$s + 1]->prev->line_id) &&
-                    $segments[$s]->next->line_id == $segments[$s + 1]->prev->line_id &&
-                    $segments[$s]->next->fraction != $segments[$s + 1]->prev->fraction)
-                {
-                    error_log("Points on same trail: " . $segments[$s]->next->line_id);
-
-                    $trail = getPath($segments[$s]->next->line_id, $segments[$s]->next->fraction, $segments[$s + 1]->prev->fraction);
-
-                    // array_splice ($segments, $s + 1, 0, $trail);
-                    // $s += count($trail);
-                    $segments[$s]->trail = $trail;
-                }
-                else
-                {
-                    error_log("prev: " . json_encode($segments[$s]));
-                    error_log("next: " . json_encode($segments[$s + 1]));
-                }
-            }
-
-            assignDistances($segments, 0);
-
-            return $segments;
-        }
+        return $anchors;
     }
 }
 
-function getRoutePointsFromUserHike ($userHikeId)
+function getRoutePointsFromUserHike ($hikeId)
 {
-    $fileName = getRouteFileName($userHikeId);
-    $route = getRouteFromFile($fileName);
+    $route = new Route($hikeId);
+    $path = $route->get ();
 
     $points = [ ];
 
-    foreach ($route as $r)
+    foreach ($path as $r)
     {
         array_push($points, $r);
 

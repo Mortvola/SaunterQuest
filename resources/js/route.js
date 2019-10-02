@@ -2,9 +2,52 @@
 "use strict";
 
 const startPointUrl = "https://maps.google.com/mapfiles/ms/micons/green-dot.png";
+const wayPointUrl = "https://maps.google.com/mapfiles/ms/micons/ltblue-dot.png";
 const endPointUrl = "https://maps.google.com/mapfiles/ms/micons/red-dot.png";
 
 const routeStrokeWeight = 6;
+
+
+function editWaypoint (object, position)
+{
+}
+
+function removeWaypoint (object, position, context)
+{
+	$.ajax({
+        url: userHikeId + "/route/waypoint/" + context.waypoint,
+        headers:
+        {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+        },
+        type: "DELETE"
+    })
+    .done (function()
+    {
+    	context.route.deleteWaypoint (context.waypoint);
+    	context.route.retrieve ();
+    });
+}
+
+
+function setWaypoint (position, id, route)
+{
+	$.ajax({
+        url: userHikeId + "/route/waypoint/" + id,
+        headers:
+        {
+            "Content-type": "application/json",
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+        },
+        type: "PUT",
+        data: JSON.stringify({lat: position.lat (), lng: position.lng ()}),
+    })
+    .done (function()
+    {
+    	route.retrieve ();
+    });
+}
+
 
 class Route
 {
@@ -14,12 +57,16 @@ class Route
 		this.bounds = {};
 		this.startOfTrailMarker = new StartOfTrailMarker (map, startPointUrl);
 		this.endOfTrailMarker = new EndOfTrailMarker (map, endPointUrl);
+		this.waypoints = [];
+		
+		this.wayPointCM = new ContextMenu ([
+			{title:"Edit Waypoint", func:editWaypoint},
+			{title:"Remove Waypoint", func:removeWaypoint}]);
+
 	}
 
 	setStart (position)
 	{
-		var route = this;
-		
 	    $.ajax({
 	        url: userHikeId + "/route/startPoint",
 	        headers:
@@ -29,19 +76,17 @@ class Route
 	        },
 	        type: "PUT",
 	        data: JSON.stringify({lat: position.lat (), lng: position.lng ()}),
-	        dataType: "json"
+	        context: this
 	    })
-	    .done (function(responseText)
+	    .done (function()
 	    {
-			route.retrieve ();
+			this.retrieve ();
 	    });
 	}
 
 
 	setEnd (position)
 	{
-		var route = this;
-		
 	    $.ajax({
 	        url: userHikeId + "/route/endPoint",
 	        headers:
@@ -51,13 +96,44 @@ class Route
 	        },
 	        type: "PUT",
 	        data: JSON.stringify({lat: position.lat (), lng: position.lng ()}),
-	        dataType: "json"
+	        context: this
 	    })
-	    .done (function(responseText)
+	    .done (function()
 	    {
-			route.retrieve ();
+			this.retrieve ();
 	    });
 	}
+	
+	addWaypoint (position)
+	{
+	    $.ajax({
+	        url: userHikeId + "/route/wayPoint",
+	        headers:
+	        {
+	            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+	            "Content-type": "application/json"
+	        },
+	        type: "POST",
+	        data: JSON.stringify({lat: position.lat (), lng: position.lng ()}),
+	        context: this
+	    })
+	    .done (function()
+	    {
+			this.retrieve ();
+	    });
+	}
+	
+	deleteWaypoint (id)
+	{
+		var index = this.waypoints.find(function(entry) { entry.id == id; });
+		
+		if (index > -1)
+		{
+			this.waypoints[index].removeMarker ();
+			this.waypoints.splice (index, 1);
+		}
+	}
+	
 
 	getLength ()
 	{
@@ -66,15 +142,14 @@ class Route
 	
 	retrieve ()
 	{
-		var route = this;
-
 	    $.get({
 	        url: userHikeId + "/route",
-	        dataType: "json"
+	        dataType: "json",
+	        context: this
 	    })
 	    .done (function(responseText)
 	    {
-			route.processResponse (responseText);
+			this.processResponse (responseText);
 	    });
 	}
 
@@ -116,6 +191,13 @@ class Route
 	{
 		this.actualRoute = [];
 		
+		for (let wp of this.waypoints)
+		{
+			wp.removeMarker ();
+		}
+		
+		this.waypoints = [];
+		
 		if (this.anchors.length > 1)
 		{
 			//
@@ -153,16 +235,25 @@ class Route
 					}
 				}
 
-				if (r > 0)
+				if (r > 0 && this.anchors[r].point.lat == this.anchors[r - 1].point.lat && this.anchors[r].point.lng == this.anchors[r - 1].point.lng)
 				{
-					if (this.anchors[r].point.lat == this.anchors[r - 1].point.lat && this.anchors[r].point.lng == this.anchors[r - 1].point.lng)
-					{
-						console.log ("same coordinate");
-					}
+					console.log ("same coordinate");
 				}
 				
 				this.actualRoute.push({lat: this.anchors[r].point.lat, lng: this.anchors[r].point.lng, dist: this.anchors[r].dist, ele: this.anchors[r].point.ele});
 				this.anchors[r].actualRouteIndex = this.actualRoute.length - 1;
+				
+				if (this.anchors[r].type !== undefined && this.anchors[r].type == "waypoint")
+				{
+					var waypoint = new TrailMarker (this.map, wayPointUrl);
+					waypoint.setPosition(this.anchors[r].point);
+					var route = this;
+					var index = this.waypoints.length;
+					waypoint.setDraggable (true, function (position) { setWaypoint (position, index, route); });
+					waypoint.setContextMenu(this.wayPointCM, {route: this, waypoint: index});
+					
+					this.waypoints.push(waypoint);
+				}
 				
 				if (this.anchors[r].trail != undefined && this.anchors[r].trail.length > 1)
 				{

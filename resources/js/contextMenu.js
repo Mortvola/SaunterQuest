@@ -38,23 +38,24 @@ function removeContextMenu (object)
 	}
 }
 
-function setContextMenu (object, contextMenu)
+function setContextMenu (object, contextMenu, context)
 {
 	removeContextMenu(object);
 
-	object.rightClickContextMenu = object.addListener ("rightclick", function(event) {contextMenu.open (map, event, object);});
-	object.clickContextMenu = object.addListener ("click", function(event) {if (controlDown) { contextMenu.open (map, event, object);}});
+	object.rightClickContextMenu = object.addListener ("rightclick", function(event) {contextMenu.open (map, event, object, context);});
+	object.clickContextMenu = object.addListener ("click", function(event) {if (controlDown) { contextMenu.open (map, event, object, context);}});
 }
 
 function initializeContextMenu ()
 {
 	ContextMenu.prototype = new google.maps.OverlayView ();
 
-	ContextMenu.prototype.open = function (map, event, object)
+	ContextMenu.prototype.open = function (map, event, object, context)
 	{
 		this.set('position', event.latLng);
 		this.set('vertex', event.vertex);
 		this.set('object', object);
+		this.set('context', context);
 		
 		this.setMap(map);
 		this.draw ();
@@ -115,18 +116,19 @@ function initializeContextMenu ()
 			// using the id as the parameter. Otherwise, use the
 			// location information as the parameter
 			var object = this.get('object');
+			var context = this.get('context');
 	
 			var vertex = this.get ('vertex');
 			
 			if (vertex != undefined)
 			{
-				itemFunction (object, vertex);
+				itemFunction (object, vertex, context);
 			}
 			else
 			{
 				var position = this.get('position');
 	
-				itemFunction(object, position);
+				itemFunction(object, position, context);
 			}
 	
 			this.close ();

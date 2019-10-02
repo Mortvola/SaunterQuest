@@ -102,6 +102,7 @@
                     <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#resupply" onclick="loadResupply()">Resupply</a></li>
                     <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#todoList">To-do</a></li>
                     <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#notes">Notes</a></li>
+                    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#waypoints">Waypoints</a></li>
                 </ul>
                 <div class="tab-content" style="overflow-y:scroll;width:100%;height:100%;">
                     <div id="schedule" class="tab-pane fade show active">
@@ -171,12 +172,48 @@
                             </tr>
                         </table>
                     </div>
+
                     <div id="notes" class="tab-pane fade">
+                    </div>
+
+                    <div id="waypoints" class="tab-pane fade">
+                        <div id='sortable'>
+                            <div data-item="0" draggable='true'>Test1</div>
+                            <div data-item="1" draggable='true'>Test2</div>
+                            <div data-item="2" draggable='true'>Test3</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <script>
+    $( "#sortable" ).sortable(
+    {
+        stop: function (event, ui)
+        {
+            var a = $('#sortable').sortable('toArray', {attribute: 'data-item'}).map(Number);
+
+            $.ajax({
+                url: userHikeId + "/route/waypoint",
+                headers:
+                {
+                    "Content-type": "application/json",
+                    "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+                },
+                type: "PUT",
+                data: JSON.stringify(a),
+            })
+            .done (function()
+            {
+            	route.retrieve ();
+            });
+            console.log(ui);
+        }
+    });
+    $( "#sortable" ).disableSelection();
+    </script>
 
     <script>
         var userHikeId = {{ $hikeId }};

@@ -22,7 +22,7 @@ class RouteController extends Controller
     {
         $route = new Route ($id);
 
-        return $route->get ();
+        return json_encode($route->get ());
     }
 
     public function put (Request $request)
@@ -84,6 +84,48 @@ class RouteController extends Controller
         $route = new Route($hikeId);
 
         $route->setEnd ($point);
+
+        $route->save ();
+    }
+
+    public function addWaypoint ($hikeId, Request $request)
+    {
+        $point = json_decode($request->getContent());
+
+        $route = new Route($hikeId);
+
+        $route->addWaypoint ($point);
+
+        $route->save ();
+    }
+
+    public function updateWaypoint ($hikeId, $waypointId, $request)
+    {
+        $point = json_decode($request->getContent());
+
+        $route = new Route($hikeId);
+
+        $route->updateWaypoint($waypointId, $point);
+
+        $route->save ();
+    }
+
+    public function deleteWaypoint ($hikeId, $waypointId)
+    {
+        $route = new Route($hikeId);
+
+        $route->deleteWaypoint($waypointId);
+
+        $route->save ();
+    }
+
+    public function updateWaypoints ($hikeId, Request $request)
+    {
+        $order = json_decode($request->getContent());
+
+        $route = new Route($hikeId);
+
+        $route->setWaypointOrder ($order);
 
         $route->save ();
     }

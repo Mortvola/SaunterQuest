@@ -779,6 +779,12 @@ function setEndLocation (object, position)
 }
 
 
+function addWaypoint (object, position)
+{
+	route.addWaypoint (position);
+}
+
+
 let intersections = [];
 
 function showIntersections ()
@@ -877,6 +883,7 @@ function mapInitialize()
 		{title:"Display Location", func:displayLocation},
 		{title:"Set Start Location", func:setStartLocation},
 		{title:"Set End Location", func:setEndLocation},
+		{title:"Add Waypoint", func:addWaypoint},
 		{title:"Show Intersections", func:showIntersections},
 	]);
 
@@ -886,6 +893,7 @@ function mapInitialize()
 		{title:"Display Location", func:displayLocation},
 		{title:"Set Start Location", func:setStartLocation},
 		{title:"Set End Location", func:setEndLocation},
+		{title:"Add Waypoint", func:addWaypoint},
 		{title:"Trail Information", func:displayTrailInfo},
 	]);
 
@@ -905,6 +913,7 @@ function mapInitialize()
 		{title: "Add Note", func: addNote},
 		{title:"Set Start Location", func:setStartLocation},
 		{title:"Set End Location", func:setEndLocation},
+		{title:"Add Waypoint", func:addWaypoint},
 	]);
 
 	vertexContextMenu = new ContextMenu ([

@@ -36,19 +36,19 @@ class TrailMarker
 		this.listener = null;
 	}
 	
-	setDraggable (draggable, listener)
+	setDraggable (draggable, listener, context)
 	{
 		if (draggable)
 		{
 			var trailMarker = this;
 			
 			this.dragListener = this.marker.addListener ("dragend", function ()
+			{
+				if (listener)
 				{
-					if (listener)
-					{
-						listener (trailMarker.marker.getPosition ());
-					}
-				});
+					listener (trailMarker.marker.getPosition (), context);
+				}
+			});
 		}
 		
 		this.marker.setDraggable(draggable);
@@ -79,6 +79,11 @@ class TrailMarker
 	{
 		return "<div>Mile: " + metersToMilesRounded(this.meters)
 			+ "</div><div>Elevation: " + metersToFeet(this.ele) + "\'</div>";
+	}
+	
+	setContextMenu (contextMenu, context)
+	{
+		setContextMenu (this.marker, contextMenu, context)
 	}
 }
 

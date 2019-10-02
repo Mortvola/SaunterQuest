@@ -55,6 +55,26 @@ Route::put('/hike/{hikeId}/route/endPoint', function ($hikeId, Request $request)
     return (new RouteController())->setEndPoint($hikeId, $request);
 });
 
+Route::post('/hike/{hikeId}/route/wayPoint', function ($hikeId, Request $request)
+{
+    return (new RouteController())->addWaypoint($hikeId, $request);
+});
+
+Route::put('/hike/{hikeId}/route/waypoint', function ($hikeId, Request $request)
+{
+    return (new RouteController())->updateWaypoints($hikeId, $request);
+});
+
+Route::put('/hike/{hikeId}/route/waypoint/{waypointId}', function ($hikeId, $waypointId, Request $request)
+{
+    return (new RouteController())->updateWaypoint($hikeId, $waypointId, $request);
+});
+
+Route::delete('/hike/{hikeId}/route/waypoint/{waypointId}', function ($hikeId, $waypointId)
+{
+    return (new RouteController())->deleteWaypoint($hikeId, $waypointId);
+});
+
 Route::get('/hike/{hikeId}/schedule', function ($hikeId)
 {
     return (new ScheduleController())->get($hikeId);

@@ -14,6 +14,7 @@
 	<script src="{{ asset('js/popper-1.14.7.min.js') }}"></script>
     <script src="{{ asset('js/bootstrap-4.3.1.min.js') }}"></script>
     <script src="{{ asset('js/utilities.js') }}"></script>
+    <script src="{{ asset('js/jquery-ui-1.12.1.js') }}"></script>
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
