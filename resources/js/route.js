@@ -1,8 +1,8 @@
 <script>
 "use strict";
 
-const startPointUrl = "http://maps.google.com/mapfiles/ms/micons/green-dot.png";
-const endPointUrl = "http://maps.google.com/mapfiles/ms/micons/red-dot.png";
+const startPointUrl = "https://maps.google.com/mapfiles/ms/micons/green-dot.png";
+const endPointUrl = "https://maps.google.com/mapfiles/ms/micons/red-dot.png";
 
 const routeStrokeWeight = 6;
 

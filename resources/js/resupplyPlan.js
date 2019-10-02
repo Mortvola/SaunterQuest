@@ -16,7 +16,7 @@
 	"use strict";
 	
 	var resupplyLocationCM = {};
-	var resupplyUrl = "http://maps.google.com/mapfiles/ms/micons/postoffice-us.png";
+	var resupplyUrl = "https://maps.google.com/mapfiles/ms/micons/postoffice-us.png";
 	
 	function loadResupply ()
 	{

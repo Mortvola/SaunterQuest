@@ -1,7 +1,7 @@
 <script>
 "use strict";
 
-var campUrl = "http://maps.google.com/mapfiles/ms/micons/campground.png";
+var campUrl = "https://maps.google.com/mapfiles/ms/micons/campground.png";
 
 class Schedule
 {

@@ -4,7 +4,7 @@
 const zoomDisplayThreshold = 10;
 const maxDetailedTiles = 16;
 
-const nodeUrl = "http://maps.google.com/mapfiles/ms/micons/yellow-dot.png";
+const nodeUrl = "https://maps.google.com/mapfiles/ms/micons/yellow-dot.png";
 
 class Trails
 {

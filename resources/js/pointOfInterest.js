@@ -1,6 +1,6 @@
 <script>
 var pointOfInterestCM = {};
-var pointOfInterestUrl = "http://maps.google.com/mapfiles/ms/micons/blue.png";
+var pointOfInterestUrl = "https://maps.google.com/mapfiles/ms/micons/blue.png";
 var pointsOfInterest = [];
 
 

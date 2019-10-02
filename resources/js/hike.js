@@ -23,7 +23,7 @@ var routeHighlighter;
 
 var editPolyLine = {};
 
-var junctionUrl = "http://maps.google.com/mapfiles/ms/micons/lightblue.png";
+var junctionUrl = "https://maps.google.com/mapfiles/ms/micons/lightblue.png";
 
 function timeFormat (t)
 {
