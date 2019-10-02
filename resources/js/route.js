@@ -30,36 +30,6 @@ function removeWaypoint (object, position, context)
 }
 
 
-function setWaypoint (position, id, route)
-{
-	$.ajax({
-        url: userHikeId + "/route/waypoint/" + id,
-        headers:
-        {
-            "Content-type": "application/json",
-            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
-        },
-        type: "PUT",
-        data: JSON.stringify({lat: position.lat (), lng: position.lng ()}),
-    })
-    .done (function()
-    {
-    	route.retrieve ();
-    });
-}
-
-function setStart (position, route)
-{
-    route.setStart (position);
-}
-
-
-function setEnd (position, route)
-{
-    route.setEnd (position);
-}
-
-
 class Route
 {
     constructor (map)
@@ -68,11 +38,10 @@ class Route
         this.bounds = {};
         
         this.startOfTrailMarker = new StartOfTrailMarker (map, startPointUrl);
-        var route = this;
-        this.startOfTrailMarker.setDraggable (true, function (position) { setStart (position, route); });
+        this.startOfTrailMarker.setDraggable (true, (position) => { this.setStart (position); });
         
         this.endOfTrailMarker = new EndOfTrailMarker (map, endPointUrl);
-        this.endOfTrailMarker.setDraggable (true, function (position) { setEnd (position, route); });
+        this.endOfTrailMarker.setDraggable (true, (position) => { this.setEnd (position); });
         
         this.waypoints = [];
         
@@ -119,35 +88,54 @@ class Route
 	    });
 	}
 	
-	addWaypoint (position)
-	{
-	    $.ajax({
-	        url: userHikeId + "/route/wayPoint",
-	        headers:
-	        {
-	            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
-	            "Content-type": "application/json"
-	        },
-	        type: "POST",
-	        data: JSON.stringify({lat: position.lat (), lng: position.lng ()}),
-	        context: this
-	    })
-	    .done (function()
-	    {
-			this.retrieve ();
-	    });
-	}
+    addWaypoint (position)
+    {
+        $.ajax({
+            url: userHikeId + "/route/wayPoint",
+            headers:
+            {
+                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+                "Content-type": "application/json"
+            },
+            type: "POST",
+            data: JSON.stringify({lat: position.lat (), lng: position.lng ()}),
+            context: this
+        })
+        .done (function()
+        {
+    		this.retrieve ();
+        });
+    }
 	
-	deleteWaypoint (id)
-	{
-		var index = this.waypoints.find(function(entry) { entry.id == id; });
-		
-		if (index > -1)
-		{
-			this.waypoints[index].removeMarker ();
-			this.waypoints.splice (index, 1);
-		}
-	}
+    updateWaypoint (position, id)
+    {
+        $.ajax({
+            url: userHikeId + "/route/waypoint/" + id,
+            headers:
+            {
+                "Content-type": "application/json",
+                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+            },
+            type: "PUT",
+            data: JSON.stringify({lat: position.lat (), lng: position.lng ()}),
+            context: this
+        })
+        .done (function()
+        {
+            this.retrieve ();
+        });
+    }
+
+    deleteWaypoint (id)
+    {
+        var index = this.waypoints.find(function(entry) { entry.id == id; });
+        
+        if (index > -1)
+        {
+            this.waypoints[index].removeMarker ();
+            this.waypoints.splice (index, 1);
+        }
+    }
 	
 
 	getLength ()
@@ -262,9 +250,8 @@ class Route
 				{
 					var waypoint = new TrailMarker (this.map, wayPointUrl);
 					waypoint.setPosition(this.anchors[r].point);
-					var route = this;
 					var index = this.waypoints.length;
-					waypoint.setDraggable (true, function (position) { setWaypoint (position, index, route); });
+					waypoint.setDraggable (true, (position) => { this.updateWaypoint (position, index); });
 					waypoint.setContextMenu(this.wayPointCM, {route: this, waypoint: index});
 					
 					this.waypoints.push(waypoint);
