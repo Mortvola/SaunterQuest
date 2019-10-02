@@ -32,129 +32,93 @@ Route::post('/hike', 'HikeController@post');
 
 Route::get('/hike/{hikeId}', function ($hikeId = null)
 {
-    $c = new HikeController();
-
-    return $c->get($hikeId);
+    return (new HikeController())->get($hikeId);
 });
 
 Route::delete('/hike/{hikeId}', function ($hikeId)
 {
-    $c = new HikeController();
-
-    return $c->delete($hikeId);
+    return (new HikeController())->delete($hikeId);
 });
 
 Route::get('/hike/{hikeId}/route', function ($hikeId)
 {
-    $r = new RouteController();
-
-    return $r->get($hikeId);
+    return (new RouteController())->get($hikeId);
 });
 
 Route::put('/hike/{hikeId}/route/startPoint', function ($hikeId, Request $request)
 {
-    $c = new RouteController();
-
-    return $c->setStartPoint($hikeId, $request);
+    return (new RouteController())->setStartPoint($hikeId, $request);
 });
 
 Route::put('/hike/{hikeId}/route/endPoint', function ($hikeId, Request $request)
 {
-    $c = new RouteController();
-
-    return $c->setEndPoint($hikeId, $request);
+    return (new RouteController())->setEndPoint($hikeId, $request);
 });
 
 Route::get('/hike/{hikeId}/schedule', function ($hikeId)
 {
-    $c = new ScheduleController();
-
-    return $c->get($hikeId);
+    return (new ScheduleController())->get($hikeId);
 });
 
 // Point of Interest operations
 Route::get('/hike/{hikeId}/pointOfInterest', function ($hikeId)
 {
-    $c = new PointOfInterestController();
-
-    return $c->get($hikeId);
+    return (new PointOfInterestController())->get($hikeId);
 });
 
 Route::post('/hike/{hikeId}/pointOfInterest', function ($hikeId, Request $request)
 {
-    $c = new PointOfInterestController();
-
-    return $c->post($hikeId, $request);
+    return (new PointOfInterestController())->post($hikeId, $request);
 });
 
 Route::put('/hike/{hikeId}/pointOfInterest/{poiId}', function ($hikeId, $poiId, Request $request)
 {
-    $c = new PointOfInterestController();
-
-    return $c->put($hikeId, $poiId, $request);
+    return (new PointOfInterestController())->put($hikeId, $poiId, $request);
 });
 
 Route::delete('/hike/{hikeId}/pointOfInterest/{poiId}', function ($hikeId, $poiId)
 {
-    $c = new PointOfInterestController();
-
-    return $c->delete($hikeId, $poiId);
+    return (new PointOfInterestController())->delete($hikeId, $poiId);
 });
 
 Route::get('/hike/{hikeId}/resupplyLocation', function ($hikeId)
 {
-    $c = new ResupplyLocationController();
-
-    return $c->get($hikeId);
+    return (new ResupplyLocationController())->get($hikeId);
 });
 
 Route::get('/hike/{hikeId}/hikerProfile', function ($hikeId)
 {
-    $c = new HikerProfileController();
-
-    return $c->get($hikeId);
+    return (new HikerProfileController())->get($hikeId);
 });
 
 Route::post('/hike/{hikeId}/hikerProfile', function ($hikeId, Request $request)
 {
-    $c = new HikerProfileController();
-
-    return $c->post($hikeId, $request);
+    return (new HikerProfileController())->post($hikeId, $request);
 });
 
 Route::put('/hike/{hikeId}/hikerProfile/{hikerProfileId}', function ($hikeId, $hikerProfileId, Request $request)
 {
-    $c = new HikerProfileController();
-
-    return $c->put($hikeId, $hikerProfileId, $request);
+    return (new HikerProfileController())->put($hikeId, $hikerProfileId, $request);
 });
 
 Route::delete('/hike/{hikeId}/hikerProfile/{hikerProfileId}', function ($hikeId, $hikerProfileId)
 {
-    $c = new HikerProfileController();
-
-    return $c->delete($hikeId, $hikerProfileId);
+    return (new HikerProfileController())->delete($hikeId, $hikerProfileId);
 });
 
 Route::get('/hike/{hikeId}/trailCondition', function ($hikeId)
 {
-    $c = new TrailConditionController();
-
-    return $c->get($hikeId);
+    return (new TrailConditionController())->get($hikeId);
 });
 
 Route::get('/hike/{hikeId}/resupplyPlan', function ($hikeId)
 {
-    $c = new ResupplyPlanController();
-
-    return $c->get($hikeId);
+    return (new ResupplyPlanController())->get($hikeId);
 });
 
 Route::get('/hike/{hikeId}/export', function ($hikeId, Request $request)
 {
-    $c = new ExportController();
-
-    return $c->get($hikeId, $request);
+    return (new ExportController())->get($hikeId, $request);
 });
 
 Route::get('/elevation', 'ElevationController@get');

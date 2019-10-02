@@ -34,21 +34,18 @@ Artisan::command('trail:get {bounds}', function ($bounds) {
 })->describe('Gets the trails within the bounds provided (Top Lat, Left Lon, Right Lat, Bottom Lon)');
 
 
-Artisan::command('userRoute:get {userHikeId}', function ($userHikeId) {
-    $this->info(Route::get($userHikeId));
-})->describe('Gets the route specified by the provided userHikeId');
+Artisan::command('userRoute:get {hikeId}', function ($hikeId) {
+    $this->info(json_encode((new Route($hikeId))->get()));
+})->describe('Gets the route specified by the provided hike ID');
 
 
 Artisan::command('export:get {userId} {userHikeId} {maxSegmentPoints} {maxDistance}', function ($userId, $userHikeId, $maxSegmentPoints, $maxDistance) {
-    $export = new Export ($userId, $userHikeId, $maxSegmentPoints, $maxDistance);
-    $this->info($export->get());
+    $this->info((new Export ($userId, $userHikeId, $maxSegmentPoints, $maxDistance))->get());
 })->describe('Exports the plan for the hike specified by the provided userHikeId');
 
 
 Artisan::command('hikeSchedule:get {userId} {userHikeId}', function ($userId, $userHikeId) {
-    $schedule = new Schedule ($userId, $userHikeId);
-
-    $days = $schedule->get();
+    $days = (new Schedule ($userId, $userHikeId))->get();
     $this->info(json_encode($days));
 })->describe('Gets the sechedule for the route specified by the provided userId and userHikeId');
 
