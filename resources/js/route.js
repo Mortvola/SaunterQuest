@@ -48,42 +48,57 @@ function setWaypoint (position, id, route)
     });
 }
 
+function setStart (position, route)
+{
+    route.setStart (position);
+}
+
+
+function setEnd (position, route)
+{
+    route.setEnd (position);
+}
+
 
 class Route
 {
-	constructor (map)
-	{
-		this.map = map;
-		this.bounds = {};
-		this.startOfTrailMarker = new StartOfTrailMarker (map, startPointUrl);
-		this.endOfTrailMarker = new EndOfTrailMarker (map, endPointUrl);
-		this.waypoints = [];
-		
-		this.wayPointCM = new ContextMenu ([
-			{title:"Edit Waypoint", func:editWaypoint},
-			{title:"Remove Waypoint", func:removeWaypoint}]);
+    constructor (map)
+    {
+        this.map = map;
+        this.bounds = {};
+        
+        this.startOfTrailMarker = new StartOfTrailMarker (map, startPointUrl);
+        var route = this;
+        this.startOfTrailMarker.setDraggable (true, function (position) { setStart (position, route); });
+        
+        this.endOfTrailMarker = new EndOfTrailMarker (map, endPointUrl);
+        this.endOfTrailMarker.setDraggable (true, function (position) { setEnd (position, route); });
+        
+        this.waypoints = [];
+        
+        this.wayPointCM = new ContextMenu ([
+            {title:"Edit Waypoint", func:editWaypoint},
+            {title:"Remove Waypoint", func:removeWaypoint}]);
+    }
 
-	}
-
-	setStart (position)
-	{
-	    $.ajax({
-	        url: userHikeId + "/route/startPoint",
-	        headers:
-	        {
-	            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
-	            "Content-type": "application/json"
-	        },
-	        type: "PUT",
-	        data: JSON.stringify({lat: position.lat (), lng: position.lng ()}),
-	        context: this
-	    })
-	    .done (function()
-	    {
-			this.retrieve ();
-	    });
-	}
-
+    setStart (position)
+    {
+        $.ajax({
+            url: userHikeId + "/route/startPoint",
+            headers:
+            {
+                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+                "Content-type": "application/json"
+            },
+            type: "PUT",
+            data: JSON.stringify({lat: position.lat (), lng: position.lng ()}),
+            context: this
+        })
+        .done (function()
+        {
+    		this.retrieve ();
+        });
+    }
 
 	setEnd (position)
 	{

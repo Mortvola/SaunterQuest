@@ -109,15 +109,7 @@ class Route
                 $endIndex = count($this->anchors) - 1;
             }
 
-            if (isset($startIndex) && isset($endIndex))
-            {
-                $newSegments = findPath($this->anchors[$startIndex]->point, $this->anchors[$endIndex]->point);
-
-                if (isset($newSegments) && count($newSegments) > 0)
-                {
-                    $this->anchors = $newSegments;
-                }
-            }
+            $this->findRoute ();
         }
     }
 
@@ -181,15 +173,7 @@ class Route
                 $endIndex = count($this->anchors) - 1;
             }
 
-            if (isset($startIndex) && isset($endIndex))
-            {
-                $newSegments = findPath($this->anchors[$startIndex]->point, $this->anchors[$endIndex]->point);
-
-                if (isset($newSegments) && count($newSegments) > 0)
-                {
-                    $this->anchors = $newSegments;
-                }
-            }
+            $this->findRoute ();
         }
     }
 
