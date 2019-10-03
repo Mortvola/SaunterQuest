@@ -927,6 +927,8 @@ function mapInitialize()
 	route = new Route(map);
 	schedule = new Schedule (map);
 	
+	route.addWaypointChangedSignal (updateWaypointList);
+	
 	route.retrieve ();
 	schedule.retrieve ();
 

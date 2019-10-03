@@ -136,25 +136,29 @@ class Route
             this.waypoints.splice (index, 1);
         }
     }
-	
 
-	getLength ()
-	{
-		return this.actualRoute.length;
-	}
-	
-	retrieve ()
-	{
-	    $.get({
-	        url: userHikeId + "/route",
-	        dataType: "json",
-	        context: this
-	    })
-	    .done (function(responseText)
-	    {
-			this.processResponse (responseText);
-	    });
-	}
+    getLength ()
+    {
+        return this.actualRoute.length;
+    }
+    
+    addWaypointChangedSignal (f)
+    {
+        this.waypointChanged = f;
+    }
+
+    retrieve ()
+    {
+        $.get({
+            url: userHikeId + "/route",
+            dataType: "json",
+            context: this
+        })
+        .done (function(responseText)
+        {
+    		this.processResponse (responseText);
+        });
+    }
 
 	processResponse (responseText)
 	{
@@ -249,6 +253,7 @@ class Route
 				if (this.anchors[r].type !== undefined && this.anchors[r].type == "waypoint")
 				{
 					var waypoint = new TrailMarker (this.map, wayPointUrl);
+					waypoint.id = this.anchors[r].id;
 					waypoint.setPosition(this.anchors[r].point);
 					var index = this.waypoints.length;
 					waypoint.setDraggable (true, (position) => { this.updateWaypoint (position, index); });
@@ -271,6 +276,8 @@ class Route
 				}
 			}
 		}
+		
+		this.waypointChanged(this.waypoints);
 	}
 	
 	

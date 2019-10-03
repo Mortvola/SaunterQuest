@@ -213,6 +213,19 @@
         }
     });
     $( "#sortable" ).disableSelection();
+
+    function updateWaypointList(waypoints)
+    {
+        var txt = "";
+
+        for (let w of waypoints)
+        {
+            txt += "<div data-item=\"" + w.id + "\" draggable='true'>Waypoint " + w.id + "</div>";
+        }
+
+        $('#sortable').html(txt);
+    }
+
     </script>
 
     <script>
