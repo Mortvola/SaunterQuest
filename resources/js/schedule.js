@@ -1,8 +1,6 @@
 <script>
 "use strict";
 
-var campUrl = "https://maps.google.com/mapfiles/ms/micons/campground.png";
-
 class Schedule
 {
 	constructor (map)
@@ -102,7 +100,7 @@ class Schedule
 					// Add a day marker, if needed.
 					if (d - 1 >= this.dayMarkers.length)
 					{
-						this.dayMarkers.push(new EndOfDayMarker(this.map, campUrl));
+						this.dayMarkers.push(new EndOfDayMarker(this.map, endOfDayUrl));
 					}
 	
 					this.dayMarkers[d - 1].setDay (d, this.days[d]);
