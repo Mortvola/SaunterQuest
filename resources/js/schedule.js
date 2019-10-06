@@ -136,11 +136,11 @@ class Schedule
 	{
 		if (d < this.days.length - 1)
 		{
-			positionMapToBounds (this.map, this.days[d], this.days[d+1]);
+			positionMapToBounds (this.map, this.days[d].point, this.days[d+1].point);
 		}
 		else
 		{
-			positionMapToBounds (this.map, this.days[d], {lat: this.days[d].endLat, lng: this.days[d].endLng});
+			positionMapToBounds (this.map, this.days[d].point, {lat: this.days[d].endLat, lng: this.days[d].endLng});
 		}
 
 	}

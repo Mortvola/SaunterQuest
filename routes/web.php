@@ -55,19 +55,24 @@ Route::put('/hike/{hikeId}/route/endPoint', function ($hikeId, Request $request)
     return (new RouteController())->setEndPoint($hikeId, $request);
 });
 
-Route::post('/hike/{hikeId}/route/wayPoint', function ($hikeId, Request $request)
+Route::post('/hike/{hikeId}/route/waypoint', function ($hikeId, Request $request)
 {
     return (new RouteController())->addWaypoint($hikeId, $request);
 });
 
-Route::put('/hike/{hikeId}/route/waypoint', function ($hikeId, Request $request)
+Route::put('/hike/{hikeId}/route/waypoint/order', function ($hikeId, Request $request)
 {
     return (new RouteController())->updateWaypoints($hikeId, $request);
 });
 
-Route::put('/hike/{hikeId}/route/waypoint/{waypointId}', function ($hikeId, $waypointId, Request $request)
+Route::put('/hike/{hikeId}/route/waypoint/{waypointId}/position', function ($hikeId, $waypointId, Request $request)
 {
-    return (new RouteController())->updateWaypoint($hikeId, $waypointId, $request);
+    return (new RouteController())->updateWaypointPosition ($hikeId, $waypointId, $request);
+});
+
+Route::put('/hike/{hikeId}/route/waypoint/{waypointId}/details', function ($hikeId, $waypointId, Request $request)
+{
+    return (new RouteController())->updateWaypointDetails($hikeId, $waypointId, $request);
 });
 
 Route::delete('/hike/{hikeId}/route/waypoint/{waypointId}', function ($hikeId, $waypointId)

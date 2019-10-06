@@ -8,28 +8,6 @@ const endPointUrl = "https://maps.google.com/mapfiles/ms/micons/red-dot.png";
 const routeStrokeWeight = 6;
 
 
-function editWaypoint (object, position)
-{
-}
-
-function removeWaypoint (object, position, context)
-{
-	$.ajax({
-        url: userHikeId + "/route/waypoint/" + context.waypoint,
-        headers:
-        {
-            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
-        },
-        type: "DELETE"
-    })
-    .done (function()
-    {
-    	context.route.deleteWaypoint (context.waypoint);
-    	context.route.retrieve ();
-    });
-}
-
-
 class Route
 {
     constructor (map)
@@ -38,16 +16,17 @@ class Route
         this.bounds = {};
         
         this.startOfTrailMarker = new StartOfTrailMarker (map, startPointUrl);
-        this.startOfTrailMarker.setDraggable (true, (position) => { this.setStart (position); });
+        this.startOfTrailMarker.setDraggable (true, (marker) => { this.setStart (marker.getPosition ()); });
         
         this.endOfTrailMarker = new EndOfTrailMarker (map, endPointUrl);
-        this.endOfTrailMarker.setDraggable (true, (position) => { this.setEnd (position); });
+        this.endOfTrailMarker.setDraggable (true, (marker) => { this.setEnd (marker.getPosition ()); });
         
         this.waypoints = [];
         
         this.wayPointCM = new ContextMenu ([
-            {title:"Edit Waypoint", func:editWaypoint},
-            {title:"Remove Waypoint", func:removeWaypoint}]);
+            {title:"Edit Waypoint", func: (object, position, context) => { this.editWaypoint(context);} },
+            {title:"Remove Waypoint", func: (object, position, context) => { this.removeWaypoint (context); }}
+        ]);
     }
 
     setStart (position)
@@ -91,7 +70,7 @@ class Route
     addWaypoint (position)
     {
         $.ajax({
-            url: userHikeId + "/route/wayPoint",
+            url: userHikeId + "/route/waypoint",
             headers:
             {
                 "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
@@ -107,17 +86,17 @@ class Route
         });
     }
 	
-    updateWaypoint (position, id)
+    updateWaypoint (marker)
     {
         $.ajax({
-            url: userHikeId + "/route/waypoint/" + id,
+            url: userHikeId + "/route/waypoint/" + marker.id + "/position",
             headers:
             {
                 "Content-type": "application/json",
                 "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
             },
             type: "PUT",
-            data: JSON.stringify({lat: position.lat (), lng: position.lng ()}),
+            data: JSON.stringify({lat: marker.getPosition().lat (), lng: marker.getPosition().lng ()}),
             context: this
         })
         .done (function()
@@ -126,16 +105,122 @@ class Route
         });
     }
 
-    deleteWaypoint (id)
+    editWaypoint (marker)
     {
-        var index = this.waypoints.find(function(entry) { entry.id == id; });
+        // Set the form back to the original state
+        $("#waypointForm")[0].reset ();
+        $("#waypointForm > [data-constraint]").removeAttr('data-id');
         
-        if (index > -1)
+        // Look for and populate any time constraint fields in the form.
+        for (let constraint of marker.timeConstraints)
         {
-            this.waypoints[index].removeMarker ();
-            this.waypoints.splice (index, 1);
+            $("#waypointForm > [data-constraint='" + constraint.type + "']").val(constraint.time);
+            $("#waypointForm > [data-constraint='" + constraint.type + "']").attr('data-id', constraint.id);
         }
+        
+        $("#waypointForm").off('submit');
+        $("#waypointForm").submit(function (event)
+        {
+            event.preventDefault();
+            
+            var details = objectifyForm($('#waypointForm').serializeArray ());
+            
+            details.timeConstraints = [];
+            
+            $("#waypointForm > [data-constraint]").each (function ()
+                {
+                    var id = null;
+                    var idAttr = this.attributes.getNamedItem('data-id');
+                    
+                    if (idAttr !== null)
+                    {
+                        id = parseInt(idAttr.value);
+                    }
+                    
+                    var time = parseInt(this.value);
+
+                    if (isNaN(time))
+                    {
+                        time = null;
+                    }
+                    
+                    details.timeConstraints.push(
+                        {
+                            id: id,
+                            type: this.attributes.getNamedItem('data-constraint').value,
+                            time: time
+                        });
+                });
+            
+            $.ajax({
+                url: userHikeId + "/route/waypoint/" + marker.id + "/details",
+                headers:
+                {
+                    "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+                },
+                type: "PUT",
+                contentType: "application/json",
+                data: JSON.stringify(details),
+            })
+            .done (function()
+            {
+                marker.name = details.name;
+                marker.timeConstraints = details.timeConstraints;
+            });
+            
+            $("#waypointDialog").modal ('hide');
+        });
+        $("#waypointDialog").modal ('show');
     }
+
+    removeWaypoint (marker)
+    {
+        $.ajax({
+            url: userHikeId + "/route/waypoint/" + marker.id,
+            headers:
+            {
+                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+            },
+            type: "DELETE",
+            context: this
+        })
+        .done (function()
+        {
+            var index = this.waypoints.findIndex(function(entry) { return entry.id == marker.id; });
+            
+            if (index > -1)
+            {
+                this.waypoints[index].removeMarker ();
+                this.waypoints.splice (index, 1);
+            }
+
+            this.retrieve ();
+        });
+    }
+
+    setWaypointOrder (order)
+    {
+        // prepend the ID of the start waypoint 
+        // append the ID of the end waypoint.
+        order.splice (0, 0, this.anchors[0].id);
+        order.splice (order.length, 0, this.anchors[this.anchors.length - 1].id);
+        
+        $.ajax({
+            url: userHikeId + "/route/waypoint/order",
+            headers:
+            {
+                "Content-type": "application/json",
+                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+            },
+            type: "PUT",
+            data: JSON.stringify(order),
+        })
+        .done (function()
+        {
+            route.retrieve ();
+        });
+    }
+    
 
     getLength ()
     {
@@ -169,12 +254,12 @@ class Route
 			//
 			// Add start of trail marker
 			//
-			this.startOfTrailMarker.setPosition(this.anchors[0].point);
+			this.startOfTrailMarker.setPosition(this.anchors[0]);
 
 			//
 			// Add end of trail marker
 			//
-			this.endOfTrailMarker.setPosition(this.anchors[this.anchors.length - 1].point);
+			this.endOfTrailMarker.setPosition(this.anchors[this.anchors.length - 1]);
 		}
 		
 		if (this.anchors.length > 1)
@@ -197,13 +282,8 @@ class Route
 	load ()
 	{
 		this.actualRoute = [];
-		
-		for (let wp of this.waypoints)
-		{
-			wp.removeMarker ();
-		}
-		
-		this.waypoints = [];
+
+		var newWaypoints = [];
 		
 		if (this.anchors.length > 1)
 		{
@@ -214,57 +294,73 @@ class Route
 			{
 				if (r == 0)
 				{
-					this.bounds.east = this.anchors[r].point.lng;
-					this.bounds.west = this.anchors[r].point.lng;
-					this.bounds.north = this.anchors[r].point.lat;
-					this.bounds.south = this.anchors[r].point.lat;
+					this.bounds.east = this.anchors[r].lng;
+					this.bounds.west = this.anchors[r].lng;
+					this.bounds.north = this.anchors[r].lat;
+					this.bounds.south = this.anchors[r].lat;
 				}
 				else
 				{
-					if (this.anchors[r].point.lng > this.bounds.east)
+					if (this.anchors[r].lng > this.bounds.east)
 					{
-						this.bounds.east = this.anchors[r].point.lng;
+						this.bounds.east = this.anchors[r].lng;
 					}
 
-					if (this.anchors[r].point.lng < this.bounds.west)
+					if (this.anchors[r].lng < this.bounds.west)
 					{
-						this.bounds.west = this.anchors[r].point.lng;
+						this.bounds.west = this.anchors[r].lng;
 					}
 					
-					if (this.anchors[r].point.lat > this.bounds.north)
+					if (this.anchors[r].lat > this.bounds.north)
 					{
-						this.bounds.north = this.anchors[r].point.lat;
+						this.bounds.north = this.anchors[r].lat;
 					}
 
-					if (this.anchors[r].point.lat < this.bounds.south)
+					if (this.anchors[r].lat < this.bounds.south)
 					{
-						this.bounds.south = this.anchors[r].point.lat;
+						this.bounds.south = this.anchors[r].lat;
 					}
 				}
 
-				if (r > 0 && this.anchors[r].point.lat == this.anchors[r - 1].point.lat && this.anchors[r].point.lng == this.anchors[r - 1].point.lng)
+				if (r > 0 && this.anchors[r].lat == this.anchors[r - 1].lat && this.anchors[r].lng == this.anchors[r - 1].lng)
 				{
 					console.log ("same coordinate");
 				}
 				
-				this.actualRoute.push({lat: this.anchors[r].point.lat, lng: this.anchors[r].point.lng, dist: this.anchors[r].dist, ele: this.anchors[r].point.ele});
+				this.actualRoute.push({lat: this.anchors[r].lat, lng: this.anchors[r].lng, dist: this.anchors[r].dist, ele: this.anchors[r].ele});
 				this.anchors[r].actualRouteIndex = this.actualRoute.length - 1;
 				
 				if (this.anchors[r].type !== undefined && this.anchors[r].type == "waypoint")
 				{
-					var waypoint = new TrailMarker (this.map, wayPointUrl);
-					waypoint.id = this.anchors[r].id;
-					waypoint.setPosition(this.anchors[r].point);
-					var index = this.waypoints.length;
-					waypoint.setDraggable (true, (position) => { this.updateWaypoint (position, index); });
-					waypoint.setContextMenu(this.wayPointCM, {route: this, waypoint: index});
+				    var waypoint = undefined;
+				    
+				    if (this.waypoints.length > 0)
+				    {
+				        var waypointIndex = this.waypoints.findIndex( (w) => { return w.id == this.anchors[r].id; });
+				        
+				        if (waypointIndex > -1)
+				        {
+	                        waypoint = this.waypoints.splice (waypointIndex, 1)[0];
+				        }
+				    }
+				    
+				    if (waypoint === undefined)
+				    {
+	                    waypoint = new TrailMarker (this.map, wayPointUrl);
+	                    waypoint.id = this.anchors[r].id;
+	                    waypoint.setDraggable (true, (marker) => { this.updateWaypoint (marker); });
+	                    waypoint.setContextMenu(this.wayPointCM);
+	                    waypoint.timeConstraints = this.anchors[r].time_constraints;
+				    }
+				    
+					waypoint.setPosition(this.anchors[r]);
 					
-					this.waypoints.push(waypoint);
+					newWaypoints.push(waypoint);
 				}
 				
 				if (this.anchors[r].trail != undefined && this.anchors[r].trail.length > 1)
 				{
-					if (this.anchors[r].lat == this.anchors[r].trail[0].lat && this.anchors[r].point.lng == this.anchors[r].trail[0].point.lng)
+					if (this.anchors[r].lat == this.anchors[r].trail[0].lat && this.anchors[r].lng == this.anchors[r].trail[0].point.lng)
 					{
 						console.log ("same coordinate");
 					}
@@ -277,6 +373,12 @@ class Route
 			}
 		}
 		
+		for (let w of this.waypoints)
+		{
+		    w.removeMarker();
+		}
+		
+		this.waypoints = newWaypoints;
 		this.waypointChanged(this.waypoints);
 	}
 	
@@ -465,4 +567,5 @@ class Route
 		return distance;
 	}
 }
+
 </script>

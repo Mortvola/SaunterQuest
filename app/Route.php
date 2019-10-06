@@ -1,408 +1,580 @@
 <?php
 namespace App;
+use Illuminate\Database\Eloquent\Collection;
+use ArrayAccess;
 require_once app_path('routeFile.php');
 require_once app_path('routeFind.php');
 
-class Route
+class Route implements ArrayAccess
 {
-    private $hikeId;
-    private $anchors;
-    private $segments;
 
-    public function __construct ($hikeId)
+    private $hikeId;
+
+    private $anchors;
+
+    private const MAX_ORDER = 100000;
+
+    public function __construct ($hikeId, $loadRelationships = false)
     {
         $this->hikeId = $hikeId;
+        $this->loadAnchors();
+
+        if ($loadRelationships)
+        {
+            $this->getTrailPoints();
+            $this->anchors->load('timeConstraints');
+        }
+    }
+
+    public function save ()
+    {
+        foreach ($this->anchors as $anchor)
+        {
+            $anchor->save();
+        }
+    }
+
+    public function offsetSet ($offset, $value)
+    {
+        if (is_null($offset))
+        {
+            $this->anchors[] = $value;
+        }
+        else
+        {
+            $this->anchors[$offset] = $value;
+        }
+    }
+
+    public function offsetExists ($offset)
+    {
+        return isset($this->anchors[$offset]);
+    }
+
+    public function offsetUnset ($offset)
+    {
+        unset($this->anchors[$offset]);
+    }
+
+    public function offsetGet ($offset)
+    {
+        return isset($this->anchors[$offset]) ? $this->anchors[$offset] : null;
     }
 
     public function get ()
     {
-        if (!isset($this->segments))
-        {
-            $this->load ();
-        }
+        $this->getTrailPoints();
 
-        return $this->segments;
+        $this->anchors->load('timeConstraints');
+
+        return $this->anchors; // ->values ();
+    }
+
+    public function anchorCount ()
+    {
+        return $this->anchors->count();
     }
 
     public function getDistance ()
     {
-        if (!isset($this->segments))
-        {
-            $this->load ();
-        }
+        $anchor = $this->anchors->last();
 
-        if (count($this->segments) > 0)
+        if ($anchor !== null)
         {
-            return $this->segments[count($this->segments) - 1]->dist;
+            $this->getTrailPoints();
+
+            return $anchor->dist;
         }
 
         return 0;
     }
 
-    public function load ()
-    {
-        $this->loadAnchors ();
-        $this->segments = getRouteFromFile($this->anchors);
-
-        if ($this->segments == null)
-        {
-            $this->segments = [ ];
-        }
-    }
-
     public function setStart ($point)
     {
-        if (!isset($this->anchors))
-        {
-            $this->loadAnchors();
-        }
+        $anchor = $this->anchors->first();
 
-        if (count($this->anchors) == 0)
+        if ($anchor == null || $anchor->type != 'start')
         {
-            array_push($this->anchors,
-                (object)[
-                    "point" => $point,
-                    "dist" => 0,
-                    "ele" => getElevation($point->lat, $point->lng),
-                    "type" => "start"
-                ]);
+            $routePoint = new RoutePoint();
+
+            $routePoint->type = "start";
+            $routePoint->lat = $point->lat;
+            $routePoint->lng = $point->lng;
+            $routePoint->hike_id = $this->hikeId;
+
+            $routePoint->order = $this->getSortOrder (-1, 0);
+
+            $this->anchors->prepend($routePoint);
         }
         else
         {
-            // Find "start" and "end"
-            for ($i = 0; $i < count($this->anchors); $i++)
-            {
-                if (isset($this->anchors[$i]->type))
-                {
-                    if ($this->anchors[$i]->type == "end")
-                    {
-                        $endIndex = $i;
-                    }
-                    elseif ($this->anchors[$i]->type == "start")
-                    {
-                        $startIndex = $i;
-                    }
-                }
-            }
+            $anchor->lat = $point->lat;
+            $anchor->lng = $point->lng;
+        }
 
-            if (isset($startIndex))
-            {
-                // Start exists, update it.
+        $nextAnchorIndex = $this->findNextAnchorIndex(0);
 
-                $this->anchors[$startIndex]->point = $point;
-                $this->anchors[$startIndex]->dist = 0;
-                $this->anchors[$startIndex]->ele = getElevation($point->lat, $point->lng);
-            }
-            else
-            {
-                // Start doesn't exist, add it
-
-                array_splice($this->anchors, 0, 0,
-                    array((object)[
-                        "point" => $point,
-                        "dist" => 0,
-                        "ele" => getElevation($point->lat, $point->lng),
-                        "type" => "start"
-                    ]));
-
-                $startIndex = 0;
-                $endIndex = count($this->anchors) - 1;
-            }
-
-            $this->findRoute ();
+        if (isset($nextAnchorIndex))
+        {
+            $this->findRouteBetweenAnchors(0, $nextAnchorIndex);
         }
     }
 
     public function setEnd ($point)
     {
-        if (!isset($this->anchors))
-        {
-            $this->load();
-        }
+        $anchor = $this->anchors->last();
 
-        if (count($this->anchors) == 0)
+        if ($anchor == null || $anchor->type != 'end')
         {
-            array_push($this->anchors,
-                (object)[
-                    "point" => $point,
-                    "dist" => 0,
-                    "ele" => getElevation($point->lat, $point->lng),
-                    "type" => "end"
-                ]);
+            $routePoint = new RoutePoint();
+
+            $routePoint->type = "end";
+            $routePoint->lat = $point->lat;
+            $routePoint->lng = $point->lng;
+            $routePoint->hike_id = $this->hikeId;
+
+            $routePoint->order = $this->getSortOrder ($this->anchors->count () -1, $this->anchors->count ());
+
+            $this->anchors->push($routePoint);
         }
         else
         {
-            // Find "start" and "end"
-            for ($i = 0; $i < count($this->anchors); $i++)
-            {
-                if (isset($this->anchors[$i]->type))
-                {
-                    if ($this->anchors[$i]->type == "end")
-                    {
-                        $endIndex = $i;
+            $anchor->lat = $point->lat;
+            $anchor->lng = $point->lng;
+        }
 
-                        break;
-                    }
-                    elseif ($this->anchors[$i]->type == "start")
-                    {
-                        $startIndex = $i;
-                    }
-                }
-            }
+        $prevAnchorIndex = $this->findPrevAnchorIndex($this->anchors->count() - 1);
 
-            if (isset($endIndex))
-            {
-                // End exists, update it.
-
-                $this->anchors[$endIndex]->point = $point;
-                $this->anchors[$endIndex]->dist = 0;
-                $this->anchors[$endIndex]->ele = getElevation($point->lat, $point->lng);
-            }
-            else
-            {
-                // End doesn't exist, add it
-
-                array_push($this->anchors,
-                    (object)[
-                        "point" => $point,
-                        "dist" => 0,
-                        "ele" => getElevation($point->lat, $point->lng),
-                        "type" => "end"
-                    ]);
-
-                $endIndex = count($this->anchors) - 1;
-            }
-
-            $this->findRoute ();
+        if (isset($prevAnchorIndex))
+        {
+            $this->findRouteBetweenAnchors($prevAnchorIndex, $this->anchors->count() - 1);
         }
     }
-
 
     public function addWaypoint ($point)
     {
-        if (!isset($this->anchors))
-        {
-            $this->loadAnchors();
-        }
+        // For now, find the start (should be first anchor)
+        // and add the waypoint after it.
+        // todo: improve insertion of anchor in collection
 
-        $anchors = [];
+        $prevAnchorIndex = $this->findNearestAnchor ($point);
+        $nextAnchorIndex = $this->findNextAnchorIndex($prevAnchorIndex);
 
-        foreach ($this->anchors as $anchor)
-        {
-            if (isset($anchor->type) && in_array($anchor->type, ['start', 'waypoint', 'end']))
-            {
-                $anchors[] = $anchor;
-            }
-        }
+        $routePoint = new RoutePoint();
 
-        $newAnchor = (object)[
-                "point" => $point,
-                "dist" => 0,
-                "ele" => getElevation($point->lat, $point->lng),
-                "type" => "waypoint"
-            ];
+        $routePoint->type = "waypoint";
+        $routePoint->lat = $point->lat;
+        $routePoint->lng = $point->lng;
+        $routePoint->hike_id = $this->hikeId;
 
-        array_splice ($anchors, 1, 0, array($newAnchor));
+        $routePoint->order = $this->getSortOrder($prevAnchorIndex, $nextAnchorIndex);
 
-        $this->getRouteFromAnchors ($anchors);
+        $waypointIndex = $prevAnchorIndex + 1;
+        $this->anchors->splice($waypointIndex, 0, array (
+            $routePoint
+        ));
+
+        // Increment the next anchor index because the insertion of the waypoint
+        // into the collection
+        $nextAnchorIndex++;
+
+        // The route after the waypoint needs to be found first because the
+        // index
+        // of the anchor will change.
+        $this->findRouteBetweenAnchors($waypointIndex, $nextAnchorIndex);
+        $this->findRouteBetweenAnchors($prevAnchorIndex, $waypointIndex);
     }
 
-    public function updateWaypoint ($waypointId, $point)
+    public function updateWaypointPosition ($waypointId, $point)
     {
-        if (!isset($this->anchors))
+        $waypointIndex = $this->findAnchorIndexById($waypointId);
+
+        if (isset($waypointIndex))
         {
-            $this->loadAnchors();
+            $this->anchors[$waypointIndex]->lat = $point->lat;
+            $this->anchors[$waypointIndex]->lng = $point->lng;
+
+            $prevAnchorIndex = $this->findPrevAnchorIndex($waypointIndex);
+            $nextAnchorIndex = $this->findNextAnchorIndex($waypointIndex);
+
+            // The route after the waypoint needs to be found first because the
+            // index
+            // of the anchor will change.
+            $this->findRouteBetweenAnchors($waypointIndex, $nextAnchorIndex);
+            $this->findRouteBetweenAnchors($prevAnchorIndex, $waypointIndex);
         }
+    }
 
-        $anchors = [];
+    public function updateWaypointDetails ($waypointId, $details)
+    {
+        $waypointIndex = $this->findAnchorIndexById($waypointId);
 
-        foreach ($this->anchors as $anchor)
+        if (isset($waypointIndex))
         {
-            if (isset($anchor->type) &&
-                in_array($anchor->type, ['start', 'waypoint', 'end']))
+            $waypoint = $this->anchors[$waypointIndex];
+
+            foreach ($details->timeConstraints as $constraint)
             {
-                if (isset($anchor->id) && $anchor->id == $waypointId)
+                if (isset($constraint->id) && $constraint->id !== null)
                 {
-                    $anchor->point = $point;
+                    $timeConstraint = $waypoint->timeConstraints->find($constraint->id);
+
+                    $timeConstraint->type = $constraint->type;
+                    $timeConstraint->time = $constraint->time;
+                }
+                else
+                {
+                    $timeConstraint = new PointOfInterestConstraint;
+
+                    $timeConstraint->type = $constraint->type;
+                    $timeConstraint->time = $constraint->time;
                 }
 
-                $anchors[] = $anchor;
+                $waypoint->timeConstraints()->save ($timeConstraint);
             }
         }
-
-        $this->getRouteFromAnchors ($anchors);
     }
 
     public function deleteWaypoint ($waypointId)
     {
-        if (!isset($this->anchors))
+        $waypointIndex = $this->findAnchorIndexById($waypointId);
+
+        if (isset($waypointIndex))
         {
-            $this->loadAnchors();
+            $prevAnchorIndex = $this->findPrevAnchorIndex($waypointIndex);
+
+            // Delete the anchor
+            $this->anchors[$waypointIndex]->delete();
+            $this->anchors->splice($waypointIndex, 1);
+
+            $nextAnchorIndex = $this->findNextAnchorIndex($prevAnchorIndex);
+
+            $this->findRouteBetweenAnchors($prevAnchorIndex, $nextAnchorIndex);
         }
-
-        $anchors = [];
-
-        foreach ($this->anchors as $anchor)
-        {
-            if (isset($anchor->type) &&
-                in_array($anchor->type, ['start', 'waypoint', 'end']) &&
-                (!isset($anchor->id) || $anchor->id != $waypointId))
-            {
-                $anchors[] = $anchor;
-            }
-        }
-
-        $this->getRouteFromAnchors ($anchors);
     }
 
     public function setWaypointOrder ($order)
     {
-        if (!isset($this->anchors))
-        {
-            $this->loadAnchors();
-        }
+        $prevAnchorIndex = -1;
 
-        $anchors = [];
-
-        foreach ($this->anchors as $anchor)
+        for ($i = 0; $i < count($order); $i++)
         {
-            if (isset($anchor->type))
+            $nextAnchorIndex = $this->findNextAnchorIndex($prevAnchorIndex);
+
+            if ($order[$i] != $this->anchors[$nextAnchorIndex]->id)
             {
-                if ($anchor->type == 'start')
+                $anchorIndex = $this->findAnchorIndexById($order[$i]);
+
+                // Since we are going to pull out the anchor we need to
+                // mark its previous anchor so that it re-find's the route.
+                $prevAnchorIndex2 = $this->findPrevAnchorIndex($anchorIndex);
+                if (isset($prevAnchorIndex2))
                 {
-                    $anchor->sortKey = -1;
-                }
-                elseif ($anchor->type == 'waypoint')
-                {
-                    $anchor->sortKey = array_search ($anchor->id, $order);
-                }
-                else if ($anchor->type == 'end')
-                {
-                    $anchor->sortKey = PHP_INT_MAX;
+                    $this->anchors[$prevAnchorIndex2]->findRoute = true;
                 }
 
-                $anchors[] = $anchor;
-            }
-        }
+                // Remove the anchor from its current location and
+                // re-insert it at the new location.
+                $anchor = $this->anchors->splice($anchorIndex, 1)[0];
+                $this->anchors->splice($nextAnchorIndex, 0, array (
+                    $anchor
+                ));
 
-        usort($anchors, function ($a, $b)
-        {
-            return $a->sortKey - $b->sortKey;
-        });
+                $anchor->order = $this->getSortOrder ($prevAnchorIndex, $nextAnchorIndex + 1);
 
-        $this->getRouteFromAnchors ($anchors);
-    }
+                $anchor->findRoute = true;
 
-    public function getRouteFromAnchors ($anchors)
-    {
-        if (count($anchors) >= 2)
-        {
-            $finalAnchors = [];
-            $wayPointId = 0;
-
-            for ($i = 0; $i < count($anchors) - 1; $i++)
-            {
-                $newAnchors = findPath($anchors[$i]->point, $anchors[$i + 1]->point);
-
-                error_log("New Anchors: " . json_encode($newAnchors));
-
-                if (count($finalAnchors) == 0)
+                if ($prevAnchorIndex != -1)
                 {
-                    array_splice ($finalAnchors, 0, 0, $newAnchors);
-                }
-                else
-                {
-                    $newAnchors[0]->type = "waypoint";
-                    if (isset($anchors[$i]->id))
-                    {
-                        $newAnchors[0]->id = $anchors[$i]->id;
-                    }
-                    else
-                    {
-                        $newAnchors[0]->id = $wayPointId++;
-                    }
-
-                    $newAnchors[0]->prev = $finalAnchors[count($finalAnchors) - 1]->prev;
-                    array_splice ($finalAnchors, count($finalAnchors) - 1, 1, $newAnchors);
+                    $this->anchors[$prevAnchorIndex]->findRoute = true;
                 }
             }
 
-            $this->anchors = $finalAnchors;
+            $prevAnchorIndex = $nextAnchorIndex;
+        }
 
-            error_log('Final Anchors: ' . json_encode($this->anchors));
+        $anchorIndex = 0;
+
+        for (;;)
+        {
+            $nextAnchorIndex = $this->findNextAnchorIndex($anchorIndex);
+
+            if (!isset($nextAnchorIndex))
+            {
+                break;
+            }
+
+            if ($this->anchors[$anchorIndex]->findRoute)
+            {
+                $this->findRouteBetweenAnchors($anchorIndex, $nextAnchorIndex);
+
+                // We need to find the next anchor index again as it may have
+                // changed with the deletions or insertions of 'soft' anchors.
+                $nextAnchorIndex = $this->findNextAnchorIndex($anchorIndex);
+
+                unset($this->anchors[$anchorIndex]->findRoute);
+            }
+
+            $anchorIndex = $nextAnchorIndex;
         }
     }
 
     public function findRoute ($dumpGraph = false)
     {
-        if (!isset($this->anchors))
+        for (;;)
         {
-            $this->loadAnchors();
-        }
+            $nextAnchorIndex = $this->findNextAnchorIndex($prevAnchorIndex);
 
-        $anchors = [];
-
-        foreach ($this->anchors as $anchor)
-        {
-            if (isset($anchor->type) &&
-                in_array($anchor->type, ['start', 'waypoint', 'end']))
+            if (!isset($nextAnchorIndex))
             {
-                $anchors[] = $anchor;
+                break;
             }
-        }
 
-        $this->getRouteFromAnchors ($anchors);
+            $this->findRouteBetweenAnchors($prevAnchorIndex, $nextAnchorIndex);
+
+            $prevAnchorIndex = $nextAnchorIndex;
+        }
     }
 
-    public function save ()
+    private function findRouteBetweenAnchors ($anchor1Index, $anchor2Index)
     {
-        $folder = getHikeFolder ($this->hikeId);
+        $anchor1 = $this->anchors[$anchor1Index];
+        $anchor2 = $this->anchors[$anchor2Index];
 
-        if (!file_exists($folder))
+        if (isset($anchor1) && isset($anchor2))
         {
-            mkdir($folder);
-        }
+            $newAnchors = findPath($anchor1, $anchor2);
 
-        // Write the data to the file.
-        $fileName = $this->getRouteFileName($this->hikeId);
-        file_put_contents($fileName, json_encode($this->anchors));
-    }
+            error_log('new anchor count: ' . count($newAnchors));
 
-    public function loadAnchors ()
-    {
-        $fileName = $this->getRouteFileName($this->hikeId);
-
-        $this->anchors = [ ];
-
-        if (file_exists($fileName))
-        {
-            $this->anchors = json_decode(file_get_contents($fileName));
-
-            if ($this->anchors == null)
+            if (isset($newAnchors) && count($newAnchors) >= 2)
             {
-                $this->anchors = [ ];
-            }
-            else
-            {
-                // Ensure the array is not an object and is indexed numerically
-                if (!is_array($this->anchors))
+                // Delete 'soft' anchors between the two anchors
+                for ($i = $anchor1Index + 1; $i < $anchor2Index; $i++)
                 {
-                    $objectVars = get_object_vars($this->anchors);
+                    $this->anchors[$i]->delete();
+                }
 
-                    if ($this->anchors)
+                $this->anchors->splice($anchor1Index + 1, $anchor2Index - $anchor1Index - 1);
+
+                $anchor1->lat = $newAnchors[0]->point->lat;
+                $anchor1->lng = $newAnchors[0]->point->lng;
+
+                if (isset($newAnchors[0]->prev))
+                {
+                    $anchor1->prev_line_id = $newAnchors[0]->prev->line_id;
+                    $anchor1->prev_fraction = $newAnchors[0]->prev->fraction;
+                }
+
+                if (isset($newAnchors[0]->next))
+                {
+                    $anchor1->next_line_id = $newAnchors[0]->next->line_id;
+                    $anchor1->next_fraction = $newAnchors[0]->next->fraction;
+                }
+
+                for ($i = 1; $i < count($newAnchors) - 1; $i++)
+                {
+                    $routePoint = new RoutePoint();
+
+                    $routePoint->lat = $newAnchors[$i]->point->lat;
+                    $routePoint->lng = $newAnchors[$i]->point->lng;
+
+                    if (isset($newAnchors[$i]->prev))
                     {
-                        $this->anchors = array_values($objectVars);
+                        $routePoint->prev_line_id = $newAnchors[$i]->prev->line_id;
+                        $routePoint->prev_fraction = $newAnchors[$i]->prev->fraction;
                     }
+
+                    if (isset($newAnchors[$i]->next))
+                    {
+                        $routePoint->next_line_id = $newAnchors[$i]->next->line_id;
+                        $routePoint->next_fraction = $newAnchors[$i]->next->fraction;
+                    }
+
+                    $routePoint->hike_id = $this->hikeId;
+
+                    $routePoint->order = $this->getSortOrder ($anchor1Index + $i - 1, $anchor1Index + $i);
+
+                    $this->anchors->splice($anchor1Index + $i, 0, array (
+                        $routePoint
+                    ));
+                }
+
+                $anchor2->lat = $newAnchors[count($newAnchors) - 1]->point->lat;
+                $anchor2->lng = $newAnchors[count($newAnchors) - 1]->point->lng;
+
+                if (isset($newAnchors[count($newAnchors) - 1]->prev))
+                {
+                    $anchor2->prev_line_id = $newAnchors[count($newAnchors) - 1]->prev->line_id;
+                    $anchor2->prev_fraction = $newAnchors[count($newAnchors) - 1]->prev->fraction;
+                }
+
+                if (isset($newAnchors[count($newAnchors) - 1]->next))
+                {
+                    $anchor2->next_line_id = $newAnchors[count($newAnchors) - 1]->next->line_id;
+                    $anchor2->next_fraction = $newAnchors[count($newAnchors) - 1]->next->fraction;
+                }
+
+                $this->anchors = $this->anchors->values();
+            }
+        }
+    }
+
+    private function findNextAnchorIndex ($startIndex)
+    {
+        if ($this->anchors->count() >= 2)
+        {
+            for ($i = $startIndex + 1; $i < $this->anchors->count(); $i++)
+            {
+                if (isset($this->anchors[$i]->type))
+                {
+                    return $i;
                 }
             }
         }
     }
 
-    private function getRouteFileName ($hikeId)
+    private function findPrevAnchorIndex ($startIndex)
     {
-        return getHikeFolder($hikeId) . "route.json";
+        if ($this->anchors->count() >= 2)
+        {
+            for ($i = $startIndex - 1; $i >= 0; $i--)
+            {
+                if (isset($this->anchors[$i]->type))
+                {
+                    return $i;
+                }
+            }
+        }
     }
 
+    private function findAnchorIndexById ($id)
+    {
+        for ($i = 0; $i < $this->anchors->count(); $i++)
+        {
+            if ($this->anchors[$i]->id == $id)
+            {
+                return $i;
+            }
+        }
+    }
 
+    private function loadAnchors ()
+    {
+        $this->anchors = RoutePoint::where('hike_id', $this->hikeId)->get()
+            ->sortBy('order')
+            ->values();
+    }
 
+    private function getTrailPoints ()
+    {
+        for ($s = 0; $s < $this->anchors->count() - 1; $s++)
+        {
+            // If this segment and the next start on the same trail then
+            // find the route along the trail.
+            if (isset($this->anchors[$s]->next_line_id) && isset($this->anchors[$s + 1]->prev_line_id) &&
+                $this->anchors[$s]->next_line_id == $this->anchors[$s + 1]->prev_line_id &&
+                $this->anchors[$s]->next_fraction != $this->anchors[$s + 1]->prev_fraction)
+            {
+                $trail = getPath($this->anchors[$s]->next_line_id, $this->anchors[$s]->next_fraction, $this->anchors[$s + 1]->prev_fraction);
+
+                // array_splice ($this->anchors, $s + 1, 0, $trail);
+                // $s += count($trail);
+                $this->anchors[$s]->trail = $trail;
+            }
+            else
+            {
+                error_log("next: " . json_encode($this->anchors[$s]));
+                error_log("prev: " . json_encode($this->anchors[$s + 1]));
+            }
+        }
+
+        assignDistances($this->anchors);
+    }
+
+    private function getSortOrder ($prevAnchorIndex, $nextAnchorIndex)
+    {
+        for ($i = 0; $i < 2; $i++)
+        {
+            if ($prevAnchorIndex < 0 || $this->anchors->count () == 0)
+            {
+                $prevOrder = 0;
+            }
+            else
+            {
+                $prevOrder = $this->anchors[$prevAnchorIndex]->order;
+            }
+
+            if ($nextAnchorIndex >= $this->anchors->count ())
+            {
+                $nextOrder = Route::MAX_ORDER;
+            }
+            else
+            {
+                $nextOrder = $this->anchors[$nextAnchorIndex]->order;
+            }
+
+            $order = $prevOrder + intval(($nextOrder - $prevOrder) / 2);
+
+            if (($prevAnchorIndex >= 0 && $order == $this->anchors[$prevAnchorIndex]->order)
+                || ($nextAnchorIndex < $this->anchors->count() && $order == $this->anchors[$nextAnchorIndex]->order))
+            {
+                $this->updateSortOrder ();
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return $order;
+    }
+
+    private function updateSortOrder ()
+    {
+        $valuePerAnchor = intval(Route::MAX_ORDER / $this->anchors->count());
+
+        foreach ($this->anchors as $anchor)
+        {
+            if (isset($prevAnchor))
+            {
+                $anchor->order = $prevAnchor->order + $valuePerAnchor;
+            }
+            else
+            {
+                $anchor->order = $valuePerAnchor;
+            }
+
+            $prevAnchor = $anchor;
+        }
+    }
+
+    private function findNearestAnchor ($point)
+    {
+        for ($i = 0; $i < $this->anchors->count () - 1; $i++)
+        {
+            $anchor = $this->anchors[$i];
+
+            if (isset($anchor->type))
+            {
+                $anchorIndex = $i;
+            }
+
+            if (isset($anchor->trail))
+            {
+                list($s, $distance) = nearestSegmentFind($point->lat, $point->lng, $anchor->trail);
+
+                if ($s > -1 && (!isset($closestDistance) || $distance < $closestDistance))
+                {
+                    $closestDistance = $distance;
+                    $closestAnchorIndex = $anchorIndex;
+                }
+            }
+        }
+
+        if (isset ($closestAnchorIndex))
+        {
+            return $closestAnchorIndex;
+        }
+    }
 }

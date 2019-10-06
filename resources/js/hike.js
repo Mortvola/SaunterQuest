@@ -25,10 +25,12 @@ var editPolyLine = {};
 
 var junctionUrl = "https://maps.google.com/mapfiles/ms/micons/lightblue.png";
 
+// Format time
+// Parameter t is in minutes from midnight
 function timeFormat (t)
 {
-	let h = Math.floor(t);
-	let m = Math.floor(((t * 60) % 60));
+	let h = Math.floor(t / 60.0);
+	let m = Math.floor((t % 60));
 
 	let formattedTime = "";
 	
@@ -936,7 +938,6 @@ function mapInitialize()
 	retrieveResupplyLocations ();
 	retrieveHikerProfiles (); //todo: only do this when visiting the tab of hiker profiles
 } 
-
 
 </script>
 

@@ -1,20 +1,22 @@
 <?php
-
 namespace App;
-
 require_once app_path('routeFile.php');
 require_once app_path('calculate.php');
 
 use bpp\Day;
 use App\HikerProfile;
 
-
 class Schedule
 {
+
     private $userId;
+
     private $hikeId;
-    private $days = [];
+
+    private $days = [ ];
+
     private $currentDay = -1;
+
     private $hikerProfiles;
 
     public function __construct ($userId, $hikeId)
@@ -22,16 +24,16 @@ class Schedule
         $this->userId = $userId;
         $this->hikeId = $hikeId;
 
-        $this->hikerProfiles = HikerProfile::where('hike_id', $hikeId)->get ();
+        $this->hikerProfiles = HikerProfile::where('hike_id', $hikeId)->get();
     }
 
     public function get ()
     {
-        $points = getRoutePointsFromUserHike($this->hikeId);
+        $route = new Route($this->hikeId, true);
 
-        if (count($points) >= 2)
+        if ($route->anchorCount() >= 2)
         {
-            \bpp\getSchedule($this, $this->userId, $this->hikeId, $points);
+            \bpp\getSchedule($this, $this->userId, $this->hikeId, $route);
 
             $this->storeSchedule();
 
@@ -41,11 +43,11 @@ class Schedule
 
     public function getDuration ()
     {
-        $points = getRoutePointsFromUserHike($this->hikeId);
+        $route = new Route($this->hikeId, true);
 
-        if (count($points) >= 2)
+        if ($route->anchorCount() >= 2)
         {
-            \bpp\getSchedule($this, $this->userId, $this->hikeId, $points);
+            \bpp\getSchedule($this, $this->userId, $this->hikeId, $route);
 
             return count($this->days);
         }
@@ -60,7 +62,8 @@ class Schedule
 
     public function dayGet ($d)
     {
-        if (!isset($this->days[$d])) {
+        if (!isset($this->days[$d]))
+        {
             $this->days[$d] = new Day();
         }
 
@@ -69,7 +72,7 @@ class Schedule
 
     public function currentDayGet ()
     {
-        return $this->dayGet ($this->currentDay);
+        return $this->dayGet($this->currentDay);
     }
 
     public function currentDayIndexGet ()
@@ -84,55 +87,56 @@ class Schedule
 
     public function previousDayTotalMetersGet ()
     {
-        if (isset ($this->days[$this->currentDay - 1]))
+        if (isset($this->days[$this->currentDay - 1]))
         {
-            return $this->days[$this->currentDay - 1]->totalMetersGet ();
+            return $this->days[$this->currentDay - 1]->totalMetersGet();
         }
 
         return 0;
     }
 
-    public function activeHikerProfileGet()
+    public function activeHikerProfileGet ()
     {
-        $hikerProfile = (object)[];
+        $hikerProfile = (object)[ ];
 
         $hikerProfile->speedFactor = 100;
-        $hikerProfile->startTime = 8;
-        $hikerProfile->endTime = 19;
-        $hikerProfile->breakDuration = 1;
+        $hikerProfile->startTime = 8 * 60;
+        $hikerProfile->endTime = 19 * 60;
+        $hikerProfile->breakDuration = 1 * 60;
 
-        foreach ($this->hikerProfiles as $profile) {
-            if ((!isset($profile->startDay) || $this->currentDay >= $profile->startDay)
-                    && (!isset($profile->endDay) || $this->currentDay <= $profile->endDay)) {
-                        if (isset($profile->speedFactor)) {
-                            $hikerProfile->speedFactor = $profile->speedFactor;
-                        }
+        foreach ($this->hikerProfiles as $profile)
+        {
+            if ((!isset($profile->startDay) || $this->currentDay >= $profile->startDay) && (!isset($profile->endDay) || $this->currentDay <= $profile->endDay))
+            {
+                if (isset($profile->speedFactor))
+                {
+                    $hikerProfile->speedFactor = $profile->speedFactor;
+                }
 
-                        if (isset($profile->startTime)) {
-                            $hikerProfile->startTime = $profile->startTime;
-                        }
+                if (isset($profile->startTime))
+                {
+                    $hikerProfile->startTime = $profile->startTime;
+                }
 
-                        if (isset($profile->endTime)) {
-                            $hikerProfile->endTime = $profile->endTime;
-                        }
+                if (isset($profile->endTime))
+                {
+                    $hikerProfile->endTime = $profile->endTime;
+                }
 
-                        if (isset($profile->breakDuration)) {
-                            $hikerProfile->breakDuration = $profile->breakDuration;
-                        }
-                    }
+                if (isset($profile->breakDuration))
+                {
+                    $hikerProfile->breakDuration = $profile->breakDuration;
+                }
+            }
         }
 
         return $hikerProfile;
     }
 
-
-    private function storeSchedule()
+    private function storeSchedule ()
     {
-        $fileName = getHikeFolder($this->hikeId) . "schedule.json";
+        // $fileName = getHikeFolder($this->hikeId) . "schedule.json";
 
-        file_put_contents($fileName, json_encode($this->days));
+        // file_put_contents($fileName, json_encode($this->days));
     }
-
-
-
 }

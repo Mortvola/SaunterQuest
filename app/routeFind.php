@@ -2,52 +2,6 @@
 namespace App;
 require_once "utilities.php";
 
-function dump_node ($nodeIndex, $graph)
-{
-    if (isset($nodeIndex))
-    {
-        error_log("---------------");
-        error_log("Node Index: " . $nodeIndex);
-
-        $node = $graph->nodes[$nodeIndex];
-
-        error_log("Number of edges: " . count($node->edges));
-
-        for ($i = 0; $i < count($node->edges); $i++)
-        {
-            $edge = $graph->edges[$node->edges[$i]];
-
-            if (!isset($edge->start_node))
-            {
-                error_log("edge index: " . $node->edges[$i] . ", route " . $edge->cn . " to no node. " . (isset($edge->visited) ? "Visited" : ""));
-            }
-            elseif ($edge->start_node != $nodeIndex)
-            {
-                error_log(
-                    "edge index: " . $node->edges[$i] . ", route " . $edge->cn . " to " . $edge->start_node . ". " .
-                    (isset($edge->visited) ? "Visited" : ""));
-            }
-
-            if (!isset($edge->end_node))
-            {
-                error_log("edge index: " . $node->edges[$i] . ", route " . $edge->cn . " to no node. " . (isset($edge->visited) ? "Visited" : ""));
-            }
-            elseif ($edge->end_node != $nodeIndex)
-            {
-                error_log(
-                    "edge index: " . $node->edges[$i] . ", route " . $edge->cn . " to " . $edge->end_node . ". " .
-                    (isset($edge->visited) ? "Visited" : ""));
-            }
-
-            if (!isset($edge->end_node) && !isset($edge->start_node))
-            {
-                error_log("edge index: " . $node->edges[$i] . ", no route");
-            }
-        }
-        error_log("---------------");
-    }
-}
-
 
 function dumpEdges ($graph)
 {
@@ -260,7 +214,7 @@ function addNewAnchor (&$newAnchors, $anchor)
     if (count($newAnchors) == 0)
     {
         $newAnchors[] = $anchor;
-        error_log(json_encode($newAnchors));
+//        error_log(json_encode($newAnchors));
     }
     elseif ($anchor->point->lat != $newAnchors[0]->point->lat || $anchor->point->lng != $newAnchors[0]->point->lng)
     {
@@ -279,11 +233,11 @@ function addNewAnchor (&$newAnchors, $anchor)
                 $newAnchors[0]->next->fraction > $newAnchors[1]->prev->fraction) ||
                 ($anchor->next->fraction < $newAnchors[0]->prev->fraction && $newAnchors[0]->next->fraction < $newAnchors[1]->prev->fraction)))
         {
-            error_log("Replacing " . json_encode($newAnchors[0]));
-            error_log("with " . json_encode($anchor));
+//             error_log("Replacing " . json_encode($newAnchors[0]));
+//             error_log("with " . json_encode($anchor));
 
             $newAnchors[0] = $anchor;
-            error_log(json_encode($newAnchors));
+//            error_log(json_encode($newAnchors));
         }
         else
         {
@@ -291,7 +245,7 @@ function addNewAnchor (&$newAnchors, $anchor)
             array_splice($newAnchors, 0, 0, array (
                 $anchor
             ));
-            error_log(json_encode($newAnchors));
+//             error_log(json_encode($newAnchors));
         }
     }
 }
@@ -323,8 +277,8 @@ function traverseEdge ($edgeIndex, $fromNodeIndex, $bestCost, $graph, &$nodes)
 
         if (!isset($edge))
         {
-            error_log("edge index: " . $edgeIndex);
-            error_log("number of edges: " . count($graph->edges));
+//             error_log("edge index: " . $edgeIndex);
+//             error_log("number of edges: " . count($graph->edges));
         }
 
         $nextNodeIndex = getOtherNodeIndex($edge, $fromNodeIndex);
@@ -365,7 +319,7 @@ function traverseEdge ($edgeIndex, $fromNodeIndex, $bestCost, $graph, &$nodes)
 
                 if (isset($nextNode->type) && $nextNode->type == "end")
                 {
-                    error_log("Found end");
+//                     error_log("Found end");
                     $prevNode->prior = true;
                     $foundEnd = true;
                 }
@@ -635,7 +589,7 @@ function findRoute ($graph)
             return 0;
         });
 
-        error_log ("Node queue:");
+//         error_log ("Node queue:");
         foreach ($nodes as $node)
         {
             $msg = "index: " . $node->index;
@@ -650,10 +604,10 @@ function findRoute ($graph)
             }
             $msg .= "}";
 
-            error_log ("\t" . $msg);
+//             error_log ("\t" . $msg);
         }
 
-        error_log ("End of Node queue");
+//         error_log ("End of Node queue");
 
 //         error_log("current node queue:");
 //         var_dump($nodes);
@@ -693,7 +647,7 @@ function generateAnchors ($graph)
     while (isset($nodeIndex))
     {
         $node = $graph->nodes[$nodeIndex];
-        error_log("node index: " . $nodeIndex);
+//         error_log("node index: " . $nodeIndex);
 
         $anchor = (object)[ ];
 
@@ -722,7 +676,7 @@ function generateAnchors ($graph)
         if (isset($node->bestEdge))
         {
             $edge = $graph->edges[$node->bestEdge];
-            error_log("edge index : " . $node->bestEdge);
+//             error_log("edge index : " . $node->bestEdge);
 
             $anchor->prev = (object)[ ];
             $anchor->prev->line_id = $edge->line_id;
@@ -751,7 +705,7 @@ function generateAnchors ($graph)
             // No best edge from this node? Are we at the start node?
             unset($nodeIndex);
 
-            error_log ("reached last node");
+//             error_log ("reached last node");
 
             if ($node->type == "start")
             {
@@ -770,7 +724,8 @@ function generateAnchors ($graph)
     // and end anchors were not tagged correctly then
     // assume there was an error and clear out all anchors.
     if (count($newAnchors) < 2 ||
-        ($newAnchors[0]->type != "start" && $newAnchors[count($newAnchors) - 1]->type != "end"))
+        ((!isset($newAnchors[0]->type) || $newAnchors[0]->type != "start") &&
+        (!isset($newAnchors[count($newAnchors) - 1]->type) || $newAnchors[count($newAnchors) - 1]->type != "end")))
     {
         $newAnchors = [];
     }
@@ -783,13 +738,13 @@ function findPath ($start, $end, $dumpGraph = false)
 {
     $startResult = Map::getTrailFromPoint($start);
 
-    error_log("Start Information");
-    logTerminusInfo($startResult);
+//    error_log("Start Information");
+//    logTerminusInfo($startResult);
 
     $endResult = Map::getTrailFromPoint($end);
 
-    error_log("End Information");
-    logTerminusInfo($endResult);
+//     error_log("End Information");
+//     logTerminusInfo($endResult);
 
 //     $startTile = Map::getTileNameFromPoint($startResult->point);
 //     $endTile = Map::getTileNameFromPoint($endResult->point);

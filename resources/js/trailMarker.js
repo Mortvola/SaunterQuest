@@ -46,7 +46,7 @@ class TrailMarker
 			{
 				if (listener)
 				{
-					listener (trailMarker.marker.getPosition (), context);
+					listener (trailMarker);
 				}
 			});
 		}
@@ -62,6 +62,11 @@ class TrailMarker
 		this.marker.setMap (this.map);
 		
 		this.addListener ();
+	}
+	
+	getPosition ()
+	{
+	    return this.marker.getPosition ();
 	}
 	
 	removeMarker ()
@@ -81,9 +86,9 @@ class TrailMarker
 			+ "</div><div>Elevation: " + metersToFeet(this.ele) + "\'</div>";
 	}
 	
-	setContextMenu (contextMenu, context)
+	setContextMenu (contextMenu)
 	{
-		setContextMenu (this.marker, contextMenu, context)
+		setContextMenu (this.marker, contextMenu, this)
 	}
 }
 

@@ -3,71 +3,79 @@ namespace bpp;
 
 class SegmentIterator implements \Iterator
 {
-    private $_array = array();
-    private $direction = 1;
-    private $position = 0;
+    private $route;
+    private $routeIndex = 0;
+    private $trailIndex = 0;
 
-    public function __construct($array, $direction)
+    public function __construct($route)
     {
-        $this->_array = $array;
-        $this->direction = $direction;
-        if ($direction > 0) {
-            $this->position = 0;
-        } else {
-            $this->position = count($array) - 1;
-        }
+        $this->route = $route;
+        $this->routeIndex = 0;
+        $this->trailIndex = -1;
     }
 
     public function current()
     {
-        return $this->_array[$this->position];
+        if ($this->trailIndex != -1)
+        {
+            if (isset ($this->route[$this->routeIndex]->trail))
+            {
+                return $this->route[$this->routeIndex]->trail[$this->trailIndex];
+            }
+        }
+
+        return $this->route[$this->routeIndex];
     }
 
     public function key()
     {
-        return $this->position;
+        return $this->routeIndex . ':' . $this->trailIndex;
     }
 
     public function next()
     {
-        $this->position += $this->direction;
-    }
-
-    public function nextSegment()
-    {
-        return $this->_array[$this->position + $this->direction];
-    }
-
-    public function segmentLength()
-    {
-        if ($this->direction > 0) {
-            return $this->nextSegment()->dist - $this->current()->dist;
-        } else {
-            return $this->current()->dist - $this->nextSegment()->dist;
+        if (isset ($this->route[$this->routeIndex]->trail))
+        {
+            if ($this->trailIndex >= count($this->route[$this->routeIndex]->trail) - 1)
+            {
+                $this->routeIndex++;
+                $this->trailIndex = -1;
+            }
+            else
+            {
+                $this->trailIndex++;
+            }
         }
-    }
-
-    public function elevationChange()
-    {
-        return $this->nextSegment()->point->ele - $this->current()->point->ele;
+        else
+        {
+            $this->routeIndex++;
+            $this->trailIndex = -1;
+        }
     }
 
     public function rewind()
     {
-        if ($this->direction > 0) {
-            $this->position = 0;
-        } else {
-            $this->position = count($this->_array) - 1;
-        }
+        $this->routeIndex = 0;
+        $this->trailIndex = -1;
     }
 
     public function valid()
     {
-        return isset($this->_array[$this->position]);
-    }
+        if ($this->trailIndex != -1)
+        {
+            if (isset ($this->route[$this->routeIndex]))
+            {
+                if (isset($this->route[$this->routeIndex]->trail))
+                {
+                    return isset($this->route[$this->routeIndex]->trail[$this->trailIndex]);
+                }
 
-    public function nextValid()
-    {
-        return isset($this->_array[$this->position + $this->direction]);
+                return true;
+            }
+
+            return false;
+        }
+
+        return isset ($this->route[$this->routeIndex]);
     }
 }

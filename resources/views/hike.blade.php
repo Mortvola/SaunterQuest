@@ -28,6 +28,9 @@
 	@component('addPointOfInterestDialog')
 	@endcomponent
 
+    @component('waypointDialog')
+    @endcomponent
+
 	@component('addLingerDialog')
 	@endcomponent
 
@@ -195,21 +198,7 @@
         {
             var a = $('#sortable').sortable('toArray', {attribute: 'data-item'}).map(Number);
 
-            $.ajax({
-                url: userHikeId + "/route/waypoint",
-                headers:
-                {
-                    "Content-type": "application/json",
-                    "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
-                },
-                type: "PUT",
-                data: JSON.stringify(a),
-            })
-            .done (function()
-            {
-            	route.retrieve ();
-            });
-            console.log(ui);
+            route.setWaypointOrder (a);
         }
     });
     $( "#sortable" ).disableSelection();

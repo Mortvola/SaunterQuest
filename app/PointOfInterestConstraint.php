@@ -15,6 +15,6 @@ class PointOfInterestConstraint extends Model
 
     function pointOfInterest ()
     {
-        return $this->belongsTo('App\PointOfInterest', 'pointOfInterestId');
+        return $this->belongsTo('App\RoutePoint', 'pointOfInterestId');
     }
 }

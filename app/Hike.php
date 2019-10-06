@@ -9,8 +9,6 @@ class Hike extends Model
 {
     protected $table = 'hike';
     public $timestamps = false;
-    const CREATED_AT = 'creationDate';
-    const UPDATED_AT = 'modificationDate';
 
     protected $hidden = [Hike::CREATED_AT, Hike::UPDATED_AT, 'user_id'];
 
@@ -36,26 +34,26 @@ class Hike extends Model
         return $this->belongsTo('App\HikerProfile', 'hike_id');
     }
 
-    public function save (array $options = [])
+    public function routePoints ()
     {
-        parent::save ($options);
-
-        // Create data directory and save an empty route file.
-        mkdir(getHikeFolder ($this->id));
-        touch(getHikeFolder ($this->id) . "route.json");
+        return $this->belongsTo('App\RoutePoints', 'hike_id');
     }
+
+     public function save (array $options = [])
+     {
+         parent::save ($options);
+
+         // Create data directory and save an empty route file.
+         mkdir(getHikeFolder ($this->id));
+     }
 
     public function getDuration ()
     {
-        $schedule = new Schedule($this->user_id, $this->id);
-
-        return $schedule->getDuration ();
+        return (new Schedule($this->user_id, $this->id))->getDuration ();
     }
 
     public function getDistance ()
     {
-        $route = new Route($this->id);
-
-        return $route->getDistance ();
+        return (new Route($this->id))->getDistance ();
     }
 }
