@@ -427,73 +427,31 @@ function traverseSegment ($s1, $s2, $schedule, &$z, $segmentMeters, $lastEle)
     // mid-segment?
     list ($trailConditionsSpeedFactor, $trailConditionType) = activeTrailConditionsGet($trailConditions, /*$it->key()*/ 0, $segmentMeters / segmentLength($s1, $s2));
 
-//     if (isset($it->current()->subsegments))
-//     {
-//         reset($it->current()->subsegments);
-//     }
+    $currentMetersPerMinute = $metersPerMinute * $trailConditionsSpeedFactor * ($activeHikerProfile->speedFactor / 100.0);
+    $metersToEndOfSegment = segmentLength($s1, $s2) - $segmentMeters;
+    $minutesToEndOfSegment = $metersToEndOfSegment / $currentMetersPerMinute;
 
-
-//    for (;;)
+    if (isset($s1->timeConstraints) && $s1->timeConstraints()->count () > 0)
     {
-//         $z++;
+        $delays = $s1->timeConstraints()->where('type', 'delay')->get ();
 
-//         if (isset($maxZ) && $z > $maxZ)
-//         {
-//             if (isset($debug))
-//             {
-//                 echo "exited inner loop after $z iterations\n";
-//             }
-//             break;
-//         }
-
-        // echo "Day $d, segment meters: " . $segmentMeters . "\n";
-        // echo "Day $d, segment meters: " . dayGet ($d)->segmentMeters . "\n";
-
-        $currentMetersPerMinute = $metersPerMinute * $trailConditionsSpeedFactor * ($activeHikerProfile->speedFactor / 100.0);
-
-        // echo "Meters/hour = $metersPerHour\n";
-        // echo "Adjusted Meters/hour = ", ($metersPerHour *
-        // $activeHikerProfile->speedFactor), "\n";
-        // echo "Meters/day = $dayMetersRemaining\n";
-
-        // Determine how far away the next event (either an actual event or the
-        // end of the current segment.
-//         if (isset($it->current()->subsegments) && key($it->current()->subsegments) !== null)
-//         {
-//             $metersToEndOfSegment = floatval(key($it->current()->subsegments)) * $it->segmentLength() - $segmentMeters;
-
-//             $events = current($it->current()->subsegments)->events;
-
-//             next($it->current()->subsegments);
-//         }
-//         else
+        foreach ($delays as $delay)
         {
-            $metersToEndOfSegment = segmentLength($s1, $s2) - $segmentMeters;
-
-            unset($events);
-        }
-
-        $minutesToEndOfSegment = $metersToEndOfSegment / $currentMetersPerMinute;
-
-        if (isset($s1->timeConstraints) && $s1->timeConstraints()->count () > 0)
-        {
-            $delays = $s1->timeConstraints()->where('type', 'delay')->get ();
-
-            foreach ($delays as $delay)
+            if ($delay->time !== null)
             {
-                if ($delay->time !== null)
-                {
-                    error_log ('Delaying for ' . $delay->time . ' minutes');
-                    $schedule->currentDayGet()->timeAdd($delay->time);
-                }
+                error_log ('Delaying for ' . $delay->time . ' minutes');
+                $schedule->currentDayGet()->timeAdd($delay->time);
             }
         }
+    }
 
+    for (;;)
+    {
         $currentTime = $schedule->currentDayGet()->currentTimeGet();
 
         if (isset($debug))
         {
-            echo "Segment Meters: ", $segmentMeters, " current time: ", $currentTime, ", hours remaining: ", $schedule->currentDayGet()->endTime - $currentTime, ", Minutes to end of segmetn: ", $minutesToEndOfSegment, "\n";
+            echo "Segment Meters: ", $segmentMeters, " current time: ", $currentTime, ", minutes remaining: ", $schedule->currentDayGet()->endTime - $currentTime, ", Minutes to end of segmetn: ", $minutesToEndOfSegment, "\n";
         }
 
         // If we hike until the next event, will we hike through our afternoon
@@ -517,13 +475,13 @@ function traverseSegment ($s1, $s2, $schedule, &$z, $segmentMeters, $lastEle)
             $metersToEndOfSegment -= $metersHiked;
             $minutesToEndOfSegment -= $minutesHiked;
         }
-        elseif ($currentTime >= 12 && $currentTime < 12 + $activeHikerProfile->breakDuration)
+        elseif ($currentTime >= 12 * 60 && $currentTime < 12 * 60 + $activeHikerProfile->breakDuration)
         {
             $schedule->currentDayGet()->timeAdd(12 + $activeHikerProfile->breakDuration - $currentTime);
             $currentTime = $schedule->currentDayGet()->currentTimeGet();
         }
 
-        // Is there enough time remaining to hike to the next event? If so,
+        // Is there enough time remaining to hike to the end of the segment? If so,
         // process the events
         // at that point. If not, then camp.
 
@@ -746,7 +704,7 @@ function traverseSegment ($s1, $s2, $schedule, &$z, $segmentMeters, $lastEle)
                     echo "Ended segment. Segment Meters = ", $segmentMeters, "\n\n";
                 }
 
-//                break;
+                break;
             }
             else
             {
@@ -828,14 +786,19 @@ function traverseSegment ($s1, $s2, $schedule, &$z, $segmentMeters, $lastEle)
              * }
              */
 
-            $minutesHiked = $schedule->currentDayGet()->endTime - $currentTime;
-            $metersHiked = $minutesHiked * $currentMetersPerMinute;
+            $minutesHiked = 0;
+            $metersHiked = 0;
+            if ($currentTime < $schedule->currentDayGet()->endTime)
+            {
+                $minutesHiked = $schedule->currentDayGet()->endTime - $currentTime;
+                $metersHiked = $minutesHiked * $currentMetersPerMinute;
 
-            $segmentMeters += $metersHiked;
+                $segmentMeters += $metersHiked;
 
-            $schedule->currentDayGet()->timeAdd($minutesHiked);
-            $schedule->currentDayGet()->metersAdd($metersHiked);
-            $currentTime = $schedule->currentDayGet()->currentTimeGet();
+                $schedule->currentDayGet()->timeAdd($minutesHiked);
+                $schedule->currentDayGet()->metersAdd($metersHiked);
+                $currentTime = $schedule->currentDayGet()->currentTimeGet();
+            }
 
             // We ended the day between the start and end of the current
             // segment.

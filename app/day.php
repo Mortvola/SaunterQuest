@@ -137,9 +137,9 @@ class Day implements \JsonSerializable
         return $this->startTime + $this->elapsedTime;
     }
 
-    public function timeAdd ($hours)
+    public function timeAdd ($minutes)
     {
-        $this->elapsedTime += $hours;
+        $this->elapsedTime += $minutes;
     }
 
     public function updateGainLoss ($eleDelta)
