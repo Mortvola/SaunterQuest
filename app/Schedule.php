@@ -106,21 +106,21 @@ class Schedule
 
         foreach ($this->hikerProfiles as $profile)
         {
-            if ((!isset($profile->startDay) || $this->currentDay >= $profile->startDay) && (!isset($profile->endDay) || $this->currentDay <= $profile->endDay))
+            if ((!isset($profile->start_day) || $this->currentDay >= $profile->start_day) && (!isset($profile->end_day) || $this->currentDay <= $profile->end_day))
             {
-                if (isset($profile->speedFactor))
+                if (isset($profile->speed_factor))
                 {
-                    $hikerProfile->speedFactor = $profile->speedFactor;
+                    $hikerProfile->speedFactor = $profile->speed_factor;
                 }
 
-                if (isset($profile->startTime))
+                if (isset($profile->start_time))
                 {
-                    $hikerProfile->startTime = $profile->startTime;
+                    $hikerProfile->startTime = $profile->start_time * 60;
                 }
 
-                if (isset($profile->endTime))
+                if (isset($profile->end_time))
                 {
-                    $hikerProfile->endTime = $profile->endTime;
+                    $hikerProfile->endTime = $profile->end_time * 60;
                 }
 
                 if (isset($profile->breakDuration))
