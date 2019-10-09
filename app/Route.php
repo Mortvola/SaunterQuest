@@ -224,7 +224,7 @@ class Route implements ArrayAccess
                 }
                 else
                 {
-                    $timeConstraint = new PointOfInterestConstraint;
+                    $timeConstraint = new TimeConstraint;
 
                     $timeConstraint->type = $constraint->type;
                     $timeConstraint->time = $constraint->time;

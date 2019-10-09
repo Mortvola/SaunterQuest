@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\PointOfInterest;
-use App\PointOfInterestConstraint;
+use App\TimeConstraint;
 
 class PointOfInterestController extends Controller
 {
@@ -77,7 +77,7 @@ class PointOfInterestController extends Controller
 
                 if (isset($constraint->id))
                 {
-                    $c = PointOfInterestConstraint::find($constraint->id);
+                    $c = TimeConstraint::find($constraint->id);
 
                     if (isset($constraint->remove)) {
                         $c->delete ();
@@ -103,7 +103,7 @@ class PointOfInterestController extends Controller
 
     public function delete ($hikeId, $poiId)
     {
-        PointOfInterestConstraint::where('point_of_interest_id', $poiId)->delete ();
+        TimeConstraint::where('point_of_interest_id', $poiId)->delete ();
         PointOfInterest::where('id', $poiId)->delete ();
     }
 }

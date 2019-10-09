@@ -9,7 +9,7 @@ class HikerProfile extends Model
     protected $table = 'hiker_profile';
     public $timestamps = false;
 
-    protected $hidden = [PointOfInterestConstraint::CREATED_AT, PointOfInterestConstraint::UPDATED_AT, "user_id", "hike_id"];
+    protected $hidden = [HikerProfile::CREATED_AT, HikerProfile::UPDATED_AT, "user_id", "hike_id"];
 
     protected $fillable = ["start_day", "end_day", "speed_factor", "start_time", "end_time", "break_duration", "hike_id"];
 

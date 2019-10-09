@@ -47,7 +47,7 @@ return array(
     'App\\Http\\Middleware\\VerifyCsrfToken' => $baseDir . '/app/Http/Middleware/VerifyCsrfToken.php',
     'App\\Map' => $baseDir . '/app/Map.php',
     'App\\PointOfInterest' => $baseDir . '/app/PointOfInterest.php',
-    'App\\PointOfInterestConstraint' => $baseDir . '/app/PointOfInterestConstraint.php',
+    'App\\TimeConstraint' => $baseDir . '/app/TimeConstraint.php',
     'App\\Providers\\AppServiceProvider' => $baseDir . '/app/Providers/AppServiceProvider.php',
     'App\\Providers\\AuthServiceProvider' => $baseDir . '/app/Providers/AuthServiceProvider.php',
     'App\\Providers\\BroadcastServiceProvider' => $baseDir . '/app/Providers/BroadcastServiceProvider.php',

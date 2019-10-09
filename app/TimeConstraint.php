@@ -4,14 +4,14 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class PointOfInterestConstraint extends Model
+class TimeConstraint extends Model
 {
     protected $table = 'point_of_interest_constraint';
     public $timestamps = false;
 
     protected $fillable = ['type', 'time'];
 
-    protected $hidden = [PointOfInterestConstraint::CREATED_AT, PointOfInterestConstraint::UPDATED_AT, "pointOfInterestId"];
+    protected $hidden = [TimeConstraint::CREATED_AT, TimeConstraint::UPDATED_AT, "pointOfInterestId"];
 
     function pointOfInterest ()
     {

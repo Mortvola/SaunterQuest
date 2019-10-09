@@ -3,7 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\PointOfInterestConstraint;
+use App\TimeConstraint;
 
 class PointOfInterest extends Model
 {
@@ -21,7 +21,7 @@ class PointOfInterest extends Model
 
     public function constraints ()
     {
-        return $this->hasMany('\App\PointOfInterestConstraint', 'point_of_interest_id');
+        return $this->hasMany('\App\TimeConstraint', 'point_of_interest_id');
     }
 
     function hike ()
