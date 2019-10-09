@@ -32,10 +32,6 @@ class Day implements \JsonSerializable
     // in minutes from midnight
     public $notes;
 
-    private $segment = 0;
-
-    private $segmentMeters = 0;
-
     private $cantMoveStartMeters = false;
 
     public $events = [ ];
@@ -51,7 +47,8 @@ class Day implements \JsonSerializable
             "gain" => $this->gain,
             "loss" => $this->loss,
             "accumWeight" => $this->accumWeight,
-            "foodPlanId" => $this->foodPlanId
+            "foodPlanId" => $this->foodPlanId,
+            "camp" => $this->camp
         ];
 
         if (isset($this->endLat))
@@ -80,7 +77,7 @@ class Day implements \JsonSerializable
     //
     // Initialize the day
     //
-    public function initialize ($hikerProfile, $point, $startMeters, $segment, $segmentMeters)
+    public function initialize ($hikerProfile, $point, $startMeters, $camp)
     {
         $this->startMeters = $startMeters;
 
@@ -106,8 +103,7 @@ class Day implements \JsonSerializable
         $this->point->lng = $point->lng;
         $this->point->ele = $point->ele;
 
-        $this->segment = $segment;
-        $this->segmentMeters = $segmentMeters;
+        $this->camp = $camp;
 
         $this->events = [ ];
     }

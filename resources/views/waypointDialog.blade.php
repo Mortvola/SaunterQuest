@@ -9,13 +9,21 @@
             </div>
             <div class="modal-body">
                 <form id='waypointForm'>
+                    <div class="form-group">
                     <label>Name:</label>
                     <input type="text" class='form-control' name='name'/>
+                    </div>
+
+                    <div class="form-check">
+                        <input type="checkbox" class='form-check-input' data-constraint='camp'/>
+                        <label class="form-check-label">Camp</label>
+                    </div>
                     <br/>
 
+                    <div class="form-group">
                     <label>Delay (in minutes)</label>
                     <input type="text" class='form-control' data-constraint='delay'/>
-                    <br />
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">

@@ -18,10 +18,10 @@
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito">
 
     <!-- Styles -->
-    <link href="{{ asset('css/bootstrap-4.3.1.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/bootstrap-4.3.1.css') }}">
 	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
 
 </head>
@@ -42,7 +42,7 @@
 	                    <a class="nav-link" href="/home" style="color:white">Home</a>
 	                    <a class="nav-link" href="javascript:showExportTrailModal()" style="color:white">Export Trail</a>
 	                    <a class="nav-link" href="#" style="color:white">Food</a>
-	                    <a class="nav-link" href="#" style="color:white">Gear</a>
+	                    <a class="nav-link" href="/gear" style="color:white">Gear</a>
                     </ul>
 
                     <!-- Right Side Of Navbar -->

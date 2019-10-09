@@ -100,10 +100,25 @@ class Schedule
 					// Add a day marker, if needed.
 					if (d - 1 >= this.dayMarkers.length)
 					{
-						this.dayMarkers.push(new EndOfDayMarker(this.map, endOfDayUrl));
+					    if (this.days[d].camp !== null)
+					    {
+					        if (this.days[d].camp.type == 'waypoint')
+					        {
+	                            route.setWaypointAsCamp (this.days[d].camp.id);
+					        }
+					        
+					        this.dayMarkers.push(null);
+					    }
+					    else
+					    {
+	                        this.dayMarkers.push(new EndOfDayMarker(this.map, this.days[d].camped ? campUrl : endOfDayUrl));
+					    }
 					}
 	
-					this.dayMarkers[d - 1].setDay (d, this.days[d]);
+					if (this.dayMarkers[d - 1])
+					{
+					    this.dayMarkers[d - 1].setDay (d, this.days[d]);
+					}
 				}
 			}
 		}

@@ -90,6 +90,11 @@ class TrailMarker
 	{
 		setContextMenu (this.marker, contextMenu, this)
 	}
+	
+	setIcon (iconUrl)
+	{
+	    this.marker.setIcon(iconUrl);
+	}
 }
 
 class StartOfTrailMarker extends TrailMarker

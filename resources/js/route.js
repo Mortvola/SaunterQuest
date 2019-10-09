@@ -109,13 +109,26 @@ class Route
     {
         // Set the form back to the original state
         $("#waypointForm")[0].reset ();
-        $("#waypointForm > [data-constraint]").removeAttr('data-id');
+        $("#waypointForm [data-constraint]").removeAttr('data-id');
         
         // Look for and populate any time constraint fields in the form.
         for (let constraint of marker.timeConstraints)
         {
-            $("#waypointForm > [data-constraint='" + constraint.type + "']").val(constraint.time);
-            $("#waypointForm > [data-constraint='" + constraint.type + "']").attr('data-id', constraint.id);
+            var control = $("#waypointForm [data-constraint='" + constraint.type + "']");
+            
+            control.each (function ()
+                {
+                    if (this.type == 'checkbox')
+                    {
+                        this.checked = constraint.time != 0;
+                    }
+                    else
+                    {
+                        this.value = constraint.time;
+                    }
+                });
+            
+            control.attr('data-id', constraint.id);
         }
         
         $("#waypointForm").off('submit');
@@ -127,8 +140,11 @@ class Route
             
             details.timeConstraints = [];
             
-            $("#waypointForm > [data-constraint]").each (function ()
+            $("#waypointForm [data-constraint]").each (function ()
                 {
+                    var inputType = this.attributes.getNamedItem('type').value;
+                    var type = this.attributes.getNamedItem('data-constraint').value;
+                    var value = null;
                     var id = null;
                     var idAttr = this.attributes.getNamedItem('data-id');
                     
@@ -137,18 +153,25 @@ class Route
                         id = parseInt(idAttr.value);
                     }
                     
-                    var time = parseInt(this.value);
-
-                    if (isNaN(time))
+                    if (inputType == 'checkbox')
                     {
-                        time = null;
+                        value = this.checked ? 1 : 0;
+                    }
+                    else
+                    {
+                        value = parseInt(this.value);
+    
+                        if (isNaN(value))
+                        {
+                            value = null;
+                        }
                     }
                     
                     details.timeConstraints.push(
                         {
                             id: id,
-                            type: this.attributes.getNamedItem('data-constraint').value,
-                            time: time
+                            type: type,
+                            time: value
                         });
                 });
             
@@ -222,6 +245,17 @@ class Route
     }
     
 
+    setWaypointAsCamp (id)
+    {
+        var waypoint = this.waypoints.find(function(entry) { return entry.id == id; });
+        
+        if (waypoint)
+        {
+            waypoint.setIcon (campUrl);
+        }
+    }
+    
+    
     getLength ()
     {
         return this.actualRoute.length;

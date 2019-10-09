@@ -221,6 +221,7 @@
         var userHikeId = {{ $hikeId }};
         var tileServerUrl = "{{ env('TILE_SERVER_URL', '') }}";
         var endOfDayUrl = "{{ asset('moon_pin.png') }}";
+        var campUrl = "{{ asset('camp-ltblue-dot.png') }}";
     </script>
 
     <?php require_once resource_path('js/contextMenu.js'); ?>

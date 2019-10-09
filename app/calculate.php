@@ -11,7 +11,7 @@ use App\PointOfInterest;
 require_once "coordinates.php";
 require_once "routeFile.php";
 require_once "utilities.php";
-require_once "day.php";
+require_once "Day.php";
 require_once "segmentIterator.php";
 
 class Event
@@ -44,7 +44,7 @@ class Event
     public $notes;
 }
 
-function dayStart ($schedule, $point, $segmentIndex, $segmentMeters)
+function dayStart ($schedule, $point, $camp = null)
 {
     global $activeHikerProfile;
 
@@ -52,7 +52,7 @@ function dayStart ($schedule, $point, $segmentIndex, $segmentMeters)
 
     $activeHikerProfile = $schedule->activeHikerProfileGet();
 
-    $schedule->currentDayGet()->initialize($activeHikerProfile, $point, $schedule->previousDayTotalMetersGet(), $segmentIndex, $segmentMeters);
+    $schedule->currentDayGet()->initialize($activeHikerProfile, $point, $schedule->previousDayTotalMetersGet(), $camp);
 }
 
 //
@@ -411,6 +411,11 @@ function activeTrailConditionsGet ($trailConditions, $segmentIndex, $segmentPerc
     ];
 }
 
+function camp ($schedule)
+{
+}
+
+
 $lingerHours = 0;
 
 function traverseSegment ($s1, $s2, $schedule, &$z, $segmentMeters, $lastEle)
@@ -433,6 +438,23 @@ function traverseSegment ($s1, $s2, $schedule, &$z, $segmentMeters, $lastEle)
 
     if (isset($s1->timeConstraints) && $s1->timeConstraints()->count () > 0)
     {
+        $camps = $s1->timeConstraints()->where('type', 'camp')->get ();
+
+        foreach ($camps as $camp)
+        {
+            if ($camp->time !== 0)
+            {
+                $schedule->currentDayGet()->end();
+                dayStart($schedule, (object)[
+                    "lat" => $s1->point->lat,
+                    "lng" => $s1->point->lng,
+                    "ele" => $s1->point->ele
+                ], (object)["type" => "waypoint", "id" => $s1->id]);
+
+                break;
+            }
+        }
+
         $delays = $s1->timeConstraints()->where('type', 'delay')->get ();
 
         foreach ($delays as $delay)
@@ -716,76 +738,6 @@ function traverseSegment ($s1, $s2, $schedule, &$z, $segmentMeters, $lastEle)
         }
         else
         {
-            // $found = false;
-
-            // if ($trailConditionType != 2)
-            // {
-            // echo "trailConditionType = $trailConditionType\n";
-            // }
-            /*
-             * for ($i = 0; isset($noCamping) && $i < count($noCamping); $i++)
-             * {
-             * //echo "no camping start " . $noCamping[i][0] . " stop ".
-             * $noCamping
-             * if (($segmentMeters + $dayMetersRemaining) > $noCamping[$i][0] &&
-             * ($segmentMeters + $dayMetersRemaining) < $noCamping[$i][1])
-             * {
-             * //echo "Day $d inside no camping area: " . ($segmentMeters +
-             * $dayMetersRemaining) . ": " . $noCamping[$i][0] . ", " .
-             * $noCamping[$i][1] . "\n";
-             *
-             * //
-             * // We are in a no camping area... need to move.
-             * //
-             * $remainingMeters = $noCamping[$i][1] - ($segmentMeters +
-             * $dayMetersRemaining);
-             * $hoursNeeded = $remainingMeters / $currentMetersPerHour;
-             *
-             * //echo "needed hours: $hoursNeeded\n";
-             *
-             * list($startDay1, $hoursNeeded) = StrategyEndLater (1, $schedule,
-             * $d, $hoursNeeded);
-             *
-             * if ($startDay1 == -1)
-             * {
-             * $startDay1 = $d;
-             * }
-             *
-             * if ($hoursNeeded > 0)
-             * {
-             * list($startDay2, $hoursNeeded) = StrategyStartEarlier (1,
-             * $schedule, $d, $hoursNeeded);
-             *
-             * if ($startDay2 == -1)
-             * {
-             * $startDay2 = $d;
-             * }
-             *
-             * $startDay1 = min($startDay1, $startDay2);
-             * }
-             *
-             * $d = $startDay1;
-             *
-             * $restart = true;
-             *
-             * return;
-             *
-             * // $dayMeters += $remainingMeters;
-             * // $segmentMeters += $remainingMeters;
-             * // $schedule->currentDayGet ()->endTime += $remainingHours;
-             *
-             * // echo "Changed end time for $d to ", $schedule->currentDayGet
-             * ()->endTime, "\n";
-             *
-             * // echo "Changed to $dayMeters, $segmentMeters\n";
-             *
-             * // $found = true;
-             *
-             * // break;
-             * }
-             * }
-             */
-
             $minutesHiked = 0;
             $metersHiked = 0;
             if ($currentTime < $schedule->currentDayGet()->endTime)
@@ -835,7 +787,7 @@ function traverseSegment ($s1, $s2, $schedule, &$z, $segmentMeters, $lastEle)
                 "lat" => $lat,
                 "lng" => $lng,
                 "ele" => $currentEle
-            ], /*$it->key()*/ 0, $segmentMeters);
+            ]);
 
             // echo "Day $d, segment meters: " . currentDayGet ()->segmentMeters
             // . "\n";
@@ -944,7 +896,7 @@ function getSchedule ($schedule, $userId, $userHikeId, $route)
 //    pointsOfInterestGet($userId, $userHikeId, $points);
 //    $trailConditions = trailConditionsGet($userHikeId, $points);
 
-    dayStart($schedule, $route[0]->point, 0, 0);
+    dayStart($schedule, $route[0]->point);
 
     $foodStart = $schedule->currentDayIndexGet();
 
