@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class TimeConstraint extends Model
 {
-    protected $table = 'point_of_interest_constraint';
+    protected $table = 'time_constraint';
     public $timestamps = false;
 
     protected $fillable = ['type', 'time'];

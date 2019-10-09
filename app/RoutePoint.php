@@ -64,7 +64,7 @@ class RoutePoint extends Model
 
     public function timeConstraints ()
     {
-        return $this->hasMany('App\TimeConstraint', 'point_of_interest_id');
+        return $this->hasMany('App\TimeConstraint', 'object_id');
     }
 
     public function __get ($name)
