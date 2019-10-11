@@ -371,14 +371,16 @@ function computeCost ($startPointIndex, $endPointIndex, $points)
     $forwardCost = 0;
     $backwardCost = 0;
 
+    $elevation = new Elevation;
+
     for ($p = $startPointIndex; $p < $endPointIndex; $p++)
     {
         $dx = haversineGreatCircleDistance($points[$p]->lat, $points[$p]->lng, $points[$p + 1]->lat, $points[$p + 1]->lng);
 
         if ($dx != 0)
         {
-            $ele1 = getElevation($points[$p]->lat, $points[$p]->lng);
-            $ele2 = getElevation($points[$p + 1]->lat, $points[$p + 1]->lng);
+            $ele1 = $elevation->getElevation($points[$p]->lat, $points[$p]->lng);
+            $ele2 = $elevation->getElevation($points[$p + 1]->lat, $points[$p + 1]->lng);
 
             $dh = $ele2 - $ele1;
 

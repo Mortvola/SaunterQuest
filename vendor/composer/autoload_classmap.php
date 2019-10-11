@@ -12,6 +12,7 @@ return array(
     'App\\Console\\Commands\\removeTileBackup' => $baseDir . '/app/Console/Commands/removeTileBackup.php',
     'App\\Console\\Commands\\restoreTileBackup' => $baseDir . '/app/Console/Commands/restoreTileBackup.php',
     'App\\Console\\Kernel' => $baseDir . '/app/Console/Kernel.php',
+    'App\\Elevation' => $baseDir . '/app/Elevation.php',
     'App\\Exceptions\\Handler' => $baseDir . '/app/Exceptions/Handler.php',
     'App\\Export' => $baseDir . '/app/Export.php',
     'App\\Graph' => $baseDir . '/app/Graph.php',

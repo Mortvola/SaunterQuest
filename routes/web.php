@@ -153,7 +153,8 @@ Route::middleware(['auth'])->group(function () {
         return (new ExportController())->get($hikeId, $request);
     });
 
-    Route::get('/elevation', 'ElevationController@get');
+    Route::get('/elevation/point', 'ElevationController@get');
+    Route::put('/elevation/file', 'ElevationController@downloadElevations');
 
     Route::get('/map/intersections', 'MapController@getIntersections');
     Route::get('/tileList', 'MapController@getTileList');

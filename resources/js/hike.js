@@ -711,16 +711,42 @@ function distToSegment(p, v, w)
 function displayLocation (object, position)
 {
     $.get({
-        url: "/elevation?lat=" + position.lat () + "&lng=" + position.lng (),
+        url: "/elevation/point?lat=" + position.lat () + "&lng=" + position.lng (),
         dataType: "json"
     })
-    .done (function(responseText)
+    .done (function(elevation)
     {
-		let elevation = responseText;
-
-		map.infoWindow.setContent ("<div>Lat: " + position.lat() + "</div><div>Lng: " + position.lng() + "</div><div>Elevation: " + metersToFeet(elevation) + "</div>");
+        var html = "<div>Lat: " + position.lat() + "</div><div>Lng: " + position.lng() + "</div><div>Elevation: ";
+        
+        if (elevation === null)
+        {
+            html += "Not available";
+        }
+        else
+        {
+            html += metersToFeet(elevation);
+        }
+        
+        html += "</div>";
+        
+		map.infoWindow.setContent (html);
 		map.infoWindow.setPosition (position);
 		map.infoWindow.open(map);
+    });
+}
+
+
+function downloadElevations (object, position)
+{
+    $.ajax({
+        url: "/elevation/file",
+        headers:
+        {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+        },
+        contentType: "application/json",
+        type: "PUT",
+        data: JSON.stringify({lat: position.lat (), lng: position.lng ()})
     });
 }
 
@@ -883,6 +909,7 @@ function mapInitialize()
 		{title:"Add Point of Interest", func:showAddPointOfInterest},
 		{title:"Create Resupply Location", func:addResupplyLocation},
 		{title:"Display Location", func:displayLocation},
+		{title:"Download Elevations", func:downloadElevations},
 		{title:"Set Start Location", func:setStartLocation},
 		{title:"Set End Location", func:setEndLocation},
 		{title:"Add Waypoint", func:addWaypoint},

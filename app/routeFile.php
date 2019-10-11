@@ -1,6 +1,7 @@
 <?php
 use App\Map;
 use App\Route;
+use App\Elevation;
 
 require_once "coordinates.php";
 
@@ -49,7 +50,7 @@ function assignTrailDistances ($trail, $distance, $prevLat, $prevLng)
         $distance += haversineGreatCircleDistance($prevLat, $prevLng, $trail[$t]->point->lat, $trail[$t]->point->lng);
 
         $trail[$t]->dist = $distance;
-        $trail[$t]->point->ele = getElevation($trail[$t]->point->lat, $trail[$t]->point->lng);
+        $trail[$t]->point->ele = (new Elevation)->getElevation($trail[$t]->point->lat, $trail[$t]->point->lng);
 
         $prevLat = $trail[$t]->point->lat;
         $prevLng = $trail[$t]->point->lng;
@@ -86,7 +87,7 @@ function assignDistances ($anchors)
         }
 
         $anchor->dist = $distance;
-        $anchor->ele = getElevation($anchor->lat, $anchor->lng);
+        $anchor->ele = (new Elevation)->getElevation($anchor->lat, $anchor->lng);
 
         $prevAnchor = $anchor;
     }

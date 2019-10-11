@@ -392,6 +392,8 @@ class Graph
 
     private static function assignEdgeCosts ($allIntersections, $edges, $trails)
     {
+        $elevation = new Elevation;
+
         foreach ($edges as $edge)
         {
             $forwardCost = 0;
@@ -418,8 +420,8 @@ class Graph
 
                         if ($dx != 0)
                         {
-                            $ele1 = getElevation($node1->lat, $node1->lng);
-                            $ele2 = getElevation($node2->lat, $node2->lng);
+                            $ele1 = $elevation->getElevation($node1->lat, $node1->lng);
+                            $ele2 = $elevation->getElevation($node2->lat, $node2->lng);
 
                             $dh = $ele2 - $ele1;
 
@@ -441,8 +443,8 @@ class Graph
 
                         if ($dx != 0)
                         {
-                            $ele1 = getElevation($points[$p]->lat, $points[$p]->lng);
-                            $ele2 = getElevation($points[$p + 1]->lat, $points[$p + 1]->lng);
+                            $ele1 = $elevation->getElevation($points[$p]->lat, $points[$p]->lng);
+                            $ele2 = $elevation->getElevation($points[$p + 1]->lat, $points[$p + 1]->lng);
 
                             $dh = $ele2 - $ele1;
 
