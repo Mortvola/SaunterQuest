@@ -235,4 +235,6 @@
     <?php require_once resource_path('js/resupplyPlan.js'); ?>
     <?php require_once resource_path('js/routeHighlighter.js'); ?>
     <?php require_once resource_path('js/trailCondition.js'); ?>
+
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAP_KEY')}}&callback=mapInitialize&libraries=geometry"></script>
 @endsection

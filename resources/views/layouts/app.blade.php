@@ -43,8 +43,10 @@
                         @if (Request::is('hike/*'))
 	                    <a class="nav-link" href="javascript:showExportTrailModal()" style="color:white">Export Trail</a>
                         @endif
+                        @if (Auth::user()->admin)
 	                    <a class="nav-link" href="#" style="color:white">Food</a>
 	                    <a class="nav-link" href="/gear" style="color:white">Gear</a>
+                        @endif
                     </ul>
 
                     <!-- Right Side Of Navbar -->
