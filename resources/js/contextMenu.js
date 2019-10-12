@@ -68,9 +68,23 @@ function initializeContextMenu ()
 
 		if (position && projection)
 		{
-			var point = projection.fromLatLngToDivPixel(position);
-			this.div_.style.top = point.y + 'px';
-			this.div_.style.left = point.x + 'px';
+		    var mapRect = $('#googleMap')[0].getBoundingClientRect();
+            var point = projection.fromLatLngToDivPixel(position);
+		    var xOffset = 0;
+		    var yOffset = 0;
+		    
+		    if (point.x + this.div_.offsetWidth > mapRect.width / 2)
+		    {
+		        xOffset = (point.x + this.div_.offsetWidth) - mapRect.width / 2;
+		    }
+		    
+            if (point.y + this.div_.offsetHeight > mapRect.height / 2)
+            {
+                yOffset = (point.y + this.div_.offsetHeight) - mapRect.height / 2;
+            }
+
+			this.div_.style.top = (point.y - yOffset) + 'px';
+			this.div_.style.left = (point.x - xOffset) + 'px';
 		}
 	};
 
