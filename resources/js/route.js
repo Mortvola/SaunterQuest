@@ -27,6 +27,8 @@ class Route
             {title:"Edit Waypoint", func: (object, position, context) => { this.editWaypoint(context);} },
             {title:"Remove Waypoint", func: (object, position, context) => { this.removeWaypoint (context); }}
         ]);
+        
+        this.initialLoad = true;
     }
 
     setStart (position)
@@ -237,10 +239,11 @@ class Route
             },
             type: "PUT",
             data: JSON.stringify(order),
+            context: this
         })
         .done (function()
         {
-            route.retrieve ();
+            this.retrieve ();
         });
     }
     
@@ -306,7 +309,11 @@ class Route
 			{
 				this.draw ();
 
-				this.map.fitBounds(this.bounds);
+				if (this.initialLoad)
+				{
+	                this.map.fitBounds(this.bounds);
+	                this.initialLoad = false;
+				}
 			}
 			
 			getAndLoadElevationData (0, this.actualRoute.length, this.actualRoute);
