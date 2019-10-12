@@ -906,24 +906,24 @@ function mapInitialize()
 	initializeContextMenu ();
 
 	var mapContextMenu = new ContextMenu ([
-		{title:"Add Point of Interest", func:showAddPointOfInterest},
-		{title:"Create Resupply Location", func:addResupplyLocation},
+		{title:"Add Point of Interest", func:showAddPointOfInterest, admin: true},
+		{title:"Create Resupply Location", func:addResupplyLocation, admin: true},
 		{title:"Display Location", func:displayLocation},
-		{title:"Download Elevations", func:downloadElevations},
+		{title:"Download Elevations", func:downloadElevations, admin: true},
 		{title:"Set Start Location", func:setStartLocation},
 		{title:"Set End Location", func:setEndLocation},
 		{title:"Add Waypoint", func:addWaypoint},
-		{title:"Show Intersections", func:showIntersections},
+		{title:"Show Intersections", func:showIntersections, admin: true},
 	]);
 
 	trailContextMenu = new ContextMenu ([
-		{title:"Add Point of Interest", func:showAddPointOfInterest},
-		{title:"Create Resupply Location", func:addResupplyLocation},
+		{title:"Add Point of Interest", func:showAddPointOfInterest, admin: true},
+		{title:"Create Resupply Location", func:addResupplyLocation, admin: true},
 		{title:"Display Location", func:displayLocation},
 		{title:"Set Start Location", func:setStartLocation},
 		{title:"Set End Location", func:setEndLocation},
 		{title:"Add Waypoint", func:addWaypoint},
-		{title:"Trail Information", func:displayTrailInfo},
+		{title:"Trail Information", func:displayTrailInfo, admin: true},
 	]);
 
 	pointOfInterestCM = new ContextMenu ([
@@ -936,10 +936,10 @@ function mapInitialize()
 		{title:"Delete Resupply Location", func:deleteResupplyLocation}]);
 
 	routeContextMenu = new ContextMenu ([
-		{title: "Add Point of Interest", func: showAddPointOfInterest},
+		{title: "Add Point of Interest", func: showAddPointOfInterest, admin: true},
 		{title: "Measure route section", func: startRouteMeasurement},
 		{title: "Display Location", func:displayLocation},
-		{title: "Add Note", func: addNote},
+		{title: "Add Note", func: addNote, admin: true},
 		{title:"Set Start Location", func:setStartLocation},
 		{title:"Set End Location", func:setEndLocation},
 		{title:"Add Waypoint", func:addWaypoint},

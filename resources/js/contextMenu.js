@@ -149,15 +149,18 @@ function ContextMenu (items)
 	
 	for (let i in items)
 	{
-		var menuItem = document.createElement('div');
-		menuItem.innerHTML = items[i].title;
-		menuItem.className = 'context-menu-item';
-		this.div_.appendChild(menuItem);
+	    if (items[i].admin === undefined || items[i].admin === true && userAdmin === true)
+	    {
+	        var menuItem = document.createElement('div');
+	        menuItem.innerHTML = items[i].title;
+	        menuItem.className = 'context-menu-item';
+	        this.div_.appendChild(menuItem);
 
-		google.maps.event.addDomListener(menuItem, 'click', function()
-		{
-			menu.itemClicked (items[i].func);
-		});
+	        google.maps.event.addDomListener(menuItem, 'click', function()
+	        {
+	            menu.itemClicked (items[i].func);
+	        });
+	    }
 	}
 }
 </script>

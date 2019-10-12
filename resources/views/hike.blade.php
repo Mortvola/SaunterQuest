@@ -192,33 +192,33 @@
     </div>
 
     <script>
-    $( "#sortable" ).sortable(
-    {
-        stop: function (event, ui)
+        $( "#sortable" ).sortable(
         {
-            var a = $('#sortable').sortable('toArray', {attribute: 'data-item'}).map(Number);
+            stop: function (event, ui)
+            {
+                var a = $('#sortable').sortable('toArray', {attribute: 'data-item'}).map(Number);
 
-            route.setWaypointOrder (a);
-        }
-    });
-    $( "#sortable" ).disableSelection();
+                route.setWaypointOrder (a);
+            }
+        });
+        $( "#sortable" ).disableSelection();
 
-    function updateWaypointList(waypoints)
-    {
-        var txt = "";
-
-        for (let w of waypoints)
+        function updateWaypointList(waypoints)
         {
-            txt += "<div data-item=\"" + w.id + "\" draggable='true'>Waypoint " + w.id + "</div>";
+            var txt = "";
+
+            for (let w of waypoints)
+            {
+                txt += "<div data-item=\"" + w.id + "\" draggable='true'>Waypoint " + w.id + "</div>";
+            }
+
+            $('#sortable').html(txt);
         }
-
-        $('#sortable').html(txt);
-    }
-
     </script>
 
     <script>
         var userHikeId = {{ $hikeId }};
+        var userAdmin = {{ Auth::user()->admin ? 'true' : 'false' }};
         var tileServerUrl = "{{ env('TILE_SERVER_URL', '') }}";
         var endOfDayUrl = "{{ asset('moon_pin.png') }}";
         var campUrl = "{{ asset('camp-ltblue-dot.png') }}";
