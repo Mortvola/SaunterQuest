@@ -40,7 +40,9 @@
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav mr-auto">
 	                    <a class="nav-link" href="/home" style="color:white">Home</a>
+                        @if (Request::is('hike/*'))
 	                    <a class="nav-link" href="javascript:showExportTrailModal()" style="color:white">Export Trail</a>
+                        @endif
 	                    <a class="nav-link" href="#" style="color:white">Food</a>
 	                    <a class="nav-link" href="/gear" style="color:white">Gear</a>
                     </ul>
