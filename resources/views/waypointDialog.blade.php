@@ -21,6 +21,11 @@
                     <br/>
 
                     <div class="form-group">
+                    <label>Start Time:</label>
+                    <input type="time" class='form-control' data-constraint='startTime' value=''/>
+                    </div>
+
+                    <div class="form-group">
                     <label>Delay (in minutes)</label>
                     <input type="text" class='form-control' data-constraint='delay'/>
                     </div>

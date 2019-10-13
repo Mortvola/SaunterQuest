@@ -126,6 +126,10 @@ class Route
                     {
                         this.checked = constraint.time != 0;
                     }
+                    else if (this.type == 'time')
+                    {
+                        this.value = formatTime(constraint.time);
+                    }
                     else
                     {
                         this.value = constraint.time;
@@ -160,6 +164,10 @@ class Route
                     if (inputType == 'checkbox')
                     {
                         value = this.checked ? 1 : 0;
+                    }
+                    else if (inputType == 'time')
+                    {
+                        value = unformatTime(this.value);
                     }
                     else
                     {

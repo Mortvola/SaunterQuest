@@ -59,3 +59,40 @@ function gramsToPoundsAndOunces (grams)
 	return pounds.toString () + " lb " + ounces + " oz";
 }
 
+//Format time
+//Parameter t is in minutes from midnight
+function formatTime (t)
+{
+    let h = Math.floor(t / 60.0);
+    let m = Math.floor((t % 60));
+    
+    let formattedTime = "";
+    
+    if (h < 10)
+    {
+        formattedTime = '0' + h;
+    }
+    else
+    {
+        formattedTime = h;
+    }
+    
+    if (m < 10)
+    {
+        formattedTime += ":0" + m;
+    }
+    else
+    {
+        formattedTime += ":" + m;
+    }
+     
+    return formattedTime;
+}
+
+// Parameter t is a string in the form of HH:MM.
+function unformatTime (t)
+{
+    var time = t.split(':');
+    
+    return parseInt(time[0]) * 60 + parseInt(time[1]);
+}

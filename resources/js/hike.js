@@ -25,29 +25,6 @@ var editPolyLine = {};
 
 var junctionUrl = "https://maps.google.com/mapfiles/ms/micons/lightblue.png";
 
-// Format time
-// Parameter t is in minutes from midnight
-function timeFormat (t)
-{
-	let h = Math.floor(t / 60.0);
-	let m = Math.floor((t % 60));
-
-	let formattedTime = "";
-	
-	formattedTime += h;
-
-	if (m < 10)
-	{
-		formattedTime += ":0" + m;
-	}
-	else
-	{
-		formattedTime += ":" + m;
-	}
-	
-	return formattedTime;
-}
-
 function attachInfoWindowMessage (poi, message)
 {
 	poi.message = message;

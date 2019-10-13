@@ -46,13 +46,13 @@ class Schedule
 				txt += "</div>";
 				txt += "</div>";
 					
-				txt += "<div style='padding:2px 2px 2px 2px'>" + timeFormat(this.days[d].startTime) + ", " + "mile " + metersToMilesRounded (this.days[d].startMeters) + ": start" + "</div>";
+				txt += "<div style='padding:2px 2px 2px 2px'>" + formatTime(this.days[d].startTime) + ", " + "mile " + metersToMilesRounded (this.days[d].startMeters) + ": start" + "</div>";
 				
 	//			if (data[d].events.length > 0)
 	//			{
 	//				for (let e in data[d].events)
 	//				{
-	//					txt += "<div style='padding:2px 2px 2px 2px'>" + timeFormat(data[d].events[e].time) + ", " + "mile " + metersToMilesRounded (data[d].events[e].meters) + ": " + data[d].events[e].type + "</div>";
+	//					txt += "<div style='padding:2px 2px 2px 2px'>" + formatTime(data[d].events[e].time) + ", " + "mile " + metersToMilesRounded (data[d].events[e].meters) + ": " + data[d].events[e].type + "</div>";
 	//
 	//					if (m >= markers.length)
 	//					{
@@ -87,7 +87,7 @@ class Schedule
 	//				}
 	//			}
 	
-				txt += "<div style='padding:2px 2px 2px 2px'>" + timeFormat(this.days[d].endTime) + ", " + "mile ";
+				txt += "<div style='padding:2px 2px 2px 2px'>" + formatTime(this.days[d].endTime) + ", " + "mile ";
 				
 				txt += metersToMilesRounded (this.days[parseInt(d)].startMeters + this.days[parseInt(d)].meters);
 				

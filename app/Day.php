@@ -77,7 +77,7 @@ class Day implements \JsonSerializable
     //
     // Initialize the day
     //
-    public function initialize ($hikerProfile, $point, $startMeters, $camp)
+    public function initialize ($hikerProfile, $point, $startMeters, $camp, $startTime)
     {
         $this->startMeters = $startMeters;
 
@@ -88,9 +88,16 @@ class Day implements \JsonSerializable
             $this->notes = "";
         }
 
-        if ($this->startTime == null)
+        if ($this->startTime === null)
         {
-            $this->startTime = $hikerProfile->startTime;
+            if ($startTime === null)
+            {
+                $this->startTime = $hikerProfile->startTime;
+            }
+            else
+            {
+                $this->startTime = $startTime;
+            }
         }
 
         if ($this->endTime == null)

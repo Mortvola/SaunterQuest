@@ -44,7 +44,7 @@ class Event
     public $notes;
 }
 
-function dayStart ($schedule, $point, $camp = null)
+function dayStart ($schedule, $point, $camp = null, $startTime = null)
 {
     global $activeHikerProfile;
 
@@ -52,7 +52,7 @@ function dayStart ($schedule, $point, $camp = null)
 
     $activeHikerProfile = $schedule->activeHikerProfileGet();
 
-    $schedule->currentDayGet()->initialize($activeHikerProfile, $point, $schedule->previousDayTotalMetersGet(), $camp);
+    $schedule->currentDayGet()->initialize($activeHikerProfile, $point, $schedule->previousDayTotalMetersGet(), $camp, $startTime);
 }
 
 //
@@ -444,12 +444,20 @@ function traverseSegment ($s1, $s2, $schedule, &$z, $segmentMeters, $lastEle)
         {
             if ($camp->time !== 0)
             {
+                $startTime = null;
+                $startTimes = $s1->timeConstraints()->where('type', 'startTime')->get ();
+
+                if ($startTimes && $startTimes->count () > 0)
+                {
+                    $startTime = $startTimes[0]->time;
+                }
+
                 $schedule->currentDayGet()->end();
                 dayStart($schedule, (object)[
                     "lat" => $s1->point->lat,
                     "lng" => $s1->point->lng,
                     "ele" => $s1->point->ele
-                ], (object)["type" => "waypoint", "id" => $s1->id]);
+                ], (object)["type" => "waypoint", "id" => $s1->id], $startTime);
 
                 break;
             }

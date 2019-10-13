@@ -37,8 +37,8 @@ function hikerProfileRowGet (profile)
 	txt += "<td style='text-align:right'>" + endDay + "</td>";
 
 	txt += "<td style='text-align:right'>" + nvl(profile.speedFactor, "") + "</td>";
-	txt += "<td style='text-align:right'>" + timeFormat(nvl(profile.startTime * 60, "")) + "</td>";
-	txt += "<td style='text-align:right'>" + timeFormat(nvl(profile.endTime * 60, "")) + "</td>";
+	txt += "<td style='text-align:right'>" + formatTime(nvl(profile.startTime * 60, "")) + "</td>";
+	txt += "<td style='text-align:right'>" + formatTime(nvl(profile.endTime * 60, "")) + "</td>";
 	txt += "<td style='text-align:right'>" + nvl(profile.breakDuration, "") + "</td>";
 
 	txt += "</tr>";
