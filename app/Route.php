@@ -213,6 +213,8 @@ class Route implements ArrayAccess
         {
             $waypoint = $this->anchors[$waypointIndex];
 
+            $waypoint->name = $details->name;
+
             foreach ($details->timeConstraints as $constraint)
             {
                 if (isset($constraint->id) && $constraint->id !== null)

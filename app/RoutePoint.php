@@ -21,7 +21,8 @@ class RoutePoint extends Model
         'ele',
         'dist',
         'trail',
-        'timeConstraints'
+        'timeConstraints',
+        'name'
     ];
 
     protected $appends = [

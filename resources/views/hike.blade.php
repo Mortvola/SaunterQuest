@@ -209,7 +209,14 @@
 
             for (let w of waypoints)
             {
-                txt += "<div data-item=\"" + w.id + "\" draggable='true'>Waypoint " + w.id + "</div>";
+                var name = 'Waypoint ' + w.id;
+
+                if (w.name)
+                {
+                    name = w.name;
+                }
+
+                txt += "<div data-item=\"" + w.id + "\" draggable='true'>" + name + "</div>";
             }
 
             $('#sortable').html(txt);

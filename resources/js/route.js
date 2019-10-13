@@ -113,6 +113,8 @@ class Route
         $("#waypointForm")[0].reset ();
         $("#waypointForm [data-constraint]").removeAttr('data-id');
         
+        $("#waypointForm [name='name']").val(marker.name);
+        
         // Look for and populate any time constraint fields in the form.
         for (let constraint of marker.timeConstraints)
         {
@@ -392,6 +394,7 @@ class Route
 	                    waypoint.setDraggable (true, (marker) => { this.updateWaypoint (marker); });
 	                    waypoint.setContextMenu(this.wayPointCM);
 	                    waypoint.timeConstraints = this.anchors[r].time_constraints;
+	                    waypoint.name = this.anchors[r].name;
 				    }
 				    
 					waypoint.setPosition(this.anchors[r]);
