@@ -476,7 +476,7 @@ class Route implements ArrayAccess
                 $this->anchors[$s]->next_line_id == $this->anchors[$s + 1]->prev_line_id &&
                 $this->anchors[$s]->next_fraction != $this->anchors[$s + 1]->prev_fraction)
             {
-                $trail = getPath($this->anchors[$s]->next_line_id, $this->anchors[$s]->next_fraction, $this->anchors[$s + 1]->prev_fraction);
+                $trail = Map::getPath($this->anchors[$s]->next_line_id, $this->anchors[$s]->next_fraction, $this->anchors[$s + 1]->prev_fraction);
 
                 // array_splice ($this->anchors, $s + 1, 0, $trail);
                 // $s += count($trail);

@@ -94,6 +94,22 @@ class Map
         return $fileName;
     }
 
+    public static function getPointOnLine ($lineId, $fraction)
+    {
+        $sql = "select ST_AsGeoJSON(ST_Transform(ST_LineInterpolatePoint(way, :fraction:), 4326)) AS point
+                from planet_osm_line
+                where line_id = :lineId:";
+
+        $sql = str_replace (":fraction:", $fraction, $sql);
+        $sql = str_replace (":lineId:", $lineId, $sql);
+
+        $result = \DB::connection('pgsql')->select ($sql);
+
+        $coordinate = json_decode($result[0]->point)->coordinates;
+
+        return (object)["lat" => $coordinate[1], "lng" => $coordinate[0]];
+    }
+
     public static function getTrailFromPoint ($point)
     {
         $point = "ST_Transform('SRID=4326;POINT(" . $point->lng . " " . $point->lat . ")'::geometry, 3857)";
@@ -127,7 +143,7 @@ class Map
             $bounds[3] . " " . $bounds[2] . ")'::geometry, 3857)), 3857)";
 
         $intersections = \DB::connection('pgsql')->select (
-           "select ST_AsGeoJSON(ST_Transform(ST_Intersection(l1.way, l2.way), 4326)) coordinate
+           "select distinct ST_AsGeoJSON(ST_Transform(ST_Intersection(l1.way, l2.way), 4326)) coordinate
             from planet_osm_line l1
             join planet_osm_line l2 on l1.ctid != l2.ctid and ST_Intersects(l1.way, l2.way) and l2.highway is not null
             where l1.highway is not null
@@ -137,6 +153,70 @@ class Map
             and ST_ContainsProperly (" . $boundingBox . ", ST_Intersection(l1.way, l2.way))"
         );
 
+        foreach ($intersections as $intersection)
+        {
+            $intersection->coordinate = json_decode($intersection->coordinate);
+        }
+
         return $intersections;
+    }
+
+    static public function getPath ($lineId, $startFraction, $endFraction)
+    {
+        if ($startFraction > $endFraction)
+        {
+            $startFraction = 1 - $startFraction;
+            $endFraction = 1 -$endFraction;
+
+            $way = 'ST_Reverse(way)';
+        }
+        else
+        {
+            $way = 'way';
+        }
+
+        $sql = "select ST_AsGeoJSON(ST_Transform(ST_LineSubstring (:way:, :start:, :end:), 4326)) AS linestring
+            from planet_osm_line
+            where line_id = :lineId:
+            limit 1";
+
+        $sql = str_replace (":way:", $way, $sql);
+        $sql = str_replace (":start:", $startFraction, $sql);
+        $sql = str_replace (":end:", $endFraction, $sql);
+        $sql = str_replace (":lineId:", $lineId, $sql);
+
+        $result = \DB::connection('pgsql')->select ($sql);
+
+        $coordinates = json_decode($result[0]->linestring)->coordinates;
+        $points = [];
+
+        foreach ($coordinates as $coord)
+        {
+            $points[] = (object)["point" => (object)["lat" => $coord[1], "lng" => $coord[0]]];
+        }
+
+        return $points;
+    }
+
+    static public function getPathFromLineId ($lineId)
+    {
+        $sql = "select ST_AsGeoJSON(ST_Transform(way, 4326)) AS linestring
+            from planet_osm_line
+            where line_id = :lineId:
+            limit 1";
+
+        $sql = str_replace (":lineId:", $lineId, $sql);
+
+        $result = \DB::connection('pgsql')->select ($sql);
+
+        $coordinates = json_decode($result[0]->linestring)->coordinates;
+        $points = [];
+
+        foreach ($coordinates as $coord)
+        {
+            $points[] = (object)["point" => (object)["lat" => $coord[1], "lng" => $coord[0]]];
+        }
+
+        return $points;
     }
 }

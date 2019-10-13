@@ -335,29 +335,8 @@ class GenerateGraph extends Command
             from planet_osm_line where ctid = '" . $edges[$i]->ctId . "'");
 
             $lineString = json_decode($line[0]->line);
-            $points = $lineString->coordinates;
 
-            $forwardCost = 0;
-            $backwardCost = 0;
-
-            for ($p = 0; $p < count($points) - 1; $p++)
-            {
-                $dx = haversineGreatCircleDistance($points[$p][1], $points[$p][0], $points[$p + 1][1], $points[$p + 1][0]);
-
-                if ($dx != 0)
-                {
-                    $ele1 = getElevation($points[$p][1], $points[$p][0]);
-                    $ele2 = getElevation($points[$p + 1][1], $points[$p + 1][0]);
-
-                    $dh = $ele2 - $ele1;
-
-                    $forwardCost += $dx / metersPerHourGet($dh, $dx);
-                    $backwardCost += $dx / metersPerHourGet(-$dh, $dx);
-                }
-            }
-
-            $edges[$i]->forwardCost = $forwardCost;
-            $edges[$i]->backwardCost = $backwardCost;
+            list($edges[$i]->forwardCost, $edges[$i]->backwardCost) = Graph::computeCosts ($lineString->coordinates);
 
             $bar->advance();
         }
@@ -366,6 +345,79 @@ class GenerateGraph extends Command
         error_log ("");
 
         $this->insertIntoDB ($nodes, $edges);
+
+        fixupDeadEndStartNodeEdges ();
+        fixupDeadEndEndNodeEdges ();
+    }
+
+    private function fixupDeadEndEndNodeEdges ()
+    {
+        $edges = \DB::connection('pgsql')->select ("
+            select e1.id, e2.start_node AS new_end_node, e2.start_fraction AS new_end_fraction, e1.line_id,
+                    ST_AsGeoJSON(ST_Transform(ST_LineSubString(way, e1.start_fraction, e2.start_fraction), 4326)) as line
+            from nav_edges e1
+            join nav_edges e2 on e2.line_id = e1.line_id and e2.id != e1.id and e2.start_fraction > e1.start_fraction
+            join planet_osm_line line on line.line_id = e1.line_id
+            where e1.end_node is null
+            and e2.id in (
+                select e3.id
+                from nav_edges e3
+                where e3.start_fraction > e1.start_fraction
+                and e3.line_id = e1.line_id
+                and e3.id != e1.id
+                order by e3.end_fraction asc
+                limit 1)");
+
+        foreach ($edges as $edge)
+        {
+            $lineString = json_decode($edge->line);
+
+            list ($forwardCost, $backwardCost) = Graph::computeCosts ($lineString->coordinates);
+
+            \DB::table('nav_edges')
+                ->where('id', $edge->id)
+                ->update([
+                    "end_node" => $edge->new_end_node,
+                    "end_fraction" => $edge->new_end_fraction,
+                    "forward_cost" => $forwardCost,
+                    "backward_cost" => $backwardCost
+                ]);
+        }
+    }
+
+    private function fixupDeadEndStartNodeEdges ()
+    {
+        $edges = \DB::connection('pgsql')->select ("
+            select e1.id, e2.end_node AS new_start_node, e2.end_fraction AS new_start_fraction, e1.line_id,
+                    ST_AsGeoJSON(ST_Transform(ST_LineSubString(way, e2.end_fraction, e1.end_fraction), 4326)) as line
+            from nav_edges e1
+            join nav_edges e2 on e2.line_id = e1.line_id and e2.id != e1.id and e2.end_fraction < e1.end_fraction
+            join planet_osm_line line on line.line_id = e1.line_id
+            where e1.start_node is null
+            and e2.id in (
+                select e3.id
+                from nav_edges e3
+                where e3.end_fraction < e1.end_fraction
+                and e3.line_id = e1.line_id
+                and e3.id != e1.id
+                order by e3.start_fraction desc
+                limit 1)");
+
+        foreach ($edges as $edge)
+        {
+            $lineString = json_decode($edge->line);
+
+            list ($forwardCost, $backwardCost) = Graph::computeCosts ($lineString->coordinates);
+
+            \DB::table('nav_edges')
+            ->where('id', $edge->id)
+            ->update([
+                "start_node" => $edge->new_start_node,
+                "start_fraction" => $edge->new_start_fraction,
+                "forward_cost" => $forwardCost,
+                "backward_cost" => $backwardCost
+            ]);
+        }
     }
 
     private function insertIntoDB ($nodes, $edges)

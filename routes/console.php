@@ -2,6 +2,7 @@
 
 use Illuminate\Foundation\Inspiring;
 use App\Map;
+use App\Graph;
 use App\Trail;
 use App\Route;
 use App\Schedule;
@@ -84,3 +85,9 @@ Artisan::command('map:getPathFromPoint {lat} {lng}', function ($lat, $lng) {
     $result = Map::getTrailFromPoint ((object)["lat" => floatval($lat), "lng" => floatval($lng)]);
     $this->info(json_encode($result));
 })->describe('Gets the hikes for the user specified by the provided userId');
+
+
+Artisan::command('graph:fixupEdgeCosts', function ()
+{
+    return Graph::fixupEdgeCosts();
+})->describe('Recomputes and updates costs on all graph edges');

@@ -499,7 +499,7 @@ function traverseSegment ($s1, $s2, $schedule, &$z, $segmentMeters, $lastEle)
         }
         elseif ($currentTime >= 12 * 60 && $currentTime < 12 * 60 + $activeHikerProfile->breakDuration)
         {
-            $schedule->currentDayGet()->timeAdd(12 + $activeHikerProfile->breakDuration - $currentTime);
+            $schedule->currentDayGet()->timeAdd(12 * 60 + $activeHikerProfile->breakDuration - $currentTime);
             $currentTime = $schedule->currentDayGet()->currentTimeGet();
         }
 

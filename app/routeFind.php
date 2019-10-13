@@ -285,7 +285,7 @@ function traverseEdge ($edgeIndex, $fromNodeIndex, $bestCost, $graph, &$nodes)
 
         if (isset($nextNodeIndex))
         {
-            loadNode ($nextNodeIndex, $edgeIndex, $graph);
+            Graph::loadNode ($nextNodeIndex, $edgeIndex, $graph);
 
             $nextNode = $graph->nodes[$nextNodeIndex];
 
@@ -361,106 +361,6 @@ function substituteEdgeIndex ($node, $oldIndex, $newIndex)
             $node->edges[$j] = $newIndex;
 
             break;
-        }
-    }
-}
-
-
-function computeCost ($startPointIndex, $endPointIndex, $points)
-{
-    $forwardCost = 0;
-    $backwardCost = 0;
-
-    $elevation = new Elevation;
-
-    for ($p = $startPointIndex; $p < $endPointIndex; $p++)
-    {
-        $dx = haversineGreatCircleDistance($points[$p]->lat, $points[$p]->lng, $points[$p + 1]->lat, $points[$p + 1]->lng);
-
-        if ($dx != 0)
-        {
-            $ele1 = $elevation->getElevation($points[$p]->lat, $points[$p]->lng);
-            $ele2 = $elevation->getElevation($points[$p + 1]->lat, $points[$p + 1]->lng);
-
-            $dh = $ele2 - $ele1;
-
-            $forwardCost += $dx / metersPerHourGet($dh, $dx);
-            $backwardCost += $dx / metersPerHourGet(-$dh, $dx);
-        }
-    }
-
-    return [$forwardCost, $backwardCost];
-}
-
-
-function loadNode ($nodeIndex, $edgeIndex, $graph)
-{
-    // Load the node if the node index is valid and it isn't already loaded
-    if (isset ($nodeIndex) && !isset($graph->nodes[$nodeIndex]))
-    {
-        $sql = "select ST_AsGeoJSON(ST_Transform(way, 4326)) AS point
-            from nav_nodes
-            where id = :nodeId:";
-
-        $node = \DB::connection('pgsql')->select (str_replace (":nodeId:", $nodeIndex, $sql));
-
-        $coordinates = json_decode($node[0]->point)->coordinates;
-
-        $newNode = (object)[
-            "edges" => [$edgeIndex],
-            "point" => (object)["lat" => $coordinates[1], "lng" => $coordinates[0]]
-        ];
-
-        $graph->nodes[$nodeIndex] = $newNode;
-
-        // Load the edges at the start and end nodes associated with this edge.
-        $sql = "select id, start_node, end_node, start_fraction, end_fraction, forward_cost, backward_cost, line_id
-                from nav_edges
-                where (start_node = :nodeId: OR end_node = :nodeId:)
-                and id != :edgeId:";
-
-        $edges = \DB::connection('pgsql')->select (str_replace(":nodeId:", $nodeIndex, str_replace (":edgeId:", $edgeIndex, $sql)));
-
-        foreach ($edges as $edge)
-        {
-            $edgeIndex = $edge->id;
-
-            // If this edge was previously split...
-            while (isset($graph->splits[$edgeIndex]))
-            {
-                $split = $graph->splits[$edgeIndex];
-
-                if ($split->start_node == $nodeIndex)
-                {
-                    $edgeIndex = $split->startEdgeIndex;
-                }
-                else
-                {
-                    $edgeIndex = $split->endEdgeIndex;
-                }
-            }
-
-            // If the edge is not already in the edge array then add it.
-            if (!isset ($graph->edges[$edgeIndex]))
-            {
-                $graph->edges[$edgeIndex] = $edge;
-            }
-            else
-            {
-                $edge = $graph->edges[$edgeIndex];
-            }
-
-            if (isset($graph->nodes[$edge->start_node]) &&
-                !array_search($edgeIndex, $graph->nodes[$edge->start_node]->edges))
-            {
-                $graph->nodes[$edge->start_node]->edges[] = $edgeIndex;
-            }
-
-            if (isset($graph->nodes[$edge->end_node]) &&
-                !array_search($edgeIndex, $graph->nodes[$edge->end_node]->edges))
-            {
-                $graph->nodes[$edge->end_node]->edges[] = $edgeIndex;
-            }
         }
     }
 }

@@ -123,9 +123,9 @@ class Schedule
                     $hikerProfile->endTime = $profile->end_time * 60;
                 }
 
-                if (isset($profile->breakDuration))
+                if (isset($profile->break_duration))
                 {
-                    $hikerProfile->breakDuration = $profile->breakDuration;
+                    $hikerProfile->breakDuration = $profile->break_duration * 60;
                 }
             }
         }

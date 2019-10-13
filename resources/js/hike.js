@@ -817,7 +817,6 @@ let intersections = [];
 
 function showIntersections ()
 {
-	var trails = this;
 	var bounds = map.getBounds ();
 
     $.get({
@@ -853,6 +852,71 @@ function showIntersections ()
 }
 
 
+function highlightNearestTrail (object, position)
+{
+    var bounds = map.getBounds ();
+
+    $.get({
+        url: "/map/nearestTrail?lat=" + position.lat () + "&lng=" + position.lng (),
+        dataType: "json"
+    })
+    .done (function(responseText)
+    {
+        for (let p of responseText)
+        {
+            p.lat = p.point.lat;
+            p.lng = p.point.lng;
+        }
+        
+        var polyLine = new google.maps.Polyline({
+            path: responseText,
+            geodesic: true,
+            strokeColor: "#FF0000",
+            strokeOpacity: 0.5,
+            strokeWeight: routeStrokeWeight + 2 * routeHighlightStrokePadding,
+            zIndex: 10});
+
+        polyLine.setMap(route.map);
+    });
+}
+
+
+function showNearestGraph (object, position)
+{
+    var bounds = map.getBounds ();
+
+    $.get({
+        url: "/map/nearestGraph?lat=" + position.lat () + "&lng=" + position.lng (),
+        dataType: "json"
+    })
+    .done (function(graph)
+    {
+        for (let e of graph.edges)
+        {
+            if (e.start_node && e.end_node && graph.nodes[e.start_node] && graph.nodes[e.end_node])
+            {
+                var line = [
+                    {lat: graph.nodes[e.start_node].point.lat, lng: graph.nodes[e.start_node].point.lng},
+                    {lat: graph.nodes[e.end_node].point.lat, lng: graph.nodes[e.end_node].point.lng}
+                    ];
+                
+                var polyLine = new google.maps.Polyline({
+                    path: line,
+                    geodesic: true,
+                    strokeColor: "#FF0000",
+                    strokeOpacity: 0.5,
+                    strokeWeight: 2,
+                    zIndex: 10});
+
+                polyLine.setMap(route.map);
+            }
+        }
+        
+    });
+}
+
+
+
 function mapInitialize()
 {
     var mapTypeIds = [];
@@ -874,12 +938,17 @@ function mapInitialize()
 		minZoom:5,
 		maxZoom:maxZoom,
 		mapTypeId:"OSM",
-		mapTypeControlOptions: {
-			mapTypeIds: mapTypeIds
-//		    style: google.maps.MapTypeControlStyle.DROPDOWN_MENU
-		  }
+		mapTypeControl: false
 	};
 	
+    if (userAdmin)
+    {
+        mapProp.mapTypeControl = true;
+        mapProp.mapTypeControlOptions = {
+            mapTypeIds: mapTypeIds
+          };
+    }
+    
 	map = new google.maps.Map(document.getElementById("googleMap"), mapProp);
 
     map.mapTypes.set("OSM", new google.maps.ImageMapType(
@@ -914,6 +983,8 @@ function mapInitialize()
 		{title:"Set End Location", func:setEndLocation},
 		{title:"Add Waypoint", func:addWaypoint},
 		{title:"Show Intersections", func:showIntersections, admin: true},
+        {title:"Higlight Nearest Trail", func:highlightNearestTrail, admin: true},
+        {title:"Show Nearest Graph", func:showNearestGraph, admin: true},
 	]);
 
 	trailContextMenu = new ContextMenu ([

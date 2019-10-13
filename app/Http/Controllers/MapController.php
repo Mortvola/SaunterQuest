@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Map;
-
+use App\Graph;
 
 class MapController extends Controller
 {
@@ -43,5 +43,34 @@ class MapController extends Controller
         $result = Map::getIntersections($bounds);
 
         return json_encode($result);
+    }
+
+    public function getNearestTrail (Request $request)
+    {
+        $point = (object)[];
+        $point->lat = $request->input('lat');
+        $point->lng = $request->input('lng');
+
+        $result = Map::getTrailFromPoint($point);
+
+        return Map::getPath ($result->line_id, 0, 1);
+    }
+
+    public function getNearestGraph (Request $request)
+    {
+        $point = (object)[];
+        $point->lat = $request->input('lat');
+        $point->lng = $request->input('lng');
+
+        $graph = Graph::getGraphFromPoint($point);
+
+        $graph->edges = array_values($graph->edges);
+
+        return json_encode($graph);
+    }
+
+    public function getTrailByLineId ($lineId)
+    {
+        return Map::getPathFromLineId($lineId);
     }
 }

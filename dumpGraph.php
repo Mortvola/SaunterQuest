@@ -1,10 +1,10 @@
 <?php
+$nodesToDraw = [ ];
 
-$nodesToDraw = [];
-
-function dump_node($nodeIndex, $graph)
+function dump_node ($nodeIndex, $graph)
 {
-    if (isset($nodeIndex)) {
+    if (isset($nodeIndex))
+    {
         error_log("---------------");
         error_log("Node Index: " . $nodeIndex);
 
@@ -12,25 +12,36 @@ function dump_node($nodeIndex, $graph)
 
         error_log("Number of edges: " . count($node->edges));
 
-        for ($i = 0; $i < count($node->edges); $i++) {
+        for ($i = 0; $i < count($node->edges); $i++)
+        {
             $edge = &$graph->edges[$node->edges[$i]];
 
-            if (isset($edge->file)) {
+            if (isset($edge->file))
+            {
                 error_log("edge index: " . $node->edges[$i] . ", route to file " . $edge->file . ". " . isset($edge->visited));
-            } else {
-                if (!isset($edge->prev->nodeIndex)) {
+            }
+            else
+            {
+                if (!isset($edge->prev->nodeIndex))
+                {
                     error_log("edge index: " . $node->edges[$i] . ", route " . $edge->cn . " to no node. " . isset($edge->visited));
-                } elseif ($edge->prev->nodeIndex != $nodeIndex) {
+                }
+                elseif ($edge->prev->nodeIndex != $nodeIndex)
+                {
                     error_log("edge index: " . $node->edges[$i] . ", route " . $edge->cn . " to " . $edge->prev->nodeIndex . ". " . isset($edge->visited));
                 }
 
-                if (!isset($edge->next->nodeIndex)) {
+                if (!isset($edge->next->nodeIndex))
+                {
                     error_log("edge index: " . $node->edges[$i] . ", route " . $edge->cn . " to no node. " . isset($edge->visited));
-                } elseif ($edge->next->nodeIndex != $nodeIndex) {
+                }
+                elseif ($edge->next->nodeIndex != $nodeIndex)
+                {
                     error_log("edge index: " . $node->edges[$i] . ", route " . $edge->cn . " to " . $edge->next->nodeIndex . ". " . isset($edge->visited));
                 }
 
-                if (!isset($edge->next->nodeIndex) && !isset($edge->prev->nodeIndex)) {
+                if (!isset($edge->next->nodeIndex) && !isset($edge->prev->nodeIndex))
+                {
                     error_log("edge index: " . $node->edges[$i] . ", no route");
                 }
 
@@ -46,30 +57,38 @@ function writeEdge ($edge, $color, $weight, $graph, $handle)
     global $nodesToDraw;
     static $deadEndCount = 0;
 
-    if (isset($edge->type) && $edge->type == "connector") {
+    if (isset($edge->type) && $edge->type == "connector")
+    {
         $color = "red";
     }
 
     $attributes = ",color=" . $color . ",penwidth=" . $weight;
 
-    if (isset($edge->file)) {
+    if (isset($edge->file))
+    {
         fwrite($handle, "n" . $edge->nodeIndex . " -- " . $edge->file . " [ " . $attributes . "];\n");
-    } else {
+    }
+    else
+    {
         $label = "label = \"" . $edge->cn . ":" . $edge->pathIndex . "\"";
 
-        if (isset($edge->prev->nodeIndex) && isset($edge->next->nodeIndex)) {
+        if (isset($edge->prev->nodeIndex) && isset($edge->next->nodeIndex))
+        {
             fwrite($handle, "n" . $edge->prev->nodeIndex . " -- n" . $edge->next->nodeIndex . " [ " . $label . $attributes . "];\n");
         }
-        elseif (isset($edge->prev->nodeIndex)) {
+        elseif (isset($edge->prev->nodeIndex))
+        {
             $deadEndCount++;
             fwrite($handle, "n" . $edge->prev->nodeIndex . " -- DE" . $deadEndCount . " [ " . $label . $attributes . "];\n");
-        } elseif (isset($edge->next->nodeIndex)) {
+        }
+        elseif (isset($edge->next->nodeIndex))
+        {
             $deadEndCount++;
             fwrite($handle, "n" . $edge->next->nodeIndex . " -- DE" . $deadEndCount . " [ " . $label . $attributes . "];\n");
         }
     }
 
-    if (isset ($edge->prev->nodeIndex))
+    if (isset($edge->prev->nodeIndex))
     {
         if (!isset($graph->nodes[$edge->prev->nodeIndex]->done) || !$graph->nodes[$edge->prev->nodeIndex]->done)
         {
@@ -78,7 +97,7 @@ function writeEdge ($edge, $color, $weight, $graph, $handle)
         }
     }
 
-    if (isset ($edge->next->nodeIndex))
+    if (isset($edge->next->nodeIndex))
     {
         if (!isset($graph->nodes[$edge->next->nodeIndex]->done) || !$graph->nodes[$edge->next->nodeIndex]->done)
         {
@@ -90,10 +109,9 @@ function writeEdge ($edge, $color, $weight, $graph, $handle)
     $edge->done = true;
 }
 
-
 function drawNodeEdges ($graph, $nodes, $handle)
 {
-    $newNodes = [];
+    $newNodes = [ ];
 
     foreach ($nodes as $nodeIndex)
     {
@@ -105,7 +123,7 @@ function drawNodeEdges ($graph, $nodes, $handle)
 
             if (!isset($edge->done) || !$edge->done)
             {
-                writeEdge ($edge, "black", 1, $graph, $handle);
+                writeEdge($edge, "black", 1, $graph, $handle);
 
                 if (isset($edge->prev->nodeIndex))
                 {
@@ -123,7 +141,6 @@ function drawNodeEdges ($graph, $nodes, $handle)
     return $newNodes;
 }
 
-
 function writeNodeAttributes ($graph, $handle)
 {
     global $nodesToDraw;
@@ -139,38 +156,41 @@ function writeNodeAttributes ($graph, $handle)
             $color = 'color=blue';
         }
 
-//        fwrite($handle, "n" . $nodeIndex . ' [ pos="' . $node->lat . ',' . $node->lng . '!"' . "];\n");
+        // fwrite($handle, "n" . $nodeIndex . ' [ pos="' . $node->lat . ',' .
+        // $node->lng . '!"' . "];\n");
         fwrite($handle, "n" . $nodeIndex . ' [ ' . $color . "];\n");
     }
 }
 
-
-function dumpGraph($graph, $cn, $pathIndex, $depth)
+function dumpGraph ($graph, $cn, $pathIndex, $depth)
 {
     $handle = fopen("graph.dot", "wb");
 
-    if ($handle) {
+    if ($handle)
+    {
 
         fwrite($handle, "graph G {\n");
 
-//      for ($i = 0; $i < count($graph->nodes); $i++)
-//      {
-//          $node = $graph->nodes[$i];
+        // for ($i = 0; $i < count($graph->nodes); $i++)
+        // {
+        // $node = $graph->nodes[$i];
 
-//          fwrite ($handle, "n" . $i . " [ pos = \"" . $node->lng * 400 . "," . $node->lat * 400 . "!\" ];\n");
-//      }
+        // fwrite ($handle, "n" . $i . " [ pos = \"" . $node->lng * 400 . "," .
+        // $node->lat * 400 . "!\" ];\n");
+        // }
 
-        $nodes = [];
+        $nodes = [ ];
 
-        for ($i = 0; $i < count($graph->edges); $i++) {
+        for ($i = 0; $i < count($graph->edges); $i++)
+        {
             $edge = $graph->edges[$i];
 
-            if ($edge->cn != $cn)// || $edge->pathIndex != $pathIndex)
+            if ($edge->cn != $cn) // || $edge->pathIndex != $pathIndex)
             {
-            	continue;
+                continue;
             }
 
-            writeEdge ($edge, "green", 3, $graph, $handle);
+            writeEdge($edge, "green", 3, $graph, $handle);
 
             if (isset($edge->prev->nodeIndex))
             {
@@ -185,7 +205,7 @@ function dumpGraph($graph, $cn, $pathIndex, $depth)
 
         while (count($nodes) > 0)
         {
-            $nodes = drawNodeEdges ($graph, $nodes, $handle);
+            $nodes = drawNodeEdges($graph, $nodes, $handle);
 
             $depth--;
 
@@ -195,7 +215,7 @@ function dumpGraph($graph, $cn, $pathIndex, $depth)
             }
         }
 
-        writeNodeAttributes ($graph, $handle);
+        writeNodeAttributes($graph, $handle);
 
         fwrite($handle, "}\n");
 
@@ -203,12 +223,11 @@ function dumpGraph($graph, $cn, $pathIndex, $depth)
     }
 }
 
-
 if (isset($argv[1]) && isset($argv[2]))
 {
     $graph = json_decode(file_get_contents($argv[1]));
 
-//    dump_node(58, $graph);
+    // dump_node(58, $graph);
 
     dumpGraph($graph, $argv[2], 3, 2);
 }

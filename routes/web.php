@@ -10,6 +10,7 @@ use App\Http\Controllers\HikerProfileController;
 use App\Http\Controllers\TrailConditionController;
 use App\Http\Controllers\ResupplyPlanController;
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\MapController;
 
 /*
 |--------------------------------------------------------------------------
@@ -157,6 +158,10 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/elevation/file', 'ElevationController@downloadElevations');
 
     Route::get('/map/intersections', 'MapController@getIntersections');
+    Route::get('/map/nearestTrail', 'MapController@getNearestTrail');
+    Route::get('/map/nearestGraph', 'MapController@getNearestGraph');
+    Route::get('/map/trail/{lineId}', function ($lineId) { return (new MapController)->getTrailByLineId ($lineId);});
+
     Route::get('/tileList', 'MapController@getTileList');
     Route::get('/tile', 'TileController@get');
 });
