@@ -133,7 +133,13 @@ class Map
 
         $result = \DB::connection('pgsql')->select (str_replace (":point:", $point, $sql));
 
-        return $result[0];
+        if (count($result) > 0)
+        {
+            $coordinates = json_decode($result[0]->point)->coordinates;
+            $result[0]->point = (object)["lat" => $coordinates[1], "lng" => $coordinates[0]];
+
+            return $result[0];
+        }
     }
 
     public static function getIntersections ($bounds)

@@ -368,8 +368,6 @@ function substituteEdgeIndex ($node, $oldIndex, $newIndex)
 
 function insertNode ($type, $terminus, $cost0, $cost1, $graph)
 {
-    $coordinates = json_decode($terminus->point)->coordinates;
-
     $splitEdge = (object)[];
 
     $splitEdge->start_fraction = $terminus->start_fraction;
@@ -386,7 +384,7 @@ function insertNode ($type, $terminus, $cost0, $cost1, $graph)
 
     $newNode = (object)[
         "edges" => [$splitEdge->startEdgeIndex, $splitEdge->endEdgeIndex],
-        "point" => (object)["lat" => $coordinates[1], "lng" => $coordinates[0]],
+        "point" => $terminus->point, //(object)["lat" => $coordinates[1], "lng" => $coordinates[0]],
         "type" => $type
     ];
 

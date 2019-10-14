@@ -153,36 +153,81 @@ class Route implements ArrayAccess
 
     public function addWaypoint ($point)
     {
-        // For now, find the start (should be first anchor)
-        // and add the waypoint after it.
-        // todo: improve insertion of anchor in collection
+        // Determine if the point is on the route already
+        $result = Map::getTrailFromPoint ($point);
 
-        $prevAnchorIndex = $this->findNearestAnchor ($point);
-        $nextAnchorIndex = $this->findNextAnchorIndex($prevAnchorIndex);
+        if (isset ($result))
+        {
+            foreach ($this->anchors as $nextAnchorKey => $nextAnchor)
+            {
+                if (isset($prevAnchor))
+                {
+                    if (isset ($prevAnchor->next_line_id) && $prevAnchor->next_line_id == $result->line_id &&
+                        isset ($nextAnchor->prev_line_id) && $nextAnchor->prev_line_id == $result->line_id &&
+                        ($result->fraction >= $prevAnchor->next_fraction && $result->fraction <= $nextAnchor->prev_fraction ||
+                         $result->fraction >= $nextAnchor->prev_fraction && $result->fraction <= $prevAnchor->next_fraction))
+                    {
+                        $bestPrevAnchorKey = $prevAnchorKey;
+                        $bestNextAnchorKey = $nextAnchorKey;
 
-        $routePoint = new RoutePoint();
+                        break;
+                    }
+                }
 
-        $routePoint->type = "waypoint";
-        $routePoint->lat = $point->lat;
-        $routePoint->lng = $point->lng;
-        $routePoint->hike_id = $this->hikeId;
+                $prevAnchor = $nextAnchor;
+                $prevAnchorKey = $nextAnchorKey;
+            }
+        }
 
-        $routePoint->order = $this->getSortOrder($prevAnchorIndex, $nextAnchorIndex);
+        if (isset($bestPrevAnchorKey) && isset($bestNextAnchorKey))
+        {
+            // The point is on the route. Insert the anchor into the array of anchors.
 
-        $waypointIndex = $prevAnchorIndex + 1;
-        $this->anchors->splice($waypointIndex, 0, array (
-            $routePoint
-        ));
+            $routePoint = new RoutePoint();
 
-        // Increment the next anchor index because the insertion of the waypoint
-        // into the collection
-        $nextAnchorIndex++;
+            $routePoint->type = "waypoint";
+            $routePoint->lat = $result->point->lat;
+            $routePoint->lng = $result->point->lng;
+            $routePoint->hike_id = $this->hikeId;
+            $routePoint->prev_line_id = $result->line_id;
+            $routePoint->prev_fraction = $result->fraction;
+            $routePoint->next_line_id = $result->line_id;
+            $routePoint->next_fraction = $result->fraction;
 
-        // The route after the waypoint needs to be found first because the
-        // index
-        // of the anchor will change.
-        $this->findRouteBetweenAnchors($waypointIndex, $nextAnchorIndex);
-        $this->findRouteBetweenAnchors($prevAnchorIndex, $waypointIndex);
+            $routePoint->order = $this->getSortOrder($bestPrevAnchorKey, $bestNextAnchorKey);
+
+            $this->anchors->splice($bestPrevAnchorKey, 0, array (
+                $routePoint
+            ));
+        }
+        else
+        {
+            $routePoint = new RoutePoint();
+
+            $routePoint->type = "waypoint";
+            $routePoint->lat = $point->lat;
+            $routePoint->lng = $point->lng;
+            $routePoint->hike_id = $this->hikeId;
+
+            $prevAnchorIndex = $this->findNearestAnchor ($point);
+            $nextAnchorIndex = $this->findNextAnchorIndex($prevAnchorIndex);
+            $routePoint->order = $this->getSortOrder($prevAnchorIndex, $nextAnchorIndex);
+
+            $waypointIndex = $prevAnchorIndex + 1;
+            $this->anchors->splice($waypointIndex, 0, array (
+                $routePoint
+            ));
+
+            // Increment the next anchor index because the insertion of the waypoint
+            // into the collection
+            $nextAnchorIndex++;
+
+            // The route after the waypoint needs to be found first because the
+            // index
+            // of the anchor will change.
+            $this->findRouteBetweenAnchors($waypointIndex, $nextAnchorIndex);
+            $this->findRouteBetweenAnchors($prevAnchorIndex, $waypointIndex);
+        }
     }
 
     public function updateWaypointPosition ($waypointId, $point)
