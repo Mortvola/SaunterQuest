@@ -202,9 +202,11 @@ class Route implements ArrayAccess
 
             $routePoint->order = $this->getSortOrder($bestPrevAnchorKey, $bestNextAnchorKey);
 
-            $this->anchors->splice($bestPrevAnchorKey, 0, array (
+            $this->anchors->splice($bestPrevAnchorKey + 1, 0, array (
                 $routePoint
             ));
+
+            return [[$bestPrevAnchorKey, $bestNextAnchorKey + 1]];
         }
         else
         {
@@ -228,11 +230,19 @@ class Route implements ArrayAccess
             // into the collection
             $nextAnchorIndex++;
 
+            $prevAnchorId = $this->anchors[$prevAnchorIndex]->id;
+            $nextAnchorId = $this->anchors[$nextAnchorIndex]->id;
+
             // The route after the waypoint needs to be found first because the
             // index
             // of the anchor will change.
             $this->findRouteBetweenAnchors($waypointIndex, $nextAnchorIndex);
             $this->findRouteBetweenAnchors($prevAnchorIndex, $waypointIndex);
+
+            $prevAnchorIndex = $this->findAnchorIndexById($prevAnchorId);
+            $nextAnchorIndex = $this->findAnchorIndexById($nextAnchorId);
+
+            return [[$prevAnchorIndex, $nextAnchorIndex]];
         }
     }
 
@@ -366,13 +376,19 @@ class Route implements ArrayAccess
                 $prevAnchorIndex = $this->findPrevAnchorIndex($waypointIndex);
                 $nextAnchorIndex = $this->findNextAnchorIndex($waypointIndex);
 
+                $prevAnchorId = $this->anchors[$prevAnchorIndex]->id;
+                $nextAnchorId = $this->anchors[$nextAnchorIndex]->id;
+
                 // The route after the waypoint needs to be found first because the
                 // index
                 // of the anchor will change.
                 $this->findRouteBetweenAnchors($waypointIndex, $nextAnchorIndex);
                 $this->findRouteBetweenAnchors($prevAnchorIndex, $waypointIndex);
 
-                return [[0, $this->anchors->count() - 1]];
+                $prevAnchorIndex = $this->findAnchorIndexById($prevAnchorId);
+                $nextAnchorIndex = $this->findAnchorIndexById($nextAnchorId);
+
+                return [[$prevAnchorIndex, $nextAnchorIndex]];
             }
         }
     }
@@ -423,7 +439,15 @@ class Route implements ArrayAccess
 
             $nextAnchorIndex = $this->findNextAnchorIndex($prevAnchorIndex);
 
+            $prevAnchorId = $this->anchors[$prevAnchorIndex]->id;
+            $nextAnchorId = $this->anchors[$nextAnchorIndex]->id;
+
             $this->findRouteBetweenAnchors($prevAnchorIndex, $nextAnchorIndex);
+
+            $prevAnchorIndex = $this->findAnchorIndexById($prevAnchorId);
+            $nextAnchorIndex = $this->findAnchorIndexById($nextAnchorId);
+
+            return [[$prevAnchorIndex, $nextAnchorIndex]];
         }
     }
 

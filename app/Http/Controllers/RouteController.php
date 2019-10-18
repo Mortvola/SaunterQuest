@@ -94,9 +94,22 @@ class RouteController extends Controller
 
         $route = new Route($hikeId, true);
 
-        $route->addWaypoint ($point);
+        $updates = $route->addWaypoint ($point);
 
         $route->save ();
+
+        $updates2 = [];
+        foreach ($updates as $update)
+        {
+            $routeUpdate = $route->get ($update[0], $update[1])->toArray ();
+
+            // Make sure the trail in the last element is null
+            $routeUpdate[count($routeUpdate) - 1]["trail"] = null;
+
+            $updates2[] = $routeUpdate;
+        }
+
+        return $updates2;
     }
 
     public function updateWaypointPosition ($hikeId, $waypointId, $request)
@@ -138,9 +151,22 @@ class RouteController extends Controller
     {
         $route = new Route($hikeId);
 
-        $route->deleteWaypoint($waypointId);
+        $updates = $route->deleteWaypoint($waypointId);
 
         $route->save ();
+
+        $updates2 = [];
+        foreach ($updates as $update)
+        {
+            $routeUpdate = $route->get ($update[0], $update[1])->toArray ();
+
+            // Make sure the trail in the last element is null
+            $routeUpdate[count($routeUpdate) - 1]["trail"] = null;
+
+            $updates2[] = $routeUpdate;
+        }
+
+        return $updates2;
     }
 
     public function updateWaypoints ($hikeId, Request $request)
