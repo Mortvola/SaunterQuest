@@ -61,11 +61,17 @@ class Route implements ArrayAccess
         return isset($this->anchors[$offset]) ? $this->anchors[$offset] : null;
     }
 
-    public function get ()
+    public function get ($startAnchor = 0, $endAnchor = null)
     {
-        $this->getTrailPoints();
+        $this->getTrailPoints($startAnchor, $endAnchor);
 
         $this->anchors->load('timeConstraints');
+
+        if ($startAnchor > 0 || ($endAnchor !== null && $endAnchor < $this->anchors->count () - 1))
+        {
+
+            return $this->anchors->slice($startAnchor, $endAnchor - $startAnchor + 1)->values ();
+        }
 
         return $this->anchors; // ->values ();
     }
@@ -236,17 +242,138 @@ class Route implements ArrayAccess
 
         if (isset($waypointIndex))
         {
-            $this->anchors[$waypointIndex]->lat = $point->lat;
-            $this->anchors[$waypointIndex]->lng = $point->lng;
+            // Determine if the point is on the route already
+            $result = Map::getTrailFromPoint ($point);
 
-            $prevAnchorIndex = $this->findPrevAnchorIndex($waypointIndex);
-            $nextAnchorIndex = $this->findNextAnchorIndex($waypointIndex);
+            if (isset ($result))
+            {
+                // First check to see if it was a simple move
 
-            // The route after the waypoint needs to be found first because the
-            // index
-            // of the anchor will change.
-            $this->findRouteBetweenAnchors($waypointIndex, $nextAnchorIndex);
-            $this->findRouteBetweenAnchors($prevAnchorIndex, $waypointIndex);
+                if ($waypointIndex > 0 && $waypointIndex < $this->anchors->count () - 1)
+                {
+                    $prevAnchor = $this->anchors[$waypointIndex - 1];
+                    $nextAnchor = $this->anchors[$waypointIndex + 1];
+
+                    if (isset ($prevAnchor->next_line_id) && $prevAnchor->next_line_id == $result->line_id &&
+                        isset ($nextAnchor->prev_line_id) && $nextAnchor->prev_line_id == $result->line_id &&
+                        ($result->fraction >= $prevAnchor->next_fraction && $result->fraction <= $nextAnchor->prev_fraction ||
+                            $result->fraction >= $nextAnchor->prev_fraction && $result->fraction <= $prevAnchor->next_fraction))
+                    {
+                        $bestPrevAnchorKey = $waypointIndex - 1;
+                        $bestNextAnchorKey = $waypointIndex + 1;
+                    }
+                }
+
+                if (!isset($bestPrevAnchorKey) || !isset($bestNextAnchorKey))
+                {
+                    // It was apparently moved outside the previous or next anchor. Search
+                    // the list until it is found.
+                    foreach ($this->anchors as $nextAnchorKey => $nextAnchor)
+                    {
+                        if ($nextAnchorKey != $waypointIndex)
+                        {
+                            if (isset($prevAnchor))
+                            {
+                                if (isset ($prevAnchor->next_line_id) && $prevAnchor->next_line_id == $result->line_id &&
+                                    isset ($nextAnchor->prev_line_id) && $nextAnchor->prev_line_id == $result->line_id &&
+                                    ($result->fraction >= $prevAnchor->next_fraction && $result->fraction <= $nextAnchor->prev_fraction ||
+                                        $result->fraction >= $nextAnchor->prev_fraction && $result->fraction <= $prevAnchor->next_fraction))
+                                {
+                                    $bestPrevAnchorKey = $prevAnchorKey;
+                                    $bestNextAnchorKey = $nextAnchorKey;
+
+                                    break;
+                                }
+                            }
+
+                            $prevAnchor = $nextAnchor;
+                            $prevAnchorKey = $nextAnchorKey;
+                        }
+                    }
+                }
+            }
+
+            $anchor = $this->anchors[$waypointIndex];
+
+            if (isset($bestPrevAnchorKey) && isset($bestNextAnchorKey))
+            {
+                error_log ("moving anchor between " . $bestPrevAnchorKey . " and " . $bestNextAnchorKey);
+
+                $updates = [];
+
+                if ($bestPrevAnchorKey < $waypointIndex && $waypointIndex < $bestNextAnchorKey)
+                {
+                    error_log ("simple move");
+
+                    $anchor->lat = $result->point->lat;
+                    $anchor->lng = $result->point->lng;
+                    $anchor->prev_fraction = $result->fraction;
+                    $anchor->next_fraction = $result->fraction;
+
+                    $updates[] = [$bestPrevAnchorKey, $bestNextAnchorKey];
+                }
+                else
+                {
+                    $anchor->lat = $result->point->lat;
+                    $anchor->lng = $result->point->lng;
+                    $anchor->prev_line_id = $result->line_id;
+                    $anchor->prev_fraction = $result->fraction;
+                    $anchor->next_line_id = $result->line_id;
+                    $anchor->next_fraction = $result->fraction;
+
+                    $anchor->order = $this->getSortOrder($bestPrevAnchorKey, $bestNextAnchorKey);
+
+                    // Remove the waypoint from the collection and re-insert it into its new location
+                    $this->anchors->splice($waypointIndex, 1);
+
+                    // Adjust the previous anchor key (index) if the
+                    // the waypoint index was less than the previous anchor key (index)
+                    // since we removed it.
+                    if ($waypointIndex < $bestPrevAnchorKey)
+                    {
+                        $bestPrevAnchorKey--;
+                    }
+
+                    if ($waypointIndex < $bestNextAnchorKey)
+                    {
+                        $bestNextAnchorKey--;
+                    }
+
+                    if ($bestNextAnchorKey < $waypointIndex)
+                    {
+                        $waypointIndex++;
+                    }
+
+                    $this->anchors->splice($bestPrevAnchorKey + 1, 0, array (
+                        $anchor
+                    ));
+
+                    // Increment the next anchor key since we just inserted the
+                    // anchor before it.
+                    $bestNextAnchorKey++;
+
+                    $updates[] = [$waypointIndex - 1, $waypointIndex];
+                    $updates[] = [$bestPrevAnchorKey, $bestNextAnchorKey];
+                }
+
+                return $updates;
+            }
+            else
+            {
+                $this->anchors[$waypointIndex]->lat = $point->lat;
+                $this->anchors[$waypointIndex]->lng = $point->lng;
+
+                $prevAnchorIndex = $this->findPrevAnchorIndex($waypointIndex);
+                $nextAnchorIndex = $this->findNextAnchorIndex($waypointIndex);
+
+                // The route after the waypoint needs to be found first because the
+                // index
+                // of the anchor will change.
+                $this->findRouteBetweenAnchors($waypointIndex, $nextAnchorIndex);
+                $this->findRouteBetweenAnchors($prevAnchorIndex, $waypointIndex);
+
+                return [[0, $this->anchors->count() - 1]];
+            }
         }
     }
 
@@ -513,30 +640,52 @@ class Route implements ArrayAccess
             ->values();
     }
 
-    private function getTrailPoints ()
+    private function getTrailPointsBetweenAnchors ($anchorIndex)
     {
-        for ($s = 0; $s < $this->anchors->count() - 1; $s++)
-        {
-            // If this segment and the next start on the same trail then
-            // find the route along the trail.
-            if (isset($this->anchors[$s]->next_line_id) && isset($this->anchors[$s + 1]->prev_line_id) &&
-                $this->anchors[$s]->next_line_id == $this->anchors[$s + 1]->prev_line_id &&
-                $this->anchors[$s]->next_fraction != $this->anchors[$s + 1]->prev_fraction)
-            {
-                $trail = Map::getPath($this->anchors[$s]->next_line_id, $this->anchors[$s]->next_fraction, $this->anchors[$s + 1]->prev_fraction);
+        $prevAnchor = $this->anchors[$anchorIndex];
+        $nextAnchor = $this->anchors[$anchorIndex + 1];
 
-                // array_splice ($this->anchors, $s + 1, 0, $trail);
-                // $s += count($trail);
-                $this->anchors[$s]->trail = $trail;
-            }
-            else
+        // If this segment and the next start on the same trail then
+        // find the route along the trail.
+        if (isset($prevAnchor->next_line_id) && isset($nextAnchor->prev_line_id) &&
+            $prevAnchor->next_line_id == $nextAnchor->prev_line_id &&
+            $prevAnchor->next_fraction != $nextAnchor->prev_fraction)
+        {
+            $trail = Map::getPath($prevAnchor->next_line_id, $prevAnchor->next_fraction, $nextAnchor->prev_fraction);
+
+            // array_splice ($this->anchors, $s + 1, 0, $trail);
+            // $s += count($trail);
+
+            if (count($trail) > 0)
             {
-                error_log("next: " . json_encode($this->anchors[$s]));
-                error_log("prev: " . json_encode($this->anchors[$s + 1]));
+                array_splice($trail, 0, 1);
+                array_splice($trail, count($trail) - 1, 1);
             }
+
+            error_log ('B. number of points: ' . count($trail));
+
+            $prevAnchor->trail = $trail;
+        }
+        else
+        {
+            error_log("index: " . $anchorIndex . ", next line id: " . $prevAnchor->next_line_id . ", next fraction: " . $prevAnchor->next_fraction);
+            error_log("index: " . ($anchorIndex + 1) . ", prev line id: " . $nextAnchor->prev_line_id . ", prev fraction: " . $nextAnchor->prev_fraction);
+        }
+    }
+
+    private function getTrailPoints ($startAnchor = 0, $endAnchor = null)
+    {
+        if ($endAnchor === null)
+        {
+            $endAnchor = $this->anchors->count () - 1;
         }
 
-        assignDistances($this->anchors);
+        for ($s = $startAnchor; $s < $endAnchor; $s++)
+        {
+            $this->getTrailPointsBetweenAnchors ($s);
+        }
+
+        $this->assignDistances($startAnchor, $endAnchor);
     }
 
     private function getSortOrder ($prevAnchorIndex, $nextAnchorIndex)
@@ -622,6 +771,62 @@ class Route implements ArrayAccess
         if (isset ($closestAnchorIndex))
         {
             return $closestAnchorIndex;
+        }
+    }
+
+    private function assignTrailDistances ($trail, $distance, $prevLat, $prevLng)
+    {
+        $elevation = new Elevation;
+
+        for ($t = 0; $t < count($trail); $t++)
+        {
+            $distance += haversineGreatCircleDistance($prevLat, $prevLng, $trail[$t]->point->lat, $trail[$t]->point->lng);
+
+            $trail[$t]->dist = $distance;
+            $trail[$t]->point->ele = $elevation->getElevation($trail[$t]->point->lat, $trail[$t]->point->lng);
+
+            $prevLat = $trail[$t]->point->lat;
+            $prevLng = $trail[$t]->point->lng;
+        }
+
+        return [
+            $distance,
+            $prevLat,
+            $prevLng
+        ];
+    }
+
+    private function assignDistances ($startAnchor, $endAnchor)
+    {
+        $elevation = new Elevation;
+
+        for ($a = $startAnchor; $a <= $endAnchor; $a++)
+        {
+            $anchor = $this->anchors[$a];
+
+            if (isset($prevAnchor))
+            {
+                // Find distance from previous anchor, either via trail or straight line
+                // distance.
+                $prevLat = $prevAnchor->lat;
+                $prevLng = $prevAnchor->lng;
+
+                if (isset($prevAnchor->trail))
+                {
+                    list ($distance, $prevLat, $prevLng) = $this->assignTrailDistances($prevAnchor->trail, $distance, $prevLat, $prevLng);
+                }
+
+                $distance += haversineGreatCircleDistance($prevLat, $prevLng, $anchor->lat, $anchor->lng);
+            }
+            else
+            {
+                $distance = 0;
+            }
+
+            $anchor->dist = $distance;
+            $anchor->ele = $elevation->getElevation($anchor->lat, $anchor->lng);
+
+            $prevAnchor = $anchor;
         }
     }
 }

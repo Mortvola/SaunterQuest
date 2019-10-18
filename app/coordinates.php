@@ -42,9 +42,9 @@ function nearestSegmentFind($lat, $lng, $segments)
                 $closestIndex = $k;
             }
         }
-    }
 
-    return [$closestIndex, $closestDistance];
+        return [$closestIndex, $closestDistance];
+    }
 }
 
 
