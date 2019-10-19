@@ -264,9 +264,9 @@ function getOtherNodeIndex ($edge, $nodeIndex)
     }
 }
 
-function traverseEdge ($edgeIndex, $fromNodeIndex, $bestCost, $graph)
+function traverseEdge ($edgeIndex, $prevNodexIndex, $bestCost, $graph)
 {
-    $prevNode = $graph->nodes[$fromNodeIndex];
+    $prevNode = $graph->nodes[$prevNodexIndex];
 
     if (!isset($prevNode->bestEdge) || $prevNode->bestEdge != $edgeIndex)
     {
@@ -278,7 +278,7 @@ function traverseEdge ($edgeIndex, $fromNodeIndex, $bestCost, $graph)
 //             error_log("number of edges: " . count($graph->edges));
         }
 
-        $nextNodeIndex = getOtherNodeIndex($edge, $fromNodeIndex);
+        $nextNodeIndex = getOtherNodeIndex($edge, $prevNodexIndex);
 
         if (isset($nextNodeIndex))
         {
@@ -289,7 +289,7 @@ function traverseEdge ($edgeIndex, $fromNodeIndex, $bestCost, $graph)
             // We carry the costs forward. The cost is the cost
             // to get to the previous node (the node's cost) and
             // the cost of this edge.
-            if ($edge->start_node == $fromNodeIndex)
+            if ($edge->start_node == $prevNodexIndex)
             {
                 $cost = $edge->forward_cost;
             }
@@ -448,7 +448,6 @@ function setupTerminusNode ($terminus, $type, $graph)
 
 function findRoute ($graph)
 {
-    $foundEnd = false;
     $bestCost = null;
 
     $nodes = [];
@@ -514,13 +513,28 @@ function findRoute ($graph)
             {
                 if ($foundEnd)
                 {
-                    if (!isset($bestCost) || $bestCost === null)
+                    if (!isset($bestCost))
                     {
                         $bestCost = $cost;
                     }
                     elseif ($cost < $bestCost)
                     {
                         $bestCost = $cost;
+                    }
+
+                    // Now that we know a cost to reach the end,
+                    // traverse the nodes in the queue and remove any that are too high of a cost.
+                    for ($i = 0; $i < count($nodes);)
+                    {
+                        if ($graph->nodes[$nodes[$i]->index]->cost >= $bestCost)
+                        {
+                            error_log ('Removing node from queue for too high of a cost: best cost '. $bestCost . ', node cost: ' . $graph->nodes[$nodes[$i]->index]->cost);
+                            array_splice ($nodes, $i, 1);
+                        }
+                        else
+                        {
+                            $i++;
+                        }
                     }
                 }
                 else
@@ -532,7 +546,10 @@ function findRoute ($graph)
             }
         }
     }
+
+    error_log ('Best final cost: ' . $bestCost);
 }
+
 
 function generateAnchors ($graph)
 {

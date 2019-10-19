@@ -686,8 +686,6 @@ class Route implements ArrayAccess
                 array_splice($trail, count($trail) - 1, 1);
             }
 
-            error_log ('B. number of points: ' . count($trail));
-
             $prevAnchor->trail = $trail;
         }
         else
