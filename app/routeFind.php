@@ -272,11 +272,11 @@ function traverseEdge ($edgeIndex, $prevNodexIndex, $bestCost, $graph)
     {
         $edge = $graph->edges[$edgeIndex];
 
-        if (!isset($edge))
-        {
+//        if (!isset($edge))
+//        {
 //             error_log("edge index: " . $edgeIndex);
 //             error_log("number of edges: " . count($graph->edges));
-        }
+//        }
 
         $nextNodeIndex = getOtherNodeIndex($edge, $prevNodexIndex);
 
@@ -502,6 +502,7 @@ function findRoute ($graph)
         array_splice($nodes, 0, 1);
 
         $node = $graph->nodes[$nodeIndex];
+        $node->queued = false;
 
         // For each edge connected to this node...
         foreach ($node->edges as $edgeIndex)
@@ -539,9 +540,15 @@ function findRoute ($graph)
                 }
                 else
                 {
-                    array_push($nodes, (object)[
-                        "index" => $nextNodeIndex
-                    ]);
+                    // Don't add the node to the queue if it is already queued.
+                    if (!isset($graph->nodes[$nextNodeIndex]->queued) || !$graph->nodes[$nextNodeIndex]->queued)
+                    {
+                        array_push($nodes, (object)[
+                            "index" => $nextNodeIndex
+                        ]);
+
+                        $graph->nodes[$nextNodeIndex]->queued = true;
+                    }
                 }
             }
         }
