@@ -264,11 +264,8 @@ function getOtherNodeIndex ($edge, $nodeIndex)
     }
 }
 
-function traverseEdge ($edgeIndex, $fromNodeIndex, $bestCost, $graph, &$nodes)
+function traverseEdge ($edgeIndex, $fromNodeIndex, $bestCost, $graph)
 {
-    $foundEnd = false;
-    $cost = null;
-
     $prevNode = $graph->nodes[$fromNodeIndex];
 
     if (!isset($prevNode->bestEdge) || $prevNode->bestEdge != $edgeIndex)
@@ -317,18 +314,7 @@ function traverseEdge ($edgeIndex, $fromNodeIndex, $bestCost, $graph, &$nodes)
 
                 $nextNode->cost = $cost;
 
-                if (isset($nextNode->type) && $nextNode->type == "end")
-                {
-//                     error_log("Found end");
-                    $prevNode->prior = true;
-                    $foundEnd = true;
-                }
-                else
-                {
-                    array_push($nodes, (object)[
-                        "index" => $nextNodeIndex
-                    ]);
-                }
+                return [$cost, $nextNodeIndex, (isset($nextNode->type) && $nextNode->type == "end")];
             }
             else
             {
@@ -337,7 +323,7 @@ function traverseEdge ($edgeIndex, $fromNodeIndex, $bestCost, $graph, &$nodes)
         }
     }
 
-    return [$foundEnd, $cost];
+    return [null, null, null];
 }
 
 
@@ -521,17 +507,27 @@ function findRoute ($graph)
         // For each edge connected to this node...
         foreach ($node->edges as $edgeIndex)
         {
-            list ($foundEnd, $cost) = traverseEdge($edgeIndex, $nodeIndex, $bestCost, $graph, $nodes);
+            list ($cost, $nextNodeIndex, $foundEnd) = traverseEdge($edgeIndex, $nodeIndex, $bestCost, $graph);
 
-            if ($foundEnd)
+            // If the edge was traversed then $cost will be set
+            if (isset($cost))
             {
-                if (!isset($bestCost) || $bestCost === null)
+                if ($foundEnd)
                 {
-                    $bestCost = $cost;
+                    if (!isset($bestCost) || $bestCost === null)
+                    {
+                        $bestCost = $cost;
+                    }
+                    elseif ($cost < $bestCost)
+                    {
+                        $bestCost = $cost;
+                    }
                 }
-                elseif ($cost < $bestCost)
+                else
                 {
-                    $bestCost = $cost;
+                    array_push($nodes, (object)[
+                        "index" => $nextNodeIndex
+                    ]);
                 }
             }
         }
