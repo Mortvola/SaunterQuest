@@ -143,12 +143,23 @@ class Graph
         fwrite ($handle, " [ " . $label . " color = " . $color . " ]\n");
     }
 
-    static public function loadNode ($nodeId, $edgeId, $graph)
+    static function costBetweenNodes ($nodeIndex1, $nodeIndex2, $graph)
+    {
+        $node1 = $graph->nodes[$nodeIndex1];
+        $node2 = $graph->nodes[$nodeIndex2];
+
+        $distance = haversineGreatCircleDistance ($node1->point->lat, $node1->point->lng, $node2->point->lat, $node2->point->lng);
+
+        return $distance / metersPerHourGet(0, $distance);
+    }
+
+
+    static public function loadNode ($nodeId, $edgeId, $graph, $endType)
     {
         // Load the node if the node index is valid and it isn't already loaded
         if (isset ($nodeId) && !isset($graph->nodes[$nodeId]))
         {
-            error_log ('loading node id ' . $nodeId);
+//            error_log ('loading node id ' . $nodeId);
 
             $sql = "select ST_AsGeoJSON(ST_Transform(way, 4326)) AS point
             from nav_nodes
@@ -160,10 +171,13 @@ class Graph
 
             $newNode = (object)[
                 "edges" => [$edgeId],
-                "point" => (object)["lat" => $coordinates[1], "lng" => $coordinates[0]]
+                "point" => (object)["lat" => $coordinates[1], "lng" => $coordinates[0]],
+                "cost" => []
             ];
 
             $graph->nodes[$nodeId] = $newNode;
+
+            $newNode->costToEnd[$endType] =  Graph::costBetweenNodes($nodeId, $endType, $graph);
 
             // Load the edges at the start and end nodes associated with this node.
             $sql = "select id, start_node, end_node, start_fraction, end_fraction, forward_cost, backward_cost, line_id
@@ -173,7 +187,7 @@ class Graph
 
             $edges = \DB::connection('pgsql')->select (str_replace(":nodeId:", $nodeId, str_replace (":edgeId:", $edgeId, $sql)));
 
-            error_log ('selected ' . count($edges) . ' edges.');
+//            error_log ('selected ' . count($edges) . ' edges.');
 
             foreach ($edges as $edge)
             {
@@ -216,10 +230,6 @@ class Graph
                     $graph->nodes[$edge->end_node]->edges[] = $edgeId;
                 }
             }
-        }
-        else
-        {
-            error_log ('node id ' . $nodeId . ' already loaded.');
         }
     }
 

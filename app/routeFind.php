@@ -264,66 +264,132 @@ function getOtherNodeIndex ($edge, $nodeIndex)
     }
 }
 
-function traverseEdge ($edgeIndex, $prevNodexIndex, $bestCost, $graph)
-{
-    $prevNode = $graph->nodes[$prevNodexIndex];
 
-    if (!isset($prevNode->bestEdge) || $prevNode->bestEdge != $edgeIndex)
+function getCostToNode ($prevNodeIndex, $nextNodeIndex, $edge, $graph, $direction)
+{
+    $prevNode = $graph->nodes[$prevNodeIndex];
+    $nextNode = $graph->nodes[$nextNodeIndex];
+
+    if ($edge->start_node == $prevNodeIndex)
+    {
+        if ($direction == "forward")
+        {
+            $cost = $edge->forward_cost;
+        }
+        else
+        {
+            $cost = $edge->backward_cost;
+        }
+    }
+    else
+    {
+        if ($direction == "forward")
+        {
+            $cost = $edge->backward_cost;
+        }
+        else
+        {
+            $cost = $edge->forward_cost;
+        }
+    }
+
+    if ($cost <= 0)
+    {
+        exit;
+    }
+
+    if (isset ($prevNode->cost[$direction]))
+    {
+        if ($prevNode->cost[$direction] < 0)
+        {
+            error_log ($prevNode->cost[$direction]);
+
+            exit;
+        }
+        $cost += $prevNode->cost[$direction];
+    }
+
+    return $cost;
+}
+
+
+function traverseEdge ($edgeIndex, $prevNodeIndex, $graph, $direction, $endType)
+{
+    $cost = null;
+    $nextNodeIndex = null;
+    $foundEnd = null;
+
+//    error_log ("traversing edge " . $edgeIndex . " from " . $prevNodeIndex . ", direction: " .$direction);
+
+    $prevNode = $graph->nodes[$prevNodeIndex];
+
+    if (!isset($prevNode->bestEdge[$direction]) || $prevNode->bestEdge[$direction] != $edgeIndex)
     {
         $edge = $graph->edges[$edgeIndex];
 
-//        if (!isset($edge))
-//        {
-//             error_log("edge index: " . $edgeIndex);
-//             error_log("number of edges: " . count($graph->edges));
-//        }
-
-        $nextNodeIndex = getOtherNodeIndex($edge, $prevNodexIndex);
+        $nextNodeIndex = getOtherNodeIndex($edge, $prevNodeIndex);
 
         if (isset($nextNodeIndex))
         {
-            Graph::loadNode ($nextNodeIndex, $edgeIndex, $graph);
+            Graph::loadNode ($nextNodeIndex, $edgeIndex, $graph, $endType);
+
+            // We carry the costs forward. The cost is the cost
+            // to get to the previous node (the node's cost) plus
+            // the cost of this edge.
+            $cost = getCostToNode ($prevNodeIndex, $nextNodeIndex, $edge, $graph, $direction);
+
+//            error_log ("cost = " . $cost);
+
+            if ($cost <= 0)
+            {
+                exit;
+            }
 
             $nextNode = $graph->nodes[$nextNodeIndex];
 
-            // We carry the costs forward. The cost is the cost
-            // to get to the previous node (the node's cost) and
-            // the cost of this edge.
-            if ($edge->start_node == $prevNodexIndex)
+            if (!isset($nextNode->cost[$direction]) || $cost < $nextNode->cost[$direction])
             {
-                $cost = $edge->forward_cost;
-            }
-            else
-            {
-                $cost = $edge->backward_cost;
-            }
+                if (!isset($nextNode->visitCount))
+                {
+                    $nextNode->visitCount = 0;
+                    $nextNode->visitCosts = [];
+                }
 
-            if (isset ($prevNode->cost))
-            {
-                $cost += $prevNode->cost;
-            }
+                $nextNode->visitCosts[] = isset ($nextNode->cost[$direction]) ? $nextNode->cost[$direction] : null;
+                $nextNode->visitCount++;
 
-            if (($bestCost === null || $cost < $bestCost) &&
-                (!isset($nextNode->cost) || $cost < $nextNode->cost))
-            {
+//                 if ($nextNode->visitCount > 100)
+//                 {
+//                     echo json_encode ($nextNode->visitCosts);
+//                     exit;
+//                 }
+
                 // The cost to get to the next node on this edge
                 // is less than the previously "best edge". Set
                 // the "best edge" to this edge and push the node
                 // onto the queue.
-                $nextNode->bestEdge = $edgeIndex;
+                $nextNode->bestEdge[$direction] = $edgeIndex;
+                $nextNode->cost[$direction] = $cost;
 
-                $nextNode->cost = $cost;
+//                error_log ("traversed to next node: " . $nextNodeIndex);
 
-                return [$cost, $nextNodeIndex, (isset($nextNode->type) && $nextNode->type == "end")];
+//                 if (isset ($nextNode->cost[$direction]))
+//                 {
+//                     error_log ("node cost = " . $nextNode->cost[$direction]);
+//                 }
+
+                $foundEnd = (isset($nextNode->type) && $nextNode->type == $endType);
             }
             else
             {
+                $cost = null;
+//                error_log ("too costly");
                 $edge->tooCostly = true;
             }
         }
     }
 
-    return [null, null, null];
+    return [$cost, $nextNodeIndex, $foundEnd];
 }
 
 
@@ -371,13 +437,10 @@ function insertNode ($type, $terminus, $graph)
     $newNode = (object)[
         "edges" => [$splitEdge->startEdgeIndex, $splitEdge->endEdgeIndex],
         "point" => $terminus->point, //(object)["lat" => $coordinates[1], "lng" => $coordinates[0]],
-        "type" => $type
+        "type" => $type,
+        "cost" => [],
+        "costToEnd" => []
     ];
-
-    if ($type == "start")
-    {
-        $newNode->cost = 0;
-    }
 
     list ($forwardCost, $backwardCost) = Graph::computeLineSubstringCost ($terminus->line_id, $terminus->start_fraction, $terminus->fraction);
 
@@ -449,14 +512,76 @@ function setupTerminusNode ($terminus, $type, $graph)
 }
 
 
+function traverseRouteToEnd ($nodeIndex, $direction, $otherDirection, $graph, $bestCost, $endType)
+{
+    while (isset ($nodeIndex))
+    {
+        $node = $graph->nodes[$nodeIndex];
+
+        if (isset ($node->bestEdge[$otherDirection]))
+        {
+            list ($cost, $nodeIndex, $foundEnd) = traverseEdge($node->bestEdge[$otherDirection], $nodeIndex, $graph, $direction, $endType);
+
+            if (isset($cost) && $foundEnd)
+            {
+                if (!isset($bestCost) || $cost < $bestCost)
+                {
+                    $bestCost = $cost;
+                }
+
+                return $bestCost;
+            }
+        }
+        else
+        {
+            $nodeIndex = null;
+        }
+    }
+}
+
+
 function findRoute ($graph, $startRoute)
 {
+    $foundEndCount = 0;
+    $prunedCount = 0;
+    $maxTraversals = 0;
+
     if (isset($startRoute))
     {
-        for ($i = 1; $i < $startRoute->count () - 1; $i++)
+        foreach ($graph->edges as $edgeIndex => $edge)
         {
+            if ($startRoute[1].node_id == $edge->start_node)
+            {
+                $cost = $edge->backward_cost;
+                break;
+            }
+            elseif ($startRoute[1].node_id == $edge->end_node)
+            {
+                $cost = $edge->forward_cost;
+                break;
+            }
+        }
 
-            Graph::loadNode ();
+        if (isset($cost))
+        {
+            for ($i = 1; $i < $startRoute->count () - 1; $i++)
+            {
+                Graph::loadNode ($startRoute[$i]->node_id, $edgeIndex, $graph);
+
+                $graph->nodes[$startRoute[$i]->node_id]->cost = $cost;
+
+                $edgeIndex = $startRoute[$i]->next_edge_id;
+                $edge = $graph[$edgeIndex];
+
+                if ($edge->start_node == $startRoute[$i]->node_id)
+                {
+                    $cost += $graph->edges[$edgeIndex]->forward_cost;
+                }
+                else
+                {
+                    $cost += $graph->edges[$edgeIndex]->backward_cost;
+                }
+            }
         }
     }
 
@@ -465,20 +590,60 @@ function findRoute ($graph, $startRoute)
     $nodes = [];
 
     array_push($nodes, (object)[
-        "index" => "start"
+        "index" => "start",
+        "direction" => "forward",
+        "endType" => "end",
+        "traversals" => 0
     ]);
+
+     $graph->nodes["start"]->cost["forward"] = 0;
+     $graph->nodes["start"]->costToEnd["end"] = Graph::costBetweenNodes("start", "end", $graph);
+
+    array_push($nodes, (object)[
+        "index" => "end",
+        "direction" => "backward",
+        "endType" => "start",
+        "traversals" => 0
+    ]);
+
+    $graph->nodes["end"]->cost["backward"] = 0;
+    $graph->nodes["end"]->costToEnd["start"] = Graph::costBetweenNodes("end", "start", $graph);
+
+//     foreach ($nodes as $node)
+//     {
+//         error_log ($graph->nodes[$node->index]->cost[$node->direction] + $node->distance . ': ' . $node->direction);
+//     }
 
     while (count($nodes) > 0)
     {
         // Sort the nodes from lowest cost to highest cost
         usort($nodes, function ($a, $b) use ($graph)
         {
-            if ($graph->nodes[$a->index]->cost < $graph->nodes[$b->index]->cost)
+            $costFactor = 1.0;
+
+            $nodeA = $graph->nodes[$a->index];
+            $nodeB = $graph->nodes[$b->index];
+
+            if (!isset($nodeA->costToEnd[$a->endType]))
+            {
+                $nodeA->costToEnd[$a->endType] = Graph::costBetweenNodes($a->index, $a->endType, $graph);
+            }
+
+            $nodeAcost = $nodeA->cost[$a->direction] * $costFactor + $nodeA->costToEnd[$a->endType];
+
+            if (!isset($nodeB->costToEnd[$b->endType]))
+            {
+                $nodeB->costToEnd[$b->endType] = Graph::costBetweenNodes($b->index, $b->endType, $graph);
+            }
+
+            $nodeBcost = $nodeB->cost[$b->direction] * $costFactor + $nodeB->costToEnd[$b->endType];
+
+            if ($nodeAcost < $nodeBcost)
             {
                 return -1;
             }
 
-            if ($graph->nodes[$a->index]->cost > $graph->nodes[$b->index]->cost)
+            if ($nodeAcost > $nodeBcost)
             {
                 return 1;
             }
@@ -486,87 +651,177 @@ function findRoute ($graph, $startRoute)
             return 0;
         });
 
-//         error_log ("Node queue:");
-        foreach ($nodes as $node)
-        {
-            $msg = "index: " . $node->index;
-
-            $msg .= " {";
-            if (isset($graph->nodes[$node->index]->edges))
-            {
-                foreach ($graph->nodes[$node->index]->edges as $edgeIndex)
-                {
-                    $msg .= $edgeIndex . ",";
-                }
-            }
-            $msg .= "}";
-
-//             error_log ("\t" . $msg);
-        }
-
-//         error_log ("End of Node queue");
-
-//         error_log("current node queue:");
-//         var_dump($nodes);
-
         // Pop off a node from the queue
         $nodeIndex = $nodes[0]->index;
+        $direction = $nodes[0]->direction;
+        $endType = $nodes[0]->endType;
+        $traversals = $nodes[0]->traversals;
         array_splice($nodes, 0, 1);
 
         $node = $graph->nodes[$nodeIndex];
         $node->queued = false;
 
+        if ($traversals > $maxTraversals)
+        {
+            $maxTraversals = $traversals;
+        }
+
         // For each edge connected to this node...
         foreach ($node->edges as $edgeIndex)
         {
-            list ($cost, $nextNodeIndex, $foundEnd) = traverseEdge($edgeIndex, $nodeIndex, $bestCost, $graph);
+            list ($cost, $nextNodeIndex, $foundEnd) = traverseEdge($edgeIndex, $nodeIndex, $graph, $direction, $endType);
 
             // If the edge was traversed then $cost will be set
             if (isset($cost))
             {
                 if ($foundEnd)
                 {
-                    if (!isset($bestCost))
+                    if (!isset($bestCost) || $cost < $bestCost)
                     {
                         $bestCost = $cost;
-                    }
-                    elseif ($cost < $bestCost)
-                    {
-                        $bestCost = $cost;
+
+                        // Now that we know a cost to reach the end,
+                        // traverse the nodes in the queue and remove any that are too high of a cost.
+                        for ($i = 0; $i < count($nodes);)
+                        {
+                            $node = $graph->nodes[$nodes[$i]->index];
+
+                            if (isset($node->cost[$nodes[$i]->direction]) && $node->cost[$nodes[$i]->direction] + $node->costToEnd[$nodes[$i]->endType] >= $bestCost)
+                            {
+                                error_log ('Removing node from queue for too high of a cost'); //: best cost '. $bestCost . ', node cost: ' . $graph->nodes[$nodes[$i]->index]->cost[$direction]);
+                                array_splice ($nodes, $i, 1);
+                            }
+                            else
+                            {
+                                $i++;
+                            }
+                        }
                     }
 
-                    // Now that we know a cost to reach the end,
-                    // traverse the nodes in the queue and remove any that are too high of a cost.
-                    for ($i = 0; $i < count($nodes);)
-                    {
-                        if ($graph->nodes[$nodes[$i]->index]->cost >= $bestCost)
-                        {
-                            error_log ('Removing node from queue for too high of a cost: best cost '. $bestCost . ', node cost: ' . $graph->nodes[$nodes[$i]->index]->cost);
-                            array_splice ($nodes, $i, 1);
-                        }
-                        else
-                        {
-                            $i++;
-                        }
-                    }
+                    error_log ('Found end: ' . $direction . ', cost: ' . $cost . ', bestCost: ' . $bestCost);
+                    $foundEndCount++;
                 }
                 else
                 {
-                    // Don't add the node to the queue if it is already queued.
-                    if (!isset($graph->nodes[$nextNodeIndex]->queued) || !$graph->nodes[$nextNodeIndex]->queued)
+                    $node = $graph->nodes[$nextNodeIndex];
+
+                    if (!isset($node->costToEnd[$endType]))
+                    {
+                        $node->costToEnd[$endType] = Graph::costBetweenNodes($nextNodeIndex, $endType, $graph);
+                    }
+
+                    // Add the node to the queue if it is not already queued
+                    // and the cost is less than the cost to the end, if known.
+                    if ((!isset($node->queued) || !$node->queued) &&
+                        (!isset($bestCost) || $cost + $node->costToEnd[$endType] < $bestCost))
                     {
                         array_push($nodes, (object)[
-                            "index" => $nextNodeIndex
+                            "index" => $nextNodeIndex,
+                            "direction" => $direction,
+                            "endType" => $endType,
+                            "traversals" => $traversals + 1
                         ]);
 
-                        $graph->nodes[$nextNodeIndex]->queued = true;
+                        $node->queued = true;
+                    }
+                    else
+                    {
+                        $prunedCount++;
+                    }
+
+                    if ($direction == "backward" && isset($nextNode->cost["forward"]))
+                    {
+                        error_log("traversing " . $direction . ' and found ' . "forward");
+
+                        $cost = traverseRouteToEnd ($nextNodeIndex, $direction, "forward", $graph, $bestCost, "start");
+
+                        if (issset($cost) && (!isset($bestCost) || $cost < $bestCost))
+                        {
+                            $bestCost = $cost;
+
+                            // Now that we know a cost to reach the end,
+                            // traverse the nodes in the queue and remove any that are too high of a cost.
+                            for ($i = 0; $i < count($nodes);)
+                            {
+                                $node = $graph->nodes[$nodes[$i]->index];
+
+                                if (isset($node->cost[$nodes[$i]->direction]) && $node->cost[$nodes[$i]->direction] + $node->costToEnd[$nodes[$i]->endType] >= $bestCost)
+                                {
+                                    error_log ('Removing node from queue for too high of a cost: best cost '. $bestCost . ', node cost: ' . $graph->nodes[$nodes[$i]->index]->cost[$direction]);
+                                    array_splice ($nodes, $i, 1);
+                                }
+                                else
+                                {
+                                    $i++;
+                                }
+                            }
+                        }
+
+                        error_log ('Found end 1' . $direction);
+                        return;
+                    }
+                    elseif ($direction == "forward" && isset($nextNode->cost["backward"]))
+                    {
+                        error_log("traversing " . $direction . ' and found ' . "backward");
+
+                        // The forward graph reached the backward graph. Follow the backward
+                        // graph to the end, updating forward costs along the way.
+
+                        $cost = traverseRouteToEnd ($nextNodeIndex, $direction, "backward", $graph, $bestCost, "end");
+
+                        if (issset($cost) && (!isset($bestCost) || $cost < $bestCost))
+                        {
+                            $bestCost = $cost;
+
+                            // Now that we know a cost to reach the end,
+                            // traverse the nodes in the queue and remove any that are too high of a cost.
+                            for ($i = 0; $i < count($nodes);)
+                            {
+                                $node = $graph->nodes[$nodes[$i]->index];
+
+                                if (isset($node->cost[$nodes[$i]->direction]) && $node->cost[$nodes[$i]->direction] + $node->costToEnd[$nodes[$i]->endType] >= $bestCost)
+                                {
+                                    error_log ('Removing node from queue for too high of a cost: best cost '. $bestCost . ', node cost: ' . $graph->nodes[$nodes[$i]->index]->cost[$direction]);
+                                    array_splice ($nodes, $i, 1);
+                                }
+                                else
+                                {
+                                    $i++;
+                                }
+                            }
+                        }
+
+                        error_log ('Found end 2' . $direction);
+                        return;
                     }
                 }
+            }
+            else
+            {
+                $prunedCount++;
             }
         }
     }
 
     error_log ('Best final cost: ' . $bestCost);
+    error_log ('Found end number of times: ' . $foundEndCount);
+    error_log ('Searches pruned: ' . $prunedCount);
+    error_log ('Edge traversals: ' . $maxTraversals);
+
+    $visitCounts = [];
+    foreach ($graph->nodes as $node)
+    {
+        if (!isset($node->visitCount)) $node->visitCount = 0;
+        if (!isset($visitCounts[$node->visitCount])) $visitCounts[$node->visitCount] = 0;
+
+        $visitCounts[$node->visitCount]++;
+    }
+
+    error_log ('Node visits:');
+    foreach ($visitCounts as $key => $value)
+    {
+        error_log ('Node visited ' . $key . ' times: ' . $value);
+    }
 }
 
 
@@ -579,11 +834,14 @@ function generateAnchors ($graph)
     while (isset($nodeIndex))
     {
         $node = $graph->nodes[$nodeIndex];
-//         error_log("node index: " . $nodeIndex);
 
         $anchor = (object)[ ];
-
         $anchor->point = $node->point;
+
+        if (is_int($nodeIndex) && $nodeIndex >= 0)
+        {
+            $anchor->node_id = $nodeIndex;
+        }
 
         if (isset($prevEdge))
         {
@@ -613,20 +871,20 @@ function generateAnchors ($graph)
             $anchor->type = "end";
         }
 
-        if (isset($node->bestEdge))
+        if (isset($node->bestEdge["forward"]))
         {
-            $edge = $graph->edges[$node->bestEdge];
+            $edge = $graph->edges[$node->bestEdge["forward"]];
 //             error_log("edge index : " . $node->bestEdge);
 
             $anchor->prev = (object)[ ];
 
-            if ($node->bestEdge < 0)
+            if ($node->bestEdge["forward"] < 0)
             {
                 $anchor->prev->edge_id = $edge->edge_id;
             }
             else
             {
-                $anchor->prev->edge_id = $node->bestEdge;
+                $anchor->prev->edge_id = $node->bestEdge["forward"];
             }
 
             if (isset($edge->start_node) && $edge->start_node == $nodeIndex)
@@ -647,7 +905,7 @@ function generateAnchors ($graph)
             $edge->selectedEdge = true;
 
             $prevEdge = $edge;
-            $prevBestEdgeIndex = $node->bestEdge;
+            $prevBestEdgeIndex = $node->bestEdge["forward"];
         }
         else
         {

@@ -569,6 +569,11 @@ class Route implements ArrayAccess
                     $anchor1->next_fraction = $newAnchors[0]->next->fraction;
                 }
 
+                if (isset($newAnchors[0]->node_id))
+                {
+                    $anchor1->node_id = $newAnchors[$i]->node_id;
+                }
+
                 for ($i = 1; $i < count($newAnchors) - 1; $i++)
                 {
                     $routePoint = new RoutePoint();
@@ -586,6 +591,11 @@ class Route implements ArrayAccess
                     {
                         $routePoint->next_edge_id = $newAnchors[$i]->next->edge_id;
                         $routePoint->next_fraction = $newAnchors[$i]->next->fraction;
+                    }
+
+                    if (isset($newAnchors[$i]->node_id))
+                    {
+                        $routePoint->node_id = $newAnchors[$i]->node_id;
                     }
 
                     $routePoint->hike_id = $this->hikeId;
@@ -610,6 +620,11 @@ class Route implements ArrayAccess
                 {
                     $anchor2->next_edge_id = $newAnchors[count($newAnchors) - 1]->next->edge_id;
                     $anchor2->next_fraction = $newAnchors[count($newAnchors) - 1]->next->fraction;
+                }
+
+                if (isset($newAnchors[count($newAnchors) - 1]->node_id))
+                {
+                    $anchor2->node_id = $newAnchors[count($newAnchors) - 1]->node_id;
                 }
 
                 $this->anchors = $this->anchors->values();

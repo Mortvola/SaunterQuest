@@ -192,8 +192,6 @@ class Map
         $sql = str_replace (":end:", $endFraction, $sql);
         $sql = str_replace (":edgeId:", $edgeId, $sql);
 
-        error_log ($sql);
-
         $result = \DB::connection('pgsql')->select ($sql);
 
         $coordinates = json_decode($result[0]->linestring)->coordinates;
