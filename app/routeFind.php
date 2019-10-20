@@ -218,9 +218,9 @@ function addNewAnchor (&$newAnchors, $anchor)
     }
     elseif ($anchor->point->lat != $newAnchors[0]->point->lat || $anchor->point->lng != $newAnchors[0]->point->lng)
     {
-        if (count($newAnchors) >= 1 && $anchor->next->line_id != $newAnchors[0]->prev->line_id)
+        if (count($newAnchors) >= 1 && $anchor->next->edge_id != $newAnchors[0]->prev->edge_id)
         {
-            error_log("next and previous trails don't match: next: " . $anchor->next->line_id . ", prev: " . $newAnchors[0]->prev->line_id);
+            error_log("next and previous trails don't match: next: " . $anchor->next->edge_id . ", prev: " . $newAnchors[0]->prev->edge_id);
             error_log(json_encode($anchor));
         }
 
@@ -228,8 +228,8 @@ function addNewAnchor (&$newAnchors, $anchor)
         // or add a new one. If the anchor at position 0 is between
         // the new one and the one at position 1, then we can just replace
         // the one at position 0.
-        if (count($newAnchors) > 1 && !isset($newAnchors[0]->next->file) && $anchor->next->line_id == $newAnchors[0]->prev->line_id &&
-            $anchor->next->line_id == $newAnchors[1]->prev->line_id && (($anchor->next->fraction > $newAnchors[0]->prev->fraction &&
+        if (count($newAnchors) > 1 && !isset($newAnchors[0]->next->file) && $anchor->next->edge_id == $newAnchors[0]->prev->edge_id &&
+            $anchor->next->edge_id == $newAnchors[1]->prev->edge_id && (($anchor->next->fraction > $newAnchors[0]->prev->fraction &&
                 $newAnchors[0]->next->fraction > $newAnchors[1]->prev->fraction) ||
                 ($anchor->next->fraction < $newAnchors[0]->prev->fraction && $newAnchors[0]->next->fraction < $newAnchors[1]->prev->fraction)))
         {
@@ -352,7 +352,7 @@ function substituteEdgeIndex ($node, $oldIndex, $newIndex)
 }
 
 
-function insertNode ($type, $terminus, $cost0, $cost1, $graph)
+function insertNode ($type, $terminus, $graph)
 {
     $splitEdge = (object)[];
 
@@ -366,7 +366,7 @@ function insertNode ($type, $terminus, $cost0, $cost1, $graph)
     $splitEdge->end_node = $terminus->end_node;
     $splitEdge->line_id = $terminus->line_id;
 
-    $graph->splits[$terminus->id] = $splitEdge;
+    $graph->splits[$terminus->edge_id] = $splitEdge;
 
     $newNode = (object)[
         "edges" => [$splitEdge->startEdgeIndex, $splitEdge->endEdgeIndex],
@@ -379,34 +379,40 @@ function insertNode ($type, $terminus, $cost0, $cost1, $graph)
         $newNode->cost = 0;
     }
 
+    list ($forwardCost, $backwardCost) = Graph::computeLineSubstringCost ($terminus->line_id, $terminus->start_fraction, $terminus->fraction);
+
     $edge0 = (object)[
         "start_node" => $terminus->start_node,
         "end_node" => $type,
         "start_fraction"=> $terminus->start_fraction,
         "end_fraction" => $terminus->fraction,
-        "forward_cost" => $cost0[0],
-        "backward_cost" => $cost0[1],
-        "line_id" => $terminus->line_id
+        "forward_cost" => $forwardCost,
+        "backward_cost" => $backwardCost,
+        "line_id" => $terminus->line_id,
+        "edge_id" => $terminus->original_edge_id
     ];
+
+    list ($forwardCost, $backwardCost) = Graph::computeLineSubstringCost ($terminus->line_id, $terminus->fraction, $terminus->end_fraction);
 
     $edge1 = (object)[
         "start_node" => $type,
         "end_node" => $terminus->end_node,
         "start_fraction"=> $terminus->fraction,
         "end_fraction" => $terminus->end_fraction,
-        "forward_cost" => $cost1[0],
-        "backward_cost" => $cost1[1],
-        "line_id" => $terminus->line_id
+        "forward_cost" => $forwardCost,
+        "backward_cost" => $backwardCost,
+        "line_id" => $terminus->line_id,
+        "edge_id" => $terminus->original_edge_id
     ];
 
     if (isset ($terminus->start_node) && isset($graph->nodes[$terminus->start_node]))
     {
-        substituteEdgeIndex ($graph->nodes[$terminus->start_node], $terminus->id, $splitEdge->startEdgeIndex);
+        substituteEdgeIndex ($graph->nodes[$terminus->start_node], $terminus->edge_id, $splitEdge->startEdgeIndex);
     }
 
     if (isset ($terminus->end_node) && isset($graph->nodes[$terminus->end_node]))
     {
-        substituteEdgeIndex ($graph->nodes[$terminus->end_node], $terminus->id, $splitEdge->endEdgeIndex);
+        substituteEdgeIndex ($graph->nodes[$terminus->end_node], $terminus->edge_id, $splitEdge->endEdgeIndex);
     }
 
     $graph->nodes[$type] =  $newNode;
@@ -417,37 +423,43 @@ function insertNode ($type, $terminus, $cost0, $cost1, $graph)
 
 function setupTerminusNode ($terminus, $type, $graph)
 {
+    $terminus->original_edge_id = $terminus->edge_id;
+
     // Has the edge been split?
-    while (isset($graph->splits[$terminus->id]))
+    while (isset($graph->splits[$terminus->edge_id]))
     {
-        $split = $graph->splits[$terminus->id];
+        $split = $graph->splits[$terminus->edge_id];
 
         if ($terminus->fraction >= $split->start_fraction && $terminus->fraction < $split->fraction)
         {
-            $terminus->id = $split->startEdgeIndex;
+            $terminus->edge_id = $split->startEdgeIndex;
             $terminus->end_fraction = $split->fraction;
             $terminus->end_node = $split->mid_node;
         }
         else
         {
-            $terminus->id = $split->endEdgeIndex;
+            $terminus->edge_id = $split->endEdgeIndex;
             $terminus->start_fraction = $split->fraction;
             $terminus->start_node = $split->mid_node;
         }
     }
 
-    $cost1 = 0;
-    $cost2 = 0;
-    //$cost1 = computeCost ($edge->prev->pointIndex, $terminus->pointIndex, $terminus->trail->paths[$terminus->pathIndex]->points);
-    //$cost2 = computeCost ($terminus->pointIndex, $edge->next->pointIndex, $terminus->trail->paths[$terminus->pathIndex]->points);
-
-    insertNode ($type, $terminus, $cost1, $cost2, $graph);
+    insertNode ($type, $terminus, $graph);
 
 }
 
 
-function findRoute ($graph)
+function findRoute ($graph, $startRoute)
 {
+    if (isset($startRoute))
+    {
+        for ($i = 1; $i < $startRoute->count () - 1; $i++)
+        {
+
+            Graph::loadNode ();
+        }
+    }
+
     $bestCost = null;
 
     $nodes = [];
@@ -577,7 +589,15 @@ function generateAnchors ($graph)
         {
             // Add the information to get to the next node
             $anchor->next = (object)[ ];
-            $anchor->next->line_id = $prevEdge->line_id;
+
+            if (isset ($prevEdge->edge_id))
+            {
+                $anchor->next->edge_id = $prevEdge->edge_id;
+            }
+            else
+            {
+                $anchor->next->edge_id = $prevBestEdgeIndex;
+            }
 
             if (isset($prevEdge->start_node) && $prevEdge->start_node == $nodeIndex)
             {
@@ -599,7 +619,15 @@ function generateAnchors ($graph)
 //             error_log("edge index : " . $node->bestEdge);
 
             $anchor->prev = (object)[ ];
-            $anchor->prev->line_id = $edge->line_id;
+
+            if ($node->bestEdge < 0)
+            {
+                $anchor->prev->edge_id = $edge->edge_id;
+            }
+            else
+            {
+                $anchor->prev->edge_id = $node->bestEdge;
+            }
 
             if (isset($edge->start_node) && $edge->start_node == $nodeIndex)
             {
@@ -619,6 +647,7 @@ function generateAnchors ($graph)
             $edge->selectedEdge = true;
 
             $prevEdge = $edge;
+            $prevBestEdgeIndex = $node->bestEdge;
         }
         else
         {
@@ -654,7 +683,7 @@ function generateAnchors ($graph)
 }
 
 
-function findPath ($start, $end, $dumpGraph = false)
+function findPath ($start, $end, $startRoute = null, $dumpGraph = false)
 {
     $startResult = Map::getTrailFromPoint($start);
 
@@ -675,7 +704,7 @@ function findPath ($start, $end, $dumpGraph = false)
     setupTerminusNode ($startResult, "start", $graph);//, $startTile);
     setupTerminusNode ($endResult, "end", $graph);
 
-    findRoute ($graph);
+    findRoute ($graph, $startRoute);
 
     $newAnchors = generateAnchors($graph);
 

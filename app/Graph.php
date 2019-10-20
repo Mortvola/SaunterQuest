@@ -223,6 +223,19 @@ class Graph
         }
     }
 
+    static public function computeLineSubstringCost ($lineId, $startFraction, $endFraction)
+    {
+        $line = \DB::table('planet_osm_line')
+            ->select (
+                \DB::raw ('ST_AsGeoJSON(ST_Transform(ST_LineSubString(way, ' . $startFraction . ', ' . $endFraction . '), 4326)) as line'))
+            ->where('line_id', $lineId)
+            ->get ();
+
+        $lineString = json_decode($line[0]->line);
+
+        return Graph::computeCosts ($lineString->coordinates);
+    }
+
     static public function fixupEdgeCosts ()
     {
         $updates = 0;
