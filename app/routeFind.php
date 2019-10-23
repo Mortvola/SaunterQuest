@@ -632,6 +632,15 @@ function markPathToEnd ($graph)
 }
 
 
+function getNodeSortCost ($node)
+{
+    $costFactor = 0.0;
+    $distanceFactor = 1.0;
+
+    return $node->cost * $costFactor + $node->costToEnd["end"] * $distanceFactor;
+}
+
+
 function findRoute ($graph, $startRoute)
 {
     $foundEndCount = 0;
@@ -698,42 +707,6 @@ function findRoute ($graph, $startRoute)
 
     while (count($nodes) > 0)
     {
-        // Sort the nodes from lowest cost to highest cost
-        usort($nodes, function ($a, $b) use ($graph, $pathToEndFound)
-        {
-            $costFactor = 1.0;
-            $distanceFactor = 1.0;
-
-            $nodeA = $graph->nodes[$a->index];
-            $nodeB = $graph->nodes[$b->index];
-
-            if (!isset($nodeA->costToEnd[$a->endType]))
-            {
-                $nodeA->costToEnd[$a->endType] = Graph::costBetweenNodes($a->index, $a->endType, $graph);
-            }
-
-            $nodeAcost = $nodeA->cost * $costFactor + $nodeA->costToEnd[$a->endType] * $distanceFactor;
-
-            if (!isset($nodeB->costToEnd[$b->endType]))
-            {
-                $nodeB->costToEnd[$b->endType] = Graph::costBetweenNodes($b->index, $b->endType, $graph);
-            }
-
-            $nodeBcost = $nodeB->cost * $costFactor + $nodeB->costToEnd[$b->endType] * $distanceFactor;
-
-            if ($nodeAcost < $nodeBcost)
-            {
-                return -1;
-            }
-
-            if ($nodeAcost > $nodeBcost)
-            {
-                return 1;
-            }
-
-            return 0;
-        });
-
         if (count($nodes) > $maxQueueSize)
         {
             $maxQueueSize = count($nodes);
@@ -855,11 +828,6 @@ function findRoute ($graph, $startRoute)
 
                     $node = $graph->nodes[$nextNodeIndex];
 
-                    if (!isset($node->costToEnd[$endType]))
-                    {
-                        $node->costToEnd[$endType] = Graph::costBetweenNodes($nextNodeIndex, $endType, $graph);
-                    }
-
                     // Add the node to the queue if it is not already queued
                     // and the cost is less than the cost to the end, if known.
                     if ((!isset($node->queued) || !$node->queued) /*&&
@@ -894,9 +862,25 @@ function findRoute ($graph, $startRoute)
                         array_splice($newSearcher->nodeCosts, 0, 0, $nodeCosts);
                         $newSearcher->nodeCosts[] = $cost;
 
-                        $node->queued = true;
+                        // Find best position for the new searcher and insert into
+                        // array of nodes.
+                        $newSearcherCost = getNodeSortCost ($node);
 
-                        $nodes[] = $newSearcher;
+                        foreach ($nodes as $index => $searcher)
+                        {
+                            if ($newSearcherCost < getNodeSortCost ($graph->nodes[$searcher->index]))
+                            {
+                                array_splice ($nodes, $index, 0, array($newSearcher));
+                                $node->queued = true;
+                                break;
+                            }
+                        }
+
+                        if (!isset($node->queued) || !$node->queued)
+                        {
+                            $nodes[] = $newSearcher;
+                            $node->queued = true;
+                        }
                     }
                     else
                     {
