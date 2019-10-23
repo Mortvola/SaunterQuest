@@ -207,27 +207,38 @@ class Graph
                     }
                 }
 
-                // If the edge is not already in the edge array then add it.
-                if (!isset ($graph->edges[$edgeId]))
-                {
-                    $graph->edges[$edgeId] = $edge;
-                }
-                else
-                {
-                    $edge = $graph->edges[$edgeId];
-                }
+                // If the eddge doesn't have both a start and end node then don't add it.
 
-                if (isset($graph->nodes[$edge->start_node]) &&
-                    !array_search($edgeId, $graph->nodes[$edge->start_node]->edges))
+                if (isset($edge->start_node) && isset($edge->end_node))
                 {
-                    $graph->nodes[$edge->start_node]->edges[] = $edgeId;
-                }
+                    // If the edge is not already in the edge array then add it.
+                    if (!isset ($graph->edges[$edgeId]))
+                    {
+                        $graph->edges[$edgeId] = $edge;
+                    }
+                    else
+                    {
+                        $edge = $graph->edges[$edgeId];
+                    }
 
-                if (isset($graph->nodes[$edge->end_node]) &&
-                    !array_search($edgeId, $graph->nodes[$edge->end_node]->edges))
-                {
-                    $graph->nodes[$edge->end_node]->edges[] = $edgeId;
+                    if (isset($graph->nodes[$edge->start_node]) &&
+                        !array_search($edgeId, $graph->nodes[$edge->start_node]->edges))
+                    {
+                        $graph->nodes[$edge->start_node]->edges[] = $edgeId;
+                    }
+
+                    if (isset($graph->nodes[$edge->end_node]) &&
+                        !array_search($edgeId, $graph->nodes[$edge->end_node]->edges))
+                    {
+                        $graph->nodes[$edge->end_node]->edges[] = $edgeId;
+                    }
                 }
+            }
+
+            // Remove the node if there is only one edge to it.
+            if (count($newNode->edges) <= 1)
+            {
+                unset ($graph->nodes[$nodeId]);
             }
         }
     }

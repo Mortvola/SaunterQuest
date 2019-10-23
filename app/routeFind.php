@@ -320,80 +320,88 @@ function traverseEdge ($edgeIndex, $prevNodeIndex, $graph, $endType)
         {
             Graph::loadNode ($nextNodeIndex, $edgeIndex, $graph, $endType);
 
-            // We carry the costs forward. The cost is the cost
-            // to get to the previous node (the node's cost) plus
-            // the cost of this edge.
-            $cost = getCostToNode ($prevNodeIndex, $nextNodeIndex, $edge, $graph);
-
-//            error_log ("cost = " . $cost);
-
-            if ($cost <= 0)
+            if (isset($graph->nodes[$nextNodeIndex]))
             {
-                exit;
-            }
+                // Carry the costs forward. The cost is the cost
+                // to get to the previous node (the node's cost) plus
+                // the cost of this edge.
+                $cost = getCostToNode ($prevNodeIndex, $nextNodeIndex, $edge, $graph);
 
-            $nextNode = $graph->nodes[$nextNodeIndex];
+    //            error_log ("cost = " . $cost);
 
-            if (!isset($nextNode->cost) || $cost < $nextNode->cost)
-            {
-                if (!isset($nextNode->visitCount))
+                if ($cost <= 0)
                 {
-                    $nextNode->visitCount = 0;
-                    $nextNode->visitCosts = [];
+                    exit;
                 }
 
-                $nextNode->visitCosts[] = isset ($nextNode->cost) ? $nextNode->cost : null;
-                $nextNode->visitCount++;
+                $nextNode = $graph->nodes[$nextNodeIndex];
 
-//                 if ($nextNode->visitCount > 100)
-//                 {
-//                     echo json_encode ($nextNode->visitCosts);
-//                     exit;
-//                 }
-
-                // The cost to get to the next node on this edge
-                // is less than the previously "best edge". Set
-                // the "best edge" to this edge and push the node
-                // onto the queue.
-                $nextNode->bestEdge = $edgeIndex;
-
-//                 if (isset ($nextNode->cost))
-//                 {
-//                     error_log ("replacing cost " . $nextNode->cost . " with " . $cost);
-//                 }
-                if ($nextNodeIndex == 16776)
+                if (!isset($nextNode->cost) || $cost < $nextNode->cost)
                 {
+                    if (!isset($nextNode->visitCount))
+                    {
+                        $nextNode->visitCount = 0;
+                        $nextNode->visitCosts = [];
+                    }
+
+                    $nextNode->visitCosts[] = isset ($nextNode->cost) ? $nextNode->cost : null;
+                    $nextNode->visitCount++;
+
+    //                 if ($nextNode->visitCount > 100)
+    //                 {
+    //                     echo json_encode ($nextNode->visitCosts);
+    //                     exit;
+    //                 }
+
+                    // The cost to get to the next node on this edge
+                    // is less than the previously "best edge". Set
+                    // the "best edge" to this edge and push the node
+                    // onto the queue.
+                    $nextNode->bestEdge = $edgeIndex;
+
+    //                 if (isset ($nextNode->cost))
+    //                 {
+    //                     error_log ("replacing cost " . $nextNode->cost . " with " . $cost);
+    //                 }
+                    if ($nextNodeIndex == 16776)
+                    {
+                        if (isset($nextNode->cost))
+                        {
+                            error_log ('Changing cost from ' . $nextNode->cost . ' to ' . $cost);
+                        }
+                        else
+                        {
+                            error_log ('Changing cost from ' . 'null' . ' to ' . $cost);
+                        }
+                    }
+
                     if (isset($nextNode->cost))
                     {
-                        error_log ('Changing cost from ' . $nextNode->cost . ' to ' . $cost);
+                        $foundBetterPath = true;
                     }
-                    else
-                    {
-                        error_log ('Changing cost from ' . 'null' . ' to ' . $cost);
-                    }
-                }
 
-                if (isset($nextNode->cost))
+                    $nextNode->cost = $cost;
+
+    //                error_log ("traversed to next node: " . $nextNodeIndex);
+
+    //                 if (isset ($nextNode->cost))
+    //                 {
+    //                     error_log ("node cost = " . $nextNode->cost);
+    //                 }
+
+                    $foundEnd = (isset($nextNode->type) && $nextNode->type == $endType);
+                }
+                else
                 {
-                    $foundBetterPath = true;
+                    $cost = null;
+    //                error_log ("too costly");
+                    $edge->tooCostly = true;
                 }
-
-                $nextNode->cost = $cost;
-
-//                error_log ("traversed to next node: " . $nextNodeIndex);
-
-//                 if (isset ($nextNode->cost))
-//                 {
-//                     error_log ("node cost = " . $nextNode->cost);
-//                 }
-
-                $foundEnd = (isset($nextNode->type) && $nextNode->type == $endType);
             }
             else
             {
-                $cost = null;
-//                error_log ("too costly");
-                $edge->tooCostly = true;
+                $nextNodeIndex = null;
+                $edge->deadEnd = true;
             }
         }
     }
@@ -634,10 +642,46 @@ function markPathToEnd ($graph)
 
 function getNodeSortCost ($node)
 {
-    $costFactor = 0.0;
+    $costFactor = 1.0;
     $distanceFactor = 1.0;
 
     return $node->cost * $costFactor + $node->costToEnd["end"] * $distanceFactor;
+}
+
+
+function removeDeadEndNodesAndEdges ($nodeIndex, $graph)
+{
+    $deadEndEdges = 0;
+
+    $node = $graph->nodes[$nodeIndex];
+
+    for ($i = 0; $i < count($node->edges);)
+    {
+        $edgeIndex = $node->edges[$i];
+
+        if (isset($graph->edges[$edgeIndex]->deadEnd) && $graph->edges[$edgeIndex]->deadEnd)
+        {
+            array_splice ($node->edges, $i, 1);
+
+            $deadEndEdges++;
+        }
+        else
+        {
+            $i++;
+        }
+    }
+
+    if (count($node->edges) == 1)
+    {
+        $graph->edges[$node->edges[0]]->deadEnd = true;
+        $otherNodeIndex = getOtherNodeIndex ($graph->edges[$node->edges[0]], $nodeIndex);
+
+        unset ($graph->nodes[$nodeIndex]);
+
+        $deadEndEdges += removeDeadEndNodesAndEdges($otherNodeIndex, $graph);
+    }
+
+    return $deadEndEdges;
 }
 
 
@@ -648,6 +692,8 @@ function findRoute ($graph, $startRoute)
     $maxTraversals = 0;
     $maxQueueSize = 0;
     $searchersTerminated = 0;
+    $deadEndNodes = 0;
+    $deadEndEdges = 0;
 
     if (isset($startRoute))
     {
@@ -728,9 +774,20 @@ function findRoute ($graph, $startRoute)
             $maxTraversals = $traversals;
         }
 
+        if (count ($node->edges) <= 1)
+        {
+            $deadEndNodes++;
+        }
+
         // For each edge connected to this node...
         foreach ($node->edges as $edgeIndex)
         {
+            if (isset($graph->edges[$edgeIndex]->deadEnd) && $graph->edges[$edgeIndex]->deadEnd)
+            {
+                error_log ("skipping deadend edge");
+                continue;
+            }
+
             if (isset($node->pathToEnd) && $edgeIndex == $node->pathToEnd)
             {
                 list ($cost, $foundEnd) = traverseToEnd ($edgeIndex, $nodeIndex, $graph);
@@ -804,7 +861,7 @@ function findRoute ($graph, $startRoute)
                     error_log ('Found end: cost: ' . $cost . ', bestCost: ' . $bestCost);
                     $foundEndCount++;
                 }
-                else
+                else if ($nextNodeIndex !== null)
                 {
                     if ($foundBetterPath)
                     {
@@ -826,12 +883,12 @@ function findRoute ($graph, $startRoute)
                         }
                     }
 
-                    $node = $graph->nodes[$nextNodeIndex];
+                    $nextNode = $graph->nodes[$nextNodeIndex];
 
                     // Add the node to the queue if it is not already queued
                     // and the cost is less than the cost to the end, if known.
-                    if ((!isset($node->queued) || !$node->queued) /*&&
-                        (!isset($bestCost) || $cost + $node->costToEnd[$endType] < $bestCost)*/)
+                    if ((!isset($nextNode->queued) || !$nextNode->queued) /*&&
+                        (!isset($bestCost) || $cost + $nextNode->costToEnd[$endType] < $bestCost)*/)
                     {
                         $newSearcher = (object)[
                             "index" => $nextNodeIndex,
@@ -854,32 +911,27 @@ function findRoute ($graph, $startRoute)
                         array_splice($newSearcher->nodesVisited, 0, 0, $nodesVisited);
                         $newSearcher->nodesVisited[] = $nextNodeIndex;
 
-                        if ($nextNodeIndex == 22976)
-                        {
-                            error_log ('nodes: ' . json_encode($newSearcher->nodesVisited));
-                        }
-
                         array_splice($newSearcher->nodeCosts, 0, 0, $nodeCosts);
                         $newSearcher->nodeCosts[] = $cost;
 
                         // Find best position for the new searcher and insert into
                         // array of nodes.
-                        $newSearcherCost = getNodeSortCost ($node);
+                        $newSearcherCost = getNodeSortCost ($nextNode);
 
                         foreach ($nodes as $index => $searcher)
                         {
                             if ($newSearcherCost < getNodeSortCost ($graph->nodes[$searcher->index]))
                             {
                                 array_splice ($nodes, $index, 0, array($newSearcher));
-                                $node->queued = true;
+                                $nextNode->queued = true;
                                 break;
                             }
                         }
 
-                        if (!isset($node->queued) || !$node->queued)
+                        if (!isset($nextNode->queued) || !$nextNode->queued)
                         {
                             $nodes[] = $newSearcher;
-                            $node->queued = true;
+                            $nextNode->queued = true;
                         }
                     }
                     else
@@ -894,12 +946,16 @@ function findRoute ($graph, $startRoute)
             }
             }
         }
+
+       $deadEndEdges += removeDeadEndNodesAndEdges ($nodeIndex, $graph);
     }
 
     error_log ('Best final cost: ' . $bestCost);
     error_log ('Found end number of times: ' . $foundEndCount);
     error_log ('Searches pruned: ' . $prunedCount);
     error_log ('Searches terminated: ' . $searchersTerminated);
+    error_log ('Dead End Nodes: ' . $deadEndNodes);
+    error_log ('Dead End Edges: ' . $deadEndEdges);
     error_log ('Max Edge traversals: ' . $maxTraversals);
     error_log ('Max queue size: ' . $maxQueueSize);
 
