@@ -171,8 +171,7 @@ class Graph
 
             $newNode = (object)[
                 "edges" => [$edgeId],
-                "point" => (object)["lat" => $coordinates[1], "lng" => $coordinates[0]],
-                "cost" => []
+                "point" => (object)["lat" => $coordinates[1], "lng" => $coordinates[0]]
             ];
 
             $graph->nodes[$nodeId] = $newNode;
