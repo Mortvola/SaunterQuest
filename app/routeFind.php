@@ -307,14 +307,18 @@ function getMaxCost ($prevNodeIndex, $edge)
 }
 
 
+const RESULT_TRAVERSED_EDGE = 0;
+const RESULT_FOUND_END = 1;
+const RESULT_FOUND_BETTER_PATH = 2;
+const RESULT_TOO_COSTLY = 3;
+const RESULT_DEADEND = 4;
+const RESULT_EDGE_IS_BEST_EDGE = 5;
+
 function traverseEdge ($edgeIndex, $prevNodeIndex, $graph, $endType)
 {
     $cost = null;
     $nextNodeIndex = null;
-    $foundEnd = false;
-    $foundBetterPath = false;
-    $tooCostly = false;
-    $deadEnd = false;
+    $result = null;
 
 //    error_log ("traversing edge " . $edgeIndex . " from " . $prevNodeIndex);
 
@@ -389,21 +393,20 @@ function traverseEdge ($edgeIndex, $prevNodeIndex, $graph, $endType)
                             }
                         }
 
-                        if (isset($nextNode->cost))
+                        if (isset($nextNode->type) && $nextNode->type == $endType)
                         {
-                            $foundBetterPath = true;
+                            $result = RESULT_FOUND_END;
+                        }
+                        else if (isset($nextNode->cost))
+                        {
+                            $result = RESULT_FOUND_BETTER_PATH;
+                        }
+                        else
+                        {
+                            $result = RESULT_TRAVERSED_EDGE;
                         }
 
                         $nextNode->cost = $cost;
-
-        //                error_log ("traversed to next node: " . $nextNodeIndex);
-
-        //                 if (isset ($nextNode->cost))
-        //                 {
-        //                     error_log ("node cost = " . $nextNode->cost);
-        //                 }
-
-                        $foundEnd = (isset($nextNode->type) && $nextNode->type == $endType);
                     }
                     else
                     {
@@ -420,7 +423,7 @@ function traverseEdge ($edgeIndex, $prevNodeIndex, $graph, $endType)
                             $edge->backward_cost_max = $nextNode->cost - $edge->backward_cost;
                         }
 
-                        $tooCostly = true;
+                        $result = RESULT_TOO_COSTLY;
                     }
                 }
                 else
@@ -428,13 +431,24 @@ function traverseEdge ($edgeIndex, $prevNodeIndex, $graph, $endType)
                     $nextNodeIndex = null;
                     $edge->deadEnd = true;
 
-                    $deadEnd = true;
+                    $result = RESULT_DEADEND;
                 }
+            }
+            else
+            {
+                $nextNodeIndex = null;
+                $edge->deadEnd = true;
+
+                $result = RESULT_DEADEND;
             }
         }
     }
+    else
+    {
+        $result = RESULT_EDGE_IS_BEST_EDGE;
+    }
 
-    return [$cost, $nextNodeIndex, $foundEnd, $foundBetterPath, $tooCostly, $deadEnd];
+    return [$cost, $nextNodeIndex, $result];
 }
 
 
@@ -564,9 +578,9 @@ function traverseRouteToEnd ($nodeIndex, $graph, $bestCost, $endType)
 
         if (isset ($node->bestEdge))
         {
-            list ($cost, $nodeIndex, $foundEnd, $foundBetterPath, $tooCostly, $deadEnd) = traverseEdge($node->bestEdge, $nodeIndex, $graph, $endType);
+            list ($cost, $nodeIndex, $result) = traverseEdge($node->bestEdge, $nodeIndex, $graph, $endType);
 
-            if (isset($cost) && $foundEnd)
+            if (isset($cost) && $result == RESULT_FOUND_END)
             {
                 if (!isset($bestCost) || $cost < $bestCost)
                 {
@@ -670,7 +684,7 @@ function markPathToEnd ($graph)
 
 function getNodeSortCost ($node)
 {
-    $costFactor = 1.0;
+    $costFactor = 0.0;
     $distanceFactor = 1.0;
 
     return $node->cost * $costFactor + $node->costToEnd["end"] * $distanceFactor;
@@ -915,14 +929,13 @@ function findRoute ($graph, $startRoute)
             }
             else
             {
-                list ($cost, $nextNodeIndex, $foundEnd, $foundBetterPath, $tooCostly, $deadEnd) = traverseEdge($edgeIndex, $nodeIndex, $graph, $endType);
+                list ($cost, $nextNodeIndex, $result) = traverseEdge($edgeIndex, $nodeIndex, $graph, $endType);
 
-                if ($tooCostly)
+                if ($result === RESULT_TOO_COSTLY)
                 {
                     $anEdgeIsTooCostly = true;
                 }
-
-                if ($deadEnd)
+                elseif ($result === RESULT_DEADEND)
                 {
                     $anEdgeIsADeadEnd = true;
                 }
@@ -930,7 +943,7 @@ function findRoute ($graph, $startRoute)
                 // If the edge was traversed then $cost will be set
                 if (isset($cost))
                 {
-                    if ($foundEnd)
+                    if ($result === RESULT_FOUND_END)
                     {
                         //$pathToEndFound = true;
 
@@ -971,7 +984,7 @@ function findRoute ($graph, $startRoute)
                         if (/*(!isset($nextNode->queued) || !$nextNode->queued) &&*/
                             (!isset($bestCost) || $cost + $nextNode->costToEnd[$endType] < $bestCost))
                         {
-                            if ($foundBetterPath)
+                            if ($result === RESULT_FOUND_BETTER_PATH)
                             {
                                 // Find any searchers that have this node in their path
                                 // and remove them.
