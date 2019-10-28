@@ -310,7 +310,7 @@ function getMaxCost ($prevNodeIndex, $edge)
 const RESULT_TRAVERSED_EDGE = 0;
 const RESULT_FOUND_END = 1;
 const RESULT_FOUND_BETTER_PATH = 2;
-const RESULT_TOO_COSTLY = 3;
+const RESULT_BLOCKED = 3;
 const RESULT_DEADEND = 4;
 const RESULT_EDGE_IS_BEST_EDGE = 5;
 
@@ -393,7 +393,7 @@ function traverseEdge ($edgeIndex, $prevNodeIndex, $graph, $endType)
                             }
                         }
 
-                        if (isset($nextNode->type) && $nextNode->type == $endType)
+                        if (($nextNode->type ?? null) == $endType)
                         {
                             $result = RESULT_FOUND_END;
                         }
@@ -406,12 +406,16 @@ function traverseEdge ($edgeIndex, $prevNodeIndex, $graph, $endType)
                             $result = RESULT_TRAVERSED_EDGE;
                         }
 
+                        if ($edge->tooCostly ?? false)
+                        {
+                            $edge->tooCostly = false;
+                        }
+
                         $nextNode->cost = $cost;
                     }
                     else
                     {
                         $cost = null;
-        //                error_log ("too costly");
                         $edge->tooCostly = true;
 
                         if ($edge->start_node == $prevNodeIndex)
@@ -423,7 +427,7 @@ function traverseEdge ($edgeIndex, $prevNodeIndex, $graph, $endType)
                             $edge->backward_cost_max = $nextNode->cost - $edge->backward_cost;
                         }
 
-                        $result = RESULT_TOO_COSTLY;
+                        $result = RESULT_BLOCKED;
                     }
                 }
                 else
@@ -860,6 +864,14 @@ function findRoute ($graph, $startRoute)
             $maxQueueSize = count($nodes);
         }
 
+/*
+        foreach ($nodes as $searcher)
+        {
+            error_log ($searcher->index);
+        }
+        error_log ("----------------------");
+*/
+
         // Pop off a node from the queue
         $nodeIndex = $nodes[0]->index;
         $endType = $nodes[0]->endType;
@@ -931,7 +943,7 @@ function findRoute ($graph, $startRoute)
             {
                 list ($cost, $nextNodeIndex, $result) = traverseEdge($edgeIndex, $nodeIndex, $graph, $endType);
 
-                if ($result === RESULT_TOO_COSTLY)
+                if ($result === RESULT_BLOCKED)
                 {
                     $anEdgeIsTooCostly = true;
                 }
@@ -955,7 +967,6 @@ function findRoute ($graph, $startRoute)
 
                             // Now that we know a cost to reach the end,
                             // traverse the nodes in the queue and remove any that are too high of a cost.
-                            /*
                             for ($i = 0; $i < count($nodes);)
                             {
                                 $node = $graph->nodes[$nodes[$i]->index];
@@ -969,7 +980,7 @@ function findRoute ($graph, $startRoute)
                                 {
                                     $i++;
                                 }
-                            }*/
+                            }
                         }
 
                         error_log ('Found end: cost: ' . $cost . ', bestCost: ' . $bestCost);
@@ -1007,7 +1018,7 @@ function findRoute ($graph, $startRoute)
                             if (isset($nextNode->queued) && $nextNode->queued)
                             {
                                 error_log ('node already queued?');
-                                exit;
+//                                exit;
                             }
 
                             $newSearcher = (object)[
