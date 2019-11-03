@@ -4,6 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 require_once app_path('routeFile.php');
+require_once app_path('utilities.php');
 
 class Hike extends Model
 {
@@ -54,6 +55,11 @@ class Hike extends Model
 
     public function getDistance ()
     {
-        return (new Route($this->id))->getDistance ();
+        $request = (object)[
+            "method" => "GET",
+            "command" => "/hike/" . $this->id . "/distance",
+        ];
+
+        return sendRequest ($request);
     }
 }
