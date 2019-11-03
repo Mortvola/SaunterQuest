@@ -1,6 +1,5 @@
 <?php
 namespace App;
-require_once "utilities.php";
 
 
 function findPath ($start, $end, $startRoute = null, $dumpGraph = false)
@@ -16,17 +15,18 @@ function findPath ($start, $end, $startRoute = null, $dumpGraph = false)
             "end" => (object)["lat" => $end->lat, "lng" => $end->lng],
         ];
 
-        fwrite ($stream, json_encode ($request) . "\n");
+        $bytesWritten = fwrite ($stream, json_encode ($request) . "\n");
 
-        $response = stream_get_contents ($stream);
-
-        if ($response !== false)
+        if ($bytesWritten > 0)
         {
-            $newAnchors = json_decode($response);
+            $response = stream_get_contents ($stream);
+
+            fclose ($stream);
+
+            if ($response !== false)
+            {
+                return json_decode($response);
+            }
         }
-
-        fclose ($stream);
     }
-
-    return $newAnchors;
 }
