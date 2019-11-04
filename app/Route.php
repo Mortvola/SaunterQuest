@@ -2,8 +2,8 @@
 namespace App;
 use Illuminate\Database\Eloquent\Collection;
 use ArrayAccess;
-require_once app_path('routeFile.php');
-require_once app_path('routeFind.php');
+require_once app_path('coordinates.php');
+require_once app_path('utilities.php');
 
 class Route implements ArrayAccess
 {
@@ -545,6 +545,20 @@ class Route implements ArrayAccess
         }
     }
 
+    private function findPath ($start, $end, $startRoute = null, $dumpGraph = false)
+    {
+        error_log ('start: ' . json_encode ($start) . ', end: ' . json_encode($end));
+
+        $request = (object)[
+            "method" => "GET",
+            "command" => "/map/route",
+            "start" => (object)["lat" => $start->lat, "lng" => $start->lng],
+            "end" => (object)["lat" => $end->lat, "lng" => $end->lng],
+        ];
+
+        return sendRequest ($request);
+    }
+
     private function findRouteBetweenAnchors ($anchor1Index, $anchor2Index, $startRoute = null)
     {
         $anchor1 = $this->anchors[$anchor1Index];
@@ -552,7 +566,7 @@ class Route implements ArrayAccess
 
         if (isset($anchor1) && isset($anchor2))
         {
-            $newAnchors = findPath($anchor1, $anchor2, $startRoute);
+            $newAnchors = $this->findPath($anchor1, $anchor2, $startRoute);
 
             error_log('new anchor count: ' . count($newAnchors));
 
