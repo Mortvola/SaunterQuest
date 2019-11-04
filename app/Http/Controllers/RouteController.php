@@ -66,26 +66,46 @@ class RouteController extends Controller
         $route->save ();
     }
 
+    private function prepareUpdates ($route, $updates)
+    {
+        $updates2 = [];
+        foreach ($updates as $update)
+        {
+            $routeUpdate = $route->get ($update[0], $update[1])->toArray ();
+
+            // Make sure the trail in the last element is null
+            $routeUpdate[count($routeUpdate) - 1]["trail"] = null;
+
+            $updates2[] = $routeUpdate;
+        }
+
+        return $updates2;
+    }
+
     public function setStartPoint ($hikeId, Request $request)
     {
         $point = json_decode($request->getContent());
 
         $route = new Route($hikeId);
 
-        $route->setStart ($point);
+        $updates = $route->setStart ($point);
 
         $route->save ();
+
+        return $this->prepareUpdates($route, $updates);
     }
 
     public function setEndPoint ($hikeId, Request $request)
     {
         $point = json_decode($request->getContent());
 
-        $route = new Route($hikeId);
+        $route = new Route($hikeId, true);
 
-        $route->setEnd ($point);
+        $updates = $route->setEnd ($point);
 
         $route->save ();
+
+        return $this->prepareUpdates($route, $updates);
     }
 
     public function addWaypoint ($hikeId, Request $request)
@@ -98,18 +118,7 @@ class RouteController extends Controller
 
         $route->save ();
 
-        $updates2 = [];
-        foreach ($updates as $update)
-        {
-            $routeUpdate = $route->get ($update[0], $update[1])->toArray ();
-
-            // Make sure the trail in the last element is null
-            $routeUpdate[count($routeUpdate) - 1]["trail"] = null;
-
-            $updates2[] = $routeUpdate;
-        }
-
-        return $updates2;
+        return $this->prepareUpdates($route, $updates);
     }
 
     public function updateWaypointPosition ($hikeId, $waypointId, $request)
@@ -122,18 +131,7 @@ class RouteController extends Controller
 
         $route->save ();
 
-        $updates2 = [];
-        foreach ($updates as $update)
-        {
-            $routeUpdate = $route->get ($update[0], $update[1])->toArray ();
-
-            // Make sure the trail in the last element is null
-            $routeUpdate[count($routeUpdate) - 1]["trail"] = null;
-
-            $updates2[] = $routeUpdate;
-        }
-
-        return $updates2;
+        return $this->prepareUpdates($route, $updates);
     }
 
     public function updateWaypointDetails ($hikeId, $waypointId, $request)
@@ -155,18 +153,7 @@ class RouteController extends Controller
 
         $route->save ();
 
-        $updates2 = [];
-        foreach ($updates as $update)
-        {
-            $routeUpdate = $route->get ($update[0], $update[1])->toArray ();
-
-            // Make sure the trail in the last element is null
-            $routeUpdate[count($routeUpdate) - 1]["trail"] = null;
-
-            $updates2[] = $routeUpdate;
-        }
-
-        return $updates2;
+        return $this->prepareUpdates($route, $updates);
     }
 
     public function updateWaypoints ($hikeId, Request $request)

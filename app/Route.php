@@ -122,7 +122,13 @@ class Route implements ArrayAccess
 
         if (isset($nextAnchorIndex))
         {
+            $nextAnchorId = $this->anchors[$nextAnchorIndex]->id;
+
             $this->findRouteBetweenAnchors(0, $nextAnchorIndex);
+
+            $nextAnchorIndex = $this->findAnchorIndexById($nextAnchorId);
+
+            return [[0, $nextAnchorIndex]];
         }
     }
 
@@ -153,7 +159,13 @@ class Route implements ArrayAccess
 
         if (isset($prevAnchorIndex))
         {
+            $prevAnchorId = $this->anchors[$prevAnchorIndex]->id;
+
             $this->findRouteBetweenAnchors($prevAnchorIndex, $this->anchors->count() - 1);
+
+            $prevAnchorIndex = $this->findAnchorIndexById($prevAnchorId);
+
+            return [[$prevAnchorIndex, $this->anchors->count() - 1]];
         }
     }
 

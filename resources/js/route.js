@@ -44,9 +44,16 @@ class Route
             data: JSON.stringify({lat: position.lat (), lng: position.lng ()}),
             context: this
         })
-        .done (function()
+        .done (function(updates)
         {
-    		this.retrieve ();
+            if (updates === undefined)
+            {
+                this.retrieve ();
+            }
+            else
+            {
+                this.applyUpdates (updates);
+            }
         });
     }
 
@@ -63,9 +70,16 @@ class Route
 	        data: JSON.stringify({lat: position.lat (), lng: position.lng ()}),
 	        context: this
 	    })
-	    .done (function()
+	    .done (function(updates)
 	    {
-			this.retrieve ();
+            if (updates === undefined)
+            {
+                this.retrieve ();
+            }
+            else
+            {
+                this.applyUpdates (updates);
+            }
 	    });
 	}
 	
@@ -95,6 +109,64 @@ class Route
         });
     }
 	
+    updateWaypoint (marker)
+    {
+        $.ajax({
+            url: userHikeId + "/route/waypoint/" + marker.id + "/position",
+            headers:
+            {
+                "Content-type": "application/json",
+                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+            },
+            type: "PUT",
+            data: JSON.stringify({lat: marker.getPosition().lat (), lng: marker.getPosition().lng ()}),
+            context: this
+        })
+        .done (function(updates)
+        {
+            if (updates === undefined)
+            {
+                this.retrieve ();
+            }
+            else
+            {
+                this.applyUpdates (updates);
+            }
+        });
+    }
+
+    removeWaypoint (marker)
+    {
+        $.ajax({
+            url: userHikeId + "/route/waypoint/" + marker.id,
+            headers:
+            {
+                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+            },
+            type: "DELETE",
+            context: this
+        })
+        .done (function(updates)
+        {
+            var index = this.waypoints.findIndex(function(entry) { return entry.id == marker.id; });
+            
+            if (index > -1)
+            {
+                this.waypoints[index].removeMarker ();
+                this.waypoints.splice (index, 1);
+            }
+
+            if (updates === undefined)
+            {
+                this.retrieve ();
+            }
+            else
+            {
+                this.applyUpdates (updates);
+            }
+        });
+    }
+
     applyUpdates (updates)
     {
         for (let update of updates)
@@ -193,33 +265,6 @@ class Route
         }
     }
     
-    
-    updateWaypoint (marker)
-    {
-        $.ajax({
-            url: userHikeId + "/route/waypoint/" + marker.id + "/position",
-            headers:
-            {
-                "Content-type": "application/json",
-                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
-            },
-            type: "PUT",
-            data: JSON.stringify({lat: marker.getPosition().lat (), lng: marker.getPosition().lng ()}),
-            context: this
-        })
-        .done (function(updates)
-        {
-            if (updates === undefined)
-            {
-                this.retrieve ();
-            }
-            else
-            {
-                this.applyUpdates (updates);
-            }
-        });
-    }
-
     editWaypoint (marker)
     {
         // Set the form back to the original state
@@ -319,38 +364,6 @@ class Route
             $("#waypointDialog").modal ('hide');
         });
         $("#waypointDialog").modal ('show');
-    }
-
-    removeWaypoint (marker)
-    {
-        $.ajax({
-            url: userHikeId + "/route/waypoint/" + marker.id,
-            headers:
-            {
-                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
-            },
-            type: "DELETE",
-            context: this
-        })
-        .done (function(updates)
-        {
-            var index = this.waypoints.findIndex(function(entry) { return entry.id == marker.id; });
-            
-            if (index > -1)
-            {
-                this.waypoints[index].removeMarker ();
-                this.waypoints.splice (index, 1);
-            }
-
-            if (updates === undefined)
-            {
-                this.retrieve ();
-            }
-            else
-            {
-                this.applyUpdates (updates);
-            }
-        });
     }
 
     setWaypointOrder (order)
