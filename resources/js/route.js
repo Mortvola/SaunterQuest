@@ -53,6 +53,7 @@ class Route
             else
             {
                 this.applyUpdates (updates);
+                this.startOfTrailMarker.setPosition(this.anchors[0]);
             }
         });
     }
@@ -79,6 +80,7 @@ class Route
             else
             {
                 this.applyUpdates (updates);
+                this.endOfTrailMarker.setPosition(this.anchors[this.anchors.length - 1]);
             }
 	    });
 	}
