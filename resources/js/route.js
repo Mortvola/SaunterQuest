@@ -206,6 +206,8 @@ class Route
 
     applyUpdates (updates)
     {
+        let retrieveRoute = false;
+        
         for (let update of updates)
         {
             // Find the anchor in the array of anchors that 
@@ -255,6 +257,7 @@ class Route
                         for (let p  = 0; p < Math.min(route.length, numberOfPointsToReplace); p++)
                         {
                             path.setAt(p + firstPointToReplace, new google.maps.LatLng(route[p]));
+                            this.actualRoute[p + firstPointToReplace] = route[p];
                         }
                         
                         if (numberOfPointsToReplace > route.length)
@@ -264,6 +267,7 @@ class Route
                                 // Since we are removing elements there is no need to 
                                 // walk the array, just keeping removing the same index
                                 path.removeAt (route.length + firstPointToReplace);
+                                this.actualRoute.splice(route.length + firstPointToReplace, 1);
                             }
                         }
                         else if (route.length > numberOfPointsToReplace)
@@ -271,6 +275,7 @@ class Route
                             for (let p = numberOfPointsToReplace; p < route.length; p++)
                             {
                                 path.insertAt (p + firstPointToReplace, new google.maps.LatLng(route[p]));
+                                this.actualRoute.splice(p + firstPointToReplace, 0, route[p]);
                             }
                         }
                         
@@ -298,7 +303,8 @@ class Route
                     }
                     else
                     {
-                        this.retrieve ();
+                        retrieveRoute = true;
+                        break;
                     }
                 }
             }
@@ -312,8 +318,18 @@ class Route
             }
             else
             {
-                this.retrieve ();
+                retrieveRoute = true;
+                break;
             }
+        }
+        
+        if (retrieveRoute)
+        {
+            this.retrieve ();
+        }
+        else
+        {
+            document.dispatchEvent(new Event('routeUpdated'));
         }
     }
     
@@ -515,7 +531,7 @@ class Route
                 {
                     retrieveTrailConditions ();
 
-                    getAndLoadElevationData (0, this.actualRoute.length, this.actualRoute);
+                    document.dispatchEvent(new Event('routeUpdated'));
                 }
             }
         });

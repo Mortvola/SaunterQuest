@@ -604,18 +604,6 @@ function toggleEdit (object, position)
 }
 
 
-function getAndLoadElevationData (s, e)
-{
-	elevationData = [];
-	
-	elevationData.push([{label: 'Distance', type: 'number'}, {label: 'Elevation', type: 'number'}]);
-	
-	route.getElevations (elevationData,s, e);
-	
-	loadData ();
-}
-
-
 function displayRouteElevations (startSegment, endSegment)
 {
 	let distance = 0;

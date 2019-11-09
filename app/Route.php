@@ -159,7 +159,7 @@ class Route implements ArrayAccess
             $routePoint->lng = $point->lng;
             $routePoint->hike_id = $this->hikeId;
 
-            $routePoint->sort_order = $this->getSortOrder ($this->anchors->count () -1, $this->anchors->count ());
+            $routePoint->sort_order = $this->getSortOrder ($this->anchors->count () - 1, $this->anchors->count ());
 
             $this->anchors->push($routePoint);
         }
