@@ -71,7 +71,14 @@ class RouteController extends Controller
         $updates2 = [];
         foreach ($updates as $update)
         {
-            $routeUpdate = $route->get ($update[0], $update[1])->toArray ();
+            if (count($update) >= 2)
+            {
+                $routeUpdate = $route->get ($update[0], $update[1])->toArray ();
+            }
+            else
+            {
+                $routeUpdate = $route->getAnchor($update[0]);
+            }
 
             // Make sure the trail in the last element is null
             $routeUpdate[count($routeUpdate) - 1]["trail"] = null;

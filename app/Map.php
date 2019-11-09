@@ -112,34 +112,13 @@ class Map
 
     public static function getTrailFromPoint ($point)
     {
-        $point = "ST_Transform('SRID=4326;POINT(" . $point->lng . " " . $point->lat . ")'::geometry, 3857)";
+        $request = (object)[
+            "method" => "GET",
+            "command" => "/map/trailFromPoint",
+            "point" => $point
+        ];
 
-        $sql = "SELECT
-                ST_Distance(L2.way, :point:) AS distance,
-                ST_AsGeoJSON(ST_Transform(ST_ClosestPoint(L2.way, :point:), 4326)) AS point,
-                ST_LineLocatePoint(L2.way, :point:) AS fraction,
-                e.id AS edge_id, e.start_fraction, e.end_fraction, e.start_node, e.end_node, e.line_id
-            FROM
-                (SELECT *
-                FROM
-                planet_osm_line
-                WHERE highway is not null
-                ORDER BY way <-> :point:
-                LIMIT 10) L2
-            JOIN nav_edges e ON e.line_id = L2.line_id
-            and ST_LineLocatePoint(L2.way, :point:) between e.start_fraction and e.end_fraction
-            ORDER BY 1 ASC
-            LIMIT 1";
-
-        $result = \DB::connection('pgsql')->select (str_replace (":point:", $point, $sql));
-
-        if (count($result) > 0)
-        {
-            $coordinates = json_decode($result[0]->point)->coordinates;
-            $result[0]->point = (object)["lat" => $coordinates[1], "lng" => $coordinates[0]];
-
-            return $result[0];
-        }
+        return sendRequest ($request);
     }
 
     public static function getIntersections ($bounds)

@@ -179,85 +179,100 @@ class Route
 
             if (firstIndex > -1)
             {
-                // Find the anchor in the array that corresponds to the 
-                // last anchor in this update
-                var lastIndex = this.anchors.findIndex(function(entry) { return entry.id == update[update.length - 1].id; });
-
-                if (lastIndex > -1)
+                if (update.length === 1)
                 {
-                    // The first and last anchors were found. Replace the anchors in the array of anchors
-                    // with this update.
-                    
-                    var route = [];
-                    var firstPointToReplace = this.anchors[firstIndex].actualRouteIndex;
-                    var numberOfPointsToReplace = this.anchors[lastIndex].actualRouteIndex - firstPointToReplace + 1;
-                    var startDistance = this.anchors[firstIndex].dist;
-                    
-                    for (let anchor of update)
-                    {
-                        this.addPointsToArray (anchor, route);
-                        anchor.actualRouteIndex += firstPointToReplace;
-                        anchor.dist += startDistance;
-
-                        if (this.anchorIsWaypoint (anchor))
-                        {
-                            this.updateOrAddWaypoint (anchor)
-                        }
-                    }
-
-                    // The last anchor in the update needs to adopt the trail from the anchor that will be replaced.
-                    update[update.length - 1].trail = this.anchors[lastIndex].trail;
-                    
-                    // Update the polyline
-                    var path = this.actualRoutePolyline.getPath ();
-
-                    for (let p  = 0; p < Math.min(route.length, numberOfPointsToReplace); p++)
-                    {
-                        path.setAt(p + firstPointToReplace, new google.maps.LatLng(route[p]));
-                    }
-                    
-                    if (numberOfPointsToReplace > route.length)
-                    {
-                        for (let p = route.length; p < numberOfPointsToReplace; p++)
-                        {
-                            // Since we are removing elements there is no need to 
-                            // walk the array, just keeping removing the same index
-                            path.removeAt (route.length + firstPointToReplace);
-                        }
-                    }
-                    else if (route.length > numberOfPointsToReplace)
-                    {
-                        for (let p = numberOfPointsToReplace; p < route.length; p++)
-                        {
-                            path.insertAt (p + firstPointToReplace, new google.maps.LatLng(route[p]));
-                        }
-                    }
-                    
-                    // Update all of the actualRouteIndex and distance data members in the anchors beyond
-                    // the point of update.
-                    var indexDelta = route.length - numberOfPointsToReplace;
-                    var distDelta = update[update.length - 1].dist - this.anchors[lastIndex].dist;
-                    for (let i = lastIndex + 1; i < this.anchors.length; i++)
-                    {
-                        this.anchors[i].actualRouteIndex += indexDelta;
-                        this.anchors[i].dist += distDelta;
-                        
-                        var waypoint = this.getWaypoint (this.anchors[i]);
-                        
-                        if (waypoint !== undefined)
-                        {
-                            waypoint.setPosition(this.anchors[i]);
-                        }
-                    }
-                    
-                    this.anchors.splice(firstIndex, lastIndex - firstIndex + 1, ...update);
-                    
-                    //console.log("Number of anchors: " + this.anchors.length)
-                    //console.log("Number of points: " + path.length)
+                    this.anchors.splice(firstIndex, 1, update[0]);
                 }
                 else
                 {
-                    this.retrieve ();
+                    // Find the anchor in the array that corresponds to the 
+                    // last anchor in this update
+                    var lastIndex = this.anchors.findIndex(function(entry) { return entry.id == update[update.length - 1].id; });
+    
+                    if (lastIndex > -1)
+                    {
+                        // The first and last anchors were found. Replace the anchors in the array of anchors
+                        // with this update.
+                        
+                        var route = [];
+                        var firstPointToReplace = this.anchors[firstIndex].actualRouteIndex;
+                        var numberOfPointsToReplace = this.anchors[lastIndex].actualRouteIndex - firstPointToReplace + 1;
+                        var startDistance = this.anchors[firstIndex].dist;
+                        
+                        for (let anchor of update)
+                        {
+                            this.addPointsToArray (anchor, route);
+                            anchor.actualRouteIndex += firstPointToReplace;
+                            anchor.dist += startDistance;
+    
+                            if (this.anchorIsWaypoint (anchor))
+                            {
+                                this.updateOrAddWaypoint (anchor)
+                            }
+                        }
+    
+                        // The last anchor in the update needs to adopt the trail from the anchor that will be replaced.
+                        update[update.length - 1].trail = this.anchors[lastIndex].trail;
+                        
+                        // Update the polyline
+                        var path = this.actualRoutePolyline.getPath ();
+    
+                        for (let p  = 0; p < Math.min(route.length, numberOfPointsToReplace); p++)
+                        {
+                            path.setAt(p + firstPointToReplace, new google.maps.LatLng(route[p]));
+                        }
+                        
+                        if (numberOfPointsToReplace > route.length)
+                        {
+                            for (let p = route.length; p < numberOfPointsToReplace; p++)
+                            {
+                                // Since we are removing elements there is no need to 
+                                // walk the array, just keeping removing the same index
+                                path.removeAt (route.length + firstPointToReplace);
+                            }
+                        }
+                        else if (route.length > numberOfPointsToReplace)
+                        {
+                            for (let p = numberOfPointsToReplace; p < route.length; p++)
+                            {
+                                path.insertAt (p + firstPointToReplace, new google.maps.LatLng(route[p]));
+                            }
+                        }
+                        
+                        // Update all of the actualRouteIndex and distance data members in the anchors beyond
+                        // the point of update.
+                        var indexDelta = route.length - numberOfPointsToReplace;
+                        var distDelta = update[update.length - 1].dist - this.anchors[lastIndex].dist;
+                        for (let i = lastIndex + 1; i < this.anchors.length; i++)
+                        {
+                            this.anchors[i].actualRouteIndex += indexDelta;
+                            this.anchors[i].dist += distDelta;
+                            
+                            var waypoint = this.getWaypoint (this.anchors[i]);
+                            
+                            if (waypoint !== undefined)
+                            {
+                                waypoint.setPosition(this.anchors[i]);
+                            }
+                        }
+                        
+                        this.anchors.splice(firstIndex, lastIndex - firstIndex + 1, ...update);
+                        
+                        //console.log("Number of anchors: " + this.anchors.length)
+                        //console.log("Number of points: " + path.length)
+                    }
+                    else
+                    {
+                        this.retrieve ();
+                    }
+                }
+            }
+            else if (update.length === 1)
+            {
+                if (update[0].type === "start" ||
+                    update[0].type === "end")
+                {
+                    this.anchors.splice(0, 0, update[0]);
                 }
             }
             else
@@ -423,49 +438,55 @@ class Route
         })
         .done (function(responseText)
         {
-    		this.processResponse (responseText);
+            this.anchors = responseText;
+
+            if (this.anchors.length > 0)
+            {
+                //
+                // Add start of trail marker
+                //
+                if (this.anchors[0].type === 'start')
+                {
+                    this.startOfTrailMarker.setPosition(this.anchors[0]);
+                }
+
+                //
+                // Add end of trail marker
+                //
+                if (this.anchors[this.anchors.length - 1].type === 'end')
+                {
+                    this.endOfTrailMarker.setPosition(this.anchors[this.anchors.length - 1]);
+                }
+            
+                this.load ();
+                
+                if (this.map)
+                {
+                    this.draw ();
+
+                    if (this.initialLoad)
+                    {
+                        this.map.fitBounds(this.bounds);
+                        let z = this.map.getZoom ();
+                        if (z > 13)
+                        {
+                            this.map.setZoom(13);
+                        }
+                        this.initialLoad = false;
+                    }
+                }
+                
+                if (this.anchors.length > 1)
+                {
+                    retrieveTrailConditions ();
+
+                    getAndLoadElevationData (0, this.actualRoute.length, this.actualRoute);
+                }
+            }
         });
     }
 
-	processResponse (responseText)
-	{
-		this.anchors = responseText;
-
-		if (this.anchors.length > 0)
-		{
-			//
-			// Add start of trail marker
-			//
-			this.startOfTrailMarker.setPosition(this.anchors[0]);
-
-			//
-			// Add end of trail marker
-			//
-			this.endOfTrailMarker.setPosition(this.anchors[this.anchors.length - 1]);
-		}
-		
-		if (this.anchors.length > 1)
-		{
-			this.load ();
-			
-			retrieveTrailConditions ();
-
-			if (this.map)
-			{
-				this.draw ();
-
-				if (this.initialLoad)
-				{
-	                this.map.fitBounds(this.bounds);
-	                this.initialLoad = false;
-				}
-			}
-			
-			getAndLoadElevationData (0, this.actualRoute.length, this.actualRoute);
-		}
-	}
-	
-	anchorIsWaypoint (anchor)
+    anchorIsWaypoint (anchor)
 	{
 	    return anchor.type !== undefined && anchor.type == "waypoint";
 	}
@@ -535,7 +556,7 @@ class Route
 		    w.remove = true;
 		}
 		
-		if (this.anchors.length > 1)
+		if (this.anchors.length > 0)
 		{
 			//
 			// Traverse route coords and find the bounds

@@ -76,6 +76,11 @@ class Route implements ArrayAccess
         return $this->anchors; // ->values ();
     }
 
+    public function getAnchor ($anchorIndex)
+    {
+        return array($this->anchors[$anchorIndex]);
+    }
+
     public function anchorCount ()
     {
         return $this->anchors->count();
@@ -130,6 +135,15 @@ class Route implements ArrayAccess
 
             return [[0, $nextAnchorIndex]];
         }
+        else
+        {
+            $trailInfo = Map::getTrailFromPoint($point);
+
+            $this->anchors[0]->lat = $trailInfo->point->lat;
+            $this->anchors[0]->lng = $trailInfo->point->lng;
+        }
+
+        return [[0]];
     }
 
     public function setEnd ($point)
@@ -167,6 +181,15 @@ class Route implements ArrayAccess
 
             return [[$prevAnchorIndex, $this->anchors->count() - 1]];
         }
+        else
+        {
+            $trailInfo = Map::getTrailFromPoint($point);
+
+            $this->anchors[0]->lat = $trailInfo->point->lat;
+            $this->anchors[0]->lng = $trailInfo->point->lng;
+        }
+
+        return [[0]];
     }
 
     public function addWaypoint ($point)
