@@ -112,34 +112,13 @@ class Map
 
     public static function getTrailFromPoint ($point)
     {
-        $point = "ST_Transform('SRID=4326;POINT(" . $point->lng . " " . $point->lat . ")'::geometry, 3857)";
+        $request = (object)[
+            "method" => "GET",
+            "command" => "/map/trailFromPoint",
+            "point" => $point
+        ];
 
-        $sql = "SELECT
-                ST_Distance(L2.way, :point:) AS distance,
-                ST_AsGeoJSON(ST_Transform(ST_ClosestPoint(L2.way, :point:), 4326)) AS point,
-                ST_LineLocatePoint(L2.way, :point:) AS fraction,
-                e.*
-            FROM
-                (SELECT *
-                FROM
-                planet_osm_line
-                WHERE highway is not null
-                ORDER BY way <-> :point:
-                LIMIT 10) L2
-            JOIN nav_edges e ON e.line_id = L2.line_id
-            and ST_LineLocatePoint(L2.way, :point:) between e.start_fraction and e.end_fraction
-            ORDER BY 1 ASC
-            LIMIT 1";
-
-        $result = \DB::connection('pgsql')->select (str_replace (":point:", $point, $sql));
-
-        if (count($result) > 0)
-        {
-            $coordinates = json_decode($result[0]->point)->coordinates;
-            $result[0]->point = (object)["lat" => $coordinates[1], "lng" => $coordinates[0]];
-
-            return $result[0];
-        }
+        return sendRequest ($request);
     }
 
     public static function getIntersections ($bounds)
@@ -167,7 +146,7 @@ class Map
         return $intersections;
     }
 
-    static public function getPath ($lineId, $startFraction, $endFraction)
+    static public function getPath ($edgeId, $startFraction, $endFraction)
     {
         if ($startFraction > $endFraction)
         {
@@ -182,14 +161,15 @@ class Map
         }
 
         $sql = "select ST_AsGeoJSON(ST_Transform(ST_LineSubstring (:way:, :start:, :end:), 4326)) AS linestring
-            from planet_osm_line
-            where line_id = :lineId:
+            from planet_osm_line line
+            join nav_edges e on e.line_id = line.line_id
+            where e.id = :edgeId:
             limit 1";
 
         $sql = str_replace (":way:", $way, $sql);
         $sql = str_replace (":start:", $startFraction, $sql);
         $sql = str_replace (":end:", $endFraction, $sql);
-        $sql = str_replace (":lineId:", $lineId, $sql);
+        $sql = str_replace (":edgeId:", $edgeId, $sql);
 
         $result = \DB::connection('pgsql')->select ($sql);
 

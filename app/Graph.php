@@ -143,12 +143,23 @@ class Graph
         fwrite ($handle, " [ " . $label . " color = " . $color . " ]\n");
     }
 
-    static public function loadNode ($nodeId, $edgeId, $graph)
+    static function costBetweenNodes ($nodeIndex1, $nodeIndex2, $graph)
+    {
+        $node1 = $graph->nodes[$nodeIndex1];
+        $node2 = $graph->nodes[$nodeIndex2];
+
+        $distance = haversineGreatCircleDistance ($node1->point->lat, $node1->point->lng, $node2->point->lat, $node2->point->lng);
+
+        return $distance / metersPerHourGet(0, $distance);
+    }
+
+
+    static public function loadNode ($nodeId, $edgeId, $graph, $endType)
     {
         // Load the node if the node index is valid and it isn't already loaded
         if (isset ($nodeId) && !isset($graph->nodes[$nodeId]))
         {
-            error_log ('loading node id ' . $nodeId);
+//            error_log ('loading node id ' . $nodeId);
 
             $sql = "select ST_AsGeoJSON(ST_Transform(way, 4326)) AS point
             from nav_nodes
@@ -165,6 +176,8 @@ class Graph
 
             $graph->nodes[$nodeId] = $newNode;
 
+            $newNode->costToEnd[$endType] =  Graph::costBetweenNodes($nodeId, $endType, $graph);
+
             // Load the edges at the start and end nodes associated with this node.
             $sql = "select id, start_node, end_node, start_fraction, end_fraction, forward_cost, backward_cost, line_id
                 from nav_edges
@@ -173,7 +186,7 @@ class Graph
 
             $edges = \DB::connection('pgsql')->select (str_replace(":nodeId:", $nodeId, str_replace (":edgeId:", $edgeId, $sql)));
 
-            error_log ('selected ' . count($edges) . ' edges.');
+//            error_log ('selected ' . count($edges) . ' edges.');
 
             foreach ($edges as $edge)
             {
@@ -194,33 +207,53 @@ class Graph
                     }
                 }
 
-                // If the edge is not already in the edge array then add it.
-                if (!isset ($graph->edges[$edgeId]))
-                {
-                    $graph->edges[$edgeId] = $edge;
-                }
-                else
-                {
-                    $edge = $graph->edges[$edgeId];
-                }
+                // If the eddge doesn't have both a start and end node then don't add it.
 
-                if (isset($graph->nodes[$edge->start_node]) &&
-                    !array_search($edgeId, $graph->nodes[$edge->start_node]->edges))
+                if (isset($edge->start_node) && isset($edge->end_node))
                 {
-                    $graph->nodes[$edge->start_node]->edges[] = $edgeId;
-                }
+                    // If the edge is not already in the edge array then add it.
+                    if (!isset ($graph->edges[$edgeId]))
+                    {
+                        $graph->edges[$edgeId] = $edge;
+                    }
+                    else
+                    {
+                        $edge = $graph->edges[$edgeId];
+                    }
 
-                if (isset($graph->nodes[$edge->end_node]) &&
-                    !array_search($edgeId, $graph->nodes[$edge->end_node]->edges))
-                {
-                    $graph->nodes[$edge->end_node]->edges[] = $edgeId;
+                    if (isset($graph->nodes[$edge->start_node]) &&
+                        !array_search($edgeId, $graph->nodes[$edge->start_node]->edges))
+                    {
+                        $graph->nodes[$edge->start_node]->edges[] = $edgeId;
+                    }
+
+                    if (isset($graph->nodes[$edge->end_node]) &&
+                        !array_search($edgeId, $graph->nodes[$edge->end_node]->edges))
+                    {
+                        $graph->nodes[$edge->end_node]->edges[] = $edgeId;
+                    }
                 }
             }
+
+            // Remove the node if there is only one edge to it.
+            if (count($newNode->edges) <= 1)
+            {
+                unset ($graph->nodes[$nodeId]);
+            }
         }
-        else
-        {
-            error_log ('node id ' . $nodeId . ' already loaded.');
-        }
+    }
+
+    static public function computeLineSubstringCost ($lineId, $startFraction, $endFraction)
+    {
+        $line = \DB::table('planet_osm_line')
+            ->select (
+                \DB::raw ('ST_AsGeoJSON(ST_Transform(ST_LineSubString(way, ' . $startFraction . ', ' . $endFraction . '), 4326)) as line'))
+            ->where('line_id', $lineId)
+            ->get ();
+
+        $lineString = json_decode($line[0]->line);
+
+        return Graph::computeCosts ($lineString->coordinates);
     }
 
     static public function fixupEdgeCosts ()

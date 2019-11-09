@@ -41,3 +41,25 @@ function metersToMilesRounded ($meters)
 {
     return round($meters / 1609.34 * 10) / 10;
 }
+
+function sendRequest ($request)
+{
+    $stream = stream_socket_client("unix:///tmp/routeFind");
+
+    if ($stream !== false)
+    {
+        $bytesWritten = fwrite ($stream, json_encode ($request) . "\n");
+
+        if ($bytesWritten > 0)
+        {
+            $response = stream_get_contents ($stream);
+
+            fclose ($stream);
+
+            if ($response !== false)
+            {
+                return json_decode($response);
+            }
+        }
+    }
+}

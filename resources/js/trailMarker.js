@@ -56,12 +56,15 @@ class TrailMarker
 	
 	setPosition (position)
 	{
-		this.meters = position.dist;
-		this.ele = position.ele;
-		this.marker.setPosition (position);
-		this.marker.setMap (this.map);
-		
-		this.addListener ();
+	    if (position !== undefined)
+	    {
+	        this.meters = position.dist;
+	        this.ele = position.ele;
+	        this.marker.setPosition (position);
+	        this.marker.setMap (this.map);
+	        
+	        this.addListener ();
+	    }
 	}
 	
 	getPosition ()

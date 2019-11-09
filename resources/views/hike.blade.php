@@ -11,9 +11,39 @@
         }
         .map-info
         {
-			background-color:white;
-			border-radius:5px;
-			box-shadow:0 2px 7px 1px rgba(0,0,0,0.3);
+            display:none;
+            left:50%;
+            top:10px;
+            position:absolute;
+            margin-left:-100px;
+            width:200px;
+            height:50px;
+            background-color:white;
+            border-radius:5px;
+            box-shadow:0 2px 7px 1px rgba(0,0,0,0.3);
+        }
+        .map-distance-window
+        {
+            width:14px;
+            height:14px;
+            font-size:14px
+        }
+        .map-please-wait
+        {
+            display:none;
+            left:50%;
+            top:50%;
+            position:absolute;
+            margin-top:-5rem;
+            background:rgba(255, 255, 255, 1.0);
+            border-radius:5px;
+            box-shadow:0 2px 7px 1px rgba(0,0,0,0.3);
+        }
+        .map-please-wait-spinner
+        {
+            width: 5rem;
+            height: 5rem;
+            border-width: 10px;
         }
     </style>
 
@@ -81,14 +111,19 @@
             </div>
             <div class="row no-gutters flex-column" style="height:100%">
             	<div class="col">
-	            	<div id="googleMap" style="width:100%;height:100%"></div>
-					<div id="distanceWindow" class="map-info" style="display:none;left:50%;top:10px;position:absolute;margin-left:-100px;width:200px;height:50px;">
-						<div>
+                	<div id="googleMap" style="width:100%;height:100%"></div>
+    				<div id="distanceWindow" class="map-info">
+    					<div>
                         	<span>Distance</span>
-		                	<button id="distanceWindowClose" type="button" class="close" style="width:14px;height:14px;font-size:14px">&times;</button>
-						</div>
-		                <div id="distance" style="height:auto;text-align:center;vertical-align:middle"></div>
-					</div>
+    	                	<button id="distanceWindowClose" type="button" class="close map-distance-window">&times;</button>
+    					</div>
+    	                <div id="distance" style="height:auto;text-align:center;vertical-align:middle"></div>
+    				</div>
+                    <div class="map-please-wait" id="pleaseWait">
+                        <div class="spinner-border text-primary m-2 map-please-wait-spinner" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </div>
 	            </div>
             	<div class="col" style="flex-grow:0">
                     <div id="elevation_chart_div" style="width:100%;height:250px"></div>
