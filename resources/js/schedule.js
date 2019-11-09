@@ -159,4 +159,9 @@ class Schedule
 	}
 }
 
+$(document).on('routeUpdated', function ()
+    {
+        schedule.retrieve ();
+    });
+
 </script>

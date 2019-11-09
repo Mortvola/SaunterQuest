@@ -258,6 +258,7 @@ class Route
                         {
                             path.setAt(p + firstPointToReplace, new google.maps.LatLng(route[p]));
                             this.actualRoute[p + firstPointToReplace] = route[p];
+                            this.actualRoute[p + firstPointToReplace].dist += startDistance;
                         }
                         
                         if (numberOfPointsToReplace > route.length)
@@ -276,6 +277,7 @@ class Route
                             {
                                 path.insertAt (p + firstPointToReplace, new google.maps.LatLng(route[p]));
                                 this.actualRoute.splice(p + firstPointToReplace, 0, route[p]);
+                                this.actualRoute[p + firstPointToReplace].dist += startDistance;
                             }
                         }
                         
@@ -283,7 +285,7 @@ class Route
                         // the point of update.
                         var indexDelta = route.length - numberOfPointsToReplace;
                         var distDelta = update[update.length - 1].dist - this.anchors[lastIndex].dist;
-                        for (let i = lastIndex + 1; i < this.anchors.length; i++)
+                        for (let i = lastIndex; i < this.anchors.length; i++)
                         {
                             this.anchors[i].actualRouteIndex += indexDelta;
                             this.anchors[i].dist += distDelta;
@@ -296,10 +298,13 @@ class Route
                             }
                         }
                         
-                        this.anchors.splice(firstIndex, lastIndex - firstIndex + 1, ...update);
+                        // Update all of the actual route point distances beyond this update.
+                        for (let p = this.anchors[lastIndex].actualRouteIndex + 1; p < this.actualRoute.length; p++)
+                        {
+                            this.actualRoute[p].dist += distDelta;
+                        }
                         
-                        //console.log("Number of anchors: " + this.anchors.length)
-                        //console.log("Number of points: " + path.length)
+                        this.anchors.splice(firstIndex, lastIndex - firstIndex + 1, ...update);
                     }
                     else
                     {
