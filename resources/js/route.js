@@ -33,6 +33,8 @@ class Route
 
     setStart (position)
     {
+        $("#pleaseWait").show ();
+        
         $.ajax({
             url: userHikeId + "/route/startPoint",
             headers:
@@ -55,11 +57,18 @@ class Route
                 this.applyUpdates (updates);
                 this.startOfTrailMarker.setPosition(this.anchors[0]);
             }
+        })
+        .always (function ()
+        {
+            
+            $("#pleaseWait").hide ();
         });
     }
 
 	setEnd (position)
 	{
+        $("#pleaseWait").show ();
+        
 	    $.ajax({
 	        url: userHikeId + "/route/endPoint",
 	        headers:
@@ -82,11 +91,18 @@ class Route
                 this.applyUpdates (updates);
                 this.endOfTrailMarker.setPosition(this.anchors[this.anchors.length - 1]);
             }
-	    });
+	    })
+        .always (function ()
+        {
+            
+            $("#pleaseWait").hide ();
+        });
 	}
 	
     addWaypoint (position)
     {
+        $("#pleaseWait").show ();
+        
         $.ajax({
             url: userHikeId + "/route/waypoint",
             headers:
@@ -108,11 +124,18 @@ class Route
             {
                 this.applyUpdates (updates);
             }
+        })
+        .always (function ()
+        {
+            
+            $("#pleaseWait").hide ();
         });
     }
 	
     updateWaypoint (marker)
     {
+        $("#pleaseWait").show ();
+        
         $.ajax({
             url: userHikeId + "/route/waypoint/" + marker.id + "/position",
             headers:
@@ -134,11 +157,18 @@ class Route
             {
                 this.applyUpdates (updates);
             }
+        })
+        .always (function ()
+        {
+            
+            $("#pleaseWait").hide ();
         });
     }
 
     removeWaypoint (marker)
     {
+        $("#pleaseWait").show ();
+        
         $.ajax({
             url: userHikeId + "/route/waypoint/" + marker.id,
             headers:
@@ -166,6 +196,11 @@ class Route
             {
                 this.applyUpdates (updates);
             }
+        })
+        .always (function ()
+        {
+            
+            $("#pleaseWait").hide ();
         });
     }
 
