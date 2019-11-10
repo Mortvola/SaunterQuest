@@ -108,6 +108,7 @@ class Route implements ArrayAccess
         {
             $routePoint = new RoutePoint();
 
+            $routePoint->id = -1; // temporary id
             $routePoint->type = "start";
             $routePoint->lat = $point->lat;
             $routePoint->lng = $point->lng;
@@ -116,6 +117,8 @@ class Route implements ArrayAccess
             $routePoint->sort_order = $this->getSortOrder (-1, 0);
 
             $this->anchors->prepend($routePoint);
+
+            $anchor = $this->anchors->last ();
         }
         else
         {
@@ -133,6 +136,11 @@ class Route implements ArrayAccess
 
             $nextAnchorIndex = $this->findAnchorIndexById($nextAnchorId);
 
+            if ($anchor->id == -1)
+            {
+                unset($anchor->id); // Remove the temporary id
+            }
+
             return [[0, $nextAnchorIndex]];
         }
         else
@@ -141,6 +149,11 @@ class Route implements ArrayAccess
 
             $this->anchors[0]->lat = $trailInfo->point->lat;
             $this->anchors[0]->lng = $trailInfo->point->lng;
+        }
+
+        if ($anchor->id == -1)
+        {
+            unset($anchor->id); // Remove the temporary id
         }
 
         return [[0]];
@@ -154,6 +167,7 @@ class Route implements ArrayAccess
         {
             $routePoint = new RoutePoint();
 
+            $routePoint->id = -1; // temporary id
             $routePoint->type = "end";
             $routePoint->lat = $point->lat;
             $routePoint->lng = $point->lng;
@@ -162,6 +176,8 @@ class Route implements ArrayAccess
             $routePoint->sort_order = $this->getSortOrder ($this->anchors->count () - 1, $this->anchors->count ());
 
             $this->anchors->push($routePoint);
+
+            $anchor = $this->anchors->last ();
         }
         else
         {
@@ -179,6 +195,11 @@ class Route implements ArrayAccess
 
             $prevAnchorIndex = $this->findAnchorIndexById($prevAnchorId);
 
+            if ($anchor->id == -1)
+            {
+                unset($anchor->id); // Remove the temporary id
+            }
+
             return [[$prevAnchorIndex, $this->anchors->count() - 1]];
         }
         else
@@ -187,6 +208,11 @@ class Route implements ArrayAccess
 
             $this->anchors[0]->lat = $trailInfo->point->lat;
             $this->anchors[0]->lng = $trailInfo->point->lng;
+        }
+
+        if ($anchor->id == -1)
+        {
+            unset($anchor->id); // Remove the temporary id
         }
 
         return [[0]];
@@ -203,7 +229,7 @@ class Route implements ArrayAccess
             {
                 if (isset($prevAnchor))
                 {
-                    if ($this->edgeFractionBetweenAnchors ($result->edge_id, $result->fraction, $prevAnchor, $nextAnchor))
+                    if ($this->edgeFractionBetweenAnchors ($result->line_id, $result->fraction, $prevAnchor, $nextAnchor))
                     {
                         $bestPrevAnchorKey = $prevAnchorKey;
                         $bestNextAnchorKey = $nextAnchorKey;
@@ -227,9 +253,9 @@ class Route implements ArrayAccess
             $routePoint->lat = $result->point->lat;
             $routePoint->lng = $result->point->lng;
             $routePoint->hike_id = $this->hikeId;
-            $routePoint->prev_edge_id = $result->edge_id;
+            $routePoint->prev_line_id = $result->line_id;
             $routePoint->prev_fraction = $result->fraction;
-            $routePoint->next_edge_id = $result->edge_id;
+            $routePoint->next_line_id = $result->line_id;
             $routePoint->next_fraction = $result->fraction;
 
             $routePoint->sort_order = $this->getSortOrder($bestPrevAnchorKey, $bestNextAnchorKey);
@@ -277,10 +303,10 @@ class Route implements ArrayAccess
         }
     }
 
-    private function edgeFractionBetweenAnchors ($edgeId, $fraction, $prevAnchor, $nextAnchor)
+    private function edgeFractionBetweenAnchors ($lineId, $fraction, $prevAnchor, $nextAnchor)
     {
-        return (isset ($prevAnchor->next_edge_id) && $prevAnchor->next_edge_id == $edgeId &&
-            isset ($nextAnchor->prev_edge_id) && $nextAnchor->prev_edge_id == $edgeId &&
+        return (isset ($prevAnchor->next_line_id) && $prevAnchor->next_line_id == $lineId &&
+            isset ($nextAnchor->prev_line_id) && $nextAnchor->prev_line_id == $lineId &&
             ($fraction >= $prevAnchor->next_fraction && $fraction <= $nextAnchor->prev_fraction ||
                 $fraction >= $nextAnchor->prev_fraction && $fraction <= $prevAnchor->next_fraction));
     }
@@ -303,7 +329,7 @@ class Route implements ArrayAccess
                     $prevAnchor = $this->anchors[$waypointIndex - 1];
                     $nextAnchor = $this->anchors[$waypointIndex + 1];
 
-                    if ($this->edgeFractionBetweenAnchors ($result->edge_id, $result->fraction, $prevAnchor, $nextAnchor))
+                    if ($this->edgeFractionBetweenAnchors ($result->line_id, $result->fraction, $prevAnchor, $nextAnchor))
                     {
                         $bestPrevAnchorKey = $waypointIndex - 1;
                         $bestNextAnchorKey = $waypointIndex + 1;
@@ -320,7 +346,7 @@ class Route implements ArrayAccess
                         {
                             if (isset($prevAnchor))
                             {
-                                if ($this->edgeFractionBetweenAnchors ($result->edge_id, $result->fraction, $prevAnchor, $nextAnchor))
+                                if ($this->edgeFractionBetweenAnchors ($result->line_id, $result->fraction, $prevAnchor, $nextAnchor))
                                 {
                                     $bestPrevAnchorKey = $prevAnchorKey;
                                     $bestNextAnchorKey = $nextAnchorKey;
@@ -359,9 +385,9 @@ class Route implements ArrayAccess
                 {
                     $anchor->lat = $result->point->lat;
                     $anchor->lng = $result->point->lng;
-                    $anchor->prev_edge_id = $result->edge_id;
+                    $anchor->prev_line_id = $result->line_id;
                     $anchor->prev_fraction = $result->fraction;
-                    $anchor->next_edge_id = $result->edge_id;
+                    $anchor->next_line_id = $result->line_id;
                     $anchor->next_fraction = $result->fraction;
 
                     $anchor->sort_order = $this->getSortOrder($bestPrevAnchorKey, $bestNextAnchorKey);
@@ -624,19 +650,14 @@ class Route implements ArrayAccess
 
                 if (isset($newAnchors[0]->prev))
                 {
-                    $anchor1->prev_edge_id = $newAnchors[0]->prev->edge_id;
+                    $anchor1->prev_line_id = $newAnchors[0]->prev->line_id;
                     $anchor1->prev_fraction = $newAnchors[0]->prev->fraction;
                 }
 
                 if (isset($newAnchors[0]->next))
                 {
-                    $anchor1->next_edge_id = $newAnchors[0]->next->edge_id;
+                    $anchor1->next_line_id = $newAnchors[0]->next->line_id;
                     $anchor1->next_fraction = $newAnchors[0]->next->fraction;
-                }
-
-                if (isset($newAnchors[0]->node_id))
-                {
-                    $anchor1->node_id = $newAnchors[$i]->node_id;
                 }
 
                 for ($i = 1; $i < count($newAnchors) - 1; $i++)
@@ -648,19 +669,14 @@ class Route implements ArrayAccess
 
                     if (isset($newAnchors[$i]->prev))
                     {
-                        $routePoint->prev_edge_id = $newAnchors[$i]->prev->edge_id;
+                        $routePoint->prev_line_id = $newAnchors[$i]->prev->line_id;
                         $routePoint->prev_fraction = $newAnchors[$i]->prev->fraction;
                     }
 
                     if (isset($newAnchors[$i]->next))
                     {
-                        $routePoint->next_edge_id = $newAnchors[$i]->next->edge_id;
+                        $routePoint->next_line_id = $newAnchors[$i]->next->line_id;
                         $routePoint->next_fraction = $newAnchors[$i]->next->fraction;
-                    }
-
-                    if (isset($newAnchors[$i]->node_id))
-                    {
-                        $routePoint->node_id = $newAnchors[$i]->node_id;
                     }
 
                     $routePoint->hike_id = $this->hikeId;
@@ -672,26 +688,24 @@ class Route implements ArrayAccess
                     ));
                 }
 
+                $lastNewAnchor = $newAnchors[count($newAnchors) - 1];
+
                 $anchorIndex2 = $this->findAnchorIndexById($anchors[$a + 1]->id);
                 $anchor2 = $this->anchors[$anchorIndex2];
-                $anchor2->lat = $newAnchors[count($newAnchors) - 1]->point->lat;
-                $anchor2->lng = $newAnchors[count($newAnchors) - 1]->point->lng;
 
-                if (isset($newAnchors[count($newAnchors) - 1]->prev))
+                $anchor2->lat = $lastNewAnchor->point->lat;
+                $anchor2->lng = $lastNewAnchor->point->lng;
+
+                if (isset($lastNewAnchor->prev))
                 {
-                    $anchor2->prev_edge_id = $newAnchors[count($newAnchors) - 1]->prev->edge_id;
-                    $anchor2->prev_fraction = $newAnchors[count($newAnchors) - 1]->prev->fraction;
+                    $anchor2->prev_line_id = $lastNewAnchor->prev->line_id;
+                    $anchor2->prev_fraction = $lastNewAnchor->prev->fraction;
                 }
 
-                if (isset($newAnchors[count($newAnchors) - 1]->next))
+                if (isset($lastNewAnchor->next))
                 {
-                    $anchor2->next_edge_id = $newAnchors[count($newAnchors) - 1]->next->edge_id;
-                    $anchor2->next_fraction = $newAnchors[count($newAnchors) - 1]->next->fraction;
-                }
-
-                if (isset($newAnchors[count($newAnchors) - 1]->node_id))
-                {
-                    $anchor2->node_id = $newAnchors[count($newAnchors) - 1]->node_id;
+                    $anchor2->next_line_id = $lastNewAnchor->next->line_id;
+                    $anchor2->next_fraction = $lastNewAnchor->next->fraction;
                 }
             }
 
@@ -752,11 +766,11 @@ class Route implements ArrayAccess
 
         // If this segment and the next start on the same trail then
         // find the route along the trail.
-        if (isset($prevAnchor->next_edge_id) && isset($nextAnchor->prev_edge_id) &&
-            $prevAnchor->next_edge_id == $nextAnchor->prev_edge_id &&
+        if (isset($prevAnchor->next_line_id) && isset($nextAnchor->prev_line_id) &&
+            $prevAnchor->next_line_id == $nextAnchor->prev_line_id &&
             $prevAnchor->next_fraction != $nextAnchor->prev_fraction)
         {
-            $trail = Map::getPath($prevAnchor->next_edge_id, $prevAnchor->next_fraction, $nextAnchor->prev_fraction);
+            $trail = Map::getPath($prevAnchor->next_line_id, $prevAnchor->next_fraction, $nextAnchor->prev_fraction);
 
             // array_splice ($this->anchors, $s + 1, 0, $trail);
             // $s += count($trail);
@@ -771,8 +785,8 @@ class Route implements ArrayAccess
         }
         else
         {
-            error_log("index: " . $anchorIndex . ", next edge id: " . $prevAnchor->next_edge_id . ", next fraction: " . $prevAnchor->next_fraction);
-            error_log("index: " . ($anchorIndex + 1) . ", prev edge id: " . $nextAnchor->prev_edge_id . ", prev fraction: " . $nextAnchor->prev_fraction);
+            error_log("index: " . $anchorIndex . ", next line id: " . $prevAnchor->next_line_id . ", next fraction: " . $prevAnchor->next_fraction);
+            error_log("index: " . ($anchorIndex + 1) . ", prev line id: " . $nextAnchor->prev_line_id . ", prev fraction: " . $nextAnchor->prev_fraction);
         }
     }
 

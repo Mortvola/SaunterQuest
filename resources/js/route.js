@@ -477,6 +477,11 @@ class Route
     
     getLength ()
     {
+        if (this.actualRoute === undefined)
+        {
+            return 0;
+        }
+
         return this.actualRoute.length;
     }
     
@@ -528,7 +533,6 @@ class Route
                         {
                             this.map.setZoom(13);
                         }
-                        this.initialLoad = false;
                     }
                 }
                 
@@ -539,6 +543,8 @@ class Route
                     document.dispatchEvent(new Event('routeUpdated'));
                 }
             }
+            
+            this.initialLoad = false;
         });
     }
 
@@ -800,19 +806,22 @@ class Route
 	
 	getElevations (elevationData, s, e)
 	{
-		elevationMin = metersToFeet(this.actualRoute[s].ele);
-		elevationMax = elevationMin;
-		
-		for (let r = s; r < e;  r++)
-		{
-			if (!isNaN(this.actualRoute[r].ele) && this.actualRoute[r].ele !== null)
-			{
-				elevationData.push([metersToMiles(this.actualRoute[r].dist), metersToFeet(this.actualRoute[r].ele)]);
-				
-				elevationMin = Math.min(elevationMin, metersToFeet(this.actualRoute[r].ele));
-				elevationMax = Math.max(elevationMax, metersToFeet(this.actualRoute[r].ele));
-			}
-		}
+	    if (this.actualRoute !== undefined)
+	    {
+	        elevationMin = metersToFeet(this.actualRoute[s].ele);
+	        elevationMax = elevationMin;
+	        
+	        for (let r = s; r < e;  r++)
+	        {
+	            if (!isNaN(this.actualRoute[r].ele) && this.actualRoute[r].ele !== null)
+	            {
+	                elevationData.push([metersToMiles(this.actualRoute[r].dist), metersToFeet(this.actualRoute[r].ele)]);
+	                
+	                elevationMin = Math.min(elevationMin, metersToFeet(this.actualRoute[r].ele));
+	                elevationMax = Math.max(elevationMax, metersToFeet(this.actualRoute[r].ele));
+	            }
+	        }
+	    }
 	}
 	
 	measure (startPosition, startSegment, endPosition, endSegment)

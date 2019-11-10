@@ -53,7 +53,7 @@ class MapController extends Controller
 
         $result = Map::getTrailFromPoint($point);
 
-        return Map::getPath ($result->edge_id, 0, 1);
+        return Map::getPath ($result->line_id, 0, 1);
     }
 
     public function getNearestGraph (Request $request)

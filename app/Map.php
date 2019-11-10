@@ -146,7 +146,7 @@ class Map
         return $intersections;
     }
 
-    static public function getPath ($edgeId, $startFraction, $endFraction)
+    static public function getPath ($lineId, $startFraction, $endFraction)
     {
         if ($startFraction > $endFraction)
         {
@@ -162,14 +162,13 @@ class Map
 
         $sql = "select ST_AsGeoJSON(ST_Transform(ST_LineSubstring (:way:, :start:, :end:), 4326)) AS linestring
             from planet_osm_line line
-            join nav_edges e on e.line_id = line.line_id
-            where e.id = :edgeId:
+            where line.line_id = :lineId:
             limit 1";
 
         $sql = str_replace (":way:", $way, $sql);
         $sql = str_replace (":start:", $startFraction, $sql);
         $sql = str_replace (":end:", $endFraction, $sql);
-        $sql = str_replace (":edgeId:", $edgeId, $sql);
+        $sql = str_replace (":lineId:", $lineId, $sql);
 
         $result = \DB::connection('pgsql')->select ($sql);
 
