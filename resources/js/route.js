@@ -446,6 +446,8 @@ class Route
         order.splice (0, 0, this.anchors[0].id);
         order.splice (order.length, 0, this.anchors[this.anchors.length - 1].id);
         
+        $("#pleaseWait").show ();
+
         $.ajax({
             url: userHikeId + "/route/waypoint/order",
             headers:
@@ -458,9 +460,13 @@ class Route
             context: this
         })
         .done (function()
-        {
-            this.retrieve ();
-        });
+            {
+                this.retrieve ();
+            })
+        .always (function ()
+            {
+                $("#pleaseWait").hide ();
+            });
     }
     
 
@@ -485,11 +491,6 @@ class Route
         return this.actualRoute.length;
     }
     
-    addWaypointChangedSignal (f)
-    {
-        this.waypointChanged = f;
-    }
-
     retrieve ()
     {
         $.get({
@@ -539,10 +540,10 @@ class Route
                 if (this.anchors.length > 1)
                 {
                     retrieveTrailConditions ();
-
-                    document.dispatchEvent(new Event('routeUpdated'));
                 }
             }
+            
+            document.dispatchEvent(new Event('routeUpdated'));
             
             this.initialLoad = false;
         });
@@ -553,19 +554,43 @@ class Route
 	    return anchor.type !== undefined && anchor.type == "waypoint";
 	}
 	
+    getWaypointIndex (anchor)
+    {
+        // Check to see if this waypoint already exists in our array of waypoints.
+        return this.waypoints.findIndex( (w) => { return w.id == anchor.id; });
+    }
+    
 	getWaypoint (anchor)
 	{
-        var waypoint = undefined;
-
         // Check to see if this waypoint already exists in our array of waypoints.
-        var waypointIndex = this.waypoints.findIndex( (w) => { return w.id == anchor.id; });
+        let waypointIndex = this.getWaypointIndex (anchor);
 
         if (waypointIndex > -1)
         {
-            waypoint = this.waypoints[waypointIndex];
+            return this.waypoints[waypointIndex];
         }
+	}
+
+	newWaypoint (anchor)
+	{
+        // The waypoint doesn't already exist. Add it to the array of waypoints.
+        let waypoint = new TrailMarker (this.map, wayPointUrl);
         
+        waypoint.id = anchor.id;
+        waypoint.setDraggable (true, (marker) => { this.updateWaypoint (marker); });
+        waypoint.setContextMenu(this.wayPointCM);
+        waypoint.timeConstraints = anchor.time_constraints;
+        waypoint.name = anchor.name;
+        waypoint.setPosition(anchor);
+
         return waypoint;
+	}
+
+	updateWaypointInfo (waypoint, anchor)
+	{
+        waypoint.timeConstraints = anchor.time_constraints;
+        waypoint.name = anchor.name;
+        waypoint.setPosition(anchor);
 	}
 	
 	updateOrAddWaypoint (anchor)
@@ -574,18 +599,14 @@ class Route
         
         if (waypoint === undefined)
         {
-            // The waypoint doesn't already exist. Add it to the array of waypoints.
-            waypoint = new TrailMarker (this.map, wayPointUrl);
-            waypoint.id = anchor.id;
-            waypoint.setDraggable (true, (marker) => { this.updateWaypoint (marker); });
-            waypoint.setContextMenu(this.wayPointCM);
-            
+            waypoint = this.newWaypoint (anchor);
+
             this.waypoints.push(waypoint);
+            
+            return waypoint;
         }
-        
-        waypoint.timeConstraints = anchor.time_constraints;
-        waypoint.name = anchor.name;
-        waypoint.setPosition(anchor);
+
+        this.updateWaypointInfo (waypoint, anchor);
         
         return waypoint;
 	}
@@ -617,6 +638,8 @@ class Route
 		{
 		    w.remove = true;
 		}
+		
+		let waypointIndex = 0;
 		
 		if (this.anchors.length > 0)
 		{
@@ -662,9 +685,35 @@ class Route
 				
 				if (this.anchorIsWaypoint (this.anchors[r]))
 				{
-				    var waypoint = this.updateOrAddWaypoint (this.anchors[r])
+				    let oldWaypointIndex = this.getWaypointIndex(this.anchors[r]);
+				    
+				    if (oldWaypointIndex == -1)
+				    {
+				        // Waypoint does not exist in the array of waypoitns.
+				        // Create one and insert it.
+				        let waypoint = this.newWaypoint(this.anchors[r]);
+				        
+				        this.waypoints.splice(waypointIndex, 0, waypoint);
+				    }
+				    else
+				    {
+				        // Waypoint already exists.
+				        
+				        if (oldWaypointIndex !== waypointIndex)
+				        {
+				            // Waypoint needs to move position in the array.
+				            
+				            let waypoint = this.waypoints.splice(oldWaypointIndex, 1)[0];
+				            
+				            this.waypoints.splice(waypointIndex, 0, waypoint);
+				        }
+
+				        this.updateWaypointInfo(this.waypoints[waypointIndex], this.anchors[r]);
+
+				        this.waypoints[waypointIndex].remove = false;
+				    }
 					
-				    waypoint.remove = false;
+                    waypointIndex++;
 				}
 				
 				this.addPointsToArray (this.anchors[r], this.actualRoute);
@@ -678,8 +727,6 @@ class Route
 	            w.removeMarker();
 		    }
 		}
-		
-		this.waypointChanged(this.waypoints);
 	}
 	
 	
