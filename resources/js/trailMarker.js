@@ -8,7 +8,9 @@ class TrailMarker
 		this.map = map;
 		this.marker = new google.maps.Marker({
 			icon: {
-				url: iconUrl
+				url: iconUrl,
+				labelOrigin: {x: 30/2, y: -6},
+				origin: {x: 0, y: 0}
 			}
 		});
 	}
@@ -96,7 +98,23 @@ class TrailMarker
 	
 	setIcon (iconUrl)
 	{
-	    this.marker.setIcon(iconUrl);
+	    this.marker.setIcon({
+            url: iconUrl,
+            labelOrigin: {x: 30/2, y: -6},
+            origin: {x: 0, y: 0}
+        });
+	}
+	
+	setLabel (label)
+	{
+	    if (label === undefined)
+	    {
+	        this.marker.setLabel(undefined);
+	    }
+	    else
+	    {
+	        this.marker.setLabel({text: label, fontWeight: "700"});
+	    }
 	}
 }
 

@@ -594,6 +594,14 @@ class Route
         }
         else
         {
+            // Renumber waypoints
+            let waypointNumber = 1;
+            for (let w of this.waypoints)
+            {
+                w.setLabel(waypointNumber.toString ());
+                waypointNumber++;
+            }
+            
             document.dispatchEvent(new Event('routeUpdated'));
         }
     }
@@ -976,11 +984,17 @@ class Route
 			}
 		}
 		
+		let waypointNumber = 1;
 		for (let w of this.waypoints)
 		{
 		    if (w.remove)
 		    {
 	            w.removeMarker();
+		    }
+		    else
+		    {
+		       w.setLabel(waypointNumber.toString ());
+		       waypointNumber++;
 		    }
 		}
 	}
