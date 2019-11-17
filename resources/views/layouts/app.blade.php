@@ -85,7 +85,7 @@
             </div>
         </nav>
 
-    	<div class="flex-container" style="overflow-y: hidden;height:100%">
+    	<div class="flex-container" style="overflow: hidden;height:100%">
 	        @yield('content')
     	</div>
     </div>

@@ -45,6 +45,19 @@
             height: 5rem;
             border-width: 10px;
         }
+        .waypoint-table-header
+        {
+            border-bottom-style: solid;
+        }
+        .waypoint-table-header-cell
+        {
+            display:inline-block;
+            font-weight:700;
+        }
+        .waypoint-table-cell
+        {
+            display:inline-block;
+        }
     </style>
 
 	<?php require_once resource_path('js/elevationChart.js'); ?>
@@ -140,7 +153,7 @@
                     <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#resupply" onclick="loadResupply()">Resupply</a></li>
                     <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#todoList">To-do</a></li>
                     <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#notes">Notes</a></li>
-                    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#waypoints">Waypoints</a></li>
+                    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#waypoints">Route</a></li>
                 </ul>
                 <div class="tab-content" style="overflow-y:scroll;width:100%;height:100%;">
                     <div id="schedule" class="tab-pane fade show active">
@@ -215,10 +228,11 @@
                     </div>
 
                     <div id="waypoints" class="tab-pane fade">
-                        <div id='sortable'>
-                            <div data-item="0" draggable='true'>Test1</div>
-                            <div data-item="1" draggable='true'>Test2</div>
-                            <div data-item="2" draggable='true'>Test3</div>
+                        <div>Waypoints:</div>
+                        <div style="display:flex; flex-direction:column">
+                            <div class="waypoint-table-header"><div class="waypoint-table-header-cell" style="width:15%;">Order</div><div class="waypoint-table-header-cell">Name</div></div>
+                            <div id='sortable'>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -116,6 +116,16 @@ class TrailMarker
 	        this.marker.setLabel({text: label, fontWeight: "700"});
 	    }
 	}
+	
+	getLabel ()
+	{
+	    let markerLabel = this.marker.getLabel ();
+	    
+	    if (markerLabel !== undefined)
+	    {
+	        return markerLabel.text;
+	    }
+	}
 }
 
 class StartOfTrailMarker extends TrailMarker
