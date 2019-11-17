@@ -53,15 +53,31 @@ Route::middleware(['auth'])->group(function () {
         return (new RouteController())->get($hikeId);
     });
 
+    // Start point operations
+
     Route::put('/hike/{hikeId}/route/startPoint', function ($hikeId, Request $request)
     {
         return (new RouteController())->setStartPoint($hikeId, $request);
     });
 
+    Route::post('/hike/{hikeId}/route/startPoint', function ($hikeId, Request $request)
+    {
+        return (new RouteController())->addStartPoint($hikeId, $request);
+    });
+
+    // End point operations
+
     Route::put('/hike/{hikeId}/route/endPoint', function ($hikeId, Request $request)
     {
         return (new RouteController())->setEndPoint($hikeId, $request);
     });
+
+    Route::post('/hike/{hikeId}/route/endPoint', function ($hikeId, Request $request)
+    {
+        return (new RouteController())->addEndPoint($hikeId, $request);
+    });
+
+    // Waypoint operations
 
     Route::post('/hike/{hikeId}/route/waypoint', function ($hikeId, Request $request)
     {
@@ -87,6 +103,8 @@ Route::middleware(['auth'])->group(function () {
     {
         return (new RouteController())->deleteWaypoint($hikeId, $waypointId);
     });
+
+    // Schedule operations
 
     Route::get('/hike/{hikeId}/schedule', function ($hikeId)
     {

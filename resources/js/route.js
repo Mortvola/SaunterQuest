@@ -99,6 +99,72 @@ class Route
         });
 	}
 	
+    addStartWaypoint (position)
+    {
+        $("#pleaseWait").show ();
+        
+        $.ajax({
+            url: userHikeId + "/route/startPoint",
+            headers:
+            {
+                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+                "Content-type": "application/json"
+            },
+            type: "POST",
+            data: JSON.stringify({lat: position.lat (), lng: position.lng ()}),
+            context: this
+        })
+        .done (function(updates)
+        {
+            if (updates === undefined)
+            {
+                this.retrieve ();
+            }
+            else
+            {
+                this.applyUpdates (updates);
+            }
+        })
+        .always (function ()
+        {
+            
+            $("#pleaseWait").hide ();
+        });
+    }
+    
+    addEndWaypoint (position)
+    {
+        $("#pleaseWait").show ();
+        
+        $.ajax({
+            url: userHikeId + "/route/endPoint",
+            headers:
+            {
+                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+                "Content-type": "application/json"
+            },
+            type: "POST",
+            data: JSON.stringify({lat: position.lat (), lng: position.lng ()}),
+            context: this
+        })
+        .done (function(updates)
+        {
+            if (updates === undefined)
+            {
+                this.retrieve ();
+            }
+            else
+            {
+                this.applyUpdates (updates);
+            }
+        })
+        .always (function ()
+        {
+            
+            $("#pleaseWait").hide ();
+        });
+    }
+    
     addWaypoint (position)
     {
         $("#pleaseWait").show ();
@@ -199,7 +265,6 @@ class Route
         })
         .always (function ()
         {
-            
             $("#pleaseWait").hide ();
         });
     }
@@ -210,17 +275,135 @@ class Route
         
         for (let update of updates)
         {
-            // Find the anchor in the array of anchors that 
-            // corresponds to the first anchor in this update
-            var firstIndex = this.anchors.findIndex(function(entry) { return entry.id == update[0].id; });
-
-            if (firstIndex > -1)
+            if (update.length === 1)
             {
-                if (update.length === 1)
+                let firstPointToReplace = 0;
+                let startDistance = 0;
+                let numberOfPointsToReplace = 1;
+                
+                var route = [];
+                for (let anchor of update)
                 {
-                    this.anchors.splice(firstIndex, 1, update[0]);
+                    this.addPointsToArray (anchor, route);
+                    anchor.actualRouteIndex += firstPointToReplace;
+                    anchor.dist += startDistance;
+
+                    if (this.anchorIsWaypoint (anchor))
+                    {
+                        this.updateOrAddWaypoint (anchor)
+                    }
+                }
+
+                if (this.actualRoute === undefined)
+                {
+                    this.actualRoute = [];
+                }
+                
+                if (this.actualPolyline === undefined)
+                {
+                    this.newPolyline ();
+                }
+                
+                // Update the polyline
+                var path = this.actualRoutePolyline.getPath ();
+
+                for (let p  = 0; p < Math.min(route.length, numberOfPointsToReplace); p++)
+                {
+                    path.setAt(p + firstPointToReplace, new google.maps.LatLng(route[p]));
+                    this.actualRoute[p + firstPointToReplace] = route[p];
+                    this.actualRoute[p + firstPointToReplace].dist += startDistance;
+                }
+                
+                this.anchors.splice(0, 1, ...update);
+            }
+            else if (update[0].id === -1)
+            {
+                if (update[1].id === -1)
+                {
+                    // All anchors, waypoints and trail are removed
+                    this.anchors = [];
+                    this.waypoints = [];
+
+                    if (this.actualRoute)
+                    {
+                        this.actualRoute = undefined;
+                    }
+
+                    this.newPolyline ();
                 }
                 else
+                {
+                    let lastIndex = this.anchors.findIndex(function(entry) { return entry.id == update[1].id; });
+                    
+                    var lastPointToReplace = this.anchors[lastIndex].actualRouteIndex;
+    
+                    update[1].actualRouteIndex = 0;
+                    update[1].dist = 0;
+                    this.updateOrAddWaypoint(update[1]);
+    
+                    update[1].trail = this.anchors[lastIndex].trail;
+    
+                    // Update the polyline
+                    var path = this.actualRoutePolyline.getPath ();
+    
+                    // The anchor is the first anchor. Make sure there is no trail
+                    // before it.
+                    for (let p = 0; p < lastPointToReplace; p++)
+                    {
+                        // Since we are removing elements there is no need to 
+                        // walk the array, just keeping removing the same index
+                        path.removeAt (0);
+                        this.actualRoute.splice(0, 1);
+                    }
+                    
+                    this.actualRoute[0].dist = 0;
+                    
+                    // Update all of the actualRouteIndex and distance data members in the anchors beyond
+                    // the point of update.
+                    let indexDelta = this.anchors[lastIndex].actualRouteIndex;
+                    let distDelta = this.anchors[lastIndex].dist;
+                    for (let i = lastIndex; i < this.anchors.length; i++)
+                    {
+                        this.anchors[i].actualRouteIndex -= indexDelta;
+                        this.anchors[i].dist -= distDelta;
+                    }
+    
+                    this.anchors.splice(0, lastIndex + 1, update[1]);
+                }
+            }
+            else if (update[1].id === -1)
+            {
+                let firstIndex = this.anchors.findIndex(function(entry) { return entry.id == update[0].id; });
+                let lastIndex = this.anchors.length - 1;
+                
+                var firstPointToReplace = this.anchors[firstIndex].actualRouteIndex;
+
+                update[0].actualRouteIndex = firstPointToReplace;
+                update[0].dist = this.anchors[firstIndex].dist;
+                this.updateOrAddWaypoint(update[0]);
+
+                // Update the polyline
+                var path = this.actualRoutePolyline.getPath ();
+
+                // The anchor is the last anchor. Make sure there is no trail
+                // after it.
+                for (let p = firstPointToReplace + 1; p < this.actualRoute.length;)
+                {
+                    // Since we are removing elements there is no need to 
+                    // walk the array, just keeping removing the same index
+                    path.removeAt (firstPointToReplace + 1);
+                    this.actualRoute.splice(firstPointToReplace + 1, 1);
+                }
+                
+                this.anchors.splice(firstIndex, lastIndex - firstIndex + 1, update[0]);
+            }
+            else
+            {
+                // Find the anchor in the array of anchors that 
+                // corresponds to the first anchor in this update
+                let firstIndex = this.anchors.findIndex(function(entry) { return entry.id == update[0].id; });
+    
+                if (firstIndex > -1)
                 {
                     // Find the anchor in the array that corresponds to the 
                     // last anchor in this update
@@ -289,13 +472,6 @@ class Route
                         {
                             this.anchors[i].actualRouteIndex += indexDelta;
                             this.anchors[i].dist += distDelta;
-                            
-                            var waypoint = this.getWaypoint (this.anchors[i]);
-                            
-                            if (waypoint !== undefined)
-                            {
-                                waypoint.setPosition(this.anchors[i]);
-                            }
                         }
                         
                         // Update all of the actual route point distances beyond this update.
@@ -308,23 +484,107 @@ class Route
                     }
                     else
                     {
+                        // Only the first anchor was found. Insert the anchors to the end of the array of anchors
+                        // with this update.
+                        
+                        var route = [];
+                        var firstPointToReplace = this.anchors[firstIndex].actualRouteIndex;
+                        var startDistance = this.anchors[firstIndex].dist;
+                        
+                        for (let anchor of update)
+                        {
+                            this.addPointsToArray (anchor, route);
+                            anchor.actualRouteIndex += firstPointToReplace;
+                            anchor.dist += startDistance;
+    
+                            if (this.anchorIsWaypoint (anchor))
+                            {
+                                this.updateOrAddWaypoint (anchor)
+                            }
+                        }
+                        
+                        // Update the polyline
+                        if (this.actualRoutePolyline === undefined)
+                        {
+                            this.newPolyline ();
+                        }
+                        
+                        var path = this.actualRoutePolyline.getPath ();
+    
+                        for (let p = 1; p < route.length; p++)
+                        {
+                            path.insertAt (p + firstPointToReplace, new google.maps.LatLng(route[p]));
+                            this.actualRoute.splice(p + firstPointToReplace, 0, route[p]);
+                            this.actualRoute[p + firstPointToReplace].dist += startDistance;
+                        }
+                        
+                        this.anchors.splice(firstIndex, 1, ...update);
+                    }
+                }
+                else
+                {
+                    // Find the anchor in the array that corresponds to the 
+                    // last anchor in this update (it should be zero).
+                    var lastIndex = this.anchors.findIndex(function(entry) { return entry.id == update[update.length - 1].id; });
+
+                    if (lastIndex == 0)
+                    {
+                        // The last anchor was found. Insert the anchors to the beginning of the array of anchors
+                        // with this update.
+                        
+                        var route = [];
+                        
+                        for (let anchor of update)
+                        {
+                            this.addPointsToArray (anchor, route);
+    
+                            if (this.anchorIsWaypoint (anchor))
+                            {
+                                this.updateOrPrependWaypoint (anchor)
+                            }
+                        }
+    
+                        // The last anchor in the update needs to adopt the trail from the anchor that will be replaced.
+                        update[update.length - 1].trail = this.anchors[lastIndex].trail;
+                        
+                        // Update (or add) the polyline
+                        if (this.actualRoutePolyline === undefined)
+                        {
+                            this.newPolyline ();
+                        }
+                        
+                        var path = this.actualRoutePolyline.getPath ();
+
+                        for (let p = 0; p < route.length - 1; p++)
+                        {
+                            path.insertAt (p, new google.maps.LatLng(route[p]));
+                            this.actualRoute.splice(p, 0, route[p]);
+                        }
+                        
+                        // Update all of the actualRouteIndex and distance data members in the anchors beyond
+                        // the point of update.
+                        var indexDelta = route.length - 1;
+                        var distDelta = update[update.length - 1].dist;
+                        for (let i = 0; i < this.anchors.length; i++)
+                        {
+                            this.anchors[i].actualRouteIndex += indexDelta;
+                            this.anchors[i].dist += distDelta;
+                        }
+                        
+                        // Update all of the actual route point distances beyond this update.
+                        for (let p = this.anchors[0].actualRouteIndex; p < this.actualRoute.length; p++)
+                        {
+                            this.actualRoute[p].dist += distDelta;
+                        }
+                        
+                        this.anchors.splice(0, 1, ...update);
+                    }
+                    else
+                    {
                         retrieveRoute = true;
                         break;
                     }
                 }
-            }
-            else if (update.length === 1)
-            {
-                if (update[0].type === "start" ||
-                    update[0].type === "end")
-                {
-                    this.anchors.splice(0, 0, update[0]);
-                }
-            }
-            else
-            {
-                retrieveRoute = true;
-                break;
             }
         }
         
@@ -441,11 +701,6 @@ class Route
 
     setWaypointOrder (order)
     {
-        // prepend the ID of the start waypoint 
-        // append the ID of the end waypoint.
-        order.splice (0, 0, this.anchors[0].id);
-        order.splice (order.length, 0, this.anchors[this.anchors.length - 1].id);
-        
         $("#pleaseWait").show ();
 
         $.ajax({
@@ -504,22 +759,6 @@ class Route
 
             if (this.anchors.length > 0)
             {
-                //
-                // Add start of trail marker
-                //
-                if (this.anchors[0].type === 'start')
-                {
-                    this.startOfTrailMarker.setPosition(this.anchors[0]);
-                }
-
-                //
-                // Add end of trail marker
-                //
-                if (this.anchors[this.anchors.length - 1].type === 'end')
-                {
-                    this.endOfTrailMarker.setPosition(this.anchors[this.anchors.length - 1]);
-                }
-            
                 this.load ();
                 
                 if (this.map)
@@ -551,7 +790,7 @@ class Route
 
     anchorIsWaypoint (anchor)
 	{
-	    return anchor.type !== undefined && anchor.type == "waypoint";
+	    return anchor.type !== undefined && (anchor.type == "waypoint" || anchor.type == "start" || anchor.type == "end");
 	}
 	
     getWaypointIndex (anchor)
@@ -579,13 +818,12 @@ class Route
         waypoint.id = anchor.id;
         waypoint.setDraggable (true, (marker) => { this.updateWaypoint (marker); });
         waypoint.setContextMenu(this.wayPointCM);
-        waypoint.timeConstraints = anchor.time_constraints;
-        waypoint.name = anchor.name;
-        waypoint.setPosition(anchor);
+        
+        this.updateWaypointInfo (waypoint, anchor);
 
         return waypoint;
 	}
-
+	
 	updateWaypointInfo (waypoint, anchor)
 	{
         waypoint.timeConstraints = anchor.time_constraints;
@@ -611,6 +849,24 @@ class Route
         return waypoint;
 	}
 	
+    updateOrPrependWaypoint (anchor)
+    {
+        var waypoint = this.getWaypoint (anchor);
+        
+        if (waypoint === undefined)
+        {
+            waypoint = this.newWaypoint (anchor);
+
+            this.waypoints.splice(0, 0, waypoint);
+            
+            return waypoint;
+        }
+
+        this.updateWaypointInfo (waypoint, anchor);
+        
+        return waypoint;
+    }
+    
 	addPointsToArray (anchor, route)
 	{
         route.push({lat: anchor.lat, lng: anchor.lng, dist: anchor.dist, ele: anchor.ele});
@@ -729,30 +985,35 @@ class Route
 		}
 	}
 	
+	newPolyline ()
+	{
+        if (this.actualRoutePolyline != undefined)
+        {
+            this.actualRoutePolyline.setMap(null);
+            
+            removeContextMenu(this.actualRoutePolyline);
+        }
+
+        this.actualRoutePolyline = new google.maps.Polyline({
+            editable: false,
+            geodesic: true,
+            strokeColor: '#0000FF',
+            strokeOpacity: 1.0,
+            strokeWeight: routeStrokeWeight,
+            zIndex: 20});
+
+        this.actualRoutePolyline.setMap(this.map);
+        
+        setContextMenu (this.actualRoutePolyline, routeContextMenu);
+	}
 	
 	draw ()
 	{
-		if (this.actualRoute.length > 1)
+		if (this.actualRoute.length > 0)
 		{
-			if (this.actualRoutePolyline != undefined)
-			{
-				this.actualRoutePolyline.setMap(null);
-				
-				removeContextMenu(this.actualRoutePolyline);
-			}
+		    this.newPolyline ();
 			
-			this.actualRoutePolyline = new google.maps.Polyline({
-				path: this.actualRoute,
-				editable: false,
-				geodesic: true,
-				strokeColor: '#0000FF',
-				strokeOpacity: 1.0,
-				strokeWeight: routeStrokeWeight,
-				zIndex: 20});
-
-			this.actualRoutePolyline.setMap(this.map);
-			
-			setContextMenu (this.actualRoutePolyline, routeContextMenu);
+			this.actualRoutePolyline.setPath(this.actualRoute);
 		}
 	}
 	
@@ -853,7 +1114,7 @@ class Route
 	
 	getElevations (elevationData, s, e)
 	{
-	    if (this.actualRoute !== undefined)
+	    if (this.actualRoute !== undefined && this.actualRoute.length > 0)
 	    {
 	        elevationMin = metersToFeet(this.actualRoute[s].ele);
 	        elevationMax = elevationMin;

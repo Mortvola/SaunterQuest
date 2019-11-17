@@ -777,6 +777,15 @@ function addWaypoint (object, position)
 	route.addWaypoint (position);
 }
 
+function addStartWaypoint (object, position)
+{
+    route.addStartWaypoint (position);
+}
+
+function addEndWaypoint (object, position)
+{
+    route.addEndWaypoint (position);
+}
 
 let intersections = [];
 
@@ -939,28 +948,34 @@ function mapInitialize()
 
 	initializeContextMenu ();
 
-	var mapContextMenu = new ContextMenu ([
-		{title:"Add Point of Interest", func:showAddPointOfInterest, admin: true},
-		{title:"Create Resupply Location", func:addResupplyLocation, admin: true},
-		{title:"Display Location", func:displayLocation},
-		{title:"Download Elevations", func:downloadElevations, admin: true},
-		{title:"Set Start Location", func:setStartLocation},
-		{title:"Set End Location", func:setEndLocation},
-		{title:"Add Waypoint", func:addWaypoint},
-		{title:"Show Intersections", func:showIntersections, admin: true},
+	let waypointMenuItems = [{title:"Prepend Waypoint", func:addStartWaypoint},
+        {title:"Insert Waypoint", func:addWaypoint},
+        {title:"Append Waypoint", func:addEndWaypoint}];
+    
+    let mapMenuItems = [
+        {title:"Display Location", func:displayLocation},
+        {title:"Add Point of Interest", func:showAddPointOfInterest, admin: true},
+        {title:"Create Resupply Location", func:addResupplyLocation, admin: true},
+        {title:"Download Elevations", func:downloadElevations, admin: true},
+        {title:"Show Intersections", func:showIntersections, admin: true},
         {title:"Higlight Nearest Trail", func:highlightNearestTrail, admin: true},
         {title:"Show Nearest Graph", func:showNearestGraph, admin: true},
-	]);
+    ];
+    
+    mapMenuItems.splice(0, 0, ...waypointMenuItems);
+	
+	var mapContextMenu = new ContextMenu (mapMenuItems);
 
-	trailContextMenu = new ContextMenu ([
-		{title:"Add Point of Interest", func:showAddPointOfInterest, admin: true},
-		{title:"Create Resupply Location", func:addResupplyLocation, admin: true},
-		{title:"Display Location", func:displayLocation},
-		{title:"Set Start Location", func:setStartLocation},
-		{title:"Set End Location", func:setEndLocation},
-		{title:"Add Waypoint", func:addWaypoint},
-		{title:"Trail Information", func:displayTrailInfo, admin: true},
-	]);
+	let trailMenuItems = [
+        {title:"Display Location", func:displayLocation},
+        {title:"Add Point of Interest", func:showAddPointOfInterest, admin: true},
+        {title:"Create Resupply Location", func:addResupplyLocation, admin: true},
+        {title:"Trail Information", func:displayTrailInfo, admin: true},
+    ]
+
+    trailMenuItems.splice(0, 0, ...waypointMenuItems);
+
+	trailContextMenu = new ContextMenu (trailMenuItems);
 
 	pointOfInterestCM = new ContextMenu ([
 		{title:"Edit Point of Interest", func:editPointOfInterest},
@@ -971,15 +986,16 @@ function mapInitialize()
 		{title:"Edit Resupply Location", func:editResupplyLocation},
 		{title:"Delete Resupply Location", func:deleteResupplyLocation}]);
 
-	routeContextMenu = new ContextMenu ([
-		{title: "Add Point of Interest", func: showAddPointOfInterest, admin: true},
-		{title: "Measure route section", func: startRouteMeasurement},
-		{title: "Display Location", func:displayLocation},
-		{title: "Add Note", func: addNote, admin: true},
-		{title:"Set Start Location", func:setStartLocation},
-		{title:"Set End Location", func:setEndLocation},
-		{title:"Add Waypoint", func:addWaypoint},
-	]);
+	let routeMenuItems = [
+        {title: "Display Location", func:displayLocation},
+        {title: "Measure route section", func: startRouteMeasurement},
+        {title: "Add Point of Interest", func: showAddPointOfInterest, admin: true},
+        {title: "Add Note", func: addNote, admin: true},
+    ];
+
+    routeMenuItems.splice(0, 0, ...waypointMenuItems);
+
+	routeContextMenu = new ContextMenu (routeMenuItems);
 
 	vertexContextMenu = new ContextMenu ([
 		{title:"Delete", func:deleteVertex}]);

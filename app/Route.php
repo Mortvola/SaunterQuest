@@ -109,7 +109,7 @@ class Route implements ArrayAccess
             $routePoint = new RoutePoint();
 
             $routePoint->id = -1; // temporary id
-            $routePoint->type = "start";
+            $routePoint->type = "waypoint";
             $routePoint->lat = $point->lat;
             $routePoint->lng = $point->lng;
             $routePoint->hike_id = $this->hikeId;
@@ -163,12 +163,14 @@ class Route implements ArrayAccess
     {
         $anchor = $this->anchors->last();
 
-        if ($anchor == null || $anchor->type != 'end')
+		// If there is only one anchor then it must be the start
+		// so add a new end anchor.
+        if ($anchor == null || $this->anchors->count() == 1)
         {
             $routePoint = new RoutePoint();
 
             $routePoint->id = -1; // temporary id
-            $routePoint->type = "end";
+            $routePoint->type = "waypoint";
             $routePoint->lat = $point->lat;
             $routePoint->lng = $point->lng;
             $routePoint->hike_id = $this->hikeId;
@@ -218,8 +220,88 @@ class Route implements ArrayAccess
         return [[0]];
     }
 
+    public function addStartpoint ($point)
+    {
+        if ($this->anchors->count() == 0)
+        {
+            return $this->setStart ($point);
+        }
+
+        $routePoint = new RoutePoint();
+
+        $routePoint->id = -1; // Temporary id
+        $routePoint->type = "waypoint";
+        $routePoint->lat = $point->lat;
+        $routePoint->lng = $point->lng;
+        $routePoint->hike_id = $this->hikeId;
+
+        $nextAnchorIndex = 0;
+        $routePoint->sort_order = $this->getSortOrder(-1, $nextAnchorIndex);
+
+        $waypointIndex = 0;
+        $this->anchors->splice($waypointIndex, 0, array (
+            $routePoint
+        ));
+
+        // Increment the next anchor index because the insertion of the waypoint
+        // into the collection
+        $nextAnchorIndex++;
+
+        $nextAnchorId = $this->anchors[$nextAnchorIndex]->id;
+
+        $this->findRouteBetweenAnchors([$waypointIndex, $nextAnchorIndex]);
+
+        unset($routePoint->id); // Remove the temporary id
+
+        $nextAnchorIndex = $this->findAnchorIndexById($nextAnchorId);
+
+        return [[0, $nextAnchorIndex]];
+    }
+
+    public function addEndpoint ($point)
+    {
+        if ($this->anchors->count() == 0)
+        {
+            return $this->setStart ($point);
+        }
+
+        $routePoint = new RoutePoint();
+
+        $routePoint->id = -1; // Temporary id
+        $routePoint->type = "waypoint";
+        $routePoint->lat = $point->lat;
+        $routePoint->lng = $point->lng;
+        $routePoint->hike_id = $this->hikeId;
+
+        $prevAnchorIndex = $this->anchors->count() - 1;
+        $routePoint->sort_order = $this->getSortOrder($prevAnchorIndex, -1);
+
+        $waypointIndex = $this->anchors->count();
+        $this->anchors->splice($waypointIndex, 0, array (
+            $routePoint
+        ));
+
+        $this->findRouteBetweenAnchors([$prevAnchorIndex, $waypointIndex]);
+
+        unset($routePoint->id); // Remove the temporary id
+
+        $waypointIndex = $this->anchors->count() - 1;
+
+        return [[$prevAnchorIndex, $waypointIndex]];
+    }
+
     public function addWaypoint ($point)
     {
+        if ($this->anchors->count() == 0)
+        {
+            return $this->setStart ($point);
+        }
+
+        if ($this->anchors->count() == 1)
+        {
+            return $this->setEnd ($point);
+        }
+
         // Determine if the point is on the route already
         $result = Map::getTrailFromPoint ($point);
 
@@ -266,41 +348,39 @@ class Route implements ArrayAccess
 
             return [[$bestPrevAnchorKey, $bestNextAnchorKey + 1]];
         }
-        else
-        {
-            $routePoint = new RoutePoint();
 
-            $routePoint->id = -1; // Temporary id
-            $routePoint->type = "waypoint";
-            $routePoint->lat = $point->lat;
-            $routePoint->lng = $point->lng;
-            $routePoint->hike_id = $this->hikeId;
+        $routePoint = new RoutePoint();
 
-            $prevAnchorIndex = $this->findNearestAnchor ($point);
-            $nextAnchorIndex = $this->findNextAnchorIndex($prevAnchorIndex);
-            $routePoint->sort_order = $this->getSortOrder($prevAnchorIndex, $nextAnchorIndex);
+        $routePoint->id = -1; // Temporary id
+        $routePoint->type = "waypoint";
+        $routePoint->lat = $point->lat;
+        $routePoint->lng = $point->lng;
+        $routePoint->hike_id = $this->hikeId;
 
-            $waypointIndex = $prevAnchorIndex + 1;
-            $this->anchors->splice($waypointIndex, 0, array (
-                $routePoint
-            ));
+        $prevAnchorIndex = $this->findNearestAnchor ($point);
+        $nextAnchorIndex = $this->findNextAnchorIndex($prevAnchorIndex);
+        $routePoint->sort_order = $this->getSortOrder($prevAnchorIndex, $nextAnchorIndex);
 
-            // Increment the next anchor index because the insertion of the waypoint
-            // into the collection
-            $nextAnchorIndex++;
+        $waypointIndex = $prevAnchorIndex + 1;
+        $this->anchors->splice($waypointIndex, 0, array (
+            $routePoint
+        ));
 
-            $prevAnchorId = $this->anchors[$prevAnchorIndex]->id;
-            $nextAnchorId = $this->anchors[$nextAnchorIndex]->id;
+        // Increment the next anchor index because the insertion of the waypoint
+        // into the collection
+        $nextAnchorIndex++;
 
-            $this->findRouteBetweenAnchors([$prevAnchorIndex, $waypointIndex, $nextAnchorIndex]);
+        $prevAnchorId = $this->anchors[$prevAnchorIndex]->id;
+        $nextAnchorId = $this->anchors[$nextAnchorIndex]->id;
 
-            unset($routePoint->id); // Remove the temporary id
+        $this->findRouteBetweenAnchors([$prevAnchorIndex, $waypointIndex, $nextAnchorIndex]);
 
-            $prevAnchorIndex = $this->findAnchorIndexById($prevAnchorId);
-            $nextAnchorIndex = $this->findAnchorIndexById($nextAnchorId);
+        unset($routePoint->id); // Remove the temporary id
 
-            return [[$prevAnchorIndex, $nextAnchorIndex]];
-        }
+        $prevAnchorIndex = $this->findAnchorIndexById($prevAnchorId);
+        $nextAnchorIndex = $this->findAnchorIndexById($nextAnchorId);
+
+        return [[$prevAnchorIndex, $nextAnchorIndex]];
     }
 
     private function edgeFractionBetweenAnchors ($lineId, $fraction, $prevAnchor, $nextAnchor)
@@ -313,15 +393,25 @@ class Route implements ArrayAccess
 
     public function updateWaypointPosition ($waypointId, $point)
     {
+		// If there is only one anchor then it must be the one that is
+		// being updated
+        if ($this->anchors->count () == 1)
+        {
+            $this->anchors[0]->lat = $result->point->lat;
+            $this->anchors[0]->lng = $result->point->lng;
+
+            return [[0]];
+        }
+
         $waypointIndex = $this->findAnchorIndexById($waypointId);
 
         if (isset($waypointIndex))
         {
-            // Determine if the point is on the route already
             $result = Map::getTrailFromPoint ($point);
 
             if (isset ($result))
             {
+                // Determine if the point is on the route already
                 // First check to see if it was a simple move
 
                 if ($waypointIndex > 0 && $waypointIndex < $this->anchors->count () - 1)
@@ -364,66 +454,20 @@ class Route implements ArrayAccess
 
             $anchor = $this->anchors[$waypointIndex];
 
-            if (isset($bestPrevAnchorKey) && isset($bestNextAnchorKey))
+			// If the anchor that is being updated does not change its position
+			// relative to its original neighboring anchors then it is a simple
+			// move and does not require route finding.
+            if (isset($bestPrevAnchorKey) && isset($bestNextAnchorKey) &&
+                $bestPrevAnchorKey < $waypointIndex && $waypointIndex < $bestNextAnchorKey)
             {
-                error_log ("moving anchor between " . $bestPrevAnchorKey . " and " . $bestNextAnchorKey);
-
                 $updates = [];
 
-                if ($bestPrevAnchorKey < $waypointIndex && $waypointIndex < $bestNextAnchorKey)
-                {
-                    error_log ("simple move");
+                $anchor->lat = $result->point->lat;
+                $anchor->lng = $result->point->lng;
+                $anchor->prev_fraction = $result->fraction;
+                $anchor->next_fraction = $result->fraction;
 
-                    $anchor->lat = $result->point->lat;
-                    $anchor->lng = $result->point->lng;
-                    $anchor->prev_fraction = $result->fraction;
-                    $anchor->next_fraction = $result->fraction;
-
-                    $updates[] = [$bestPrevAnchorKey, $bestNextAnchorKey];
-                }
-                else
-                {
-                    $anchor->lat = $result->point->lat;
-                    $anchor->lng = $result->point->lng;
-                    $anchor->prev_line_id = $result->line_id;
-                    $anchor->prev_fraction = $result->fraction;
-                    $anchor->next_line_id = $result->line_id;
-                    $anchor->next_fraction = $result->fraction;
-
-                    $anchor->sort_order = $this->getSortOrder($bestPrevAnchorKey, $bestNextAnchorKey);
-
-                    // Remove the waypoint from the collection and re-insert it into its new location
-                    $this->anchors->splice($waypointIndex, 1);
-
-                    // Adjust the previous anchor key (index) if the
-                    // the waypoint index was less than the previous anchor key (index)
-                    // since we removed it.
-                    if ($waypointIndex < $bestPrevAnchorKey)
-                    {
-                        $bestPrevAnchorKey--;
-                    }
-
-                    if ($waypointIndex < $bestNextAnchorKey)
-                    {
-                        $bestNextAnchorKey--;
-                    }
-
-                    if ($bestNextAnchorKey < $waypointIndex)
-                    {
-                        $waypointIndex++;
-                    }
-
-                    $this->anchors->splice($bestPrevAnchorKey + 1, 0, array (
-                        $anchor
-                    ));
-
-                    // Increment the next anchor key since we just inserted the
-                    // anchor before it.
-                    $bestNextAnchorKey++;
-
-                    $updates[] = [$waypointIndex - 1, $waypointIndex];
-                    $updates[] = [$bestPrevAnchorKey, $bestNextAnchorKey];
-                }
+                $updates[] = [$bestPrevAnchorKey, $bestNextAnchorKey];
 
                 return $updates;
             }
@@ -435,18 +479,48 @@ class Route implements ArrayAccess
                 $prevAnchorIndex = $this->findPrevAnchorIndex($waypointIndex);
                 $nextAnchorIndex = $this->findNextAnchorIndex($waypointIndex);
 
-                $prevAnchorId = $this->anchors[$prevAnchorIndex]->id;
-                $nextAnchorId = $this->anchors[$nextAnchorIndex]->id;
+                if (!isset($prevAnchorIndex))
+                {
+                    if (!isset($nextAnchorIndex))
+                    {
+                        return [[$waypointIndex]];
+                    }
 
-                // The route after the waypoint needs to be found first because the
-                // index
-                // of the anchor will change.
-                $this->findRouteBetweenAnchors([$prevAnchorIndex, $waypointIndex, $nextAnchorIndex]);
+                    $nextAnchorId = $this->anchors[$nextAnchorIndex]->id;
 
-                $prevAnchorIndex = $this->findAnchorIndexById($prevAnchorId);
-                $nextAnchorIndex = $this->findAnchorIndexById($nextAnchorId);
+                    $this->findRouteBetweenAnchors([$waypointIndex, $nextAnchorIndex]);
 
-                return [[$prevAnchorIndex, $nextAnchorIndex]];
+                    $waypointIndex = $this->findAnchorIndexById($waypointId);
+                    $nextAnchorIndex = $this->findAnchorIndexById($nextAnchorId);
+
+                    return [[$waypointIndex, $nextAnchorIndex]];
+                }
+                else
+                {
+                    if (!isset($nextAnchorIndex))
+                    {
+                        $prevAnchorId = $this->anchors[$prevAnchorIndex]->id;
+
+                        $this->findRouteBetweenAnchors([$prevAnchorIndex, $waypointIndex]);
+
+                        $prevAnchorIndex = $this->findAnchorIndexById($prevAnchorId);
+                        $waypointIndex = $this->findAnchorIndexById($waypointId);
+
+                        error_log(json_encode ($point));
+
+                        return [[$prevAnchorIndex, $waypointIndex]];
+                    }
+
+                    $prevAnchorId = $this->anchors[$prevAnchorIndex]->id;
+                    $nextAnchorId = $this->anchors[$nextAnchorIndex]->id;
+
+                    $this->findRouteBetweenAnchors([$prevAnchorIndex, $waypointIndex, $nextAnchorIndex]);
+
+                    $prevAnchorIndex = $this->findAnchorIndexById($prevAnchorId);
+                    $nextAnchorIndex = $this->findAnchorIndexById($nextAnchorId);
+
+                    return [[$prevAnchorIndex, $nextAnchorIndex]];
+                }
             }
         }
     }
@@ -490,12 +564,46 @@ class Route implements ArrayAccess
         if (isset($waypointIndex))
         {
             $prevAnchorIndex = $this->findPrevAnchorIndex($waypointIndex);
+            $nextAnchorIndex = $this->findNextAnchorIndex($waypointIndex);
 
             // Delete the anchor
             $this->anchors[$waypointIndex]->delete();
             $this->anchors->splice($waypointIndex, 1);
 
-            $nextAnchorIndex = $this->findNextAnchorIndex($prevAnchorIndex);
+            if (!isset($prevAnchorIndex))
+            {
+                if (!isset($nextAnchorIndex))
+                {
+                    return [[-1, -1]];
+                }
+
+                $nextAnchorIndex--;
+
+                // Delete any "soft" anchors before the next anchor.
+                for ($i = 0; $i < $nextAnchorIndex; $i++)
+                {
+                    $this->anchors[$i]->delete();
+                }
+
+                $this->anchors->splice(0, $nextAnchorIndex);
+
+                return [[-1, 0]];
+            }
+
+            if (!isset($nextAnchorIndex))
+            {
+                // Delete any "soft" anchors after this anchor.
+                for ($i = $prevAnchorIndex + 1; $i < $this->anchors->count (); $i++)
+                {
+                    $this->anchors[$i]->delete();
+                }
+
+                $this->anchors->splice($prevAnchorIndex + 1);
+
+                return [[$prevAnchorIndex, -1]];
+            }
+
+            $nextAnchorIndex--;
 
             $prevAnchorId = $this->anchors[$prevAnchorIndex]->id;
             $nextAnchorId = $this->anchors[$nextAnchorIndex]->id;
@@ -519,6 +627,7 @@ class Route implements ArrayAccess
 
             if ($order[$i] != $this->anchors[$nextAnchorIndex]->id)
             {
+                // Find the index of the anchor that should be in this location
                 $anchorIndex = $this->findAnchorIndexById($order[$i]);
 
                 // Since we are going to pull out the anchor we need to
@@ -532,9 +641,7 @@ class Route implements ArrayAccess
                 // Remove the anchor from its current location and
                 // re-insert it at the new location.
                 $anchor = $this->anchors->splice($anchorIndex, 1)[0];
-                $this->anchors->splice($nextAnchorIndex, 0, array (
-                    $anchor
-                ));
+                $this->anchors->splice($nextAnchorIndex, 0, array ($anchor));
 
                 $anchor->sort_order = $this->getSortOrder ($prevAnchorIndex, $nextAnchorIndex + 1);
 
@@ -557,6 +664,20 @@ class Route implements ArrayAccess
 
             if (!isset($nextAnchorIndex))
             {
+                // Make sure "findRoute" is not set on the last anchor.
+                unset($this->anchors[$anchorIndex]->findRoute);
+
+                // Make sure there are no soft anchors after the last waypoint.
+                if ($anchorIndex + 1 < $this->anchors->count ())
+                {
+                    for ($i = $anchorIndex + 1; $i < $this->anchors->count (); $i++)
+                    {
+                        $this->anchors[$i]->delete();
+                    }
+
+                    $this->anchors->splice($anchorIndex + 1);
+                }
+
                 break;
             }
 
@@ -818,9 +939,10 @@ class Route implements ArrayAccess
                 $prevOrder = $this->anchors[$prevAnchorIndex]->sort_order;
             }
 
-            if ($nextAnchorIndex >= $this->anchors->count ())
+            if ($nextAnchorIndex == -1 || $nextAnchorIndex >= $this->anchors->count ())
             {
                 $nextOrder = Route::MAX_ORDER;
+                $nextAnchorIndex = $this->anchors->count ();
             }
             else
             {

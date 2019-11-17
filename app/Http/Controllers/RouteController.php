@@ -73,20 +73,55 @@ class RouteController extends Controller
         {
             if (count($update) >= 2)
             {
-                $routeUpdate = $route->get ($update[0], $update[1])->toArray ();
+                if ($update [0] === -1)
+                {
+                    if ($update[1] == -1)
+                    {
+                        $routeUpdate = [(object)["id" => -1], (object)["id" => -1]];
+                    }
+                    else
+                    {
+                        $routeUpdate = $route->getAnchor($update[1]);
+                        array_splice($routeUpdate, 0, 0, array((object)["id" => -1]));
+                    }
+                }
+                elseif ($update [1] === -1)
+                {
+                    $routeUpdate = $route->getAnchor($update[0]);
+                    $routeUpdate[0]["trail"] = null;
+                    $routeUpdate[1] = (object)["id" => -1];
+                }
+                else
+                {
+                    $routeUpdate = $route->get ($update[0], $update[1])->toArray ();
+                    $routeUpdate[count($routeUpdate) - 1]["trail"] = null;
+                }
             }
             else
             {
                 $routeUpdate = $route->getAnchor($update[0]);
+                $routeUpdate[count($routeUpdate) - 1]["trail"] = null;
             }
 
             // Make sure the trail in the last element is null
-            $routeUpdate[count($routeUpdate) - 1]["trail"] = null;
 
             $updates2[] = $routeUpdate;
         }
 
         return $updates2;
+    }
+
+    public function addStartPoint ($hikeId, Request $request)
+    {
+        $point = json_decode($request->getContent());
+
+        $route = new Route($hikeId);
+
+        $updates = $route->addStartpoint ($point);
+
+        $route->save ();
+
+        return $this->prepareUpdates($route, $updates);
     }
 
     public function setStartPoint ($hikeId, Request $request)
@@ -96,6 +131,19 @@ class RouteController extends Controller
         $route = new Route($hikeId);
 
         $updates = $route->setStart ($point);
+
+        $route->save ();
+
+        return $this->prepareUpdates($route, $updates);
+    }
+
+    public function addEndPoint ($hikeId, Request $request)
+    {
+        $point = json_decode($request->getContent());
+
+        $route = new Route($hikeId);
+
+        $updates = $route->addEndpoint ($point);
 
         $route->save ();
 
