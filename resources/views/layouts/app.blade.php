@@ -2,7 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1,shrink-to-fit=no">
 
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -25,7 +25,7 @@
 
 </head>
 <body>
-    <div id="app" style="display:grid;grid-template-rows: min-content auto;position:absolute;top:0px;bottom:0px;left:0px;right:0px">
+    <div id="app" style="display:grid;grid-template-rows: min-content minmax(200px,1fr); width:100vw; height:100vh;overflow: hidden">
         <nav class="navbar navbar-expand-md navbar-light shadow-sm" style="background-color:#228B22">
             <div class="container">
                 <a class="navbar-brand" href="/">
@@ -85,9 +85,7 @@
             </div>
         </nav>
 
-    	<div class="flex-container" style="overflow: hidden;height:100%">
-	        @yield('content')
-    	</div>
+        @yield('content')
     </div>
 
     @include('profileDialog')

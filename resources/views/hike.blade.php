@@ -58,6 +58,62 @@
         {
             display:inline-block;
         }
+
+        .map-grid-item
+        {
+            grid-area: map;
+        }
+
+        .ele-grid-item
+        {
+            grid-area: ele;
+        }
+
+        .controls-grid-item
+        {
+            grid-area: controls;
+        }
+
+        .hike-grid
+        {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr 1fr;
+            grid-template-areas:
+                "map controls"
+                "map controls"
+                "map controls"
+                "ele controls"
+                ;
+            justify-items: stretch;
+            align-items: stretch;
+            align-content:stretch;
+        }
+
+        @media screen and (max-width: 668px)
+        {
+            .ele-grid-item
+            {
+                display:none;
+            }
+            .controls-grid-item
+            {
+                display:none;
+            }
+            .hike-grid
+            {
+                display: grid;
+                grid-template-columns: 100%;
+                grid-template-rows: 100%;
+                grid-template-areas:
+                    "map"
+                    ;
+                justify-items: stretch;
+                align-items: stretch;
+                align-content: stretch;
+            }
+        }
+
     </style>
 
 	<?php require_once resource_path('js/elevationChart.js'); ?>
@@ -80,71 +136,26 @@
 	@component('exportTrailDialog')
 	@endcomponent
 
-    <div class="row no-gutters" style="flex-wrap:nowrap;height:100%">
-        <div class="col-md-8">
-            <div id='editTrailConditions' style='display:none'>
-                <form id='trailConditionForm'>
-                    <div class="grid-container">
-                        <div>
-                        <label>Type:</label>
-                        <select class="form-control" name='type'>
-                            <option value=0>No Camping</option>
-                            <option value=1>No Stealth Camping</option>
-                            <option value=2>Other</option>
-                        </select>
-                        </div>
-
-                        <div>
-                        <label>Description:</label>
-                        <input type="text" class='form-control' name='description'/>
-                        </div>
-
-                        <div>
-                        <label>Speed Factor:</label>
-                        <input type="number" class='form-control' name='speedFactor' value='100'/>
-                        </div>
-                    </div>
-                </form>
-                <div class="modal-footer">
-                    <button type="button" class="btn" onclick='cancelEditTrailConditions()'>Cancel</button>
-                    <button id='trailConditionSaveButton' type="button" class="btn btn-default" data-dismiss="modal">Save</button>
-                </div>
-            </div>
-            <div id='editRoute' style='display:none'>
-                <form id='editRouteForm'>
-                    <div class="grid-container">
-                        <div>
-                        </div>
-                    </div>
-                </form>
-                <div class="modal-footer">
-                    <button type="button" class="btn" onclick='clearVertices()'>Clear Vertices</button>
-                    <button type="button" class="btn" onclick='stopRouteEdit()'>Close</button>
-                </div>
-            </div>
-            <div class="row no-gutters flex-column" style="height:100%">
-            	<div class="col">
-                	<div id="googleMap" style="width:100%;height:100%"></div>
-    				<div id="distanceWindow" class="map-info">
-    					<div>
-                        	<span>Distance</span>
-    	                	<button id="distanceWindowClose" type="button" class="close map-distance-window">&times;</button>
-    					</div>
-    	                <div id="distance" style="height:auto;text-align:center;vertical-align:middle"></div>
-    				</div>
-                    <div class="map-please-wait" id="pleaseWait">
-                        <div class="spinner-border text-primary m-2 map-please-wait-spinner" role="status">
-                            <span class="sr-only">Loading...</span>
-                        </div>
-                    </div>
-	            </div>
-            	<div class="col" style="flex-grow:0">
-                    <div id="elevation_chart_div" style="width:100%;height:250px"></div>
+    <div class="hike-grid">
+        <div class="map-grid-item">
+        	<div id="googleMap" style="width:100%;height:100%"></div>
+			<div id="distanceWindow" class="map-info">
+				<div>
+                	<span>Distance</span>
+                	<button id="distanceWindowClose" type="button" class="close map-distance-window">&times;</button>
+				</div>
+                <div id="distance" style="height:auto;text-align:center;vertical-align:middle"></div>
+			</div>
+            <div class="map-please-wait" id="pleaseWait">
+                <div class="spinner-border text-primary m-2 map-please-wait-spinner" role="status">
+                    <span class="sr-only">Loading...</span>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div style="display:grid;align-content:start;grid-template-rows: auto auto;height:100%">
+    	<div class="ele-grid-item" id="elevation_chart_div">
+        </div>
+        <div class="controls-grid-item">
+            <div style="display:grid;align-content:start;grid-template-rows: auto auto;">
                 <ul class="nav nav-tabs" role="tablist">
                     <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#schedule">Schedule</a></li>
                     <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#trailConditions">Trail Conditions</a></li>
