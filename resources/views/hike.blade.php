@@ -72,18 +72,18 @@
         .controls-grid-item
         {
             grid-area: controls;
+            border-right-style: solid;
+            border-right-width: thin;
         }
 
         .hike-grid
         {
             display: grid;
-            grid-template-columns: 2fr 1fr;
-            grid-template-rows: 1fr 1fr 1fr 1fr;
+            grid-template-columns: 1fr 3fr;
+            grid-template-rows: 3fr 1fr;
             grid-template-areas:
-                "map controls"
-                "map controls"
-                "map controls"
-                "ele controls"
+                "controls map"
+                "controls ele"
                 ;
             justify-items: stretch;
             align-items: stretch;
@@ -92,10 +92,6 @@
 
         @media screen and (max-width: 668px)
         {
-            .ele-grid-item
-            {
-                display:none;
-            }
             .controls-grid-item
             {
                 display:none;
@@ -104,9 +100,10 @@
             {
                 display: grid;
                 grid-template-columns: 100%;
-                grid-template-rows: 100%;
+                grid-template-rows: 75% 25%;
                 grid-template-areas:
                     "map"
+                    "ele"
                     ;
                 justify-items: stretch;
                 align-items: stretch;

@@ -53,6 +53,25 @@ class HikeController extends Controller
         return $hike;
     }
 
+    public function put ($hikeId, $request)
+    {
+        $update = json_decode($request->getContent());
+
+        if (isset($update->name))
+        {
+            $hike = Hike::find($hikeId);
+
+            if ($hike)
+            {
+                $hike->name = $update->name;
+            }
+
+            $hike->save ();
+        }
+
+		//todo: return an error if name property nor hike exists.
+    }
+
     public function delete ($hikeId)
     {
         Hike::where('id', $hikeId)->delete ();

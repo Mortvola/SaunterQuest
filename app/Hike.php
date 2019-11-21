@@ -44,8 +44,11 @@ class Hike extends Model
      {
          parent::save ($options);
 
-         // Create data directory and save an empty route file.
-         mkdir(getHikeFolder ($this->id));
+         if (!file_exists(getHikeFolder ($this->id)))
+         {
+             // Create data directory and save an empty route file.
+             mkdir(getHikeFolder ($this->id));
+         }
      }
 
     public function getDuration ()

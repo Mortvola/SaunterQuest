@@ -30,9 +30,10 @@
 	<div class="row no-gutters" style="height:100%">
         <div class="col-md-12" style="overflow-y:scroll;height:100%">
             <h4>Planned Hikes</h4>
-            <table class="table table-condensed">
-                <thead><tr><th>Name</th><th>Length (miles)</th><th>Duration (days)</th><th>Start Date</th></tr></thead>
-                <tbody>
+            <div id='userHikeLastRow' style='display:inline'>
+            <div><a class='btn btn-sm' href='javascript:showHikeDialog()'><i class='fas fa-plus'></i></a></div>
+            </div>
+            <div class='d-flex flex-column flex-sm-row' style='overflow: auto; padding-left: 14px; padding-right: 14px'>
                     <?php
                         $results = Auth::user()->hikes()->get ();
 
@@ -41,24 +42,20 @@
                             $days = $hike->getDuration ();
                             $distance = metersToMilesRounded($hike->getDistance ());
 
-                            echo "<tr id='userHike_", $hike->id, "'>\n";
-                            echo "<td>\n";
+                            echo "<div class='card bpp-shadow mr-4 mb-4 flex-shrink-0 flex-grow-0' style='width:250px' id='userHike_", $hike->id, "'>\n";
+                            echo "<div class='card-header'>";
+                            echo "<div class='edit-hike-name' data-url='hike/", $hike->id, "' data-prop='name'>", $hike->name, "</div>";
+                            echo "</div>";
+                            echo "<div class='card-body'>";
+                            echo "<div>Distance: ", $distance, " miles</div>\n";
+                            echo "<div>Duration: ", $days, " days</div>\n";
                             echo "<a class='btn btn-sm' href='/hike/", $hike->id, "'><i class='fas fa-pencil-alt'></i></a>\n";
                             echo "<a class='btn btn-sm' href='javascript:deleteHike(", $hike->id, ")'><i class='fas fa-trash-alt'></i></a>\n";
-                            echo "<a href=\"/hike/", $hike->id, "\">", $hike->name, "</a></td>\n";
-                            echo "<td>", $distance, "</td>\n";
-                            echo "<td>", $days, "</td>\n";
-                            echo "<td>", "None", "</td>\n";
-                            echo "</tr>\n";
-                         }
+                            echo "</div>\n";
+                            echo "</div>\n";
+                        }
                     ?>
-                    <tr id='userHikeLastRow'>
-                    <td><a class='btn btn-sm' href='javascript:showHikeDialog()'><i class='fas fa-plus'></i></a></td>
-                    <td/><td/><td/><td/>
-                    </tr>
-
-                </tbody>
-            </table>
+            </div>
             <h4>Completed Hikes</h4>
             <table class="table table-condensed">
                 <thead><tr><th>Name</th><th>Length</th><th>Duration</th><th>Start Date</th></tr></thead>
@@ -69,51 +66,6 @@
     </div>
 
     <script>
-    "use strict";
-
-    function deleteHike (hikeId)
-    {
-        $.ajax({
-            url: "hike/" + hikeId,
-            headers:
-            {
-                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
-            },
-            type: "DELETE"
-        })
-        .done (function()
-        {
-            $("#userHike_" + hikeId).remove ();
-        });
-    }
-
-    function insertHike ()
-    {
-        var hike = objectifyForm($("#userHikeForm").serializeArray());
-
-        $.ajax({
-            url: "hike",
-            headers:
-            {
-                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
-                "Content-type": "application/json"
-            },
-            type: "POST",
-            data: JSON.stringify(hike.name),
-            dataType: "json"
-        })
-        .done (function(hike)
-        {
-            document.location.href = "/hike/" + hike.id;
-        });
-    }
-
-    function showHikeDialog ()
-    {
-        $("#addHikeSaveButton").off('click');
-        $("#addHikeSaveButton").click(insertHike);
-
-        $("#hikeDialog").modal ('show');
-    }
+    <?php require_once resource_path('js/home.js'); ?>
     </script>
 @endsection

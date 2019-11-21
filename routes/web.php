@@ -43,6 +43,11 @@ Route::middleware(['auth'])->group(function () {
         return (new HikeController())->get($hikeId);
     });
 
+    Route::put('/hike/{hikeId}', function ($hikeId, Request $request)
+    {
+        return (new HikeController())->put($hikeId, $request);
+    });
+
     Route::delete('/hike/{hikeId}', function ($hikeId)
     {
         return (new HikeController())->delete($hikeId);

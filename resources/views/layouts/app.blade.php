@@ -23,6 +23,14 @@
     <link rel="stylesheet" href="{{ asset('css/bootstrap-4.3.1.css') }}">
 	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
 
+    <style>
+
+    .bpp-shadow
+    {
+        box-shadow:0 2px 7px 1px rgba(0,0,0,0.3);
+    }
+
+    </style>
 </head>
 <body>
     <div id="app" style="display:grid;grid-template-rows: min-content minmax(200px,1fr); width:100vw; height:100vh;overflow: hidden">
