@@ -11,6 +11,9 @@ use App\Http\Controllers\TrailConditionController;
 use App\Http\Controllers\ResupplyPlanController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\MapController;
+use App\Http\Controllers\GearController;
+use App\Http\Controllers\GearConfigurationController;
+use App\Http\Controllers\GearConfigurationItemController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,10 +34,23 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/home', 'HomeController@index')->name('home');
 
-    Route::get('/gear', function ()
+    Route::get('/gear', 'GearController@index');
+
+    Route::post('/gear', 'GearController@post');
+
+    Route::get('/gear/configuration', 'GearConfigurationController@get');
+    Route::post('/gear/configuration', 'GearConfigurationController@post');
+    Route::delete('/gear/configuration/{gearConfigId}', function ($gearConfigId)
     {
-        return view('gear');
+        return (new GearConfigurationController())->delete($gearConfigId);
     });
+
+    Route::post('/gear/configuration/item', 'GearConfigurationItemController@post');
+    Route::put('/gear/configuration/item/{itemId}', function ($itemId, Request $request)
+    {
+        return (new GearConfigurationItemController())->put($itemId, $request);
+    });
+
 
     Route::post('/hike', 'HikeController@post');
 

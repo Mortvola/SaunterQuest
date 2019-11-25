@@ -33,7 +33,7 @@ class HikeController extends Controller
         }
         else
         {
-            return Auth::user()->hikes->get ();
+            return Auth::user()->hikes;
         }
     }
 

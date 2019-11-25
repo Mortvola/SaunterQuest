@@ -45,4 +45,15 @@ class User extends Authenticatable
     {
         return $this->hasMany('\App\Hike', 'user_id');
     }
+
+    public function gearItems ()
+    {
+        return $this->hasMany('\App\GearItem', 'user_id');
+    }
+
+    public function gearConfigurations ()
+    {
+        return $this->hasMany('\App\GearConfiguration', 'user_id');
+    }
+
 }

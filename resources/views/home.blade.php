@@ -35,7 +35,7 @@
             </div>
             <div class='d-flex flex-column flex-sm-row' style='overflow: auto; padding-left: 14px; padding-right: 14px'>
                     <?php
-                        $results = Auth::user()->hikes()->get ();
+                        $results = Auth::user()->hikes()->orderBy('name')->get ();
 
                         foreach ($results as $hike)
                         {
@@ -56,12 +56,12 @@
                         }
                     ?>
             </div>
-            <h4>Completed Hikes</h4>
-            <table class="table table-condensed">
-                <thead><tr><th>Name</th><th>Length</th><th>Duration</th><th>Start Date</th></tr></thead>
-                <tbody>
-                </tbody>
-            </table>
+            <h4>Gear</h4>
+            <div class='d-flex flex-column flex-sm-row' style='overflow: auto; padding-left: 14px; padding-right: 14px'>
+            <div style='display:inline'>
+            <div><a class='btn btn-sm' href='/gear'><i class='fas fa-plus'></i></a></div>
+            </div>
+            </div>
         </div>
     </div>
 

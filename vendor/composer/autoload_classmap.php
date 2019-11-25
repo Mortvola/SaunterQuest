@@ -26,6 +26,7 @@ return array(
     'App\\Http\\Controllers\\Controller' => $baseDir . '/app/Http/Controllers/Controller.php',
     'App\\Http\\Controllers\\ElevationController' => $baseDir . '/app/Http/Controllers/ElevationController.php',
     'App\\Http\\Controllers\\ExportController' => $baseDir . '/app/Http/Controllers/ExportController.php',
+    'App\\Http\\Controllers\\GearController' => $baseDir . '/app/Http/Controllers/GearController.php',
     'App\\Http\\Controllers\\HikeController' => $baseDir . '/app/Http/Controllers/HikeController.php',
     'App\\Http\\Controllers\\HikerProfileController' => $baseDir . '/app/Http/Controllers/HikerProfileController.php',
     'App\\Http\\Controllers\\HomeController' => $baseDir . '/app/Http/Controllers/HomeController.php',

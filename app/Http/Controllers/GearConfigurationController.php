@@ -1,0 +1,52 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\GearConfiguration;
+
+class GearConfigurationController extends Controller
+{
+    function get ()
+    {
+        $configurations = Auth::user()->gearConfigurations;
+
+        $configurations->load('gearConfigurationItems.gearItem');
+
+        return $configurations;
+    }
+
+    function post (Request $request)
+    {
+        // Get the current list of configurations
+        $configs = Auth::user()->gearConfigurations;
+
+        $configCounter = $configs->count ();
+
+        // Create a name and determine if it already exists.
+        // If it does, try again with a new name.
+        do
+        {
+            $configCounter++;
+
+            $name = 'Gear Configuration ' . $configCounter;
+
+            $sameName = $configs->where('name', $name);
+        }
+        while ($sameName->count () > 0);
+
+        $gearConfig = Auth::user()->gearConfigurations()->create ([
+            "name" => $name
+        ]);
+
+        $gearConfig->save ();
+
+        return $gearConfig;
+    }
+
+    function delete ($configId)
+    {
+        GearConfiguration::where('id', $configId)->delete ();
+    }
+}
