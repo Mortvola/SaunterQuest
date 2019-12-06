@@ -16,23 +16,13 @@ class GearConfigurationItemController extends Controller
 
         if ($config)
         {
-            if (isset($configItemRequest->gear_item_id))
+            if (!isset($configItemRequest->quantity) ||
+                $configItemRequest->quantity == "")
             {
-                $gearItem = Auth::user()->gearItems()->find($configItemRequest->gear_item_id);
-
-                //todo: update
+                $configItemRequest->quantity = 1;
             }
-            else
-            {
-                $gearItem = Auth::user()->gearItems()->create ([
-                    "name" => $configItemRequest->name,
-                    "description" => $configItemRequest->description,
-                    "weight" => $configItemRequest->weight,
-                    "unit_of_measure" => $configItemRequest->unit_of_measure
-                ]);
 
-                $gearItem->save ();
-            }
+            $gearItem = $this->updateOrInsertGearItem ($configItemRequest);
 
             $configItem = $config->gearConfigurationItems()->create ([
                 "gear_item_id" => $gearItem->id,
@@ -42,6 +32,8 @@ class GearConfigurationItemController extends Controller
             ]);
 
             $configItem->save ();
+
+            $configItem->gear_item = $gearItem;
 
             return $configItem;
         }
@@ -55,29 +47,64 @@ class GearConfigurationItemController extends Controller
 
         if ($config)
         {
-            if (isset($configItemRequest->gear_item_id))
+            if (!isset($configItemRequest->quantity) ||
+                $configItemRequest->quantity == "")
             {
-                $gearItem = Auth::user()->gearItems()->find ($configItemRequest->gear_item_id);
-
-                if (isset($gearItem) &&
-                    ($gearItem->name != $configItemRequest->name ||
-                     $gearItem->description != $configItemRequest->description ||
-                     $gearItem->weight != $configItemRequest->weight ||
-                     $gearItem->unit_of_measure != $configItemRequest->unit_of_measure))
-                {
-                    $gearItem->fill ([
-                        "name" => $configItemRequest->name,
-                        "description" => $configItemRequest->description,
-                        "weight" => $configItemRequest->weight,
-                        "unit_of_measure" => $configItemRequest->unit_of_measure
-                    ]);
-
-                    $gearItem->save ();
-                }
+                $configItemRequest->quantity = 1;
             }
-            else
+
+            $gearItem = $this->updateOrInsertGearItem ($configItemRequest);
+
+            $configItem = $config->gearConfigurationItems()->find($itemId);
+
+            if (isset($configItem) &&
+                (((isset($configItem->gear_item_id) && !isset($gearItem->id)) ||
+                 (!isset($configItem->gear_item_id) && isset($gearItem->id)) ||
+                 (isset($configItem->gear_item_id) && isset($gearItem->id) && $configItem->gear_item_id != $gearItem->id)) ||
+               $configItem->system != $configItemRequest->system ||
+               $configItem->quantity != $configItemRequest->quantity ||
+               $configItem->location != $configItemRequest->location))
             {
-                $gearItem = Auth::user()->gearItems()->create ([
+                $configItem->fill([
+                    "gear_item_id" => isset($gearItem->id) ? $gearItem->id : null,
+                    "system" => $configItemRequest->system,
+                    "quantity" => $configItemRequest->quantity,
+                    "location" => $configItemRequest->location
+                ]);
+
+                $configItem->save ();
+            }
+
+            $configItem->gear_item = $gearItem;
+
+            return $configItem;
+        }
+    }
+
+    function delete ($itemId)
+    {
+        GearConfigurationItem::where('id', $itemId)->delete ();
+    }
+
+    private function updateOrInsertGearItem ($configItemRequest)
+    {
+        if (!isset($configItemRequest->weight) ||
+            $configItemRequest->weight == "")
+        {
+            $configItemRequest->weight = 0;
+        }
+
+        if (isset($configItemRequest->gear_item_id))
+        {
+            $gearItem = Auth::user()->gearItems()->find ($configItemRequest->gear_item_id);
+
+            if (isset($gearItem) &&
+                ($gearItem->name != $configItemRequest->name ||
+                    $gearItem->description != $configItemRequest->description ||
+                    $gearItem->weight != $configItemRequest->weight ||
+                    $gearItem->unit_of_measure != $configItemRequest->unit_of_measure))
+            {
+                $gearItem->fill ([
                     "name" => $configItemRequest->name,
                     "description" => $configItemRequest->description,
                     "weight" => $configItemRequest->weight,
@@ -87,30 +114,22 @@ class GearConfigurationItemController extends Controller
                 $gearItem->save ();
             }
 
-            $configItem = $config->gearConfigurationItems()->find($itemId);
+            return $gearItem;
+        }
 
-            if (isset($configItem) &&
-              ($configItem->gear_item_id != $gearItem->id ||
-               $configItem->system != $configItemRequest->system ||
-               $configItem->quantity != $configItemRequest->quantity ||
-               $configItem->location != $configItemRequest->location))
-            {
-                $configItem->fill([
-                    "gear_item_id" => $gearItem->id,
-                    "system" => $configItemRequest->system,
-                    "quantity" => $configItemRequest->quantity,
-                    "location" => $configItemRequest->location
-                ]);
+        if ((isset($configItemRequest->name) && $configItemRequest->name !== "") ||
+            (isset($configItemRequest->description) && $configItemRequest->description !== ""))
+        {
+            $gearItem = Auth::user()->gearItems()->create ([
+                "name" => $configItemRequest->name,
+                "description" => $configItemRequest->description,
+                "weight" => $configItemRequest->weight,
+                "unit_of_measure" => $configItemRequest->unit_of_measure
+            ]);
 
-                $configItem->save ();
-            }
+            $gearItem->save ();
 
-            $configItem->name = $gearItem->name;
-            $configItem->description = $gearItem->description;
-            $configItem->weight = $gearItem->weight;
-            $configItem->unit_of_measure = $gearItem->unit_of_measure;
-
-            return $configItem;
+            return $gearItem;
         }
     }
 }

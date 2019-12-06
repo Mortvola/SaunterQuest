@@ -3,22 +3,57 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\GearItem;
+use App\GearConfigurationItem;
 
 class GearItemController extends Controller
 {
+    function get ()
+    {
+        return Auth::user()->gearItems;
+    }
+
     function post (Request $request)
     {
-        $gear = json_decode($request->getContent());
+        $gearItemRequest = json_decode($request->getContent());
 
-        $gear = Auth::user()->gearItem()->create ([
-            "name" => $gear->name,
-            "description" => $gear->description,
-            "weight" => $gear->weight,
-            "unit_of_measure" => $gear->unit_of_measure
+        $gearItem = Auth::user()->gearItems()->create ([
+            "name" => $gearItemRequest->name,
+            "description" => $gearItemRequest->description,
+            "weight" => $gearItemRequest->weight,
+            "unit_of_measure" => $gearItemRequest->unit_of_measure
             ]);
 
-        $gear->save ();
+        $gearItem->save ();
 
-        return $gear;
+        return $gearItem;
+    }
+
+    function put ($itemId, Request $request)
+    {
+        $gearItemRequest = json_decode($request->getContent());
+
+        $gearItem = Auth::user()->gearItems()->find($itemId);
+
+        if ($gearItem)
+        {
+            $gearItem->fill ([
+                "name" => $gearItemRequest->name,
+                "description" => $gearItemRequest->description,
+                "weight" => $gearItemRequest->weight,
+                "unit_of_measure" => $gearItemRequest->unit_of_measure
+            ]);
+
+            $gearItem->save ();
+
+            return $gearItem;
+        }
+    }
+
+    function delete ($itemId)
+    {
+        GearItem::where('id', $itemId)->delete ();
+        GearConfigurationItem::where('gear_item_id', $itemId)->delete ();
     }
 }

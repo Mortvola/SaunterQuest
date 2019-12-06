@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\GearConfiguration;
+use App\GearConfigurationItem;
 
 class GearConfigurationController extends Controller
 {
@@ -48,5 +49,6 @@ class GearConfigurationController extends Controller
     function delete ($configId)
     {
         GearConfiguration::where('id', $configId)->delete ();
+        GearConfigurationItem::where('gear_configuration_id', $configId)->delete ();
     }
 }

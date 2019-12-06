@@ -1,19 +1,247 @@
 "use strict";
 
-function newGearItemRow (configId, itemId, gearItemId)
+let menu = {};
+let subMenu = {};
+
+function initializeContextMenu ()
 {
-    let item = $('<div class="gear-item"></div>');
+    menu = $('<div></div>')
+    .css('position', 'absolute')
+    .css('background-color', 'white')
+    .css('border', 'thin solid')
+    .hide()
+    .appendTo('body');
+
+    subMenu = $('<div></div>')
+    .css('position', 'absolute')
+    .css('background-color', 'white')
+    .css('border', 'thin solid')
+    .hide()
+    .appendTo('body');
+
+    $(window).on('click', function ()
+        {
+            if (menu.is(':visible'))
+            {
+                menu.hide ();
+            }
+            
+            if (subMenu.is(':visible'))
+            {
+                subMenu.hide ();
+            }
+        });
+}
+
+
+function addMenuItem (menu, text, func)
+{
+    let menuItem = $("<div></div>")
+        .addClass('gear-select-item')
+        .css('user-select', 'none')
+        .text(text);
     
-    // Add divs for adding a row.
-    item.append('<div><div></div><div></div></div>');
+    menuItem.on('click', function (event)
+        {
+            func.call(menuItem, event);
+        });
     
-    item.append('<input type="text" name="name" placeholder="Name"/>');
-    item.append('<input type="text" name="description" placeholder="Description"/>');
+    menuItem.appendTo(menu);
+    
+    return menuItem;
+}
+
+
+function addSubMenuItem(menu, text, func, context)
+{
+    return addMenuItem (menu, text, function (event)
+        {
+            showMenu.call($(this), event, func, context, {left: $(this).offset ().left + $(this).outerWidth (), top: $(this).offset ().top}, $(this));
+        });
+}
+
+function showMenu (event, createMenu, context, offset, parentMenuItem)
+{
+    if (parentMenuItem === undefined)
+    {
+        if (menu && menu.is(':visible'))
+        {
+            menu.hide ();
+        }
+    }
+    
+    if (subMenu.is(':visible'))
+    {
+        subMenu.hide ();
+    }
+    
+    createMenu (context)
+        .css('left', offset.left)
+        .css('top', offset.top)
+        .show ();
+
+    event.stopPropagation ();
+}
+
+
+function createGearListMenu (item, insert)
+{
+    subMenu.empty ();
+
+    addMenuItem (subMenu, "Add new gear inline", function ()
+        {
+            item.find('input[name="name"]').val("");
+            item.find('input[name="description"]').val("");
+            item.find('input[name="weight"]').val("");
+            item.find('input[name="unit_of_measure"]').val("oz");
+            
+            item.removeData('gearItemId')
+            
+            subMenu.hide ();
+            
+            item.delayedSave ();
+        });
+    
+    let gearList = $("#gear-inventory").children ();
+    
+    for (let gear of gearList)
+    {
+        let values = getNamedValues($(gear));
+        
+        let itemText = values.name;
+        
+        if (values.description)
+        {
+            itemText += ", " + values.description;
+        }
+        
+        if (values.weight)
+        {
+            itemText += ", " + values.weight;
+
+            if (values.unit_of_measure)
+            {
+                itemText += " " + values.unit_of_measure;
+            }
+        }
+        
+        addMenuItem (subMenu, itemText, function ()
+            {
+                let row = item;
+                if (insert)
+                {
+                    row = newGearConfigItemRow (item.data('configId'), undefined, $(gear).data('id'));
+                    item.after(row);
+                }
+
+                setNamedValues (row, values);
+            
+                row.data('gearItemId', $(gear).data('id'));
+            
+                subMenu.hide ();
+            
+                row.delayedSave ();
+            });
+    }
+    
+    return subMenu;
+}
+
+
+function createConfigItemMenu (item)
+{
+    menu.empty ();
+
+    addSubMenuItem (menu, 'Insert row', function (item)
+        {
+            return createGearListMenu (item, true);
+        },
+        item);
+
+    addSubMenuItem (menu, 'Change gear', function (item)
+        {
+            return createGearListMenu (item, false);
+        },
+        item);
+
+    addMenuItem (menu, 'Delete row', function ()
+        {
+            if (item.data('timeoutId') !== undefined)
+            {
+                clearTimeout (item.data('timeoutId'));
+                item.removeData('timeoutId');
+            }
+
+            if (item.data('id') !== undefined)
+            {
+                deleteConfigItem (item);
+            }
+            else
+            {
+                // Clear each of the input elements.
+                item.find ('input[name]').each (function ()
+                    {
+                        $(this).val ('');
+                    });
+            }
+        });
+    
+    return menu;
+}
+
+
+function deleteConfigItem (item)
+{
+    $.ajax ({
+        url: "/gear/configuration/item/" + item.data('id'),
+        headers:
+        {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+        },
+        type: "DELETE",
+        context: item
+    })
+    .done (function ()
+        {
+            let parent = $(this).parent ();
+            
+            $(this).remove ();
+            
+            // If there are no gear config items left then
+            // add an empty one.
+            // (a count of one means only the title row is left)
+            if (parent.children().length == 1)
+            {
+                let nextRow = newGearConfigItemRow(item.data('configId'));
+                parent.append(nextRow);
+            }
+        });
+}
+
+
+function newGearConfigItemRow (configId, itemId, gearItemId)
+{
+    let item = $('<div></div>').addClass('gear-config-item');
+    
+    item.data('id', itemId);
+    item.data('configId', configId);
+    item.data('gearItemId', gearItemId);
+    
+    $('<i class="fas fa-caret-down"></i>')
+        .css('align-self', 'center')
+        .on('click', function (event)
+        {
+            showMenu.call($(this), event, createConfigItemMenu, item, {left: $(this).offset().left, top: $(this).offset().top + $(this).outerHeight ()});
+        })
+        .appendTo(item);
+    
+    $('<input type="text" name="name" placeholder="Name"/>').addClass('gear-item-field').appendTo(item);
+    $('<input type="text" name="description" placeholder="Description"/>').addClass('gear-item-field').appendTo(item);
     
     let weight = $('<div style="display:grid;grid-template-columns:1fr min-content"></div>');
-    weight.append ('<input class="gear-number" style="min-width:0" type="text" name="weight" placeholder="Weight"/>');
+    $('<input style="min-width:0" type="text" name="weight" placeholder="Weight"/>').addClass('gear-number gear-item-field').appendTo(weight);
     
-    let select = $('<select name="unit_of_measure"></select>');
+    let select = $('<select name="unit_of_measure"></select>').addClass('gear-item-field');
     select.append('<option value="oz">oz</option>');
     select.append('<option value="lb">lb</option>');
     select.append('<option value="g">g</option>');
@@ -28,47 +256,101 @@ function newGearItemRow (configId, itemId, gearItemId)
     item.append('<input class="dyna-list" list="gear-system" type="text" name="system" placeholder="System"/>');
     item.append('<input type="text" name="location" placeholder="Location" list="gear-location"/>');
 
+    $.extend(item, {delayedSave: function () { delayedSave(item, function () { saveConfigItem(item); }); } });
+
     // Add event handlers
     
-    let configItem = {item: item, configId: configId, itemId: itemId, gearItemId: gearItemId};
-
-    let firstInput = item.find('input:first-of-type').first();
-    let lastInput = item.find('input:last-of-type').last();
+    item.find(':input').first().on('keydown', reverseTabEventHandler);
     
-    firstInput.on('keydown', reverseTabEventHandler);
-    lastInput.on('keydown', function () { forwardTabEventHandler (event, configItem); } );
+    item.find(':input').last().on('keydown', function ()
+        {
+            forwardTabEventHandler (event, item, function ()
+            {
+                let nextRow = newGearConfigItemRow(item.data('configId'));
+                item.after(nextRow);
+                
+                return nextRow;
+            });
+        });
+    
     item.find('.dyna-list').on('blur', updateList);
-    item.find('[name]').on('input', function () { delayedSaveRecord(configItem); });
+    item.find('[name]').on('input', function () { item.delayedSave (); });
 
+    item.find('.gear-item-field').on('input', function ()
+        {
+            if (item.data('gearItemId') !== undefined)
+            {
+                let record = getNamedValues(item);
+                record.id = item.data('gearItemId');
+            
+                $('.gear-item').trigger ('gearItemUpdated', record);
+            }
+        });
+    
+    item.on('gearItemDeleted', function (event, gearItemId)
+        {
+            if (item.data('gearItemId') == gearItemId)
+            {
+                deleteConfigItem (item);
+            }
+        });
+    
+    item.on('gearItemUpdated', function (event, gearItem)
+        {
+            if (gearItem.id !== undefined && gearItem.id === item.data('gearItemId'))
+            {
+                let entries = Object.entries(gearItem);
+
+                for (const [prop, value] of entries)
+                {
+                    $(this).find('.gear-item-field[name="' + prop + '"]').val(value);
+                }
+            }
+        });
+    
     return item;
 }
 
 
-function delayedSaveRecord (configItem)
+function getNamedValues (item)
 {
-    if (configItem.timeoutId !== undefined)
-    {
-        clearTimeout (configItem.timeoutId);
-    }
+    let record = {};
     
-    configItem.timeoutId = setTimeout(() => { saveRecord (configItem); }, 3000);
+    item.find ('[name]').each (function ()
+        {
+            record[$(this).attr("name")] = $(this).val ();
+        });
+    
+    return record;
 }
 
 
-function saveRecord (configItem)
+function setNamedValues (row, item)
 {
-    configItem.timeoutId = undefined;
+    let entries = Object.entries(item);
 
-    let record = {gear_configuration_id: configItem.configId};
+    for (const [prop, value] of entries)
+    {
+        row.find('[name="' + prop + '"]').val(value);
+    }
+}
+
+
+function delayedSave (item, save)
+{
+    if (item.data('timeoutId') !== undefined)
+    {
+        clearTimeout (item.data('timeoutId'));
+    }
     
-    configItem.item.find ('[name]').each (function ()
-        {
-            let value = $(this).val ();
-            let name = $(this).attr("name");
-            
-            record[name] = value;
-        });
-    
+    item.data('timeoutId', setTimeout(() => { save (); }, 3000));
+}
+
+
+function saveConfigItem (item)
+{
+    item.removeData('timeoutId');
+
     let options = {
         headers:
         {
@@ -78,19 +360,20 @@ function saveRecord (configItem)
         dataType: "json"
     };
     
-    if (configItem.itemId === undefined)
+    if (item.data('id') === undefined)
     {
         options.url = "/gear/configuration/item";
         options.type = "POST";
     }
     else
     {
-        options.url = "/gear/configuration/item/" + configItem.itemId;
+        options.url = "/gear/configuration/item/" + item.data('id');
         options.type = "PUT";
     }
-    
-    record.gear_item_id = configItem.gearItemId;
 
+    let record = getNamedValues(item);
+    record.gear_configuration_id = item.data('configId');
+    record.gear_item_id = item.data('gearItemId');
     options.data = JSON.stringify(record);
 
     console.log ('saving: ' + options.data);
@@ -98,10 +381,32 @@ function saveRecord (configItem)
     $.ajax(options)
     .done (function(result)
     {
-        configItem.itemId = result.id;
-        configItem.gearItemId = result.gear_item_id;
+        if (result.gear_item && result.gear_item.id)
+        {
+            if (item.data('gearItemId') === undefined)
+            {
+                // Inform all "gear-inventory" classes that the gear item has been updated.
+                $('.gear-inventory').trigger ('gearItemAdded', result.gear_item);
+            }
+            else
+            {
+                // Inform all "gear-item" classes that the gear item has been updated.
+                $('.gear-item').trigger ('gearItemUpdated', result.gear_item);
+            }
+        }
+
+        setNamedValues (item, result);
+
+        item.data('id', result.id);
         
-        console.log ('saved: ' + JSON.stringify(result));
+        if (result.gear_item_id !== undefined)
+        {
+            item.data('gearItemId', result.gear_item_id);
+        }
+        else
+        {
+            item.removeData('gearItemId');
+        }
     });
 }
 
@@ -137,19 +442,19 @@ function updateList (event)
 }
 
 
-function forwardTabEventHandler (event, configItem)
+function forwardTabEventHandler (event, row, addNewRow)
 {
     if (event.keyCode === 9 && !event.shiftKey)
     {
         event.preventDefault ();
         
-        let nextRow = configItem.item.next ();
+        let nextRow = row.next ();
         
         if (nextRow.length === 0)
         {
             let currentEmpty = true;
             
-            configItem.item.find ('input').each (function ()
+            row.find ('input').each (function ()
                 {
                     let value = $(this).val ();
                     
@@ -163,8 +468,7 @@ function forwardTabEventHandler (event, configItem)
             
             if (!currentEmpty)
             {
-                nextRow = newGearItemRow(configItem.configId);
-                configItem.item.after(nextRow);
+                nextRow = addNewRow ();
             }
         }
 
@@ -195,7 +499,7 @@ function reverseTabEventHandler (event)
             
             if (prevRow.length != 0)
             {
-                let lastInput = prevRow.find('input:last-of-type');
+                let lastInput = prevRow.find(':input').last ();
                 
                 if (lastInput)
                 {
@@ -207,6 +511,188 @@ function reverseTabEventHandler (event)
 }
 
 
+function saveGearItem (item)
+{
+    item.removeData('timeoutId');
+
+    let record = getNamedValues(item);
+
+    let options = {
+        headers:
+        {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+        },
+        contentType: "application/json",
+        dataType: "json",
+        data: JSON.stringify(record)
+    };
+    
+    if (item.data('id') === undefined)
+    {
+        options.url = "/gear/item";
+        options.type = "POST";
+    }
+    else
+    {
+        options.url = "/gear/item/" + item.data('id');
+        options.type = "PUT";
+    }
+
+    console.log ('saving: ' + options.data);
+
+    $.ajax(options)
+    .done (function(result)
+    {
+        setNamedValues (item, result);
+
+        if (item.data('id') === undefined)
+        {
+            item.data('id', result.id);
+        }
+        else
+        {
+            // Inform all "gear-item" classes that the gear item has been updated.
+            $('.gear-item').not(item).trigger ('gearItemUpdated', result);
+        }
+    });
+}
+
+
+function createGearItemMenu (item)
+{
+    menu.empty ();
+    
+    addMenuItem (menu, "Add to Configuration", function ()
+        {
+            let gearConfig = $("#gear-kits .collapse.show");
+            
+            let configItem = newGearConfigItemRow (gearConfig.data('id'), undefined, item.data('id'));
+            
+            let values = getNamedValues(item);
+
+            setNamedValues (configItem, values);
+            
+            gearConfig.append(configItem);
+
+            menu.hide ();
+            
+            configItem.delayedSave ();
+        });
+
+    addMenuItem (menu, "Delete Gear", function ()
+        {
+            $.ajax ({
+                url: "/gear/item/" + item.data('id'),
+                headers:
+                {
+                    "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+                },
+                type: "DELETE",
+            })
+            .done (function ()
+                {
+                   item.remove ();
+              
+                  // Inform all gear config items that this gear item has been deleted
+                  $('.gear-config-item').trigger ('gearItemDeleted', item.data('id'));
+                });
+        });
+
+    return menu;
+}
+
+function newGearItem ()
+{
+    let row = $('<div></div>').addClass('gear-item');
+    
+    $('<i class="fas fa-grip-lines" style="opacity:0.2">').css('align-self', 'center').addClass("drag-handle").appendTo(row);
+    
+    $('<i class="fas fa-caret-down"></i>')
+        .css('align-self', 'center')
+        .on('click', function (event)
+        {
+            showMenu.call($(this), event, createGearItemMenu, row, {left: $(this).offset().left, top: $(this).offset().top + $(this).outerHeight ()});
+        })
+        .appendTo(row);
+    
+    $('<input type="text" name="name" placeholder="Name"/>').addClass('gear-item-field').appendTo(row);
+    $('<input type="text" name="description" placeholder="Description"/>').addClass('gear-item-field').appendTo(row);
+    
+    let weight = $('<div style="display:grid;grid-template-columns:1fr min-content"></div>').appendTo(row);
+    $('<input style="min-width:0" type="text" name="weight" placeholder="Weight"/>').addClass('gear-number gear-item-field').appendTo(weight);
+    
+    let select = $('<select name="unit_of_measure"></select>').addClass('gear-item-field').appendTo(weight);
+    select.append('<option value="oz">oz</option>');
+    select.append('<option value="lb">lb</option>');
+    select.append('<option value="g">g</option>');
+    select.append('<option value="kg">kg</option>');
+
+    // Add event handlers
+    
+    $.extend(row, {delayedSave: function () { delayedSave(row, function () { saveGearItem (row); }); } });
+
+    row.find('[name]').on('input', function () { row.delayedSave (); });
+
+    row.find(':input').first().on('keydown', reverseTabEventHandler);
+    
+    row.find(':input').last().on('keydown', function ()
+        {
+            forwardTabEventHandler (event, row, function ()
+            {
+                let nextRow = newGearItem();
+                row.after(nextRow);
+                
+                return nextRow;
+            });
+        });
+
+    row.find('.gear-item-field').on('input', function ()
+        {
+            if (row.data('id') !== undefined)
+            {
+                let record = getNamedValues(row);
+                record.id = row.data('id');
+            
+                $('.gear-config-item').not(row).trigger ('gearItemUpdated', record);
+            }
+        });
+
+    row.on('gearItemUpdated', function (event, item)
+        {
+            if (item.id !== undefined && item.id === row.data('id'))
+            {
+                setNamedValues(row, item);
+            }
+        });
+
+    row.draggable(
+        {
+            opacity: 0.7,
+            helper: "clone",
+            handle: ".drag-handle",
+            zIndex: 100,
+            start: function (event, ui)
+            {
+                ui.helper.data('id', row.data('id'));
+            }
+        });
+
+    $('#gear-inventory').append(row);
+    
+    return row;
+}
+
+
+function loadGearItem (item)
+{
+    let row = newGearItem ();
+    
+    row.data('id', item.id);
+
+    setNamedValues (row, item);
+}
+
+
 function loadGearConfiguration (configuration)
 {
     let card = $('<div></div>').addClass('card');
@@ -215,7 +701,7 @@ function loadGearConfiguration (configuration)
     button.attr('data-toggle', 'collapse');
     button.attr('data-target', '#gearCollapse' + configuration.id);
     
-    let del = $('<a><i class="fas fa-trash-alt"></i></a>').appendTo(cardHeader);
+    let del = $('<i class="fas fa-trash-alt"></i>').appendTo(cardHeader);
     del.on('click', function ()
         {
             $.ajax ({
@@ -233,11 +719,12 @@ function loadGearConfiguration (configuration)
                 });
         });
 
-    let collapse = $('<div class="collapse"></div>').appendTo(card);
+    let collapse = $('<div class="collapse gear-drag-target"></div>').appendTo(card);
     collapse.attr('id', 'gearCollapse' + configuration.id);
     collapse.attr('data-parent', '#gear-kits');
+    collapse.data('id', configuration.id);
 
-    let gearItem = $('<div class="gear-item"></div>').appendTo(collapse);
+    let gearItem = $('<div class="gear-config-item"></div>').appendTo(collapse);
     gearItem.append('<div></div>');
     gearItem.append('<div class="gear-title">Item Name</div>');
     gearItem.append('<div class="gear-title">Description</div>');
@@ -258,23 +745,13 @@ function loadGearConfiguration (configuration)
                 gearItemId = configItem.gear_item.id;
             }
             
-            let row = newGearItemRow(configuration.id, configItem.id, gearItemId);
+            let row = newGearConfigItemRow(configuration.id, configItem.id, gearItemId);
 
-            let entries = Object.entries(configItem);
-
-            for (const [prop, value] of entries)
-            {
-                row.find('[name="' + prop + '"').val(value);
-            }
+            setNamedValues (row, configItem);
 
             if (configItem.gear_item)
             {
-                let entries = Object.entries(configItem.gear_item);
-                
-                for (const [prop, value] of entries)
-                {
-                    row.find('[name="' + prop + '"').val(value);
-                }
+                setNamedValues (row, configItem.gear_item);
             }
             
             gearItem.after(row);
@@ -282,10 +759,29 @@ function loadGearConfiguration (configuration)
     }
     else
     {
-        let nextRow = newGearItemRow(configuration.id);
+        let nextRow = newGearConfigItemRow(configuration.id);
         gearItem.after(nextRow);
     }
 
+    collapse.droppable(
+        {
+            accept: ".gear-item",
+            drop: function (event, ui)
+            {
+                let row = newGearConfigItemRow(configuration.id, undefined, ui.helper.data('id'));
+                let record = getNamedValues(ui.helper);
+
+                setNamedValues (row, record);
+
+                gearItem.after(row);
+                event.stopPropagation ();
+                
+                row.delayedSave ();
+            }
+        });
+    
+    collapse.on('sortreceive', );
+    
     $('#gear-kits').append(card);
     
     return card;
@@ -317,8 +813,24 @@ function addGearConfiguration ()
 
 $().ready (function ()
     {
+        initializeContextMenu ();
+
         $("[data-add='gear-config']").on('click', addGearConfiguration);
         
+        $.getJSON("/gear/item")
+        .done (function (items)
+            {
+                for (let item of items)
+                {
+                    loadGearItem (item);
+                }
+            });
+        
+        $('.gear-inventory').on('gearItemAdded', function (event, gearItem)
+            {
+                loadGearItem (gearItem);
+            });
+
         $.getJSON("/gear/configuration")
         .done (function (configurations)
             {
