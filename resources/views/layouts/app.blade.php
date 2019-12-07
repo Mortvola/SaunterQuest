@@ -30,10 +30,16 @@
         box-shadow:0 2px 7px 1px rgba(0,0,0,0.3);
     }
 
+    html, body
+    {
+        height: 100%;
+        width: 100%;
+    }
+
     </style>
 </head>
 <body>
-    <div id="app" style="display:grid;grid-template-rows: min-content minmax(200px,1fr); width:100vw; height:100vh;overflow: hidden">
+    <div id="app" style="display:grid;grid-template-rows: min-content minmax(0px, 1fr); width:100%; height:100%;overflow: hidden">
         <nav class="navbar navbar-expand-md navbar-light shadow-sm" style="background-color:#228B22">
             <div class="container">
                 <a class="navbar-brand" href="/">
