@@ -239,6 +239,7 @@ function newGearConfigItemRow (configId, itemId, gearItemId)
     $('<input type="text" name="description" placeholder="Description"/>').addClass('gear-description').addClass('gear-item-field').appendTo(item);
     
     let weight = $('<div></div>').addClass('gear-weight');
+    $('<div></div>').text('Weight:').appendTo(weight);
     $('<input style="min-width:0" type="text" name="weight" placeholder="Weight"/>').addClass('gear-number gear-item-field').appendTo(weight);
     
     let select = $('<select name="unit_of_measure"></select>').addClass('gear-item-field');
@@ -251,17 +252,65 @@ function newGearConfigItemRow (configId, itemId, gearItemId)
     
     item.append(weight);
 
-    $('<input type="text" min="0" name="quantity" placeholder="Quantity"/>').addClass('gear-config-quantity').addClass('gear-number').appendTo(item);
+    let quantity = $('<div></div>').addClass('gear-config-quantity');
+    $('<div></div>').text('Quantity:').appendTo(quantity);
+    $('<input type="text" min="0" name="quantity" placeholder="Quantity"/>').addClass('gear-number').appendTo(quantity);
+    quantity.appendTo(item);
     
-    $('<div/>').addClass('gear-total-weight').addClass('gear-number').appendTo(item);
+    let totalWeight = $('<div></div>').addClass('gear-config-totalWeight-group');
+    $('<div></div>').text('Total:').appendTo(totalWeight);
+    $('<div/>').addClass('gear-config-totalWeight').addClass('gear-number').appendTo(totalWeight);
+    totalWeight.appendTo(item);
     
     $('<input type="text" name="system" placeholder="System" list="gear-system"/>').addClass('dyna-list').addClass('gear-config-system').appendTo(item);
     $('<input type="text" name="location" placeholder="Location" list="gear-location"/>').addClass('gear-config-location').appendTo(item);
 
     $.extend(item, {delayedSave: function () { delayedSave(item, function () { saveConfigItem(item); }); } });
+    
+    $.extend(item, {computeWeight: function ()
+        {
+            let totalWeight = item.find('[name="weight"]').val () * item.find('[name="quantity"]').val ();
+            
+            let units = item.find('[name="unit_of_measure"]').val ();
+            
+            switch (units)
+            {
+                case 'oz':
+                    
+                    totalWeight *= 0.0625;
+                    break;
+                    
+                case 'g':
+                    
+                    totalWeight *= 0.0022;
+                    break;
+                    
+                case 'kg':
+                    
+                    totalWeight *= 2.20462;
+                    break;
+            }
+            
+            item.find('.gear-config-totalWeight').text(totalWeight.toLocaleString(undefined, {maximumFractionDigits: 4}));
+        }});
 
     // Add event handlers
+
+    item.find('[name="weight"]').on('input', function ()
+        {
+            item.computeWeight ();
+        });
     
+    item.find('[name="quantity"]').on('input', function ()
+        {
+            item.computeWeight ();
+        });
+
+    item.find('[name="unit_of_measure"]').on('input', function ()
+        {
+            item.computeWeight ();
+        });
+
     item.find(':input').first().on('keydown', reverseTabEventHandler);
     
     item.find(':input').last().on('keydown', function ()
@@ -398,6 +447,8 @@ function saveConfigItem (item)
         }
 
         setNamedValues (item, result);
+
+        item.computeWeight ();
 
         item.data('id', result.id);
         
@@ -756,6 +807,8 @@ function loadGearConfiguration (configuration)
             {
                 setNamedValues (row, configItem.gear_item);
             }
+            
+            row.computeWeight ();
             
             gearItem.after(row);
         }

@@ -67,7 +67,21 @@
     .gear-weight
     {
         display:grid;
-        grid-template-columns: minmax(0, 1fr) min-content;
+        grid-template-columns: min-content minmax(0, 1fr) min-content;
+        width: 100%;
+    }
+
+    .gear-config-quantity
+    {
+        display:grid;
+        grid-template-columns: min-content minmax(0, 1fr);
+        width: 100%;
+    }
+
+    .gear-config-totalWeight-group
+    {
+        display:grid;
+        grid-template-columns: min-content minmax(0, 1fr);
         width: 100%;
     }
 
@@ -122,13 +136,14 @@
         .gear-config-item
         {
             display: grid;
-            grid-template-columns: 14px minmax(0, 1fr) minmax(0, 1fr);
+            grid-template-columns: 14px minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
             grid-template-rows: minmax(0px, 1fr) minmax(0px, 1fr) minmax(0px, 1fr) minmax(0px, 1fr);
             grid-template-areas:
-                "menu name weight"
-                ". description description"
-                ". quantity totalWeight"
-                ". system location"
+                "menu name system location"
+                ". description description description"
+                ". weight . ."
+                ". quantity . ."
+                ". totalWeight . ."
                 ;
             grid-gap: 0;
             border: 1px solid rgba(0, 0, 0, 0.125)
@@ -180,7 +195,7 @@
             grid-area: quantity;
         }
 
-        .gear-config-totalWeight
+        .gear-config-totalWeight-group
         {
             grid-area: totalWeight;
         }
