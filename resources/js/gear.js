@@ -815,7 +815,7 @@ function loadGearConfiguration (configuration)
     gearItem.append('<div class="gear-title">Description</div>');
     gearItem.append('<div class="gear-title gear-number">Weight</div>');
     gearItem.append('<div class="gear-title gear-number">Quantity</div>');
-    gearItem.append('<div class="gear-title gear-number">Total Weight</div>');
+    gearItem.append('<div class="gear-title gear-number">Total Pounds</div>');
     gearItem.append('<div class="gear-title">System</div>');
     gearItem.append('<div class="gear-title">Location</div>');
 
