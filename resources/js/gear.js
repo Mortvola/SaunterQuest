@@ -264,7 +264,7 @@ function newGearConfigItemRow (configId, itemId, gearItemId)
 
     // Total weight
     let totalWeight = $('<div></div>').addClass('gear-config-totalWeight gear-config-group').appendTo(item);
-    $('<label></label>').text('Total').addClass('gear-config-label').addClass('gear-number').appendTo(totalWeight);
+    $('<label></label>').text('Total Pounds').addClass('gear-config-label').addClass('gear-number').appendTo(totalWeight);
     $('<div/>').addClass('gear-config-totalWeight-value').addClass('gear-number').appendTo(totalWeight);
     
     // System
