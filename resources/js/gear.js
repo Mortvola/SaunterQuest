@@ -689,10 +689,19 @@ function newGearItem ()
         })
         .appendTo(row);
     
-    $('<input type="text" name="name" placeholder="Name"/>').addClass('gear-item-field').addClass('gear-name').appendTo(row);
-    $('<input type="text" name="description" placeholder="Description"/>').addClass('gear-item-field').addClass('gear-description').appendTo(row);
+    // Name
+    let name = $('<div></div>').addClass('gear-name gear-config-group').appendTo(row);
+    $('<label></label>').text('Name').addClass('gear-config-label').appendTo(name);
+    $('<input type="text" name="name" placeholder="Name"/>').addClass('gear-item-field').appendTo(name);
+
+    // Description
+    let description = $('<div></div>').addClass('gear-config-description gear-config-group').appendTo(row);
+    $('<label></label>').text('Description').addClass('gear-config-label').appendTo(description);
+    $('<input type="text" name="description" placeholder="Description"/>').addClass('gear-item-field').addClass('gear-description').appendTo(description);
     
+    // Weight
     let weight = $('<div></div>').addClass('gear-weight').appendTo(row);
+    $('<label></label>').text('Weight').addClass('gear-weight-label gear-config-label').addClass('gear-number').appendTo(weight);
     $('<input style="min-width:0" type="text" name="weight" placeholder="Weight"/>').addClass('gear-number gear-item-field').appendTo(weight);
     
     let select = $('<select name="unit_of_measure"></select>').addClass('gear-item-field').appendTo(weight);
@@ -700,6 +709,16 @@ function newGearItem ()
     select.append('<option value="lb">lb</option>');
     select.append('<option value="g">g</option>');
     select.append('<option value="kg">kg</option>');
+
+    // Days
+    let days = $('<div></div>').addClass('gear-days gear-config-group').appendTo(row);
+    $('<label></label>').text('Days').addClass('gear-config-label gear-number').appendTo(days);
+    $('<div/>').addClass('gear-item-field gear-number').appendTo(days);
+
+    // Distance
+    let distance = $('<div></div>').addClass('gear-distance gear-config-group').appendTo(row);
+    $('<label></label>').text('Distance').addClass('gear-config-label gear-number').appendTo(distance);
+    $('<div/>').addClass('gear-item-field gear-number').appendTo(distance);
 
     // Add event handlers
     

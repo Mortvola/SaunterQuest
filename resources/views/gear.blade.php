@@ -177,12 +177,12 @@
         .gear-item
         {
             display: grid;
-            grid-template-columns: 14px minmax(0, 1fr) minmax(0, 1fr);
+            grid-template-columns: 14px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
             grid-template-rows: minmax(0px, 1fr) minmax(0px, 1fr) minmax(0px, 1fr);
             grid-template-areas:
-                "menu name weight"
-                "description description description"
-                "days days distance"
+                "menu name name name weight"
+                ". description description description description"
+                ". days distance . ."
                 ;
             grid-gap: 0;
             border: 1px solid rgba(0, 0, 0, 0.125);
@@ -270,6 +270,16 @@
         {
             display: none;
             height: 100%;
+        }
+
+        .gear-days
+        {
+            grid-area: days;
+        }
+
+        .gear-distance
+        {
+            grid-area: distance;
         }
 
         .gear-config-title-bar
