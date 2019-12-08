@@ -143,13 +143,18 @@
     .gear-weight
     {
         display:grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr min-content;
         grid-template-rows: min-content minmax(0, 1fr);
         grid-template-areas:
             "label label"
             "input select"
             ;
         width: 100%;
+    }
+
+    .uofm-select
+    {
+        display: none;
     }
 
     .gear-config-item
@@ -354,7 +359,7 @@
         border-style:none;
     }
 
-    .gear-item input:hover, .gear-config-item input:hover
+    .gear-item input:hover, .gear-config-item input:hover:not([readonly])
     {
         border-style:solid;
         border-width:2px;
