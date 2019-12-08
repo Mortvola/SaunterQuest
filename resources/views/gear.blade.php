@@ -44,6 +44,8 @@
             ;
         width: 100%;
         height: 100%;
+
+        background-color: var(--gear-card-container-bg-color);
     }
 
     .gear-collapse
@@ -56,6 +58,7 @@
         background-color: var(--gear-title-bg-color);
         color: var(--gear-title-color);
         grid-area: inventory-title;
+        margin-right: 14px;
     }
 
     .gear-config-add
@@ -119,6 +122,15 @@
         display: grid;
         grid-template-columns: 14px 14px minmax(0, 1fr) minmax(0, 2fr) 100px 50px 75px;
         grid-gap: 4px;
+
+        background-color: var(--gear-bg-color);
+        color: var(--gear-color);
+    }
+
+    .gear-item input, .gear-item select
+    {
+        background-color: var(--gear-bg-color);
+        color: var(--gear-color);
     }
 
     .gear-title
@@ -145,9 +157,23 @@
         display: grid;
         grid-template-columns: 14px minmax(0, 1fr) minmax(0, 2fr) 100px 100px 100px 150px minmax(0, 1fr);
         grid-gap: 4px;
+
+        background-color: var(--gear-config-bg-color);
+        color: var(--gear-card-color);
     }
 
-    @media screen and (max-width: 668px)
+    .gear-config-item input, .gear-config-item select
+    {
+        background-color: var(--gear-config-bg-color);
+        color: var(--gear-card-color);
+    }
+
+    .gear-config-label
+    {
+        display: none;
+    }
+
+    @media screen and (max-width: 800px)
     {
         .gear-main
         {
@@ -160,6 +186,11 @@
                 "inventory-title"
                 "inventory"
                 ;
+        }
+
+        .gear-inventory-title
+        {
+            margin-right: 0;
         }
 
         .gear-inventory
@@ -186,16 +217,8 @@
                 ;
             grid-gap: 0;
             border: 1px solid rgba(0, 0, 0, 0.125);
-            background-color: var(--gear-bg-color);
-            color: var(--gear-color);
             margin: 2px;
             border-radius: 8px;
-        }
-
-        .gear-item input, .gear-item select
-        {
-            background-color: var(--gear-bg-color);
-            color: var(--gear-color);
         }
 
         .gear-config-item
@@ -210,16 +233,8 @@
                 ;
             grid-gap: 0;
             border: 1px solid rgba(0, 0, 0, 0.125);
-            background-color: var(--gear-config-bg-color);
-            color: var(--gear-card-color);
             margin: 2px;
             border-radius: 8px;
-        }
-
-        .gear-config-item input, .gear-config-item select
-        {
-            background-color: var(--gear-config-bg-color);
-            color: var(--gear-card-color);
         }
 
         .drag-handle
@@ -239,6 +254,7 @@
 
         .gear-config-label
         {
+            display: block;
             font-size: small;
             align-self: end;
             margin: 0;
