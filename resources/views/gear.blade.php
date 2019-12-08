@@ -131,7 +131,12 @@
     .gear-weight
     {
         display:grid;
-        grid-template-columns: minmax(0, 1fr) min-content;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: min-content minmax(0, 1fr);
+        grid-template-areas:
+            "label label"
+            "input select"
+            ;
         width: 100%;
     }
 
@@ -197,11 +202,10 @@
         {
             display: grid;
             grid-template-columns: 14px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
-            grid-template-rows: minmax(0px, 1fr) minmax(0px, 1fr) minmax(0px, min-content) minmax(0px, 1fr);
+            grid-template-rows: minmax(0px, 1fr) minmax(0px, 1fr) minmax(0px, 1fr);
             grid-template-areas:
                 "menu name name system location"
                 ". description description description description"
-                ". weightLabel quantityLabel totalWeightLabel ."
                 ". weight quantity totalWeight ."
                 ;
             grid-gap: 0;
@@ -233,16 +237,23 @@
             grid-area: name;
         }
 
-        .gear-description
+        .gear-config-label
+        {
+            font-size: small;
+            align-self: end;
+            margin: 0;
+            border-bottom: black solid thin;
+            width: 100%;
+        }
+
+        .gear-config-description
         {
             grid-area: description;
         }
 
         .gear-weight-label
         {
-            font-size: small;
-            align-self: end;
-            grid-area: weightLabel;
+            grid-area: label;
         }
 
         .gear-weight
@@ -266,23 +277,16 @@
             display: none;
         }
 
-        .gear-config-quantity-label
+        .gear-config-group
         {
-            font-size: small;
-            align-self: end;
-            grid-area: quantityLabel;
+            display:grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: min-content minmax(0, 1fr);
         }
 
         .gear-config-quantity
         {
             grid-area: quantity;
-        }
-
-        .gear-config-totalWeight-label
-        {
-            font-size: small;
-            align-self: end;
-            grid-area: totalWeightLabel;
         }
 
         .gear-config-totalWeight
