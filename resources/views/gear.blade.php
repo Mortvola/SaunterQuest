@@ -2,6 +2,37 @@
 
 @section('content')
 <style>
+    :root
+    {
+/*         --gear-title-bg-color: #5d4037; */
+/*         --gear-title-color: white; */
+/*         --gear-card-container-bg-color: #b3e5fc; */
+/*         --gear-card-bg-color: gray; */
+/*         --gear-card-color: white; */
+/*         --gear-title-bg-color: #89b555;
+         --gear-inventory-bg-color: #89b555;
+         --gear-title-color: white;
+         --gear-card-container-bg-color: black;
+         --gear-card-bg-color: #adb6bb;
+         --gear-card-color: black;
+         --gear-bg-color: #45525d;
+         --gear-color: white;
+         --gear-card-header-bg-color: #45525d;
+*/
+         --gear-title-color: white;
+         --gear-card-container-bg-color: black;
+
+         --gear-config-title-bg-color: #6c3108;
+         --gear-config-header-bg-color: #c3ac8a;
+         --gear-config-header-color: black;
+         --gear-config-bg-color: #e4dacb;
+
+         --gear-title-bg-color: #4d5461;
+         --gear-card-color: black;
+         --gear-bg-color: #bec0c5;
+         --gaer-color: black;
+    }
+
     .gear-main
     {
         display: grid;
@@ -15,9 +46,26 @@
         height: 100%;
     }
 
+    .gear-collapse
+    {
+        background-color: var(--gear-card-container-bg-color);
+    }
+
     .gear-inventory-title
     {
+        background-color: var(--gear-title-bg-color);
+        color: var(--gear-title-color);
         grid-area: inventory-title;
+    }
+
+    .gear-config-add
+    {
+        color: var(--gear-title-color);
+    }
+
+    .gear-config-header
+    {
+        background-color: var(--gear-config-header-bg-color);
     }
 
     .gear-inventory
@@ -32,11 +80,25 @@
         height: 100%;
         width: 100%;
         overflow: auto;
+
+        background-color: var(--gear-card-container-bg-color);
     }
 
     .gear-kits-title
     {
+        background-color: var(--gear-config-title-bg-color);
+        color: var(--gear-title-color);
         grid-area: kits-title;
+    }
+
+    .btn-link
+    {
+        color: var(--gear-config-header-color);
+    }
+
+    .btn-link:hover
+    {
+        color: white;
     }
 
     .gear-kits
@@ -48,6 +110,8 @@
         width: 100%;
         min-width: 0;
         overflow: auto;
+
+        background-color: var(--gear-card-container-bg-color);
     }
 
     .gear-item
@@ -67,21 +131,7 @@
     .gear-weight
     {
         display:grid;
-        grid-template-columns: min-content minmax(0, 1fr) min-content;
-        width: 100%;
-    }
-
-    .gear-config-quantity
-    {
-        display:grid;
-        grid-template-columns: min-content minmax(0, 1fr);
-        width: 100%;
-    }
-
-    .gear-config-totalWeight-group
-    {
-        display:grid;
-        grid-template-columns: min-content minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr) min-content;
         width: 100%;
     }
 
@@ -130,23 +180,42 @@
                 "days days distance"
                 ;
             grid-gap: 0;
-            border: 1px solid rgba(0, 0, 0, 0.125)
+            border: 1px solid rgba(0, 0, 0, 0.125);
+            background-color: var(--gear-bg-color);
+            color: var(--gear-color);
+            margin: 2px;
+            border-radius: 8px;
+        }
+
+        .gear-item input, .gear-item select
+        {
+            background-color: var(--gear-bg-color);
+            color: var(--gear-color);
         }
 
         .gear-config-item
         {
             display: grid;
-            grid-template-columns: 14px minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
-            grid-template-rows: minmax(0px, 1fr) minmax(0px, 1fr) minmax(0px, 1fr) minmax(0px, 1fr);
+            grid-template-columns: 14px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+            grid-template-rows: minmax(0px, 1fr) minmax(0px, 1fr) minmax(0px, min-content) minmax(0px, 1fr);
             grid-template-areas:
-                "menu name system location"
-                ". description description description"
-                ". weight . ."
-                ". quantity . ."
-                ". totalWeight . ."
+                "menu name name system location"
+                ". description description description description"
+                ". weightLabel quantityLabel totalWeightLabel ."
+                ". weight quantity totalWeight ."
                 ;
             grid-gap: 0;
-            border: 1px solid rgba(0, 0, 0, 0.125)
+            border: 1px solid rgba(0, 0, 0, 0.125);
+            background-color: var(--gear-config-bg-color);
+            color: var(--gear-card-color);
+            margin: 2px;
+            border-radius: 8px;
+        }
+
+        .gear-config-item input, .gear-config-item select
+        {
+            background-color: var(--gear-config-bg-color);
+            color: var(--gear-card-color);
         }
 
         .drag-handle
@@ -167,6 +236,13 @@
         .gear-description
         {
             grid-area: description;
+        }
+
+        .gear-weight-label
+        {
+            font-size: small;
+            align-self: end;
+            grid-area: weightLabel;
         }
 
         .gear-weight
@@ -190,12 +266,26 @@
             display: none;
         }
 
+        .gear-config-quantity-label
+        {
+            font-size: small;
+            align-self: end;
+            grid-area: quantityLabel;
+        }
+
         .gear-config-quantity
         {
             grid-area: quantity;
         }
 
-        .gear-config-totalWeight-group
+        .gear-config-totalWeight-label
+        {
+            font-size: small;
+            align-self: end;
+            grid-area: totalWeightLabel;
+        }
+
+        .gear-config-totalWeight
         {
             grid-area: totalWeight;
         }
@@ -275,7 +365,7 @@
                 <div class="gear-title gear-number">Distance</div>
             </div>
         </div>
-        <div class="gear-kits-title">Gear Configurations<button class='btn btn-link' data-add="gear-config"><i class='fas fa-plus'></i></button></div>
+        <div class="gear-kits-title">Gear Configurations<button class='btn btn-link' data-add="gear-config"><i class='fas fa-plus gear-config-add'></i></button></div>
         <div class="gear-kits" id="gear-kits">
         </div>
     </div>

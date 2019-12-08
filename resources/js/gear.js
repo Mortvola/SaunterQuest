@@ -238,8 +238,11 @@ function newGearConfigItemRow (configId, itemId, gearItemId)
     $('<input type="text" name="name" placeholder="Name"/>').addClass('gear-name').addClass('gear-item-field').appendTo(item);
     $('<input type="text" name="description" placeholder="Description"/>').addClass('gear-description').addClass('gear-item-field').appendTo(item);
     
+    $('<div></div>').text('Weight').addClass('gear-weight-label').addClass('gear-number').appendTo(item);
+    $('<div></div>').text('Quantity').addClass('gear-config-quantity-label').addClass('gear-number').appendTo(item);
+    $('<div></div>').text('Total').addClass('gear-config-totalWeight-label').addClass('gear-number').appendTo(item);
+    
     let weight = $('<div></div>').addClass('gear-weight');
-    $('<div></div>').text('Weight:').appendTo(weight);
     $('<input style="min-width:0" type="text" name="weight" placeholder="Weight"/>').addClass('gear-number gear-item-field').appendTo(weight);
     
     let select = $('<select name="unit_of_measure"></select>').addClass('gear-item-field');
@@ -248,19 +251,17 @@ function newGearConfigItemRow (configId, itemId, gearItemId)
     select.append('<option value="g">g</option>');
     select.append('<option value="kg">kg</option>');
 
-    weight.append(select);
+    select.appendTo(weight);
     
-    item.append(weight);
+    weight.appendTo(item);
 
-    let quantity = $('<div></div>').addClass('gear-config-quantity');
-    $('<div></div>').text('Quantity:').appendTo(quantity);
-    $('<input type="text" min="0" name="quantity" placeholder="Quantity"/>').addClass('gear-number').appendTo(quantity);
-    quantity.appendTo(item);
+//    let quantity = $('<div></div>');
+//    $('<div></div>').text('Quantity:').appendTo(quantity);
+    $('<input type="text" min="0" name="quantity" placeholder="Quantity"/>').addClass('gear-config-quantity').addClass('gear-number').appendTo(item);
     
-    let totalWeight = $('<div></div>').addClass('gear-config-totalWeight-group');
-    $('<div></div>').text('Total:').appendTo(totalWeight);
-    $('<div/>').addClass('gear-config-totalWeight').addClass('gear-number').appendTo(totalWeight);
-    totalWeight.appendTo(item);
+    //$('<div></div>').text('Total:').appendTo(totalWeight);
+
+    $('<div/>').addClass('gear-config-totalWeight').addClass('gear-number').appendTo(item);
     
     $('<input type="text" name="system" placeholder="System" list="gear-system"/>').addClass('dyna-list').addClass('gear-config-system').appendTo(item);
     $('<input type="text" name="location" placeholder="Location" list="gear-location"/>').addClass('gear-config-location').appendTo(item);
@@ -750,7 +751,7 @@ function loadGearItem (item)
 function loadGearConfiguration (configuration)
 {
     let card = $('<div></div>').addClass('card');
-    let cardHeader = $('<div style="padding:0"></div>').addClass('card-header').appendTo(card);
+    let cardHeader = $('<div style="padding:0"></div>').addClass('card-header gear-config-header').appendTo(card);
     let button = $('<button class="btn btn-link">' + configuration.name + '</button>').appendTo(cardHeader);
     button.attr('data-toggle', 'collapse');
     button.attr('data-target', '#gearCollapse' + configuration.id);
@@ -773,7 +774,7 @@ function loadGearConfiguration (configuration)
                 });
         });
 
-    let collapse = $('<div class="collapse gear-drag-target"></div>').appendTo(card);
+    let collapse = $('<div class="collapse gear-drag-target gear-collapse"></div>').appendTo(card);
     collapse.attr('id', 'gearCollapse' + configuration.id);
     collapse.attr('data-parent', '#gear-kits');
     collapse.data('id', configuration.id);
