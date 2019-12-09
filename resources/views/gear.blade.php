@@ -127,6 +127,7 @@
         display: grid;
         grid-template-columns: 14px 14px minmax(0, 1fr) minmax(0, 2fr) min-content minmax(0, 1fr) 100px 50px 75px;
         grid-gap: 4px;
+        padding-right: 8px;
 
         background-color: var(--gear-bg-color);
         color: var(--gear-color);
@@ -140,8 +141,6 @@
 
     .gear-title
     {
-        padding:1px;
-        margin:2px;
         border-bottom-style: solid;
     }
 
@@ -167,6 +166,7 @@
         display: grid;
         grid-template-columns: 14px minmax(0, 2fr) minmax(0, 3fr) min-content minmax(0, 1fr)  min-content minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
         grid-gap: 4px;
+        padding-right: 8px;
 
         background-color: var(--gear-config-bg-color);
         color: var(--gear-card-color);
@@ -218,14 +218,13 @@
         .gear-item
         {
             display: grid;
-            grid-template-columns: 14px repeat(4, minmax(0px, 1fr)) min-content;
-            grid-template-rows: repeat(3, minmax(1fr, 1fr));
+            grid-template-columns: 14px repeat(4, minmax(0, 1fr)) min-content;
+            grid-template-rows: repeat(3, minmax(0, 1fr));
             grid-template-areas:
                 "menu name name name system consumable"
                 ". description description description description description"
                 ". weight . days distance ."
                 ;
-            grid-gap: 0;
             border: 1px solid rgba(0, 0, 0, 0.125);
             margin: 2px;
             border-radius: 8px;
@@ -234,14 +233,13 @@
         .gear-config-item
         {
             display: grid;
-            grid-template-columns: 14px repeat(3, minmax(0px, 1fr)) min-content min-content;
-            grid-template-rows: repeat(3, minmax(1fr, 1fr));
+            grid-template-columns: 14px repeat(3, minmax(0, 1fr)) min-content min-content;
+            grid-template-rows: repeat(3, minmax(0, 1fr));
             grid-template-areas:
                 "menu name name system consumable location"
                 ". description description description description description"
                 ". weight quantity totalWeight . ."
                 ;
-            grid-gap: 0;
             border: 1px solid rgba(0, 0, 0, 0.125);
             margin: 2px;
             border-radius: 8px;
@@ -360,7 +358,6 @@
 
     .gear-item div, .gear-config-item div
     {
-        padding:2px;
         width: 100%;
     }
 
