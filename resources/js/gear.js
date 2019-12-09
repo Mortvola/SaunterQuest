@@ -245,6 +245,21 @@ function newGearConfigItemRow (configId, itemId, gearItemId)
     $('<label></label>').text('Description').addClass('gear-config-label').appendTo(description);
     $('<input type="text" name="description" placeholder="Description"/>').addClass('gear-description').addClass('gear-item-field').prop('readonly', true).appendTo(description);
     
+    // Consumable
+    let consumable = $('<div></div>').addClass('gear-config-consumable gear-config-check-group').appendTo(item);
+    $('<label></label>').html('<i class="fas fa-utensils">').addClass('gear-config-label').appendTo(consumable);
+    $('<input type="checkbox" name="consumable"/>').prop('readonly', true).addClass('gear-item-field').appendTo(consumable);
+    
+    // System
+    let system = $('<div></div>').addClass('gear-system gear-config-group').appendTo(item);
+    $('<label></label>').text('System').addClass('gear-config-label').appendTo(system);
+    $('<input type="text" name="system" placeholder="System" list="gear-system"/>').addClass('dyna-list').addClass('gear-item-field').prop('readonly', true).appendTo(system);
+    
+    // Location
+    let location = $('<div></div>').addClass('gear-config-location gear-config-check-group').appendTo(item);
+    $('<label></label>').html('<i class="fas fa-tshirt">').addClass('gear-config-label').appendTo(location);
+    $('<input type="checkbox" name="worn"/>').appendTo(location);
+
     // Weight
     let weight = $('<div></div>').addClass('gear-weight').appendTo(item);
     $('<label></label>').text('Weight').addClass('gear-weight-label gear-config-label').addClass('gear-number').appendTo(weight);
@@ -264,19 +279,9 @@ function newGearConfigItemRow (configId, itemId, gearItemId)
 
     // Total weight
     let totalWeight = $('<div></div>').addClass('gear-config-totalWeight gear-config-group').appendTo(item);
-    $('<label></label>').text('Total Pounds').addClass('gear-config-label').addClass('gear-number').appendTo(totalWeight);
+    $('<label></label>').text('Pounds').addClass('gear-config-label').addClass('gear-number').appendTo(totalWeight);
     $('<div/>').addClass('gear-config-totalWeight-value').addClass('gear-number').appendTo(totalWeight);
     
-    // System
-    let system = $('<div></div>').addClass('gear-system gear-config-group').appendTo(item);
-    $('<label></label>').text('System').addClass('gear-config-label').appendTo(system);
-    $('<input type="text" name="system" placeholder="System" list="gear-system"/>').addClass('dyna-list').appendTo(system);
-    
-    // Location
-    let location = $('<div></div>').addClass('gear-config-location gear-config-group').appendTo(item);
-    $('<label></label>').text('Location').addClass('gear-config-label').appendTo(location);
-    $('<input type="text" name="location" placeholder="Location" list="gear-location"/>').appendTo(location);
-
     $.extend(item, {delayedSave: function () { delayedSave(item, function () { saveConfigItem(item); }); } });
     
     $.extend(item, {computeWeight: function ()
@@ -384,7 +389,14 @@ function getNamedValues (item)
     
     item.find ('[name]').each (function ()
         {
-            record[$(this).attr("name")] = $(this).val ();
+            if ($(this).is(':checkbox'))
+            {
+                record[$(this).attr("name")] = $(this).prop ('checked');
+            }
+            else
+            {
+                record[$(this).attr("name")] = $(this).val ();
+            }
         });
     
     return record;
@@ -397,7 +409,16 @@ function setNamedValues (row, item)
 
     for (const [prop, value] of entries)
     {
-        row.find('[name="' + prop + '"]').val(value);
+        let element = row.find('[name="' + prop + '"]');
+        
+        if ($(element).is(':checkbox'))
+        {
+            element.prop('checked', value);
+        }
+        else
+        {
+            element.val(value);
+        }
     }
 }
 
@@ -694,6 +715,16 @@ function newGearItem ()
     $('<label></label>').text('Description').addClass('gear-config-label').appendTo(description);
     $('<input type="text" name="description" placeholder="Description"/>').addClass('gear-item-field').addClass('gear-description').appendTo(description);
     
+    // Consumable
+    let consumable = $('<div></div>').addClass('gear-config-consumable gear-config-check-group').appendTo(row);
+    $('<label></label>').html('<i class="fas fa-utensils">').addClass('gear-config-label').appendTo(consumable);
+    $('<input type="checkbox" name="consumable"/>').appendTo(consumable);
+
+    // System
+    let system = $('<div></div>').addClass('gear-system gear-config-group').appendTo(row);
+    $('<label></label>').text('System').addClass('gear-config-label').appendTo(system);
+    $('<input type="text" name="system" placeholder="System" list="gear-system"/>').addClass('dyna-list').appendTo(system);
+    
     // Weight
     let weight = $('<div></div>').addClass('gear-weight').appendTo(row);
     $('<label></label>').text('Weight').addClass('gear-weight-label gear-config-label').addClass('gear-number').appendTo(weight);
@@ -816,11 +847,12 @@ function loadGearConfiguration (configuration)
     gearItem.append('<div></div>');
     gearItem.append('<div class="gear-title">Item Name</div>');
     gearItem.append('<div class="gear-title">Description</div>');
+    gearItem.append('<div class="gear-title"><i class="fas fa-utensils"></i></div>');
+    gearItem.append('<div class="gear-title">System</div>');
+    gearItem.append('<div class="gear-title"><i class="fas fa-tshirt"></i></div>');
     gearItem.append('<div class="gear-title gear-number">Weight</div>');
     gearItem.append('<div class="gear-title gear-number">Quantity</div>');
-    gearItem.append('<div class="gear-title gear-number">Total Pounds</div>');
-    gearItem.append('<div class="gear-title">System</div>');
-    gearItem.append('<div class="gear-title">Location</div>');
+    gearItem.append('<div class="gear-title gear-number">Pounds</div>');
 
     if (configuration.gear_configuration_items && configuration.gear_configuration_items.length > 0)
     {

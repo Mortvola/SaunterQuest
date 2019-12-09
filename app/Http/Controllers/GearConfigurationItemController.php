@@ -26,9 +26,8 @@ class GearConfigurationItemController extends Controller
 
             $configItem = $config->gearConfigurationItems()->create ([
                 "gear_item_id" => $gearItem->id,
-                "system" => $configItemRequest->system,
                 "quantity" => $configItemRequest->quantity,
-                "location" => $configItemRequest->location
+                "worn" => $configItemRequest->worn
             ]);
 
             $configItem->save ();
@@ -61,15 +60,13 @@ class GearConfigurationItemController extends Controller
                 (((isset($configItem->gear_item_id) && !isset($gearItem->id)) ||
                  (!isset($configItem->gear_item_id) && isset($gearItem->id)) ||
                  (isset($configItem->gear_item_id) && isset($gearItem->id) && $configItem->gear_item_id != $gearItem->id)) ||
-               $configItem->system != $configItemRequest->system ||
                $configItem->quantity != $configItemRequest->quantity ||
-               $configItem->location != $configItemRequest->location))
+               $configItem->worn != $configItemRequest->worn))
             {
                 $configItem->fill([
                     "gear_item_id" => isset($gearItem->id) ? $gearItem->id : null,
-                    "system" => $configItemRequest->system,
                     "quantity" => $configItemRequest->quantity,
-                    "location" => $configItemRequest->location
+                    "worn" => $configItemRequest->worn
                 ]);
 
                 $configItem->save ();
@@ -102,13 +99,17 @@ class GearConfigurationItemController extends Controller
                 ($gearItem->name != $configItemRequest->name ||
                     $gearItem->description != $configItemRequest->description ||
                     $gearItem->weight != $configItemRequest->weight ||
-                    $gearItem->unit_of_measure != $configItemRequest->unit_of_measure))
+                    $gearItem->unit_of_measure != $configItemRequest->unit_of_measure ||
+                    $gearItem->consumable != $configItemRequest->consumable ||
+                    $gearItem->system != $configItemRequest->system))
             {
                 $gearItem->fill ([
                     "name" => $configItemRequest->name,
                     "description" => $configItemRequest->description,
                     "weight" => $configItemRequest->weight,
-                    "unit_of_measure" => $configItemRequest->unit_of_measure
+                    "unit_of_measure" => $configItemRequest->unit_of_measure,
+                    "system" => $configItemRequest->system,
+                    "consumable" => $configItemRequest->consumable
                 ]);
 
                 $gearItem->save ();
@@ -124,7 +125,9 @@ class GearConfigurationItemController extends Controller
                 "name" => $configItemRequest->name,
                 "description" => $configItemRequest->description,
                 "weight" => $configItemRequest->weight,
-                "unit_of_measure" => $configItemRequest->unit_of_measure
+                "unit_of_measure" => $configItemRequest->unit_of_measure,
+                "system" => $configItemRequest->system,
+                "consumable" => $configItemRequest->consumable
             ]);
 
             $gearItem->save ();

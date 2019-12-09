@@ -11,7 +11,7 @@ class GearConfigurationItem extends Model
 
     protected $hidden = [Hike::CREATED_AT, Hike::UPDATED_AT];
 
-    protected $fillable = ['gear_item_id', 'system', 'quantity', 'location'];
+    protected $fillable = ['gear_item_id', 'quantity', 'worn'];
 
     public function gearItem ()
     {

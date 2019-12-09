@@ -22,8 +22,10 @@ class GearItemController extends Controller
             "name" => $gearItemRequest->name,
             "description" => $gearItemRequest->description,
             "weight" => $gearItemRequest->weight,
-            "unit_of_measure" => $gearItemRequest->unit_of_measure
-            ]);
+            "unit_of_measure" => $gearItemRequest->unit_of_measure,
+            "system" => $gearItemRequest->system,
+            "consumable" => $gearItemRequest->consumable
+        ]);
 
         $gearItem->save ();
 
@@ -42,7 +44,9 @@ class GearItemController extends Controller
                 "name" => $gearItemRequest->name,
                 "description" => $gearItemRequest->description,
                 "weight" => $gearItemRequest->weight,
-                "unit_of_measure" => $gearItemRequest->unit_of_measure
+                "unit_of_measure" => $gearItemRequest->unit_of_measure,
+                "system" => $gearItemRequest->system,
+                "consumable" => $gearItemRequest->consumable
             ]);
 
             $gearItem->save ();

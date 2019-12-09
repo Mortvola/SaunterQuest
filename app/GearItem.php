@@ -11,7 +11,7 @@ class GearItem extends Model
 
     protected $hidden = [Hike::CREATED_AT, Hike::UPDATED_AT, 'user_id'];
 
-    protected $fillable = ['user_id', 'name', 'description', 'weight', 'unit_of_measure'];
+    protected $fillable = ['user_id', 'name', 'description', 'weight', 'unit_of_measure', 'system', 'consumable'];
 
     function user ()
     {

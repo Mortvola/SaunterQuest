@@ -33,11 +33,16 @@
          --gaer-color: black;
     }
 
+    input[type="checkbox"][readonly]
+    {
+      pointer-events: none;
+    }
+
     .gear-main
     {
         display: grid;
         grid-template-rows: min-content minmax(0px, 1fr);
-        grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
         grid-template-areas:
             "inventory-title kits-title"
             "inventory kits"
@@ -120,7 +125,7 @@
     .gear-item
     {
         display: grid;
-        grid-template-columns: 14px 14px minmax(0, 1fr) minmax(0, 2fr) 100px 50px 75px;
+        grid-template-columns: 14px 14px minmax(0, 1fr) minmax(0, 2fr) min-content minmax(0, 1fr) 100px 50px 75px;
         grid-gap: 4px;
 
         background-color: var(--gear-bg-color);
@@ -160,7 +165,7 @@
     .gear-config-item
     {
         display: grid;
-        grid-template-columns: 14px minmax(0, 1fr) minmax(0, 2fr) 100px 100px 100px 150px minmax(0, 1fr);
+        grid-template-columns: 14px minmax(0, 2fr) minmax(0, 3fr) min-content minmax(0, 1fr)  min-content minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
         grid-gap: 4px;
 
         background-color: var(--gear-config-bg-color);
@@ -213,12 +218,12 @@
         .gear-item
         {
             display: grid;
-            grid-template-columns: 14px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
-            grid-template-rows: minmax(0px, 1fr) minmax(0px, 1fr) minmax(0px, 1fr);
+            grid-template-columns: 14px repeat(4, minmax(0px, 1fr)) min-content;
+            grid-template-rows: repeat(3, minmax(1fr, 1fr));
             grid-template-areas:
-                "menu name name name weight"
-                ". description description description description"
-                ". days distance . ."
+                "menu name name name system consumable"
+                ". description description description description description"
+                ". weight . days distance ."
                 ;
             grid-gap: 0;
             border: 1px solid rgba(0, 0, 0, 0.125);
@@ -229,12 +234,12 @@
         .gear-config-item
         {
             display: grid;
-            grid-template-columns: 14px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
-            grid-template-rows: minmax(0px, 1fr) minmax(0px, 1fr) minmax(0px, 1fr);
+            grid-template-columns: 14px repeat(3, minmax(0px, 1fr)) min-content min-content;
+            grid-template-rows: repeat(3, minmax(1fr, 1fr));
             grid-template-areas:
-                "menu name name system location"
-                ". description description description description"
-                ". weight quantity totalWeight ."
+                "menu name name system consumable location"
+                ". description description description description description"
+                ". weight quantity totalWeight . ."
                 ;
             grid-gap: 0;
             border: 1px solid rgba(0, 0, 0, 0.125);
@@ -315,6 +320,13 @@
             grid-template-rows: min-content minmax(0, 1fr);
         }
 
+        .gear-config-check-group
+        {
+            display:grid;
+            grid-template-columns: min-content;
+            grid-template-rows: min-content 1fr;
+        }
+
         .gear-config-quantity
         {
             grid-area: quantity;
@@ -333,6 +345,11 @@
         .gear-config-location
         {
             grid-area: location;
+        }
+
+        .gear-config-consumable
+        {
+            grid-area: consumable
         }
     }
 
@@ -395,6 +412,8 @@
                 <div></div>
                 <div class="gear-title">Item Name</div>
                 <div class="gear-title">Description</div>
+                <div class="gear-title"><i class="fas fa-utensils"></i></div>
+                <div class="gear-title">System</div>
                 <div class="gear-title gear-number">Weight</div>
                 <div class="gear-title gear-number">Days</div>
                 <div class="gear-title gear-number">Distance</div>
