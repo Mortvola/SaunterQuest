@@ -64,6 +64,7 @@
         color: var(--gear-title-color);
         grid-area: inventory-title;
         margin-right: 14px;
+        user-select: none;
     }
 
     .gear-config-add
@@ -97,6 +98,7 @@
         background-color: var(--gear-config-title-bg-color);
         color: var(--gear-title-color);
         grid-area: kits-title;
+        user-select: none;
     }
 
     .btn-link
@@ -201,6 +203,7 @@
         .gear-inventory-title
         {
             margin-right: 0;
+            --drag-divider: true;
         }
 
         .gear-inventory
@@ -402,7 +405,7 @@
 </style>
 
 	<div class="gear-main">
-        <div class="gear-inventory-title">Gear Inventory</div>
+        <div class="gear-inventory-title drag-divider" data-div-thing1='gear-kits' data-div-thing2='gear-inventory'>Gear Inventory</div>
         <div class="gear-inventory" id="gear-inventory">
             <div class="gear-item gear-title-bar">
                 <div></div>
@@ -428,5 +431,6 @@
     <datalist id="gear-system">
     <script>
     <?php require_once resource_path('js/gear.js'); ?>
+    <?php require_once resource_path('js/dragDivider.js'); ?>
     </script>
 @endsection
