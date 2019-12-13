@@ -59,6 +59,10 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/gear/configuration', 'GearConfigurationController@get');
     Route::post('/gear/configuration', 'GearConfigurationController@post');
+    Route::put('/gear/configuration/{gearConfigId}', function ($gearConfigId, Request $request)
+    {
+        return (new GearConfigurationController())->put($gearConfigId, $request);
+    });
     Route::delete('/gear/configuration/{gearConfigId}', function ($gearConfigId)
     {
         return (new GearConfigurationController())->delete($gearConfigId);

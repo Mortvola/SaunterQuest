@@ -46,6 +46,18 @@ class GearConfigurationController extends Controller
         return $gearConfig;
     }
 
+
+    public function put ($gearConfigId, Request $request)
+    {
+        $configRequest = json_decode($request->getContent());
+
+        $gearConfig = Auth::user()->gearConfigurations()->find($gearConfigId);
+
+        $gearConfig->name = $configRequest->name;
+
+        $gearConfig->save ();
+    }
+
     function delete ($configId)
     {
         GearConfiguration::where('id', $configId)->delete ();

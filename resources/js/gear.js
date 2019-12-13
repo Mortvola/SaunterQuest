@@ -815,11 +815,23 @@ function loadGearItem (item)
 function loadGearConfiguration (configuration)
 {
     let card = $('<div></div>').addClass('card');
-    let cardHeader = $('<div style="padding:0"></div>').addClass('card-header gear-config-header').appendTo(card);
-    let button = $('<button class="btn btn-link">' + configuration.name + '</button>').appendTo(cardHeader);
-    button.attr('data-toggle', 'collapse');
-    button.attr('data-target', '#gearCollapse' + configuration.id);
-    
+    let cardHeader = $('<div></div>')
+        .addClass('card-header gear-config-header')
+        .appendTo(card);
+
+    $('<button></button>')
+        .addClass("btn btn-link")
+        .html('<i class="fas fa-caret-down"></i>')
+        .attr('data-toggle', 'collapse')
+        .attr('data-target', '#gearCollapse' + configuration.id)
+        .appendTo(cardHeader);
+        
+    $('<div></div>')
+        .css('display', 'inline-block')
+        .text(configuration.name)
+        .editable('/gear/configuration/' + configuration.id, 'name')
+        .appendTo(cardHeader);
+        
     let del = $('<i class="fas fa-trash-alt"></i>').appendTo(cardHeader);
     del.on('click', function ()
         {

@@ -74,6 +74,7 @@
 
     .gear-config-header
     {
+        padding: 0;
         background-color: var(--gear-config-header-bg-color);
     }
 
@@ -432,5 +433,6 @@
     <script>
     <?php require_once resource_path('js/gear.js'); ?>
     <?php require_once resource_path('js/dragDivider.js'); ?>
+    <?php require_once resource_path('js/editable.js'); ?>
     </script>
 @endsection
