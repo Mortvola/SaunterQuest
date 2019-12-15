@@ -308,7 +308,9 @@ function newGearConfigItemRow (configId, itemId, gearItemId)
                     break;
             }
             
-            item.find('.gear-config-totalWeight-value').text(totalWeight.toLocaleString(undefined, {maximumFractionDigits: 4}));
+            item.find('.gear-config-totalWeight-value').text(totalWeight.toLocaleString(undefined, {maximumFractionDigits: 4, minimumFractionDigits: 4}));
+            
+            return totalWeight;
         }});
 
     // Add event handlers
@@ -831,7 +833,29 @@ function loadGearConfiguration (configuration)
         .text(configuration.name)
         .editable('/gear/configuration/' + configuration.id, 'name')
         .appendTo(cardHeader);
-        
+
+    $('<div></div>')
+        .text('Pack Weight:')
+        .css('justify-self', 'right')
+        .appendTo(cardHeader);
+    
+    $('<div></div>')
+        .css('justify-self', 'right')
+        .css('padding-right', '14px')
+        .addClass('config-pack-weight')
+        .appendTo(cardHeader);
+
+    $('<div></div>')
+        .text('Worn Weight:')
+        .css('justify-self', 'right')
+        .appendTo(cardHeader);
+
+    $('<div></div>')
+        .css('justify-self', 'right')
+        .css('padding-right', '14px')
+        .addClass('config-worn-weight')
+        .appendTo(cardHeader);
+
     let del = $('<i class="fas fa-trash-alt"></i>').appendTo(cardHeader);
     del.on('click', function ()
         {
@@ -866,6 +890,9 @@ function loadGearConfiguration (configuration)
     gearItem.append('<div class="gear-title gear-number">Quantity</div>');
     gearItem.append('<div class="gear-title gear-number">Pounds</div>');
 
+    let totalPackWeight = 0;
+    let totalWornWeight = 0;
+    
     if (configuration.gear_configuration_items && configuration.gear_configuration_items.length > 0)
     {
         for (let configItem of configuration.gear_configuration_items)
@@ -888,7 +915,16 @@ function loadGearConfiguration (configuration)
                 row.find('.uofm-text').text(configItem.gear_item.unit_of_measure);
             }
             
-            row.computeWeight ();
+            let weight = row.computeWeight ();
+            
+            if (configItem.worn)
+            {
+                totalWornWeight += weight;
+            }
+            else
+            {
+                totalPackWeight += weight;
+            }
             
             gearItem.after(row);
         }
@@ -899,6 +935,9 @@ function loadGearConfiguration (configuration)
         gearItem.after(nextRow);
     }
 
+    card.find('.config-pack-weight').text(totalPackWeight.toLocaleString(undefined, {maximumFractionDigits: 4, minimumFractionDigits: 4}));
+    card.find('.config-worn-weight').text(totalWornWeight.toLocaleString(undefined, {maximumFractionDigits: 4, minimumFractionDigits: 4}));
+    
     collapse.droppable(
         {
             accept: ".gear-item",

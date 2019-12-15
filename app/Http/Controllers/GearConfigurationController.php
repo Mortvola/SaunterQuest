@@ -9,13 +9,24 @@ use App\GearConfigurationItem;
 
 class GearConfigurationController extends Controller
 {
-    function get ()
+    function get ($gearConfigId)
     {
-        $configurations = Auth::user()->gearConfigurations;
+        if (isset($gearConfigId) && $gearConfigId != null)
+        {
+            $configuration = Auth::user()->gearConfigurations->find($gearConfigId);
 
-        $configurations->load('gearConfigurationItems.gearItem');
+            $configuration->load('gearConfigurationItems.gearItem');
 
-        return $configurations;
+            return $configuration;
+        }
+        else
+        {
+            $configurations = Auth::user()->gearConfigurations;
+
+            $configurations->load('gearConfigurationItems.gearItem');
+
+            return $configurations;
+        }
     }
 
     function post (Request $request)

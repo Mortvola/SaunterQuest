@@ -21,7 +21,7 @@ function findPointOfInterestIndex (poiId)
 function removePointOfInterest (object, position)
 {
 	$.ajax({
-        url: userHikeId + "/pointOfInterest/" + object.id,
+        url: hike.id + "/pointOfInterest/" + object.id,
         headers:
         {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
@@ -89,7 +89,7 @@ function updatePointOfInterest (poiId)
 	delete pointOfInterest.hangOut;
 	
     $.ajax({
-        url: userHikeId + "/pointOfInterest/" + poiId,
+        url: hike.id + "/pointOfInterest/" + poiId,
         headers:
         {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
@@ -172,7 +172,7 @@ function insertPointOfInterest (position)
 	
 	pointOfInterest.lat = position.lat ();
 	pointOfInterest.lng = position.lng ();
-	pointOfInterest.userHikeId = userHikeId;
+	pointOfInterest.userHikeId = hike.id;
 	
 	if (pointOfInterest.hangOut != "")
 	{
@@ -182,7 +182,7 @@ function insertPointOfInterest (position)
 	}
 
     $.ajax({
-        url: userHikeId + "/pointOfInterest",
+        url: hike.id + "/pointOfInterest",
         headers:
         {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
@@ -215,7 +215,7 @@ function showAddPointOfInterest (object, position)
 function retrievePointsOfInterest ()
 {
     $.get({
-        url: userHikeId + "/pointOfInterest",
+        url: hike.id + "/pointOfInterest",
         dataType: "json"
     })
     .done (function(responseText)

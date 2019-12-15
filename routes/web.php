@@ -57,7 +57,10 @@ Route::middleware(['auth'])->group(function () {
 
     // Gear configuration interface
 
-    Route::get('/gear/configuration', 'GearConfigurationController@get');
+    Route::get('/gear/configuration/{gearConfigId?}', function ($gearConfigId = null)
+    {
+        return (new GearConfigurationController)->get($gearConfigId);
+    });
     Route::post('/gear/configuration', 'GearConfigurationController@post');
     Route::put('/gear/configuration/{gearConfigId}', function ($gearConfigId, Request $request)
     {

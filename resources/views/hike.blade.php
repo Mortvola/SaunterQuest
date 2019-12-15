@@ -137,6 +137,22 @@
             }
         }
 
+        .card
+        {
+            margin: 8px 8px 12px 8px;
+            box-shadow: 0 2px 7px 1px rgba(0,0,0,0.3);
+        }
+
+        .card-header
+        {
+            padding: 8px;
+        }
+
+        .gear-card-body
+        {
+            margin: 4px;
+        }
+
     </style>
 
 	<?php require_once resource_path('js/elevationChart.js'); ?>
@@ -159,6 +175,9 @@
 	@component('exportTrailDialog')
 	@endcomponent
 
+    @component('changeGearDialog')
+    @endcomponent
+
     <div class="hike-grid">
         <div class="map-grid-item">
         	<div id="map" style="width:100%;height:100%"></div>
@@ -178,7 +197,7 @@
     	<div class="ele-grid-item" id="elevation_chart_div">
         </div>
         <div class="controls-grid-item">
-                <ul class="nav nav-tabs" role="tablist">
+                <ul class="nav nav-tabs" style="background-color:#f7f7f7" role="tablist">
                     <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#schedule">Schedule</a></li>
                     <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#trailConditions">Trail Conditions</a></li>
                     <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#hikerProfiles">Hiker Profiles</a></li>
@@ -188,7 +207,7 @@
                     <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#notes">Notes</a></li>
                     <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#waypoints">Route</a></li>
                 </ul>
-                <div class="tab-content" style="overflow-y:scroll;width:100%;height:100%;">
+                <div class="tab-content" style="overflow-y:auto;width:100%;height:100%;">
                     <div id="schedule" class="tab-pane fade show active">
                     </div>
                     <div id="hikerProfiles" class="tab-pane fade">
@@ -210,20 +229,8 @@
                         </table>
                     </div>
                     <div id="equipment" class="tab-pane fade">
-                        <table class="table table-condensed">
-                        <thead>
-                        <tr>
-                        <th>Type</th>
-                        <th>Brand & Model</th>
-                        <th>Max Distance</th>
-                        <th>Current Distance</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                            <tr id="gearLastRow">
-                                <td><a class='btn btn-sm' onclick='addGear()'><i class='fas fa-plus'></i></span></a></td>
-                            </tr>
-                        </table>
+                        @component('hikeGearList')
+                        @endcomponent
                     </div>
                     <div id="resupply" class="tab-pane fade">
                     </div>
@@ -275,7 +282,6 @@
     <script>
         <?php require_once resource_path('js/waypoints.js'); ?>
 
-        var userHikeId = {{ $hikeId }};
         var userAdmin = {{ Auth::user()->admin ? 'true' : 'false' }};
         var tileServerUrl = "{{ env('TILE_SERVER_URL', '') }}";
         var endOfDayUrl = "{{ asset('moon_pin.png') }}";
@@ -291,12 +297,13 @@
     <?php require_once resource_path('js/trailMarker.js'); ?>
     <script>
         <?php require_once resource_path('js/route.js'); ?>
+        <?php require_once resource_path('js/changeGearDialog.js'); ?>
     </script>
     <?php require_once resource_path('js/schedule.js'); ?>
     <?php require_once resource_path('js/pointOfInterest.js'); ?>
-    <script defer>
+    <script>
         <?php require_once resource_path('js/hike.js'); ?>
-        var hike = new Hike;
+        let hike = new Hike;
 
         hike.id = {{ $hikeId }};
         hike.gearConfigId = {{ $gearConfigId }};

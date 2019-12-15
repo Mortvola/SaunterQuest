@@ -15,7 +15,7 @@ class Schedule
 		var schedule = this;
 		
 	    $.get({
-	        url: userHikeId + "/schedule",
+	        url: hike.id + "/schedule",
 	        dataType: "json"
 	    })
 	    .done (function(responseText)

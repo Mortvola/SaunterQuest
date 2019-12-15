@@ -76,6 +76,10 @@
     {
         padding: 0;
         background-color: var(--gear-config-header-bg-color);
+
+        display: grid;
+        grid-template-columns: min-content minmax(0, 1fr) 150px 90px 150px 90px min-content;
+        align-items: center;
     }
 
     .gear-inventory

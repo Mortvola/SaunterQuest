@@ -37,7 +37,7 @@ function insertTrailCondition ()
 {
 	var trailCondition = objectifyForm($("#trailConditionForm").serializeArray());
 	
-	trailCondition.userHikeId = userHikeId;
+	trailCondition.userHikeId = hike.id;
 	
 	trailCondition.start = trailConditionRouteHighlighter.getStartPosition ();
 	trailCondition.end = trailConditionRouteHighlighter.getEndPosition ();
@@ -46,7 +46,7 @@ function insertTrailCondition ()
 	if (trailCondition.start && trailCondition.end)
 	{
         $.ajax({
-            url: userHikeId + "/trailCondition",
+            url: hike.id + "/trailCondition",
             headers:
             {
                 "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
@@ -134,7 +134,7 @@ function getTrailConditionColor (type)
 function retrieveTrailConditions ()
 {
     $.get({
-        url: userHikeId + "/trailCondition",
+        url: hike.id + "/trailCondition",
         dataType: "json"
     })
     .done (function(trailConditions)
@@ -292,7 +292,7 @@ function updateTrailCondition (trailConditionId)
 	trailCondition.end = trailConditionRouteHighlighter.getEndPosition ();
 	
     $.ajax({
-        url: userHikeId + "/trailCondition/" + trailConditionId,
+        url: hike.id + "/trailCondition/" + trailConditionId,
         headers:
         {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
@@ -331,7 +331,7 @@ function updateTrailCondition (trailConditionId)
 function removeTrailCondition (trailConditionId)
 {
     $.ajax({
-        url: userHikeId + "/trailCondition/" + trailConditionId,
+        url: hike.id + "/trailCondition/" + trailConditionId,
         headers:
         {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),

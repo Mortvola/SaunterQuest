@@ -65,9 +65,14 @@ class HikeController extends Controller
 
         if ($hike)
         {
-	        if (isset($update->name))
-	        {
+            if (isset($update->name))
+            {
                 $hike->name = $update->name;
+            }
+
+            if (isset($update->gearConfigId))
+            {
+                $hike->gear_configuration_id = $update->gearConfigId;
             }
 
             $hike->save ();

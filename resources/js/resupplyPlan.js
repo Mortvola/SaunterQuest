@@ -80,7 +80,7 @@
 			}
 		}
 		
-		xmlhttp.open("GET", userHikeId + "/resupplyPlan", true);
+		xmlhttp.open("GET", hike.id + "/resupplyPlan", true);
 		//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 		xmlhttp.send();
 	}
@@ -125,7 +125,7 @@
 		
 		xmlhttp.open("POST", "/resupplyLocation.php", true);
 		xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-		xmlhttp.send("userHikeId=" + userHikeId + "\&resupplyLocation=" + JSON.stringify(resupplyLocation));
+		xmlhttp.send("userHikeId=" + hike.id + "\&resupplyLocation=" + JSON.stringify(resupplyLocation));
 	}
 	
 	
@@ -168,7 +168,7 @@
 			}
 		}
 		
-		xmlhttp.open("GET", userHikeId + "/resupplyLocation", true);
+		xmlhttp.open("GET", hike.id + "/resupplyLocation", true);
 		//xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 		xmlhttp.send();
 	}
@@ -176,7 +176,7 @@
 	
 	function resupplyFromLocation (object, position)
 	{
-		let resupplyEvent = {userHikeId: userHikeId, shippingLocationId: object.shippingLocationId}
+		let resupplyEvent = {userHikeId: hike.id, shippingLocationId: object.shippingLocationId}
 	
 		var xmlhttp = new XMLHttpRequest ();
 		xmlhttp.onreadystatechange = function ()

@@ -49,7 +49,7 @@ function hikerProfileRowGet (profile)
 function retrieveHikerProfiles ()
 {
     $.get({
-        url: userHikeId + "/hikerProfile",
+        url: hike.id + "/hikerProfile",
         dataType: "json"
     })
     .done (function(responseText)
@@ -163,7 +163,7 @@ function updateHikerProfile (hikerProfileId)
 	}
 
     $.ajax({
-        url: userHikeId + "/hikerProfile/" + hikerProfileId,
+        url: hike.id + "/hikerProfile/" + hikerProfileId,
         headers:
         {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
@@ -209,10 +209,10 @@ function insertHikerProfile ()
 		profile.breakDuration = parseInt(profile.breakDuration);
 	}
 
-	profile.userHikeId = userHikeId;
+	profile.userHikeId = hike.id;
 	
     $.ajax({
-        url: userHikeId + "/hikerProfile",
+        url: hike.id + "/hikerProfile",
         headers:
         {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
@@ -237,7 +237,7 @@ function insertHikerProfile ()
 function removeHikerProfile (hikerProfileId)
 {
     $.ajax({
-        url: userHikeId + "/hikerProfile" + hikerProfileId,
+        url: hike.id + "/hikerProfile" + hikerProfileId,
         headers:
         {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
