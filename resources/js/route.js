@@ -630,7 +630,7 @@ class Route
 
                         if (constraint.time !== null)
                         {
-                        	this.value = formatTime(constraint.time);
+                            this.value = formatTime(constraint.time);
                         }
                     }
                     else
@@ -671,19 +671,20 @@ class Route
                     else
                     {
                         if (inputType == 'time')
-	                    {
-	                        value = unformatTime(this.value);
-	                    }
-	                    else
-	                    {
-	                        value = parseInt(this.value);
+                        {
+                            value = unformatTime(this.value);
                         }
-    
+                        else
+                        {
+                            value = parseInt(this.value);
+                        }
+                        
                         if (isNaN(value))
                         {
                             value = null;
                         }
                     }
+                    
                     
                     details.timeConstraints.push(
                         {
@@ -706,12 +707,39 @@ class Route
             .done (function()
             {
                 marker.name = details.name;
+                marker.gearConfigId = details.gearConfigId;
                 marker.timeConstraints = details.timeConstraints;
             });
             
             $("#waypointDialog").modal ('hide');
         });
-        $("#waypointDialog").modal ('show');
+        
+        $.getJSON("/gear/configuration")
+        .done (function (configurations)
+            {
+                let select = $('#waypointDialog select');
+                
+                select.empty ();
+
+                $('<option></option>')
+                .text('None')
+                .appendTo(select);
+
+                for (let configuration of configurations)
+                {
+                    $('<option></option>')
+                        .text(configuration.name)
+                        .attr('value', configuration.id)
+                        .appendTo(select);
+                }
+
+                if (marker.gearConfigId !== undefined)
+                {
+                    $("#waypointForm [name='gearConfigId']").val(marker.gearConfigId);
+                }
+                
+                $("#waypointDialog").modal ('show');
+            });
     }
 
     setWaypointOrder (order)
@@ -852,6 +880,7 @@ class Route
 	{
         waypoint.timeConstraints = anchor.time_constraints;
         waypoint.name = anchor.name;
+        waypoint.gearConfigId = anchor.gear_configuration_id;
         waypoint.setPosition(anchor);
 	}
 	

@@ -273,10 +273,8 @@
     </div>
 
     <script>
-    <?php require_once resource_path('js/waypoints.js'); ?>
-    </script>
+        <?php require_once resource_path('js/waypoints.js'); ?>
 
-    <script>
         var userHikeId = {{ $hikeId }};
         var userAdmin = {{ Auth::user()->admin ? 'true' : 'false' }};
         var tileServerUrl = "{{ env('TILE_SERVER_URL', '') }}";
@@ -301,6 +299,9 @@
         var hike = new Hike;
 
         hike.id = {{ $hikeId }};
+        hike.gearConfigId = {{ $gearConfigId }};
+
+        <?php require_once resource_path('js/changeGearDialog.js'); ?>
     </script>
     <?php require_once resource_path('js/trails.js'); ?>
     <?php require_once resource_path('js/hikerProfile.js'); ?>

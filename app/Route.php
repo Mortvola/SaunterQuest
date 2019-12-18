@@ -533,26 +533,37 @@ class Route implements ArrayAccess
         {
             $waypoint = $this->anchors[$waypointIndex];
 
-            $waypoint->name = $details->name;
-
-            foreach ($details->timeConstraints as $constraint)
+            if (isset($details->name))
             {
-                if (isset($constraint->id) && $constraint->id !== null)
+                $waypoint->name = $details->name;
+            }
+
+            if (isset($details->timeConstraints))
+            {
+                foreach ($details->timeConstraints as $constraint)
                 {
-                    $timeConstraint = $waypoint->timeConstraints->find($constraint->id);
+                    if (isset($constraint->id) && $constraint->id !== null)
+                    {
+                        $timeConstraint = $waypoint->timeConstraints->find($constraint->id);
 
-                    $timeConstraint->type = $constraint->type;
-                    $timeConstraint->time = $constraint->time;
+                        $timeConstraint->type = $constraint->type;
+                        $timeConstraint->time = $constraint->time;
+                    }
+                    else
+                    {
+                        $timeConstraint = new TimeConstraint;
+
+                        $timeConstraint->type = $constraint->type;
+                        $timeConstraint->time = $constraint->time;
+                    }
+
+                    $waypoint->timeConstraints()->save ($timeConstraint);
                 }
-                else
-                {
-                    $timeConstraint = new TimeConstraint;
+            }
 
-                    $timeConstraint->type = $constraint->type;
-                    $timeConstraint->time = $constraint->time;
-                }
-
-                $waypoint->timeConstraints()->save ($timeConstraint);
+            if (isset($details->gearConfigId))
+            {
+                $waypoint->gear_configuration_id = $details->gearConfigId;
             }
         }
     }

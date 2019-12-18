@@ -22,7 +22,8 @@ class RoutePoint extends Model
         'dist',
         'trail',
         'timeConstraints',
-        'name'
+        'name',
+        'gear_configuration_id'
     ];
 
     protected $appends = [

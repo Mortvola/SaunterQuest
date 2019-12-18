@@ -9,10 +9,10 @@
             </div>
             <div class="modal-body">
                 <form id='waypointForm'>
-                    <div class="form-group">
-                    <label>Name:</label>
-                    <input type="text" class='form-control' name='name'/>
-                    </div>
+                    <label style="display:block">
+                        Name:
+                        <input type="text" class='form-control' name='name'/>
+                    </label>
 
                     <div class="form-check">
                         <input type="checkbox" class='form-check-input' data-constraint='camp'/>
@@ -20,15 +20,22 @@
                     </div>
                     <br/>
 
-                    <div class="form-group">
-                    <label>Start Time:</label>
-                    <input type="time" class='form-control' data-constraint='startTime' value=''/>
-                    </div>
+                    <label style="display:block">
+                        Delay (in minutes)
+                        <input type="text" class='form-control' data-constraint='delay'/>
+                    </label>
 
-                    <div class="form-group">
-                    <label>Delay (in minutes)</label>
-                    <input type="text" class='form-control' data-constraint='delay'/>
-                    </div>
+                    <label style="display:block">
+                        Depart no later than:
+                        <input type="time" class='form-control' data-constraint='startTime' value=''/>
+                    </label>
+
+                    <label style="display:block">
+                        Gear Change:
+                        <select name="gearConfigId">
+                            <option value="-1">None</option>
+                        </select>
+                    </label>
                 </form>
             </div>
             <div class="modal-footer">
