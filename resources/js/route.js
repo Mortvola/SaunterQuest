@@ -14,10 +14,18 @@ class Route
         this.map = map;
         
         this.startOfTrailMarker = new StartOfTrailMarker (map, startPointUrl);
-        this.startOfTrailMarker.setDraggable (true, (marker) => { this.setStart (marker.getPosition ()); });
+        
+        if (!smallDevice)
+        {
+            this.startOfTrailMarker.setDraggable (true, (marker) => { this.setStart (marker.getPosition ()); });
+        }
         
         this.endOfTrailMarker = new EndOfTrailMarker (map, endPointUrl);
-        this.endOfTrailMarker.setDraggable (true, (marker) => { this.setEnd (marker.getPosition ()); });
+
+        if (!smallDevice)
+        {
+            this.endOfTrailMarker.setDraggable (true, (marker) => { this.setEnd (marker.getPosition ()); });
+        }
         
         this.waypoints = [];
         
@@ -859,7 +867,11 @@ class Route
         let waypoint = new TrailMarker (this.map, wayPointUrl);
         
         waypoint.id = anchor.id;
-        waypoint.setDraggable (true, (marker) => { this.updateWaypoint (marker); });
+        
+        if (!smallDevice)
+        {
+            waypoint.setDraggable (true, (marker) => { this.updateWaypoint (marker); });
+        }
 
         let route = this;
         

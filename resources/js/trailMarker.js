@@ -55,7 +55,7 @@ class TrailMarker
 			});
 		}
 		
-		this.marker.options.draggable = draggable; //setDraggable(draggable);
+		this.marker.options.draggable = draggable;
 	}
 	
 	setPosition (position)
