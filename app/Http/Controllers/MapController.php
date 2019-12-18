@@ -48,8 +48,8 @@ class MapController extends Controller
     public function getNearestTrail (Request $request)
     {
         $point = (object)[];
-        $point->lat = $request->input('lat');
-        $point->lng = $request->input('lng');
+        $point->lat = doubleval($request->input('lat'));
+        $point->lng = doubleval($request->input('lng'));
 
         $result = Map::getTrailFromPoint($point);
 
@@ -59,8 +59,8 @@ class MapController extends Controller
     public function getNearestGraph (Request $request)
     {
         $point = (object)[];
-        $point->lat = $request->input('lat');
-        $point->lng = $request->input('lng');
+        $point->lat = doubleval($request->input('lat'));
+        $point->lng = doubleval($request->input('lng'));
 
         $graph = Graph::getGraphFromPoint($point);
 

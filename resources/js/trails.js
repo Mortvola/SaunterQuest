@@ -13,13 +13,14 @@ class Trails
 		this.map = map;
 		this.tiles = [];
 		this.mapDragging = false;
+		
 		this.zoom =  this.map.getZoom ();
 
 		var trails = this;
 		
-		this.map.addListener ("dragstart", function () { trails.mapDragging = true;})
-		this.map.addListener ("dragend", function () { trails.mapDragging = false; trails.update (); });
-		this.map.addListener ("bounds_changed", function () { if (!trails.mapDragging) { trails.update (); }})
+//		this.map.addListener ("dragstart", function () { trails.mapDragging = true;})
+//		this.map.addListener ("dragend", function () { trails.mapDragging = false; trails.update (); });
+//		this.map.addListener ("bounds_changed", function () { if (!trails.mapDragging) { trails.update (); }})
 	}
 
 	retrieveTileList ()
@@ -371,7 +372,7 @@ class Trails
 	
 	getTrailWeight ()
 	{
-		var zoom = this.map.getZoom ();
+		var zoom = this.map.getView().getZoom ();
 		
 		if (zoom >= 17)
 		{
@@ -394,7 +395,7 @@ class Trails
 	
 	update ()
 	{
-		var zoom = this.map.getZoom ();
+		var zoom = this.map.getView().getZoom ();
 		var zoomDetailChanged = this.displayableZoomLevel(zoom) != this.displayableZoomLevel(this.zoom);
 
 		this.zoom = zoom;

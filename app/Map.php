@@ -1,6 +1,7 @@
 <?php
 
 namespace App;
+require_once app_path('utilities.php');
 
 
 class Map
@@ -124,8 +125,8 @@ class Map
     public static function getIntersections ($bounds)
     {
         $boundingBox = "ST_SetSRID(ST_MakeBox2D(ST_Transform('SRID=4326;POINT(" .
-            $bounds[1] . " " . $bounds[0] . ")'::geometry, 3857), ST_Transform('SRID=4326;POINT(" .
-            $bounds[3] . " " . $bounds[2] . ")'::geometry, 3857)), 3857)";
+            $bounds[0] . " " . $bounds[1] . ")'::geometry, 3857), ST_Transform('SRID=4326;POINT(" .
+            $bounds[2] . " " . $bounds[3] . ")'::geometry, 3857)), 3857)";
 
         $intersections = \DB::connection('pgsql')->select (
            "select distinct ST_AsGeoJSON(ST_Transform(ST_Intersection(l1.way, l2.way), 4326)) coordinate

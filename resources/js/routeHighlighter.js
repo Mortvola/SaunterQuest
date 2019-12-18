@@ -10,7 +10,7 @@ class RouteHighlighter
 		this.route = route;
 		this.listener = changedListener;
 		this.markers = [];
-		this.color = "#FF0000";
+		this.color = "#FFFF00";
 		
 		if (position !== null)
 		{
@@ -57,17 +57,17 @@ class RouteHighlighter
 
 	moveRouteHighlightMarkerToTrail (marker)
 	{
-		let markerPosition = this.markers[marker].marker.getPosition ();
+		let markerPosition = this.markers[marker].marker.getLatLng ();
 		let p = {
-			lat: markerPosition.lat(),
-			lng: markerPosition.lng()
+			lat: markerPosition.lat,
+			lng: markerPosition.lng
 		};
 			
 		if (!isNaN(p.lat) && !isNaN(p.lng))
 		{
 			p = this.route.getNearestPoint (p);
 			
-			this.markers[marker].marker.setPosition (p);
+			this.markers[marker].marker.setLatLng (p);
 			this.markers[marker].position = p;
 			
 			this.highlightBetweenMarkers ();
@@ -90,21 +90,19 @@ class RouteHighlighter
 
 		if (this.markers[marker].marker == undefined)
 		{
-			this.markers[marker].marker = new google.maps.Marker({
-				position: position,
-				map: this.route.map,
+			this.markers[marker].marker = L.marker(position, {
 				draggable: true
-			});
+			}).addTo(route.map);
 		}
 		else
 		{
-			this.markers[marker].marker.setPosition(position);
-			this.markers[marker].marker.setMap(this.route.map);
+			this.markers[marker].marker.setLatLng(position);
+			this.markers[marker].marker.addTo(this.route.map);
 		}
 
 		var highlighter = this;
 		
-		this.markers[marker].markerListener = this.markers[marker].marker.addListener ("dragend", function ()
+		this.markers[marker].marker.on ("dragend", function ()
 		{
 			highlighter.moveRouteHighlightMarkerToTrail (marker);
 		});
@@ -113,26 +111,24 @@ class RouteHighlighter
 	highlightBetweenMarkers ()
 	{
 		// If both markers are on the map then draw a poly line between them on the trail.
-		if (this.markers[0] && this.markers[0].marker && this.markers[0].marker.map
-		 && this.markers[1] && this.markers[1].marker && this.markers[1].marker.map)
+		if (this.markers[0] && this.markers[0].marker// && this.markers[0].marker.map
+		 && this.markers[1] && this.markers[1].marker)// && this.markers[1].marker.map)
 		{
 			// If there is an existing poly line then remove it.
 			if (this.polyLine)
 			{
-				this.polyLine.setMap(null);
+				this.polyLine.remove();
 			}
 
 			let section = route.getSection (this.markers[0].position, this.markers[1].position);
 
-			this.polyLine = new google.maps.Polyline({
-				path: section,
-				geodesic: true,
-				strokeColor: this.color,
-				strokeOpacity: 1.0,
-				strokeWeight: routeStrokeWeight + 2 * routeHighlightStrokePadding,
-				zIndex: 10});
+			this.polyLine = L.polyline(section, {
+				color: this.color,
+				opacity: 0.7,
+				weight: routeStrokeWeight + 2 * routeHighlightStrokePadding,
+			});
 
-			this.polyLine.setMap(this.route.map);
+			this.polyLine.addTo(this.route.map);
 		}
 	}
 
@@ -141,16 +137,15 @@ class RouteHighlighter
 		this.hideMarker(0);
 		this.hideMarker(1);
 
-		this.polyLine.setMap(null);
+		if (this.polyLine)
+		{
+	        this.polyLine.remove();
+		}
 	}
 	
 	hideMarker (marker)
 	{
-		this.markers[marker].marker.setMap(null);
-		if (this.markers[marker].markerListener != undefined)
-		{
-			google.maps.event.removeListener (this.markers[marker].markerListener);
-		}
+		this.markers[marker].marker.remove();
 	}
 }
 

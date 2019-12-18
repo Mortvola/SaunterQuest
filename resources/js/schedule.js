@@ -37,7 +37,7 @@ class Schedule
 			{
 				txt += "<div class='card'>";
 				txt += "<div class='card-header' style='padding:5px 5px 5px 5px' onclick='schedule.positionMapToDay(" + d + ")'>";
-				txt += "<div class='grid-container'>";
+				txt += "<div class='day-card-header'>";
 				txt += "<div>" + "Day " + (parseInt(d) + 1) + "</div>";
 				txt += "<div>" + "Gain/Loss (feet): " + metersToFeet(this.days[d].gain) + "/" + metersToFeet(this.days[d].loss) + "</div>";
 				txt += "<div>" + "Food: " + gramsToPoundsAndOunces (this.days[d].accumWeight) + "</div>";

@@ -1,4 +1,3 @@
-<script>
 "use strict";
 
 var trails;
@@ -13,11 +12,16 @@ var trailContextMenu;
 var editedRoute = [];
 var routeContextMenu;
 var vertexContextMenu;
-var map;
+//var map;
 var startPosition;
 var startSegment;
 var endPosition;
 var endSegment;
+
+class Hike
+{
+};
+
 
 var routeHighlighter;
 
@@ -113,10 +117,10 @@ function addPointsToRoute (anchor, anchorIndex, trail)
 
 function moveAnchor (index, vertex)
 {
-    var routeUpdate = {userHikeId: userHikeId, mode: "update", index: startSegment + index, point: {lat: vertex.lat (), lng: vertex.lng ()}};
+    var routeUpdate = {userHikeId: hike.id, mode: "update", index: startSegment + index, point: {lat: vertex.lat (), lng: vertex.lng ()}};
 
     $.ajax({
-        url: userHikeId + "route.php",
+        url: hike.id + "route.php",
         headers:
         {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
@@ -200,10 +204,10 @@ function moveAnchor (index, vertex)
 function insertAnchor (index, vertex)
 {
 	
-    var routeUpdate = {userHikeId: userHikeId, mode: "insert", index: startSegment + index, point: {lat: vertex.lat (), lng: vertex.lng ()}};
+    var routeUpdate = {userHikeId: hike.id, mode: "insert", index: startSegment + index, point: {lat: vertex.lat (), lng: vertex.lng ()}};
 	
     $.ajax({
-        url: userHikeId + "route.php",
+        url: hike.id + "route.php",
         headers:
         {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
@@ -260,10 +264,10 @@ function insertAnchor (index, vertex)
 
 function deletePoints (index, length)
 {
-    var routeUpdate = {userHikeId: userHikeId, mode: "delete", index: startSegment + index, length: length};
+    var routeUpdate = {userHikeId: hike.id, mode: "delete", index: startSegment + index, length: length};
 	
     $.ajax({
-        url: userHikeId + "route.php",
+        url: hike.id + "route.php",
         headers:
         {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
@@ -569,9 +573,9 @@ function measureMarkerSet (highlighter)
 	}
 }
 
-function startRouteMeasurement (object, position)
+function startRouteMeasurement (event)
 {
-	routeHighlighter = new RouteHighlighter (route, {lat: position.lat (), lng: position.lng ()}, measureMarkerSet);
+	routeHighlighter = new RouteHighlighter (route, event.latlng, measureMarkerSet);
 	
     $("#distanceWindowClose").off('click');
     $("#distanceWindowClose").click(function () { stopRouteMeasurement(); });
@@ -673,30 +677,41 @@ function distToSegment(p, v, w)
 }
 
 
-function displayLocation (object, position)
+function displayLocation (event)
 {
     $.get({
-        url: "/elevation/point?lat=" + position.lat () + "&lng=" + position.lng (),
-        dataType: "json"
+        url: "/elevation/point?lat=" + event.latlng.lat + "&lng=" + event.latlng.lng,
+        dataType: "json",
+        context: this
     })
     .done (function(elevation)
     {
-        var html = "<div>Lat: " + position.lat() + "</div><div>Lng: " + position.lng() + "</div><div>Elevation: ";
+        let info = $("<div></div>");
+        
+        $("<div></div")
+            .text("Lat: " + event.latlng.lat)
+            .appendTo(info);
+        
+        $("<div></div>")
+            .text(" Lng: " + event.latlng.lng)
+            .appendTo(info);
+        
+        + "</div><div>Elevation: ";
         
         if (elevation === null)
         {
-            html += "Not available";
+            $("<div></div>")
+                .text("Elevation: not available")
+                .appendTo(info);
         }
         else
         {
-            html += metersToFeet(elevation);
+            $("<div></div>")
+            .text("Elevation: " + metersToFeet(elevation))
+            .appendTo(info);
         }
         
-        html += "</div>";
-        
-		map.infoWindow.setContent (html);
-		map.infoWindow.setPosition (position);
-		map.infoWindow.open(map);
+        this.openPopup (info[0], event.latlng);
     });
 }
 
@@ -772,36 +787,37 @@ function setEndLocation (object, position)
 }
 
 
-function addWaypoint (object, position)
+function addWaypoint (event)
 {
-	route.addWaypoint (position);
+	route.addWaypoint (event.latlng);
 }
 
-function addStartWaypoint (object, position)
+function addStartWaypoint (event)
 {
-    route.addStartWaypoint (position);
+    route.addStartWaypoint (event.latlng);
 }
 
-function addEndWaypoint (object, position)
+function addEndWaypoint (event)
 {
-    route.addEndWaypoint (position);
+    route.addEndWaypoint (event.latlng);
 }
 
 let intersections = [];
 
-function showIntersections ()
+function showIntersections (event)
 {
-	var bounds = map.getBounds ();
+	var bounds = this.getBounds ();
 
     $.get({
-        url: "/map/intersections?b=" + bounds.toUrlValue(),
-        dataType: "json"
+        url: "/map/intersections?b=" + bounds.toBBoxString(),
+        dataType: "json",
+        context: this
     })
     .done (function(responseText)
     {
 		for (let i of intersections)
 		{
-			i.setMap(null);
+			i.remove();
 		}
 
 		intersections = [];
@@ -812,13 +828,15 @@ function showIntersections ()
 		{
 			let coordinate = c.coordinate;
 			
-			let marker = new google.maps.Marker({
-				position: {lat: coordinate.coordinates[1], lng: coordinate.coordinates[0]},
-				map: map,
-				icon: {
-					url: nodeUrl,
-				}
-			});
+			let marker = new L.Marker([coordinate.coordinates[1], coordinate.coordinates[0]], {
+                icon: L.icon(
+                    {
+                        iconUrl: nodeUrl,
+                        iconAnchor: L.point(16,32),
+                        popupAnchor: L.point(0,-32),
+                        tooltipAnchor: L.point(0,-32),
+                    })
+			}).addTo(this);
 			
 			intersections.push(marker);
 		}
@@ -826,42 +844,37 @@ function showIntersections ()
 }
 
 
-function highlightNearestTrail (object, position)
+function highlightNearestTrail (event)
 {
-    var bounds = map.getBounds ();
-
     $.get({
-        url: "/map/nearestTrail?lat=" + position.lat () + "&lng=" + position.lng (),
-        dataType: "json"
+        url: "/map/nearestTrail?lat=" + event.latlng.lat + "&lng=" + event.latlng.lng,
+        dataType: "json",
+        context: this
     })
     .done (function(responseText)
     {
+        let points = [];
         for (let p of responseText)
         {
-            p.lat = p.point.lat;
-            p.lng = p.point.lng;
+            points.push([p.point.lat, p.point.lng]);
         }
         
-        var polyLine = new google.maps.Polyline({
-            path: responseText,
-            geodesic: true,
-            strokeColor: "#FF0000",
-            strokeOpacity: 0.5,
-            strokeWeight: routeStrokeWeight + 2 * routeHighlightStrokePadding,
-            zIndex: 10});
-
-        polyLine.setMap(route.map);
+        var polyLine = L.polyline(points, {
+            color: "#FF0000",
+            opacity: 0.5,
+            weight: routeStrokeWeight + 2 * routeHighlightStrokePadding,
+            zIndex: 10})
+            .addTo(this);
     });
 }
 
 
-function showNearestGraph (object, position)
+function showNearestGraph (event)
 {
-    var bounds = map.getBounds ();
-
     $.get({
-        url: "/map/nearestGraph?lat=" + position.lat () + "&lng=" + position.lng (),
-        dataType: "json"
+        url: "/map/nearestGraph?lat=" + event.latlng.lat + "&lng=" + event.latlng.lng,
+        dataType: "json",
+        context: this
     })
     .done (function(graph)
     {
@@ -869,20 +882,19 @@ function showNearestGraph (object, position)
         {
             if (e.start_node && e.end_node && graph.nodes[e.start_node] && graph.nodes[e.end_node])
             {
-                var line = [
-                    {lat: graph.nodes[e.start_node].point.lat, lng: graph.nodes[e.start_node].point.lng},
-                    {lat: graph.nodes[e.end_node].point.lat, lng: graph.nodes[e.end_node].point.lng}
+                let line = [
+                        [graph.nodes[e.start_node].point.lat, graph.nodes[e.start_node].point.lng],
+                        [graph.nodes[e.end_node].point.lat, graph.nodes[e.end_node].point.lng]
                     ];
                 
-                var polyLine = new google.maps.Polyline({
-                    path: line,
-                    geodesic: true,
-                    strokeColor: "#FF0000",
-                    strokeOpacity: 0.5,
-                    strokeWeight: 2,
-                    zIndex: 10});
-
-                polyLine.setMap(route.map);
+                let polyLine = L.polyline(
+                    line,
+                    {
+                        color: "#FF0000",
+                        opacity: 0.5,
+                        weight: 2
+                    }
+                ).addTo(this);
             }
         }
         
@@ -893,49 +905,6 @@ function showNearestGraph (object, position)
 
 function mapInitialize()
 {
-    var mapTypeIds = [];
-    for(var type in google.maps.MapTypeId)
-    {
-        mapTypeIds.push(google.maps.MapTypeId[type]);
-    }
-    mapTypeIds.push("OSM");
-
-    var maxZoom = 18;
-    
-    var mapProp =
-	{
-		center:new google.maps.LatLng(31.4971635304391,-108.210319317877),
-		zoom:5,
-		streetViewControl:false,
-		fullscreenControl:false,
-		scaleControl:true,
-		minZoom:5,
-		maxZoom:maxZoom,
-		mapTypeId:"OSM",
-		mapTypeControl: false
-	};
-	
-    if (userAdmin)
-    {
-        mapProp.mapTypeControl = true;
-        mapProp.mapTypeControlOptions = {
-            mapTypeIds: mapTypeIds
-          };
-    }
-    
-	map = new google.maps.Map(document.getElementById("googleMap"), mapProp);
-
-    map.mapTypes.set("OSM", new google.maps.ImageMapType(
-    {
-        getTileUrl: function(coord, zoom)
-        {
-            return tileServerUrl + "/hot/" + zoom + "/" + coord.x + "/" + coord.y + ".png";
-        },
-        tileSize: new google.maps.Size(256, 256),
-        name: "OpenStreetMap",
-        maxZoom: maxZoom
-    }));
-
 	window.onkeydown = function(e)
 	{
 		controlDown = ((e.keyIdentifier == 'Control') || (e.ctrlKey == true));
@@ -943,38 +912,51 @@ function mapInitialize()
 	
 	window.onkeyup = function(e)
 	{
-		controlDown = false;
+	    if ((e.keyIdentifier == 'Control') || (e.ctrlKey == true))
+	    {
+	        controlDown = false;
+	    }
 	}
 
-	initializeContextMenu ();
-
-	let waypointMenuItems = [{title:"Prepend Waypoint", func:addStartWaypoint},
-        {title:"Insert Waypoint", func:addWaypoint},
-        {title:"Append Waypoint", func:addEndWaypoint}];
+	let waypointMenuItems = [
+	    {text:"Prepend Waypoint", callback: addStartWaypoint},
+        {text:"Insert Waypoint", callback: addWaypoint},
+        {text:"Append Waypoint", callback: addEndWaypoint},
+        {separator: true}
+    ];
     
     let mapMenuItems = [
-        {title:"Display Location", func:displayLocation},
-        {title:"Add Point of Interest", func:showAddPointOfInterest, admin: true},
-        {title:"Create Resupply Location", func:addResupplyLocation, admin: true},
-        {title:"Download Elevations", func:downloadElevations, admin: true},
-        {title:"Show Intersections", func:showIntersections, admin: true},
-        {title:"Higlight Nearest Trail", func:highlightNearestTrail, admin: true},
-        {title:"Show Nearest Graph", func:showNearestGraph, admin: true},
+        {text:"Display Location", callback: displayLocation},
     ];
     
     mapMenuItems.splice(0, 0, ...waypointMenuItems);
-	
-	var mapContextMenu = new ContextMenu (mapMenuItems);
 
+    if (userAdmin)
+    {
+        let adminMenuItems = [
+            {separator: true},
+            {text:"Add Point of Interest", callback: showAddPointOfInterest, admin: true},
+            {text: "Add Note", callback: addNote, admin: true},
+            {text:"Create Resupply Location", callback: addResupplyLocation, admin: true},
+            {text:"Download Elevations", callback: downloadElevations, admin: true},
+            {text:"Show Intersections", callback: showIntersections, admin: true},
+            {text:"Higlight Nearest Trail", callback: highlightNearestTrail, admin: true},
+            {text:"Show Nearest Graph", callback: showNearestGraph, admin: true},
+        ];
+        
+        mapMenuItems.splice(mapMenuItems.length, 0, ...adminMenuItems);
+    }
+    
 	let trailMenuItems = [
-        {title:"Display Location", func:displayLocation},
-        {title:"Add Point of Interest", func:showAddPointOfInterest, admin: true},
-        {title:"Create Resupply Location", func:addResupplyLocation, admin: true},
-        {title:"Trail Information", func:displayTrailInfo, admin: true},
+        {text:"Display Location", callback:displayLocation},
+        {text:"Add Point of Interest", callback:showAddPointOfInterest, admin: true},
+        {text:"Create Resupply Location", callback:addResupplyLocation, admin: true},
+        {text:"Trail Information", callback:displayTrailInfo, admin: true},
     ]
 
     trailMenuItems.splice(0, 0, ...waypointMenuItems);
 
+	/*
 	trailContextMenu = new ContextMenu (trailMenuItems);
 
 	pointOfInterestCM = new ContextMenu ([
@@ -985,26 +967,52 @@ function mapInitialize()
 		{title:"Resupply from this location", func:resupplyFromLocation},
 		{title:"Edit Resupply Location", func:editResupplyLocation},
 		{title:"Delete Resupply Location", func:deleteResupplyLocation}]);
-
-	let routeMenuItems = [
-        {title: "Display Location", func:displayLocation},
-        {title: "Measure route section", func: startRouteMeasurement},
-        {title: "Add Point of Interest", func: showAddPointOfInterest, admin: true},
-        {title: "Add Note", func: addNote, admin: true},
-    ];
-
-    routeMenuItems.splice(0, 0, ...waypointMenuItems);
-
+    */
+	
+    /*
 	routeContextMenu = new ContextMenu (routeMenuItems);
 
 	vertexContextMenu = new ContextMenu ([
 		{title:"Delete", func:deleteVertex}]);
 	
 	setContextMenu (map, mapContextMenu);
+    */
 
-	map.infoWindow = new google.maps.InfoWindow({content: "This is a test"});
+    var map = L.map('map',
+        {
+            contextmenu: true,
+            contextmenuItems: mapMenuItems,
+            center: [41.35, -96.0],
+            zoom: 4
+        });
 
-	trails = new Trails(map);
+    L.tileLayer(tileServerUrl + "/hot/{z}/{x}/{y}.png", {
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
+        maxZoom: 18,
+        minZoom: 4,
+    }).addTo(map);
+    
+    map.on('zoomend', function (event) { console.log (map.getCenter ()); });
+    
+    /*
+    map.on('locationfound', function (e)
+        {
+            var radius = e.accuracy;
+
+            L.marker(e.latlng).addTo(map)
+                .bindPopup("You are within " + radius + " meters from this point").openPopup();
+
+            L.circle(e.latlng, radius).addTo(map);
+        });
+
+        map.on('locationerror', function (e) {
+            alert(e.message);
+        });
+        
+    map.locate({setView: true, maxZoom: 16});
+*/
+    
+    trails = new Trails(map);
 	route = new Route(map);
 	schedule = new Schedule (map);
 	
@@ -1016,4 +1024,8 @@ function mapInitialize()
 	retrieveHikerProfiles (); //todo: only do this when visiting the tab of hiker profiles
 } 
 
-</script>
+
+$().ready (function ()
+{
+    mapInitialize ();
+});

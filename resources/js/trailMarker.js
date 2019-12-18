@@ -6,36 +6,38 @@ class TrailMarker
 	constructor (map, iconUrl)
 	{
 		this.map = map;
-		this.marker = new google.maps.Marker({
-			icon: {
-				url: iconUrl,
-				labelOrigin: {x: 30/2, y: -6},
-				origin: {x: 0, y: 0}
-			}
-		});
+
+		this.marker = new L.Marker([],
+		    {
+    			icon: L.icon(
+                    {
+                        iconUrl: iconUrl,
+                        iconAnchor: L.point(16,32),
+                        popupAnchor: L.point(0,-32),
+                        tooltipAnchor: L.point(0,-32),
+                    })
+		    }
+		);
+		
+		this.marker.bindPopup (() => { return this.infoMessage (); } );
 	}
 
 	addListener ()
 	{
-		if (!this.listener)
-		{
-			var trailMarker = this;
-			
-			this.listener = this.marker.addListener ("click", function ()
+	    this.marker.off ("click");
+	    
+		this.marker.on ("click", () =>
+			{
+				if (!controlDown)
 				{
-					if (!controlDown)
-					{
-						this.map.infoWindow.setContent (trailMarker.infoMessage());
-						this.map.infoWindow.open(map, trailMarker.marker);
-					}
-				});
-		}
+				    this.marker.openPopup ();
+				}
+			});
 	}
 
 	removeListener ()
 	{
-		this.listener.remove ();
-		this.listener = null;
+		this.marker.off("click");
 	}
 	
 	setDraggable (draggable, listener, context)
@@ -44,7 +46,7 @@ class TrailMarker
 		{
 			var trailMarker = this;
 			
-			this.dragListener = this.marker.addListener ("dragend", function ()
+			this.dragListener = this.marker.on ("dragend", function ()
 			{
 				if (listener)
 				{
@@ -53,7 +55,7 @@ class TrailMarker
 			});
 		}
 		
-		this.marker.setDraggable(draggable);
+		this.marker.options.draggable = draggable; //setDraggable(draggable);
 	}
 	
 	setPosition (position)
@@ -62,8 +64,8 @@ class TrailMarker
 	    {
 	        this.meters = position.dist;
 	        this.ele = position.ele;
-	        this.marker.setPosition (position);
-	        this.marker.setMap (this.map);
+	        this.marker.setLatLng (position);
+	        this.marker.addTo(this.map);
 	        
 	        this.addListener ();
 	    }
@@ -71,12 +73,12 @@ class TrailMarker
 	
 	getPosition ()
 	{
-	    return this.marker.getPosition ();
+	    return this.marker.getLatLng ();
 	}
 	
 	removeMarker ()
 	{
-		this.marker.setMap(null);
+		this.marker.remove();
 		this.removeListener ();
 	}
 	
@@ -93,33 +95,39 @@ class TrailMarker
 	
 	setContextMenu (contextMenu)
 	{
-		setContextMenu (this.marker, contextMenu, this)
+	    this.marker.bindContextMenu({contextmenu: true, contextmenuItems: contextMenu});
 	}
 	
 	setIcon (iconUrl)
 	{
-	    this.marker.setIcon({
-            url: iconUrl,
-            labelOrigin: {x: 30/2, y: -6},
-            origin: {x: 0, y: 0}
-        });
+	    this.marker.setIcon(
+	        L.icon(
+	            {
+	                iconUrl: iconUrl,
+                    iconAnchor: L.point(16,32),
+                    popupAnchor: L.point(0,-32),
+                    tooltipAnchor: L.point(0,-32),
+	            })
+	    );
 	}
 	
 	setLabel (label)
 	{
 	    if (label === undefined)
 	    {
-	        this.marker.setLabel(undefined);
+            this.marker.unbindTooltip();
 	    }
 	    else
 	    {
-	        this.marker.setLabel({text: label, fontWeight: "700"});
+            //this.marker.setLabel({text: label, fontWeight: "700"});
+            this.marker.bindTooltip(label); //, {direction: 'top', permanent: true});
+	        //this.marker.options.title = label;
 	    }
 	}
 	
 	getLabel ()
 	{
-	    let markerLabel = this.marker.getLabel ();
+	    let markerLabel = this.marker.getTooltip ();
 	    
 	    if (markerLabel !== undefined)
 	    {

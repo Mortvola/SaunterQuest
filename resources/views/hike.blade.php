@@ -1,9 +1,20 @@
 @extends('layouts.app')
 
 @section('content')
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+       integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+       crossorigin=""/>
+    <link rel="stylesheet" href="{{ asset('css/leaflet.contextmenu.min.css') }}">
+
     <style type="text/css">
-        body{ font: 14px sans-serif; }
-        .grid-container
+        body
+        {
+            font: 14px sans-serif;
+            -webkit-touch-callout: none !important;
+            -webkit-user-select: none !important;
+        }
+
+        .day-card-header
         {
           display: grid;
           grid-template-columns: auto auto auto;
@@ -12,15 +23,15 @@
         .map-info
         {
             display:none;
-            left:50%;
-            top:10px;
             position:absolute;
-            margin-left:-100px;
+            top:10%;
+            justify-self: center;
             width:200px;
             height:50px;
             background-color:white;
             border-radius:5px;
             box-shadow:0 2px 7px 1px rgba(0,0,0,0.3);
+            z-index: 800;
         }
         .map-distance-window
         {
@@ -31,13 +42,15 @@
         .map-please-wait
         {
             display:none;
-            left:50%;
-            top:50%;
             position:absolute;
-            margin-top:-5rem;
+            justify-self: center;
+            align-self: center;
+            width:100px;
+            height:100px;
             background:rgba(255, 255, 255, 1.0);
             border-radius:5px;
             box-shadow:0 2px 7px 1px rgba(0,0,0,0.3);
+            z-index: 800;
         }
         .map-please-wait-spinner
         {
@@ -62,6 +75,10 @@
         .map-grid-item
         {
             grid-area: map;
+            display:grid;
+            grid: minmax(0, 1fr) / minmax(0, 1fr);
+            width:100%;
+            height:100%
         }
 
         .ele-grid-item
@@ -74,13 +91,22 @@
             grid-area: controls;
             border-right-style: solid;
             border-right-width: thin;
+            height: 100%;
+            display:grid;
+            grid-template-rows: min-content minmax(0, 1fr);
+        }
+
+        .controls-grid-item .tab-content
+        {
+            height: 100%;
+            background-color: #fbfbfb;
         }
 
         .hike-grid
         {
             display: grid;
-            grid-template-columns: 1fr 3fr;
-            grid-template-rows: 3fr 1fr;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+            grid-template-rows: minmax(0, 3fr) minmax(0, 1fr);
             grid-template-areas:
                 "controls map"
                 "controls ele"
@@ -99,8 +125,8 @@
             .hike-grid
             {
                 display: grid;
-                grid-template-columns: 100%;
-                grid-template-rows: 75% 25%;
+                grid-template-columns: minmax(0, 1fr);
+                grid-template-rows: minmax(0, 3fr) minmax(0, 1fr);
                 grid-template-areas:
                     "map"
                     "ele"
@@ -135,7 +161,7 @@
 
     <div class="hike-grid">
         <div class="map-grid-item">
-        	<div id="googleMap" style="width:100%;height:100%"></div>
+        	<div id="map" style="width:100%;height:100%"></div>
 			<div id="distanceWindow" class="map-info">
 				<div>
                 	<span>Distance</span>
@@ -152,7 +178,6 @@
     	<div class="ele-grid-item" id="elevation_chart_div">
         </div>
         <div class="controls-grid-item">
-            <div style="display:grid;align-content:start;grid-template-rows: auto auto;">
                 <ul class="nav nav-tabs" role="tablist">
                     <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#schedule">Schedule</a></li>
                     <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#trailConditions">Trail Conditions</a></li>
@@ -244,7 +269,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
         </div>
     </div>
 
@@ -260,17 +284,27 @@
         var campUrl = "{{ asset('camp-ltblue-dot.png') }}";
     </script>
 
-    <?php require_once resource_path('js/contextMenu.js'); ?>
+    <!-- Make sure you put this AFTER Leaflet's CSS -->
+     <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+       integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+       crossorigin=""></script>
+    <script src="{{ asset('js/leaflet.contextmenu.min.js') }}"></script>
+
     <?php require_once resource_path('js/trailMarker.js'); ?>
-    <?php require_once resource_path('js/route.js'); ?>
+    <script>
+        <?php require_once resource_path('js/route.js'); ?>
+    </script>
     <?php require_once resource_path('js/schedule.js'); ?>
     <?php require_once resource_path('js/pointOfInterest.js'); ?>
-    <?php require_once resource_path('js/hike.js'); ?>
+    <script defer>
+        <?php require_once resource_path('js/hike.js'); ?>
+        var hike = new Hike;
+
+        hike.id = {{ $hikeId }};
+    </script>
     <?php require_once resource_path('js/trails.js'); ?>
     <?php require_once resource_path('js/hikerProfile.js'); ?>
     <?php require_once resource_path('js/resupplyPlan.js'); ?>
     <?php require_once resource_path('js/routeHighlighter.js'); ?>
     <?php require_once resource_path('js/trailCondition.js'); ?>
-
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAP_KEY')}}&callback=mapInitialize&libraries=geometry"></script>
 @endsection

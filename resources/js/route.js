@@ -1,4 +1,3 @@
-<script>
 "use strict";
 
 const startPointUrl = "https://maps.google.com/mapfiles/ms/micons/green-dot.png";
@@ -13,7 +12,6 @@ class Route
     constructor (map)
     {
         this.map = map;
-        this.bounds = {};
         
         this.startOfTrailMarker = new StartOfTrailMarker (map, startPointUrl);
         this.startOfTrailMarker.setDraggable (true, (marker) => { this.setStart (marker.getPosition ()); });
@@ -23,11 +21,6 @@ class Route
         
         this.waypoints = [];
         
-        this.wayPointCM = new ContextMenu ([
-            {title:"Edit Waypoint", func: (object, position, context) => { this.editWaypoint(context);} },
-            {title:"Remove Waypoint", func: (object, position, context) => { this.removeWaypoint (context); }}
-        ]);
-        
         this.initialLoad = true;
     }
 
@@ -36,14 +29,14 @@ class Route
         $("#pleaseWait").show ();
         
         $.ajax({
-            url: userHikeId + "/route/startPoint",
+            url: hike.id + "/route/startPoint",
             headers:
             {
                 "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
                 "Content-type": "application/json"
             },
             type: "PUT",
-            data: JSON.stringify({lat: position.lat (), lng: position.lng ()}),
+            data: JSON.stringify({lat: position.lat, lng: position.lng}),
             context: this
         })
         .done (function(updates)
@@ -70,14 +63,14 @@ class Route
         $("#pleaseWait").show ();
         
 	    $.ajax({
-	        url: userHikeId + "/route/endPoint",
+	        url: hike.id + "/route/endPoint",
 	        headers:
 	        {
 	            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
 	            "Content-type": "application/json"
 	        },
 	        type: "PUT",
-	        data: JSON.stringify({lat: position.lat (), lng: position.lng ()}),
+	        data: JSON.stringify({lat: position.lat, lng: position.lng}),
 	        context: this
 	    })
 	    .done (function(updates)
@@ -104,14 +97,14 @@ class Route
         $("#pleaseWait").show ();
         
         $.ajax({
-            url: userHikeId + "/route/startPoint",
+            url: hike.id + "/route/startPoint",
             headers:
             {
                 "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
                 "Content-type": "application/json"
             },
             type: "POST",
-            data: JSON.stringify({lat: position.lat (), lng: position.lng ()}),
+            data: JSON.stringify({lat: position.lat, lng: position.lng}),
             context: this
         })
         .done (function(updates)
@@ -137,14 +130,14 @@ class Route
         $("#pleaseWait").show ();
         
         $.ajax({
-            url: userHikeId + "/route/endPoint",
+            url: hike.id + "/route/endPoint",
             headers:
             {
                 "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
                 "Content-type": "application/json"
             },
             type: "POST",
-            data: JSON.stringify({lat: position.lat (), lng: position.lng ()}),
+            data: JSON.stringify({lat: position.lat, lng: position.lng}),
             context: this
         })
         .done (function(updates)
@@ -170,14 +163,14 @@ class Route
         $("#pleaseWait").show ();
         
         $.ajax({
-            url: userHikeId + "/route/waypoint",
+            url: hike.id + "/route/waypoint",
             headers:
             {
                 "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
                 "Content-type": "application/json"
             },
             type: "POST",
-            data: JSON.stringify({lat: position.lat (), lng: position.lng ()}),
+            data: JSON.stringify({lat: position.lat, lng: position.lng}),
             context: this
         })
         .done (function(updates)
@@ -203,14 +196,14 @@ class Route
         $("#pleaseWait").show ();
         
         $.ajax({
-            url: userHikeId + "/route/waypoint/" + marker.id + "/position",
+            url: hike.id + "/route/waypoint/" + marker.id + "/position",
             headers:
             {
                 "Content-type": "application/json",
                 "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
             },
             type: "PUT",
-            data: JSON.stringify({lat: marker.getPosition().lat (), lng: marker.getPosition().lng ()}),
+            data: JSON.stringify(marker.getPosition()),
             context: this
         })
         .done (function(updates)
@@ -236,7 +229,7 @@ class Route
         $("#pleaseWait").show ();
         
         $.ajax({
-            url: userHikeId + "/route/waypoint/" + marker.id,
+            url: hike.id + "/route/waypoint/" + marker.id,
             headers:
             {
                 "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
@@ -305,15 +298,16 @@ class Route
                 }
                 
                 // Update the polyline
-                var path = this.actualRoutePolyline.getPath ();
+                let path = this.actualRoutePolyline.getLatLngs ();
 
                 for (let p  = 0; p < Math.min(route.length, numberOfPointsToReplace); p++)
                 {
-                    path.setAt(p + firstPointToReplace, new google.maps.LatLng(route[p]));
+                    path[p + firstPointToReplace] =  route[p];
                     this.actualRoute[p + firstPointToReplace] = route[p];
                     this.actualRoute[p + firstPointToReplace].dist += startDistance;
                 }
                 
+                this.actualRoutePolyline.setLatLngs(path);
                 this.anchors.splice(0, 1, ...update);
             }
             else if (update[0].id === -1)
@@ -344,7 +338,7 @@ class Route
                     update[1].trail = this.anchors[lastIndex].trail;
     
                     // Update the polyline
-                    var path = this.actualRoutePolyline.getPath ();
+                    let path = this.actualRoutePolyline.getLatLngs ();
     
                     // The anchor is the first anchor. Make sure there is no trail
                     // before it.
@@ -352,7 +346,7 @@ class Route
                     {
                         // Since we are removing elements there is no need to 
                         // walk the array, just keeping removing the same index
-                        path.removeAt (0);
+                        path.splice(0, 1);
                         this.actualRoute.splice(0, 1);
                     }
                     
@@ -368,6 +362,7 @@ class Route
                         this.anchors[i].dist -= distDelta;
                     }
     
+                    this.actualRoutePolyline.setLatLngs(path);
                     this.anchors.splice(0, lastIndex + 1, update[1]);
                 }
             }
@@ -383,7 +378,7 @@ class Route
                 this.updateOrAddWaypoint(update[0]);
 
                 // Update the polyline
-                var path = this.actualRoutePolyline.getPath ();
+                let path = this.actualRoutePolyline.getLatLngs ();
 
                 // The anchor is the last anchor. Make sure there is no trail
                 // after it.
@@ -391,10 +386,11 @@ class Route
                 {
                     // Since we are removing elements there is no need to 
                     // walk the array, just keeping removing the same index
-                    path.removeAt (firstPointToReplace + 1);
+                    path.splice(firstPointToReplace + 1, 1);
                     this.actualRoute.splice(firstPointToReplace + 1, 1);
                 }
                 
+                this.actualRoutePolyline.setLatLngs(path);
                 this.anchors.splice(firstIndex, lastIndex - firstIndex + 1, update[0]);
             }
             else
@@ -435,11 +431,11 @@ class Route
                         update[update.length - 1].trail = this.anchors[lastIndex].trail;
                         
                         // Update the polyline
-                        var path = this.actualRoutePolyline.getPath ();
+                        let path = this.actualRoutePolyline.getLatLngs ();
     
                         for (let p  = 0; p < Math.min(route.length, numberOfPointsToReplace); p++)
                         {
-                            path.setAt(p + firstPointToReplace, new google.maps.LatLng(route[p]));
+                            path[p + firstPointToReplace] = route[p];
                             this.actualRoute[p + firstPointToReplace] = route[p];
                             this.actualRoute[p + firstPointToReplace].dist += startDistance;
                         }
@@ -450,7 +446,7 @@ class Route
                             {
                                 // Since we are removing elements there is no need to 
                                 // walk the array, just keeping removing the same index
-                                path.removeAt (route.length + firstPointToReplace);
+                                path.splice(route.length + firstPointToReplace, 1);
                                 this.actualRoute.splice(route.length + firstPointToReplace, 1);
                             }
                         }
@@ -458,7 +454,7 @@ class Route
                         {
                             for (let p = numberOfPointsToReplace; p < route.length; p++)
                             {
-                                path.insertAt (p + firstPointToReplace, new google.maps.LatLng(route[p]));
+                                path.splice (p + firstPointToReplace, 0, route[p]);
                                 this.actualRoute.splice(p + firstPointToReplace, 0, route[p]);
                                 this.actualRoute[p + firstPointToReplace].dist += startDistance;
                             }
@@ -480,6 +476,7 @@ class Route
                             this.actualRoute[p].dist += distDelta;
                         }
                         
+                        this.actualRoutePolyline.setLatLngs(path);
                         this.anchors.splice(firstIndex, lastIndex - firstIndex + 1, ...update);
                     }
                     else
@@ -509,15 +506,16 @@ class Route
                             this.newPolyline ();
                         }
                         
-                        var path = this.actualRoutePolyline.getPath ();
+                        let path = this.actualRoutePolyline.getLatLngs ();
     
                         for (let p = 1; p < route.length; p++)
                         {
-                            path.insertAt (p + firstPointToReplace, new google.maps.LatLng(route[p]));
+                            path.splice (p + firstPointToReplace, 0, route[p]);
                             this.actualRoute.splice(p + firstPointToReplace, 0, route[p]);
                             this.actualRoute[p + firstPointToReplace].dist += startDistance;
                         }
                         
+                        this.actualRoutePolyline.setLatLngs(path);
                         this.anchors.splice(firstIndex, 1, ...update);
                     }
                 }
@@ -553,11 +551,11 @@ class Route
                             this.newPolyline ();
                         }
                         
-                        var path = this.actualRoutePolyline.getPath ();
+                        let path = this.actualRoutePolyline.getLatLngs ();
 
                         for (let p = 0; p < route.length - 1; p++)
                         {
-                            path.insertAt (p, new google.maps.LatLng(route[p]));
+                            path.splice (p, 0, route[p]);
                             this.actualRoute.splice(p, 0, route[p]);
                         }
                         
@@ -577,6 +575,7 @@ class Route
                             this.actualRoute[p].dist += distDelta;
                         }
                         
+                        this.actualRoutePolyline.setLatLngs(path);
                         this.anchors.splice(0, 1, ...update);
                     }
                     else
@@ -627,7 +626,12 @@ class Route
                     }
                     else if (this.type == 'time')
                     {
-                        this.value = formatTime(constraint.time);
+                        this.value = null;
+
+                        if (constraint.time !== null)
+                        {
+                        	this.value = formatTime(constraint.time);
+                        }
                     }
                     else
                     {
@@ -664,13 +668,16 @@ class Route
                     {
                         value = this.checked ? 1 : 0;
                     }
-                    else if (inputType == 'time')
-                    {
-                        value = unformatTime(this.value);
-                    }
                     else
                     {
-                        value = parseInt(this.value);
+                        if (inputType == 'time')
+	                    {
+	                        value = unformatTime(this.value);
+	                    }
+	                    else
+	                    {
+	                        value = parseInt(this.value);
+                        }
     
                         if (isNaN(value))
                         {
@@ -687,7 +694,7 @@ class Route
                 });
             
             $.ajax({
-                url: userHikeId + "/route/waypoint/" + marker.id + "/details",
+                url: hike.id + "/route/waypoint/" + marker.id + "/details",
                 headers:
                 {
                     "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
@@ -712,7 +719,7 @@ class Route
         $("#pleaseWait").show ();
 
         $.ajax({
-            url: userHikeId + "/route/waypoint/order",
+            url: hike.id + "/route/waypoint/order",
             headers:
             {
                 "Content-type": "application/json",
@@ -757,7 +764,7 @@ class Route
     retrieve ()
     {
         $.get({
-            url: userHikeId + "/route",
+            url: hike.id + "/route",
             dataType: "json",
             context: this
         })
@@ -775,7 +782,7 @@ class Route
 
                     if (this.initialLoad)
                     {
-                        this.map.fitBounds(this.bounds);
+                        this.map.fitBounds(this.actualRoutePolyline.getBounds ());
                         let z = this.map.getZoom ();
                         if (z > 13)
                         {
@@ -825,7 +832,16 @@ class Route
         
         waypoint.id = anchor.id;
         waypoint.setDraggable (true, (marker) => { this.updateWaypoint (marker); });
-        waypoint.setContextMenu(this.wayPointCM);
+
+        let route = this;
+        
+        let wayPointCM = [
+            {text:"Edit Waypoint", index: 0, callback: function (event) { route.editWaypoint(waypoint); }},
+            {text:"Remove Waypoint", index: 1, callback: function (event) { route.removeWaypoint (waypoint); }},
+            {separator: true, index: 2}
+        ];
+        
+        waypoint.setContextMenu(wayPointCM);
         
         this.updateWaypointInfo (waypoint, anchor);
 
@@ -912,36 +928,6 @@ class Route
 			// todo: this should be part of the file retrieved
 			for (let r in this.anchors)
 			{
-				if (r == 0)
-				{
-					this.bounds.east = this.anchors[r].lng;
-					this.bounds.west = this.anchors[r].lng;
-					this.bounds.north = this.anchors[r].lat;
-					this.bounds.south = this.anchors[r].lat;
-				}
-				else
-				{
-					if (this.anchors[r].lng > this.bounds.east)
-					{
-						this.bounds.east = this.anchors[r].lng;
-					}
-
-					if (this.anchors[r].lng < this.bounds.west)
-					{
-						this.bounds.west = this.anchors[r].lng;
-					}
-					
-					if (this.anchors[r].lat > this.bounds.north)
-					{
-						this.bounds.north = this.anchors[r].lat;
-					}
-
-					if (this.anchors[r].lat < this.bounds.south)
-					{
-						this.bounds.south = this.anchors[r].lat;
-					}
-				}
-
 				if (r > 0 && this.anchors[r].lat == this.anchors[r - 1].lat && this.anchors[r].lng == this.anchors[r - 1].lng)
 				{
 					console.log ("same coordinate");
@@ -1003,22 +989,20 @@ class Route
 	{
         if (this.actualRoutePolyline != undefined)
         {
-            this.actualRoutePolyline.setMap(null);
+            this.actualRoutePolyline.remove();
             
             removeContextMenu(this.actualRoutePolyline);
         }
 
-        this.actualRoutePolyline = new google.maps.Polyline({
-            editable: false,
-            geodesic: true,
-            strokeColor: '#0000FF',
-            strokeOpacity: 1.0,
-            strokeWeight: routeStrokeWeight,
+        this.actualRoutePolyline = new L.polyline([], {
+            color: '#0000FF',
+            opacity: 1.0,
+            weight: routeStrokeWeight,
             zIndex: 20});
 
-        this.actualRoutePolyline.setMap(this.map);
+        this.actualRoutePolyline.addTo(this.map);
         
-        setContextMenu (this.actualRoutePolyline, routeContextMenu);
+        this.setContextMenu (null);
 	}
 	
 	draw ()
@@ -1027,7 +1011,7 @@ class Route
 		{
 		    this.newPolyline ();
 			
-			this.actualRoutePolyline.setPath(this.actualRoute);
+			this.actualRoutePolyline.setLatLngs(this.actualRoute);
 		}
 	}
 	
@@ -1035,7 +1019,12 @@ class Route
 	{
 		if (menu === null)
 		{
-			setContextMenu (this.actualRoutePolyline, routeContextMenu);
+		    let routeMenuItems = [
+		        {text: "Measure route section", index: 0, callback: startRouteMeasurement},
+		        {separator: true, index: 1}
+		    ];
+
+			this.actualRoutePolyline.bindContextMenu ({contextmenu: true, contextmenuItems: routeMenuItems});
 		}
 		else
 		{
@@ -1152,9 +1141,7 @@ class Route
 		
 		if (startSegment == endSegment)
 		{
-			distance = google.maps.geometry.spherical.computeDistanceBetween(
-				new google.maps.LatLng(startPosition),
-				new google.maps.LatLng(endPosition));
+			distance = this.map.distance (startPosition, endPosition);
 		}
 		else
 		{
@@ -1169,22 +1156,16 @@ class Route
 			
 			// Compute the distance between the start point and the start segment (the
 			// start point might be in the middle of a segment)
-			let startDistance = google.maps.geometry.spherical.computeDistanceBetween(
-					new google.maps.LatLng(startPosition),
-					new google.maps.LatLng(this.actualRoute[startSegment + 1]));		
+			let startDistance = this.map.distance(startPosition, this.actualRoute[startSegment + 1]);		
 	
 			for (let r = startSegment + 1; r < endSegment; r++)
 			{
-				distance += google.maps.geometry.spherical.computeDistanceBetween(
-					new google.maps.LatLng(this.actualRoute[r]),
-					new google.maps.LatLng(this.actualRoute[r + 1]));		
+				distance += this.map.distance(this.actualRoute[r], this.actualRoute[r + 1]);		
 			}
 	
 			// Compute the distance between the end segment and the end point (the
 			// end point might be int he middle of a segment)
-			let endDistance = google.maps.geometry.spherical.computeDistanceBetween(
-					new google.maps.LatLng(this.actualRoute[endSegment]),
-					new google.maps.LatLng(endPosition));
+			let endDistance = this.map.distance(this.actualRoute[endSegment], endPosition);
 			
 			distance += startDistance + endDistance;
 		}
@@ -1192,5 +1173,3 @@ class Route
 		return distance;
 	}
 }
-
-</script>

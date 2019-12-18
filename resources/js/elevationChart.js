@@ -61,9 +61,31 @@ function getAndLoadElevationData (s, e)
 }
 
 
-$(document).on('routeUpdated', function ()
+$().ready (function ()
     {
-        getAndLoadElevationData (0, route.getLength ());
+        $(document).on('routeUpdated', function ()
+            {
+                getAndLoadElevationData (0, route.getLength ());
+            });
+    
+        $(window).resize(function()
+            {
+                if (this.resizeTO)
+                {
+                    clearTimeout(this.resizeTO);
+                }
+                
+                this.resizeTO = setTimeout(function()
+                    {
+                        $(this).trigger('resizeEnd');
+                        $(this).resizeTO = undefined;
+                    }, 500);
+            });
+        
+        $(window).on('resizeEnd', function()
+            {
+                drawCharts();
+            });
     });
 
 </script>

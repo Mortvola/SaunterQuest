@@ -20,13 +20,11 @@ class HikeController extends Controller
 
     public function get ($hikeId)
     {
-        $userId = Auth::user()->id;
-
         if ($hikeId !== null)
         {
-            $hike = Hike::where ('id', $hikeId)->get ();
+            $hike = Auth::user()->hikes()->find($hikeId);
 
-            if (count($hike) == 0)
+            if (!isset($hike))
             {
                 return abort(404);
             }
@@ -57,12 +55,12 @@ class HikeController extends Controller
     {
         $update = json_decode($request->getContent());
 
-        if (isset($update->name))
-        {
-            $hike = Hike::find($hikeId);
+        $hike = Auth::user()->hikes()->find($hikeId);
 
-            if ($hike)
-            {
+        if ($hike)
+        {
+	        if (isset($update->name))
+	        {
                 $hike->name = $update->name;
             }
 

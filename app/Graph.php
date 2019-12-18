@@ -29,7 +29,12 @@ class Graph
 
             $graph = (object)["nodes" => [], "edges" => []];
 
-            $graph->edges[$result->id] = $result;
+            $graph->edges[$result->edge_id] = (object)[
+                "id" => $result->edge_id,
+                "start_node" => $result->start_node,
+                "end_node" => $result->end_node,
+                "line_id" => $result->line_id
+            ];
 
             $depth = 0;
             $maxDepth = 5;
@@ -51,32 +56,38 @@ class Graph
                             $color = "black";
                         }
 
-                        if ($edge->start_node !== null)
+                        if ($edge->start_node !== null && $edge->start_node != -1)
                         {
-                            Graph::loadNode ($edge->start_node, $edge->id, $graph);
+                            if (substr($edge->start_node, 0, 2) !== 'DE')
+                            {
+                                Graph::loadNode ($edge->start_node, $edge->id, $graph);
+                            }
                         }
                         else
                         {
                             $nodeId = 'DE' . $deadEndCount++;
                             $deadEndNode = (object)[];
 
-                            $deadEndNode->point = Map::getPointOnLine ($edge->line_id, $edge->start_fraction);
+                            $deadEndNode->point = Map::getPointOnLine ($edge->line_id, 0); //$edge->start_fraction);
 
                             $graph->nodes[$nodeId] = $deadEndNode;
 
                             $edge->start_node = $nodeId;
                         }
 
-                        if ($edge->end_node !== null)
+                        if ($edge->end_node !== null && $edge->end_node != -1)
                         {
-                            Graph::loadNode ($edge->end_node, $edge->id, $graph);
+                            if (substr($edge->end_node, 0, 2) !== 'DE')
+                            {
+                                Graph::loadNode ($edge->end_node, $edge->id, $graph);
+                            }
                         }
                         else
                         {
                             $nodeId = 'DE' . $deadEndCount++;
                             $deadEndNode = (object)[];
 
-                            $deadEndNode->point = Map::getPointOnLine ($edge->line_id, $edge->end_fraction);
+                            $deadEndNode->point = Map::getPointOnLine ($edge->line_id, 1); //$edge->end_fraction);
 
                             $graph->nodes[$nodeId] = $deadEndNode;
 
@@ -154,7 +165,7 @@ class Graph
     }
 
 
-    static public function loadNode ($nodeId, $edgeId, $graph, $endType)
+    static public function loadNode ($nodeId, $edgeId, $graph)
     {
         // Load the node if the node index is valid and it isn't already loaded
         if (isset ($nodeId) && !isset($graph->nodes[$nodeId]))
@@ -167,6 +178,11 @@ class Graph
 
             $node = \DB::connection('pgsql')->select (str_replace (":nodeId:", $nodeId, $sql));
 
+            if (!isset($node[0]))
+            {
+                echo $nodeId, " ", $edgeId, "\n";
+            }
+
             $coordinates = json_decode($node[0]->point)->coordinates;
 
             $newNode = (object)[
@@ -176,7 +192,7 @@ class Graph
 
             $graph->nodes[$nodeId] = $newNode;
 
-            $newNode->costToEnd[$endType] =  Graph::costBetweenNodes($nodeId, $endType, $graph);
+//            $newNode->costToEnd[$endType] =  Graph::costBetweenNodes($nodeId, $endType, $graph);
 
             // Load the edges at the start and end nodes associated with this node.
             $sql = "select id, start_node, end_node, start_fraction, end_fraction, forward_cost, backward_cost, line_id
