@@ -116,6 +116,23 @@
             align-content:stretch;
         }
 
+        .card
+        {
+            margin: 8px 8px 12px 8px;
+            box-shadow: 0 2px 7px 1px rgba(0,0,0,0.3);
+        }
+
+        .card-header
+        {
+            padding: 8px;
+        }
+
+        .gear-card-body
+        {
+            margin: 4px;
+        }
+
+
         @media screen and (max-width: 668px)
         {
             .controls-grid-item
@@ -282,6 +299,8 @@
         var tileServerUrl = "{{ env('TILE_SERVER_URL', '') }}";
         var endOfDayUrl = "{{ asset('moon_pin.png') }}";
         var campUrl = "{{ asset('camp-ltblue-dot.png') }}";
+
+        var smallDevice = window.matchMedia('screen and (max-width: 668px)').matches;
     </script>
 
     <!-- Make sure you put this AFTER Leaflet's CSS -->
