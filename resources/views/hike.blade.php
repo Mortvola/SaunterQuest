@@ -300,7 +300,7 @@
         var endOfDayUrl = "{{ asset('moon_pin.png') }}";
         var campUrl = "{{ asset('camp-ltblue-dot.png') }}";
 
-        var smallDevice = window.matchMedia('screen and (max-width: 668px)').matches;
+        var touchDevice = window.matchMedia('(pointer: coarse)').matches;
     </script>
 
     <!-- Make sure you put this AFTER Leaflet's CSS -->

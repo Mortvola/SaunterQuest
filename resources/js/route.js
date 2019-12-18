@@ -15,14 +15,14 @@ class Route
         
         this.startOfTrailMarker = new StartOfTrailMarker (map, startPointUrl);
         
-        if (!smallDevice)
+        if (!touchDevice)
         {
             this.startOfTrailMarker.setDraggable (true, (marker) => { this.setStart (marker.getPosition ()); });
         }
         
         this.endOfTrailMarker = new EndOfTrailMarker (map, endPointUrl);
 
-        if (!smallDevice)
+        if (!touchDevice)
         {
             this.endOfTrailMarker.setDraggable (true, (marker) => { this.setEnd (marker.getPosition ()); });
         }
@@ -840,7 +840,7 @@ class Route
         
         waypoint.id = anchor.id;
         
-        if (!smallDevice)
+        if (!touchDevice)
         {
             waypoint.setDraggable (true, (marker) => { this.updateWaypoint (marker); });
         }
