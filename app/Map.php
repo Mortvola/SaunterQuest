@@ -122,6 +122,17 @@ class Map
         return sendRequest ($request);
     }
 
+    public static function whatIsHere ($point)
+    {
+        $request = (object)[
+            "method" => "GET",
+            "command" => "/map/whatIsHere",
+            "point" => $point
+        ];
+
+        return sendRequest ($request);
+    }
+
     public static function getIntersections ($bounds)
     {
         $boundingBox = "ST_SetSRID(ST_MakeBox2D(ST_Transform('SRID=4326;POINT(" .

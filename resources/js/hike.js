@@ -677,6 +677,37 @@ function distToSegment(p, v, w)
 }
 
 
+function displayLocationPopup (map, latLng, elevation)
+{
+    let info = $("<div></div>");
+    
+    $("<div></div")
+        .text("Lat: " + latLng.lat)
+        .appendTo(info);
+    
+    $("<div></div>")
+        .text(" Lng: " + latLng.lng)
+        .appendTo(info);
+    
+    + "</div><div>Elevation: ";
+    
+    if (elevation === undefined || elevation === null)
+    {
+        $("<div></div>")
+            .text("Elevation: not available")
+            .appendTo(info);
+    }
+    else
+    {
+        $("<div></div>")
+        .text("Elevation: " + metersToFeet(elevation))
+        .appendTo(info);
+    }
+    
+    map.openPopup (info[0], latLng);
+}
+
+
 function displayLocation (event)
 {
     $.get({
@@ -686,33 +717,19 @@ function displayLocation (event)
     })
     .done (function(elevation)
     {
-        let info = $("<div></div>");
-        
-        $("<div></div")
-            .text("Lat: " + event.latlng.lat)
-            .appendTo(info);
-        
-        $("<div></div>")
-            .text(" Lng: " + event.latlng.lng)
-            .appendTo(info);
-        
-        + "</div><div>Elevation: ";
-        
-        if (elevation === null)
-        {
-            $("<div></div>")
-                .text("Elevation: not available")
-                .appendTo(info);
-        }
-        else
-        {
-            $("<div></div>")
-            .text("Elevation: " + metersToFeet(elevation))
-            .appendTo(info);
-        }
-        
-        this.openPopup (info[0], event.latlng);
+        displayLocationPopup (this, event.latlng, elevation);
     });
+}
+
+
+function gotoLocation (event)
+{
+//    let latLng = {lat: 36.794915999823, lng: -118.993424 };
+    let latLng = {lat: 36.823209999827, lng: -119.011145 };
+
+    this.panTo (latLng);
+    
+    displayLocationPopup (this, latLng);
 }
 
 
@@ -895,12 +912,72 @@ function showNearestGraph (event)
                         weight: 2
                     }
                 ).addTo(this);
+                
+                let popup = $('<div></div>');
+                
+                $('<div></div>')
+                .text ('Edge ID: ' + e.id)
+                .appendTo(popup);
+                
+                $('<div></div>')
+                    .text ('Forward Cost: ' + e.forward_cost)
+                    .appendTo(popup);
+
+                $('<div></div>')
+                    .text ('Backward Cost: ' + e.backward_cost)
+                    .appendTo(popup);
+                
+                polyLine.bindPopup(popup[0]);
             }
         }
         
     });
 }
 
+
+function whatIsHere (event)
+{
+    $.get({
+        url: "/map/whatishere?lat=" + event.latlng.lat + "&lng=" + event.latlng.lng,
+        dataType: "json",
+        context: this
+    })
+    .done (function(result)
+    {
+        console.log (result);
+        
+        let info = $("<div></div>");
+        
+        $("<div></div")
+            .text("Lat: " + result.point.lat)
+            .appendTo(info);
+        
+        $("<div></div>")
+            .text(" Lng: " + result.point.lng)
+            .appendTo(info);
+        
+        + "</div><div>Elevation: ";
+        
+        if (elevation === undefined || elevation === null)
+        {
+            $("<div></div>")
+                .text("Elevation: not available")
+                .appendTo(info);
+        }
+        else
+        {
+            $("<div></div>")
+            .text("Elevation: " + metersToFeet(elevation))
+            .appendTo(info);
+        }
+        
+        $("<div></div>")
+            .text("Line ID: " + result.line_id)
+            .appendTo(info);
+        
+        this.openPopup (info[0], result.point);
+    });
+}
 
 
 function mapInitialize()
@@ -927,6 +1004,7 @@ function mapInitialize()
     
     let mapMenuItems = [
         {text:"Display Location", callback: displayLocation},
+        {text:"Go to Location...", callback: gotoLocation},
     ];
     
     mapMenuItems.splice(0, 0, ...waypointMenuItems);
@@ -942,6 +1020,7 @@ function mapInitialize()
             {text:"Show Intersections", callback: showIntersections, admin: true},
             {text:"Higlight Nearest Trail", callback: highlightNearestTrail, admin: true},
             {text:"Show Nearest Graph", callback: showNearestGraph, admin: true},
+            {text:"What is here?", callback: whatIsHere}
         ];
         
         mapMenuItems.splice(mapMenuItems.length, 0, ...adminMenuItems);
@@ -992,8 +1071,7 @@ function mapInitialize()
         minZoom: 4,
     }).addTo(map);
     
-    map.on('zoomend', function (event) { console.log (map.getCenter ()); });
-    
+   
     /*
     map.on('locationfound', function (e)
         {

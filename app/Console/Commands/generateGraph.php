@@ -71,56 +71,12 @@ class GenerateGraph extends Command
                 $this->findIntersections ($x, $y);
             }
         }
-
-
-        // Insert edges and nodes into the tables
-
-//            return $intersections;
-
-
-//         $tileName = $this->argument('tileName');
-
-//         $tile = new Tile($tileName);
-
-//         $graph = $tile->generateGraph ();
-
-//         if ($this->confirm ("Do you want to save the tile?"))
-//         {
-// //             $backupName = $tile->createBackup ();
-
-// //             $this->info("Backed up existing tile to " . $backupName);
-
-//             $this->info ("Saving tile");
-
-//             $graph->save ();
-//         }
     }
 
     private function findIntersections ($lng, $lat)
     {
-        $bounds = [$lng, $lat, $lng + 1, $lat + 1];
 
-        error_log("Finding intersections within (" . $lng . ", " . $lat . ")-(" . ($lng + 1) . ", " . ($lat + 1) . ")");
-
-        $boundingBox = "ST_SetSRID(ST_MakeBox2D(ST_Transform('SRID=4326;POINT(" .
-            $bounds[0] . " " . $bounds[1] . ")'::geometry, 3857), ST_Transform('SRID=4326;POINT(" .
-            $bounds[2] . " " . $bounds[3] . ")'::geometry, 3857)), 3857)";
-
-        $intersections = \DB::connection('pgsql')->select (
-            "select
-            ST_AsGeoJSON(ST_Transform(ST_Intersection(l1.way, l2.way), 4326)) coordinate,
-            l1.ctid ctid,
-            ST_LineLocatePoint(l1.way, ST_Intersection(l1.way, l2.way)) fraction,
-            l1.osm_id osmid,
-            l1.line_id lineid
-        from planet_osm_line l1
-        join planet_osm_line l2 on l1.ctid != l2.ctid and ST_Intersects(l1.way, l2.way) and l2.highway is not null
-        where l1.highway is not null
-        and GeometryType(ST_Intersection(l1.way, l2.way)) = 'POINT'
-        and l1.way && " . $boundingBox . "
-        and l2.way && " . $boundingBox . "
-        and ST_ContainsProperly (" . $boundingBox . ", ST_Intersection(l1.way, l2.way))"
-        );
+        $intersections = retrieveIntersections ($lng, $lat);
 
         $nodes = [];
 
@@ -131,7 +87,7 @@ class GenerateGraph extends Command
         {
             $node = (object)[];
 
-            $coordinate = \json_decode($intersections[$i]->coordinate);
+            $coordinate = \json_decode($intersections[$i]->coordinates);
 
             $node->point = $coordinate->coordinates;
 
@@ -158,6 +114,7 @@ class GenerateGraph extends Command
                             && $path->fraction == $intersection->fraction)
                         {
                             $found = true;
+                            break;
                         }
                     }
 
@@ -350,6 +307,75 @@ class GenerateGraph extends Command
         fixupDeadEndEndNodeEdges ();
     }
 
+
+    private function retrieveIntersections ($lng, $lat)
+    {
+        $bounds = [$lng, $lat, $lng + 1, $lat + 1];
+
+        error_log("Finding intersections within (" . $lng . ", " . $lat . ")-(" . ($lng + 1) . ", " . ($lat + 1) . ")");
+
+        $boundingBox = "ST_SetSRID(ST_MakeBox2D(ST_Transform('SRID=4326;POINT(" .
+            $bounds[0] . " " . $bounds[1] . ")'::geometry, 3857), ST_Transform('SRID=4326;POINT(" .
+            $bounds[2] . " " . $bounds[3] . ")'::geometry, 3857)), 3857)";
+
+        $intersections = \DB::connection('pgsql')->select (
+            "select
+                ST_AsGeoJSON(ST_Transform(ST_Intersection(l1.way, l2.way), 4326)) coordinates,
+                l1.ctid ctid,
+                CASE WHEN GeometryType(ST_Intersection(l1.way, l2.way)) = 'POINT' THEN
+                        ST_LineLocatePoint(l1.way, ST_Intersection(l1.way, l2.way))
+                     ELSE
+                        NULL
+                END fraction,
+                l1.osm_id osmid,
+                l1.line_id lineid
+            from planet_osm_line l1
+            join planet_osm_line l2 on l1.ctid != l2.ctid and ST_Intersects(l1.way, l2.way) and l2.highway is not null
+            where l1.highway is not null
+            and l1.way && " . $boundingBox . "
+            and l2.way && " . $boundingBox . "
+            and ST_ContainsProperly (" . $boundingBox . ", ST_Intersection(l1.way, l2.way))"
+        );
+
+        // Iterate through the list of intersections and expand the ones that are of multipoint type
+        for ($i = 0; $i < count($intersections);)
+        {
+            $coordinate = \json_decode($intersections[$i]->coordinates);
+
+            if ($coordinate->type == "MultiPoint")
+            {
+                // Remove the record from the array
+                $intersection = array_splice($intersections, $i, 1);
+
+                // Create a new record for each point in the multipoint array
+                for ($p = 0; $p < count($coordinate->coordinates); $p++)
+                {
+                    $point = "ST_Transform('SRID=4326;POINT(" . $p[0] . " " . $p[1] . ")'::geometry, 3857)";
+
+                    $fraction = \DB::connection('pgsql')->select (
+                        "select ST_LineLocatePoint(l1.way, " . $point . ") fraction
+                             from planet_osm_line l1
+                             where l1.line_id = " . $intersection[0].lineid
+                        )->first ();
+
+                    $intersection->coordinate = $p;
+                    $intersection->fraction = $fraction[0];
+
+                    array_splice($intersections, $i, 0, $intersection);
+                    $i++;
+                }
+            }
+            else
+            {
+                $intersections[$i]->coordinate = $coordinate->coordinates;
+                $i++;
+            }
+        }
+
+        return $intersections;
+    }
+
+
     private function fixupDeadEndEndNodeEdges ()
     {
         $edges = \DB::connection('pgsql')->select ("
@@ -481,7 +507,8 @@ class GenerateGraph extends Command
         $bar->finish ();
         error_log ("");
 
-    }}
+    }
+}
 
 function addEdge ($node, $edgeIndex)
 {

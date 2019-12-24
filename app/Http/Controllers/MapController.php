@@ -69,6 +69,17 @@ class MapController extends Controller
         return json_encode($graph);
     }
 
+    public function whatIsHere (Request $request)
+    {
+        $point = (object)[];
+        $point->lat = doubleval($request->input('lat'));
+        $point->lng = doubleval($request->input('lng'));
+
+        $result = Map::whatIsHere($point);
+
+        return json_encode($result);
+    }
+
     public function getTrailByLineId ($lineId)
     {
         return Map::getPathFromLineId($lineId);

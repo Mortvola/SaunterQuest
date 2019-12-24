@@ -183,6 +183,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/map/intersections', 'MapController@getIntersections');
     Route::get('/map/nearestTrail', 'MapController@getNearestTrail');
     Route::get('/map/nearestGraph', 'MapController@getNearestGraph');
+    Route::get('/map/whatishere', 'MapController@whatIsHere');
     Route::get('/map/trail/{lineId}', function ($lineId) { return (new MapController)->getTrailByLineId ($lineId);});
 
     Route::get('/tileList', 'MapController@getTileList');
