@@ -2,7 +2,10 @@
 
 CARTO_STYLE_FILE=~/src/openstreetmap-carto/openstreetmap-carto.style
 CARTO_LUA_FILE=~/src/openstreetmap-carto/openstreetmap-carto.lua
-WEB_SITE=https://download.geofabrik.de/north-america/
+WEB_SITE=https://download.geofabrik.de/
+
+PBF_FILES="north-america-latest.osm.pbf"
+
 
 fetchPBF ()
 {
@@ -21,7 +24,7 @@ fetchPBF ()
 loadPBF ()
 {
 	if [ ! -e ${1}.done ]; then	
-		osm2pgsql -d gis --append --slim  -G --hstore --tag-transform-script ${CARTO_LUA_FILE} -C 2500 --number-processes 1 -S ${CARTO_STYLE_FILE} ${1}
+		osm2pgsql -d gis --create --slim  -G --hstore --tag-transform-script ${CARTO_LUA_FILE} -C 2500 --number-processes 1 -S ${CARTO_STYLE_FILE} ${1}
 	
 		if [ $? -eq 0 ]; then
 			touch ${1}.done
@@ -29,18 +32,28 @@ loadPBF ()
 	fi
 }
 
-
-PBF_FILES="us-west-latest.osm.pbf us-northeast-latest.osm.pbf"
-
-for FILE in ${PBF_FILES}; do
-
-	if [ ! -e ${FILE}.done ]; then
-		fetchPBF ${FILE}
+downloadFiles ()
+{
+	for FILE in ${PBF_FILES}; do
 	
-		if [ -e ${FILE} ]; then
+		if [ ! -e ${FILE}.done ]; then
+			fetchPBF ${FILE}
+		fi
+		
+	done
+}
+
+loadPBFs ()
+{
+	for FILE in ${PBF_FILES}; do
+	
+		if [ ! -e ${FILE}.done ]; then
 			loadPBF ${FILE}
 		fi
-	fi
-	
-done
+		
+	done
+}
+
+downloadFiles
+loadPBFs  
 
