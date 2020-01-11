@@ -11,7 +11,7 @@ fetchPBF ()
 	if [ ! -e ${1} ]; then
 		wget ${FULLPATH}
 		
-		if [ ! $? -eq 0; ]; then
+		if [ ! $? -eq 0 ]; then
 			rm -f ${1}
 		fi
 	fi
