@@ -1062,16 +1062,25 @@ function mapInitialize()
             contextmenu: true,
             contextmenuItems: mapMenuItems,
             center: [41.35, -96.0],
-            zoom: 4
+            zoom: 4,
+            maxZoom: 16,
+            minZoom: 4,
         });
 
-    L.tileLayer(tileServerUrl + "/hot/{z}/{x}/{y}.png", {
-        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
-        maxZoom: 18,
-        minZoom: 4,
-    }).addTo(map);
-    
+    let terrainLayer = new L.tileLayer(tileServerUrl + "/terrain/{z}/{x}/{y}", {
+        updateWhenZooming: true,
+    });
    
+    let detailLayer = new L.tileLayer(tileServerUrl + "/tile/{z}/{x}/{y}", {
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
+        updateWhenZooming: true,
+    });
+    
+    L.layerGroup ()
+        .addLayer(terrainLayer)
+        .addLayer(detailLayer)
+        .addTo(map);
+    
     /*
     map.on('locationfound', function (e)
         {

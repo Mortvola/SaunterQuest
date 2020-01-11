@@ -11,6 +11,7 @@ use App\Http\Controllers\TrailConditionController;
 use App\Http\Controllers\ResupplyPlanController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\MapController;
+use App\Http\Controllers\TileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -187,5 +188,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/map/trail/{lineId}', function ($lineId) { return (new MapController)->getTrailByLineId ($lineId);});
 
     Route::get('/tileList', 'MapController@getTileList');
-    Route::get('/tile', 'TileController@get');
+
+    Route::get('/tile/{z}/{x}/{y}', function (Request $request, $z, $x, $y)
+    {
+        return (new TileController)->get ($request, 'images', $x, $y, $z);
+    });
+
+    Route::get('/terrain/{z}/{x}/{y}', function (Request $request, $z, $x, $y)
+    {
+        return (new TileController)->get ($request, 'terrain', $x, $y, $z);
+    });
 });

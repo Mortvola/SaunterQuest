@@ -119,7 +119,7 @@ class Map
             "point" => $point
         ];
 
-        return sendRequest ($request);
+        return sendRouteFindRequest ($request);
     }
 
     public static function whatIsHere ($point)
@@ -130,7 +130,7 @@ class Map
             "point" => $point
         ];
 
-        return sendRequest ($request);
+        return sendRouteFindRequest ($request);
     }
 
     public static function getIntersections ($bounds)

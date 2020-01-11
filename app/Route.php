@@ -727,7 +727,7 @@ class Route implements ArrayAccess
             $request->points[] = (object)["lat" => $anchor->lat, "lng" => $anchor->lng];
         }
 
-        return sendRequest ($request);
+        return sendRouteFindRequest ($request);
     }
 
     private function findRouteBetweenAnchors ($anchorIndexes, $startRoute = null)

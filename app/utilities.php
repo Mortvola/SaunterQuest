@@ -42,9 +42,9 @@ function metersToMilesRounded ($meters)
     return round($meters / 1609.34 * 10) / 10;
 }
 
-function sendRequest ($request)
+function sendRequest ($request, $socket)
 {
-    $stream = stream_socket_client("unix:///tmp/routeFind");
+    $stream = stream_socket_client($socket);
 
     if ($stream !== false)
     {
@@ -63,3 +63,15 @@ function sendRequest ($request)
         }
     }
 }
+
+
+function sendRouteFindRequest ($request)
+{
+    return sendRequest ($request, "unix:///run/routeFind/routeFind");
+}
+
+function sendMapRenderRequest ($request)
+{
+    return sendRequest ($request, "unix:///run/mapRender/mapRender");
+}
+
