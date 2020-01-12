@@ -24,7 +24,7 @@ fetchPBF ()
 loadPBF ()
 {
 	if [ ! -e ${1}.done ]; then	
-		osm2pgsql -d gis --create --slim  -G --hstore --tag-transform-script ${CARTO_LUA_FILE} -C 2500 --number-processes 1 -S ${CARTO_STYLE_FILE} ${1}
+		osm2pgsql -d gis --create --slim  -G --hstore --tag-transform-script ${CARTO_LUA_FILE} --number-processes 1 -S ${CARTO_STYLE_FILE} ${1}
 	
 		if [ $? -eq 0 ]; then
 			touch ${1}.done
