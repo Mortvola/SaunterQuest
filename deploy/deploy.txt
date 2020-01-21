@@ -143,10 +143,4 @@ cd ~/src/openstreetmap-carto/
 carto project.mml > mapnik.xml
 systemctl restart renderd
 
-grant all on table planet_osm_line to bpp;
-
-ALTER TABLE public.planet_osm_line
-   ADD COLUMN line_id bigint NOT NULL DEFAULT nextval('line_id_seq'::regclass);
-
-
-
+postSetup.sh

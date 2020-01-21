@@ -184,15 +184,18 @@ class Map
 
         $result = \DB::connection('pgsql')->select ($sql);
 
-        $coordinates = json_decode($result[0]->linestring)->coordinates;
-        $points = [];
-
-        foreach ($coordinates as $coord)
+        if (count($result) == 1)
         {
-            $points[] = (object)["point" => (object)["lat" => $coord[1], "lng" => $coord[0]]];
-        }
+            $coordinates = json_decode($result[0]->linestring)->coordinates;
+            $points = [];
 
-        return $points;
+            foreach ($coordinates as $coord)
+            {
+                $points[] = (object)["point" => (object)["lat" => $coord[1], "lng" => $coord[0]]];
+            }
+
+            return $points;
+        }
     }
 
     static public function getPathFromLineId ($lineId)

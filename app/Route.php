@@ -896,7 +896,7 @@ class Route implements ArrayAccess
             // array_splice ($this->anchors, $s + 1, 0, $trail);
             // $s += count($trail);
 
-            if (count($trail) > 0)
+            if (isset($trail) && count($trail) > 0)
             {
                 array_splice($trail, 0, 1);
                 array_splice($trail, count($trail) - 1, 1);

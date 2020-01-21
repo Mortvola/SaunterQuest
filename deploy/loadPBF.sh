@@ -16,12 +16,13 @@ fetchPBF ()
 		
 		if [ ! $? -eq 0 ]; then
 			rm -f ${1}
+			exit
 		fi
 	fi
 }
 
 
-loadPBF ()
+load ()
 {
 	if [ ! -e ${1}.done ]; then	
 		osm2pgsql -d gis --create --slim  -G --hstore \
@@ -34,11 +35,13 @@ loadPBF ()
 	
 		if [ $? -eq 0 ]; then
 			touch ${1}.done
+		else
+			exit
 		fi
 	fi
 }
 
-downloadFiles ()
+download ()
 {
 	for FILE in ${PBF_FILES}; do
 	
@@ -49,7 +52,7 @@ downloadFiles ()
 	done
 }
 
-loadPBFs ()
+merge ()
 {
 	for FILE in ${PBF_FILES}; do
 	
@@ -60,6 +63,7 @@ loadPBFs ()
 	done
 }
 
-downloadFiles
-loadPBFs  
+download
+merge
+load  
 

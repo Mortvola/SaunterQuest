@@ -67,11 +67,11 @@ function sendRequest ($request, $socket)
 
 function sendRouteFindRequest ($request)
 {
-    return sendRequest ($request, "unix:///run/routeFind/routeFind");
+    return sendRequest ($request, "unix:///run/routeFind/routeFind.sock");
 }
 
 function sendMapRenderRequest ($request)
 {
-    return sendRequest ($request, "unix:///run/mapRender/mapRender");
+    return sendRequest ($request, "unix:///run/mapRender/mapRender.sock");
 }
 
