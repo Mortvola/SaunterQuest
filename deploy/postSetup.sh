@@ -1,5 +1,7 @@
 #!/bin/bash
 
+USER=`whoami`
+
 psql -d gis <<EOF
 GRANT ALL ON table planet_osm_line TO PUBLIC;
 GRANT ALL ON planet_osm_polygon TO PUBLIC;
@@ -11,6 +13,8 @@ ALTER TABLE planet_osm_line
 
 CREATE INDEX planet_osm_line_line_id_idx
   ON planet_osm_line (line_id);
+
+CREATE USER ${USER};
 
 \q
 EOF
