@@ -1,5 +1,6 @@
 <?php
 namespace App;
+require_once app_path('utilities.php');
 
 class Elevation
 {
@@ -120,46 +121,13 @@ class Elevation
 
     public function getElevation ($lat, $lng)
     {
-        $filename = $this->getBaseFilename ($lat,$lng);
+        $request = (object)[
+            "method" => "GET",
+            "command" => "/elevation/point",
+            "point" => (object)["lat" => floatval($lat), "lng" => floatval($lng)]
+        ];
 
-        $fullFilename = base_path("elevations/" . $filename . ".hgt");
-
-        if (file_exists($fullFilename))
-        {
-            $file = fopen($fullFilename, "rb");
-
-            $ele = [ ];
-
-            if ($file)
-            {
-                list ($row, $col) = $this->getFilePosition ($lat, $lng);
-
-                $result = fseek($file, $row * 3601 * 2 + $col * 2);
-
-                // Read the upper left elevation
-                $data = fread($file, 2);
-                $ele[2] = unpack("n", $data)[1];
-
-                // Read the upper right elevation;
-                $data = fread($file, 2);
-                $ele[3] = unpack("n", $data)[1];
-
-                // Move to the lower left
-                $result = fseek($file, ($row + 1) * 3601 * 2 + $col * 2);
-
-                // read the lower left
-                $data = fread($file, 2);
-                $ele[0] = unpack("n", $data)[1];
-
-                // read the lower right
-                $data = fread($file, 2);
-                $ele[1] = unpack("n", $data)[1];
-
-                fclose($file);
-
-                return round($this->findPoint($ele, $lng, $lat));
-            }
-        }
+        return sendRouteFindRequest ($request);
     }
 
     private function getBaseFileName ($lat, $lng)
