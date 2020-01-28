@@ -20,8 +20,6 @@ class TileController extends Controller
 
     public function get ($request, $layer, $x, $y, $z)
     {
-        $etag = $request->header('If-None-Match');
-
         $tileRequest = (object)["command" => "getTile", "x" => intval($x), "y" => intval($y), "z" => intval($z)];
 
         if ($layer == 'images')
@@ -39,8 +37,17 @@ class TileController extends Controller
 
         if (file_exists($file))
         {
-            $contents = file_get_contents($file);
-            $md5 = md5($contents);
+            if (file_exists($file . '.md5'))
+            {
+                $md5 = file_get_contents ($file . '.md5');
+            }
+            else
+            {
+                $contents = file_get_contents($file);
+                $md5 = md5($contents);
+            }
+
+            $etag = $request->header('If-None-Match');
 
             if (isset($etag) && $md5 == $etag)
             {
@@ -48,11 +55,16 @@ class TileController extends Controller
             }
             else
             {
+                if (!isset($contents))
+                {
+                    $contents = file_get_contents($file);
+                }
+
                 $response = response($contents)
                     ->header('content-type', "image/png");
             }
 
-            $response->header('Cache-Control', 'no-cache,private,max-age=30')
+            $response->header('Cache-Control', 'max-age=' . (7 * 24 * 60 * 60))
                 ->header ('ETag', $md5);
 
             return $response;
