@@ -34,6 +34,25 @@ function createCharts ()
 {
     elevationChart = new google.visualization.LineChart(document.getElementById('elevation_chart_div'));
     chartsInitialized = true;
+    
+    google.visualization.events.addListener(elevationChart, 'select',
+        function ()
+        {
+            let objects = elevationChart.getSelection ();
+
+            // If there are no objects in the array then there is no selection.
+            if (objects.length == 0)
+            {
+                document.dispatchEvent(new Event('elevationUnselected'));
+            }
+            else
+            {
+                // There should only be one entry in the objects array
+                // for this type of chart so just access the first one
+                // in the array.
+                document.dispatchEvent(new CustomEvent('elevationSelected', {detail: {routeIndex: objects[0].row}}));
+            }
+        });
 }
 
 function drawCharts ()

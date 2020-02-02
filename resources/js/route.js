@@ -3,6 +3,7 @@
 const startPointUrl = "https://maps.google.com/mapfiles/ms/micons/green-dot.png";
 const wayPointUrl = "https://maps.google.com/mapfiles/ms/micons/ltblue-dot.png";
 const endPointUrl = "https://maps.google.com/mapfiles/ms/micons/red-dot.png";
+const elevationUrl = "https://maps.google.com/mapfiles/ms/micons/yellow-dot.png";
 
 const routeStrokeWeight = 6;
 
@@ -30,6 +31,21 @@ class Route
         this.waypoints = [];
         
         this.initialLoad = true;
+        
+        this.elevationMarker = new TrailMarker (this.map, elevationUrl);
+
+        $(document).on('elevationSelected', (event) =>
+            {
+                let position = this.actualRoute[event.detail.routeIndex];
+                
+                this.elevationMarker.setPosition (position);
+            });
+        
+        
+        $(document).on('elevationUnselected', (event) =>
+        {
+            this.elevationMarker.removeMarker ();
+        });
     }
 
     setStart (position)
