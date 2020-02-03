@@ -1018,8 +1018,6 @@ class Route
         if (this.actualRoutePolyline != undefined)
         {
             this.actualRoutePolyline.remove();
-            
-            removeContextMenu(this.actualRoutePolyline);
         }
 
         this.actualRoutePolyline = new L.polyline([], {

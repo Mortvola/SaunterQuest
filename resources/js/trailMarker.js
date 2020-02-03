@@ -116,23 +116,18 @@ class TrailMarker
 	    if (label === undefined)
 	    {
             this.marker.unbindTooltip();
+            this.label = undefined;
 	    }
 	    else
 	    {
-            //this.marker.setLabel({text: label, fontWeight: "700"});
             this.marker.bindTooltip(label); //, {direction: 'top', permanent: true});
-	        //this.marker.options.title = label;
+	        this.label = label;
 	    }
 	}
 	
 	getLabel ()
 	{
-	    let markerLabel = this.marker.getTooltip ();
-	    
-	    if (markerLabel !== undefined)
-	    {
-	        return markerLabel.text;
-	    }
+	    return this.label;
 	}
 }
 
