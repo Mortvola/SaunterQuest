@@ -13,6 +13,7 @@ var elevationMin = 0;
 var elevationMax = 11000;
 var elevationDataTable;
 var elevationChart;
+var startIndex = 0;
 
 function initializeCharts ()
 {
@@ -50,7 +51,7 @@ function createCharts ()
                 // There should only be one entry in the objects array
                 // for this type of chart so just access the first one
                 // in the array.
-                document.dispatchEvent(new CustomEvent('elevationSelected', {detail: {routeIndex: objects[0].row}}));
+                document.dispatchEvent(new CustomEvent('elevationSelected', {detail: {routeIndex: startIndex + objects[0].row}}));
             }
         });
 }
@@ -74,7 +75,9 @@ function getAndLoadElevationData (s, e)
     
     elevationData.push([{label: 'Distance', type: 'number'}, {label: 'Elevation', type: 'number'}]);
     
-    route.getElevations (elevationData,s, e);
+    startIndex = s;
+    
+    route.getElevations (elevationData, s, e);
     
     loadData ();
 }
