@@ -16,6 +16,12 @@ CREATE INDEX planet_osm_line_line_id_idx
 
 CREATE USER ${USER};
 
+GRANT ALL ON users TO PUBLIC;
+GRANT ALL ON nav_nodes TO PUBLIC;
+GRANT ALL ON nav_edges TO PUBLIC;
+GRANT ALL ON SEQUENCE nav_edge_id_seq TO PUBLIC;
+GRANT ALL ON SEQUENCE nav_node_id_seq TO PUBLIC;
+
 \q
 EOF
 
