@@ -873,6 +873,17 @@ class Route
         
         this.updateWaypointInfo (waypoint, anchor);
 
+        waypoint.setInfoMessageCallback (
+            () =>
+            {
+                if (waypoint.name !== undefined && waypoint.name !== null && waypoint.name !== "")
+                {
+                    return "<div>Name: " + waypoint.name + "</div>";
+                }
+                
+                return "";
+            });
+        
         return waypoint;
 	}
 	

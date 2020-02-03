@@ -19,7 +19,18 @@ class TrailMarker
 		    }
 		);
 		
-		this.marker.bindPopup (() => { return this.infoMessage (); } );
+		this.marker.bindPopup (
+		    () =>
+		    {
+		        let message = this.infoMessage ();
+		        
+		        if (this.infoMessageCallback)
+		        {
+		            message += this.infoMessageCallback ();
+		        }
+		        
+		        return message;
+		    } );
 	}
 
 	addListener ()
@@ -87,10 +98,19 @@ class TrailMarker
 		return this.getCommonInfoDivs ();
 	}
 	
+	setInfoMessageCallback (callback)
+	{
+	    this.infoMessageCallback = callback;
+	}
+	
 	getCommonInfoDivs ()
 	{
+	    let position = this.marker.getLatLng ();
+	    
 		return "<div>Mile: " + metersToMilesRounded(this.meters)
-			+ "</div><div>Elevation: " + metersToFeet(this.ele) + "\'</div>";
+			+ "</div><div>Elevation: " + metersToFeet(this.ele) + "\'</div>"
+			+ "<div>Lat: " + position.lat + "</div>"
+			+ "<div>Lng: " + position.lng + "</div>";
 	}
 	
 	setContextMenu (contextMenu)
