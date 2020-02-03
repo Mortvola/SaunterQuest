@@ -788,7 +788,7 @@ function positionMapToBounds (map, p1, p2)
 		bounds.south = p2.lat;
 	}
 
-	map.fitBounds(bounds);
+	map.fitBounds([[bounds.south, bounds.west], [bounds.north, bounds.east]]);
 }
 
 
