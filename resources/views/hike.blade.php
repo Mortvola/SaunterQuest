@@ -154,6 +154,23 @@
             }
         }
 
+        .trail-marker
+        {
+            background: none;
+            border: none;
+        }
+
+        .trail-marker-label
+        {
+            position:absolute;
+            width:16px;
+            height:16px;
+            margin-left:7px;
+            margin-top: 2px;
+            background:none;
+            text-align:center;
+        }
+
     </style>
 
 	<?php require_once resource_path('js/elevationChart.js'); ?>

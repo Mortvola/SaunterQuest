@@ -1,7 +1,7 @@
 "use strict";
 
 const startPointUrl = "https://maps.google.com/mapfiles/ms/micons/green-dot.png";
-const wayPointUrl = "https://maps.google.com/mapfiles/ms/micons/ltblue-dot.png";
+const wayPointUrl = "https://maps.google.com/mapfiles/ms/micons/lightblue.png";
 const endPointUrl = "https://maps.google.com/mapfiles/ms/micons/red-dot.png";
 const elevationUrl = "https://maps.google.com/mapfiles/ms/micons/yellow-dot.png";
 
@@ -618,14 +618,37 @@ class Route
         else
         {
             // Renumber waypoints
-            let waypointNumber = 1;
-            for (let w of this.waypoints)
-            {
-                w.setLabel(waypointNumber.toString ());
-                waypointNumber++;
-            }
+            this.relabelWaypoints ();
             
             document.dispatchEvent(new Event('routeUpdated'));
+        }
+    }
+
+    relabelWaypoints ()
+    {
+        let waypointLabel = 'A';
+        for (let w of this.waypoints)
+        {
+            if (w.remove)
+            {
+                w.removeMarker();
+            }
+            else
+            {
+                w.setLabel(waypointLabel);
+                
+                // Get the next label. If the current label is Z then
+                // start uing lower case letters.
+                // TODO: Should switch to using two letters but wider icons will be needed.
+                if (waypointLabel === 'Z')
+                {
+                    waypointLabel = 'a';
+                }
+                else
+                {
+                    waypointLabel = String.fromCharCode(waypointLabel.charCodeAt(0) + 1);
+                }
+            }
         }
     }
     
@@ -1009,19 +1032,7 @@ class Route
 			}
 		}
 		
-		let waypointNumber = 1;
-		for (let w of this.waypoints)
-		{
-		    if (w.remove)
-		    {
-	            w.removeMarker();
-		    }
-		    else
-		    {
-		       w.setLabel(waypointNumber.toString ());
-		       waypointNumber++;
-		    }
-		}
+		this.relabelWaypoints ();
 	}
 	
 	newPolyline ()

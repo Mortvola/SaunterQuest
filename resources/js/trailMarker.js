@@ -7,15 +7,13 @@ class TrailMarker
 	{
 		this.map = map;
 
+		this.iconUrl = iconUrl;
+		
+		this.icon = this.createIcon ();
+		
 		this.marker = new L.Marker([],
 		    {
-    			icon: L.icon(
-                    {
-                        iconUrl: iconUrl,
-                        iconAnchor: L.point(16,32),
-                        popupAnchor: L.point(0,-32),
-                        tooltipAnchor: L.point(0,-32),
-                    })
+		        icon: this.icon
 		    }
 		);
 		
@@ -31,6 +29,23 @@ class TrailMarker
 		        
 		        return message;
 		    } );
+	}
+
+	createIcon (label)
+	{
+	    if (label === undefined)
+	    {
+	        label = "";
+	    }
+	    
+	    return L.divIcon(
+	        {
+	            className: 'trail-marker', 
+	            html: '<div class="trail-marker-label">' + label + '</div><img src="' + this.iconUrl + '">',
+	            iconAnchor: L.point(16,32),
+	            popupAnchor: L.point(0,-32),
+	            tooltipAnchor: L.point(0,-32),
+	        });
 	}
 
 	addListener ()
@@ -133,16 +148,11 @@ class TrailMarker
 	
 	setLabel (label)
 	{
-	    if (label === undefined)
-	    {
-            this.marker.unbindTooltip();
-            this.label = undefined;
-	    }
-	    else
-	    {
-            this.marker.bindTooltip(label); //, {direction: 'top', permanent: true});
-	        this.label = label;
-	    }
+        this.icon = this.createIcon(label);
+
+        this.marker.setIcon(this.icon);
+
+        this.label = label;
 	}
 	
 	getLabel ()
