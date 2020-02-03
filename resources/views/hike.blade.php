@@ -297,7 +297,7 @@
                     <div id="waypoints" class="tab-pane fade">
                         <div>Waypoints:</div>
                         <div style="display:flex; flex-direction:column">
-                            <div class="waypoint-table-header"><div class="waypoint-table-header-cell" style="width:15%;">Order</div><div class="waypoint-table-header-cell">Name</div></div>
+                            <div class="waypoint-table-header"><div class="waypoint-table-header-cell" style="width:15%;">Label</div><div class="waypoint-table-header-cell">Name</div></div>
                             <div id='sortable'>
                             </div>
                         </div>

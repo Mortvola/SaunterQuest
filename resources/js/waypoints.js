@@ -19,7 +19,7 @@ $(document).on('routeUpdated', function ()
         for (let w of route.waypoints)
         {
             var sortOrder = w.getLabel ();
-            var name = w.id;
+            var name = "";
     
             if (w.name)
             {
