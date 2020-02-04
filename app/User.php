@@ -45,4 +45,9 @@ class User extends Authenticatable
     {
         return $this->hasMany('\App\Hike', 'user_id');
     }
+
+    public function endHikeDayExtension ()
+    {
+        return $this->end_hike_day_extension;
+    }
 }

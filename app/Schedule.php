@@ -82,7 +82,17 @@ class Schedule
 
     public function currentDaySet ($day)
     {
+        if ($day < $this->currentDay)
+        {
+            array_splice($this->days, $day + 1);
+        }
+
         $this->currentDay = $day;
+    }
+
+    public function currentDayDelete ()
+    {
+        $this->currentDaySet($this->currentDayIndexGet () - 1);
     }
 
     public function previousDayTotalMetersGet ()

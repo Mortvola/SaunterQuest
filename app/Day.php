@@ -140,6 +140,11 @@ class Day implements \JsonSerializable
         return $this->startTime + $this->elapsedTime;
     }
 
+    public function elapsedTimeGet ()
+    {
+        return $this->elapsedTime;
+    }
+
     public function timeAdd ($minutes)
     {
         $this->elapsedTime += $minutes;

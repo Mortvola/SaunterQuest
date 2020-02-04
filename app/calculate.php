@@ -2,6 +2,7 @@
 namespace bpp;
 use App\Schedule;
 use App\PointOfInterest;
+use Illuminate\Support\Facades\Auth;
 
 // $debug = true;
 // $maxZ = 2000;
@@ -748,6 +749,8 @@ function traverseSegment ($s1, $s2, $schedule, &$z, $segmentMeters, $lastEle)
         {
             $minutesHiked = 0;
             $metersHiked = 0;
+
+            // Hike the remaining time of the day, if any.
             if ($currentTime < $schedule->currentDayGet()->endTime)
             {
                 $minutesHiked = $schedule->currentDayGet()->endTime - $currentTime;
@@ -884,6 +887,25 @@ function traverseRoute ($route, $schedule)
     }
 
     $day = $schedule->currentDayGet();
+
+    $elapsedTime = $day->elapsedTimeGet ();
+
+    // If the day didn't start with an explicit camp and
+    // we are within the max time limit to extend the day to
+    // reach the end then delete today and
+    // add today's elapsed time to the previous day.
+	// TODO: This does't take into account any change in hiker profiles
+    $dayExtension = Auth::user()->endHikeDayExtension ();
+
+    if (isset($dayExtension) && $dayExtension != null &&
+        $elapsedTime <= $dayExtension && (!isset($day->camp) || $day->camp == null))
+    {
+        $schedule->currentDayDelete();
+
+        $day = $schedule->currentDayGet ();
+
+        $day->timeAdd ($elapsedTime);
+    }
 
     $day->end();
 
