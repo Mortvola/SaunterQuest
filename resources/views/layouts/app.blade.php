@@ -75,8 +75,8 @@
                                 </a>
 
                                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-                                    <a class="dropdown-item" href="javascript:showAccountDialog()">{{ __('Account') }}</a>
-                                	<a class="dropdown-item" href="javascript:showProfileDialog()">{{ __('Profile') }}</a>
+                                    <a class="dropdown-item" id="account-menu-item">{{ __('Account') }}</a>
+                                	<a class="dropdown-item" id="profile-menu-item">{{ __('Profile') }}</a>
                                     <a class="dropdown-item" href="{{ route('logout', null, false) }}"
                                        onclick="event.preventDefault();
                                                      document.getElementById('logout-form').submit();">
@@ -98,5 +98,11 @@
     </div>
 
     @include('accountDialog')
+    @include('profileDialog')
+
+    <script>
+    <?php require_once resource_path('js/accountDialog.js'); ?>
+    <?php require_once resource_path('js/profileDialog.js'); ?>
+    </script>
 </body>
 </html>

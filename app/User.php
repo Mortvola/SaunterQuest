@@ -50,4 +50,9 @@ class User extends Authenticatable
     {
         return $this->end_hike_day_extension;
     }
+
+    public function profile ()
+    {
+        return (object)["endHikeDayExtension" => $this->endHikeDayExtension()];
+    }
 }

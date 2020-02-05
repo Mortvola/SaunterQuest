@@ -23,17 +23,3 @@
         </div>
     </div>
 </div> <!--  Modal -->
-
-<script>
-    function showAccountDialog ()
-    {
-        $("#accountSaveButton").off('click');
-        $("#accountSaveButton").click(function () { accountSave(); });
-
-        $("#accountDialog").modal ('show');
-    }
-
-    function accountSave ()
-    {
-    }
-</script>

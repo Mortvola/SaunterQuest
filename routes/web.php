@@ -30,6 +30,9 @@ Auth::routes();
 
 Route::middleware(['auth'])->group(function () {
 
+    Route::get('/user/profile', 'UserController@getProfile');
+    Route::put('/user/profile', 'UserController@putProfile');
+
     Route::get('/home', 'HomeController@index')->name('home');
 
     Route::get('/gear', function ()
