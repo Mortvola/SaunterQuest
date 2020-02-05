@@ -433,6 +433,7 @@ class ComposerStaticInit19cd838ffe99fb679ab70f1871963e41
         'App\\Http\\Controllers\\TileController' => __DIR__ . '/../..' . '/app/Http/Controllers/TileController.php',
         'App\\Http\\Controllers\\TrailConditionController' => __DIR__ . '/../..' . '/app/Http/Controllers/TrailConditionController.php',
         'App\\Http\\Controllers\\TrailController' => __DIR__ . '/../..' . '/app/Http/Controllers/TrailController.php',
+        'App\\Http\\Controllers\\UserController' => __DIR__ . '/../..' . '/app/Http/Controllers/UserController.php',
         'App\\Http\\Controllers\\resupplyPlanController' => __DIR__ . '/../..' . '/app/Http/Controllers/ResupplyPlanController.php',
         'App\\Http\\Kernel' => __DIR__ . '/../..' . '/app/Http/Kernel.php',
         'App\\Http\\Middleware\\Authenticate' => __DIR__ . '/../..' . '/app/Http/Middleware/Authenticate.php',

@@ -5,6 +5,7 @@ require_once app_path('calculate.php');
 
 use bpp\Day;
 use App\HikerProfile;
+use Illuminate\Support\Facades\Auth;
 
 class Schedule
 {
@@ -109,10 +110,10 @@ class Schedule
     {
         $hikerProfile = (object)[ ];
 
-        $hikerProfile->speedFactor = 100;
-        $hikerProfile->startTime = 8 * 60;
-        $hikerProfile->endTime = 19 * 60;
-        $hikerProfile->breakDuration = 1 * 60;
+        $hikerProfile->speedFactor = Auth::user()->pace_factor;
+        $hikerProfile->startTime = Auth::user()->start_time * 60;
+        $hikerProfile->endTime = Auth::user()->end_time * 60;
+        $hikerProfile->breakDuration = Auth::user()->break_duration;
 
         foreach ($this->hikerProfiles as $profile)
         {
@@ -135,7 +136,7 @@ class Schedule
 
                 if (isset($profile->break_duration))
                 {
-                    $hikerProfile->breakDuration = $profile->break_duration * 60;
+                    $hikerProfile->breakDuration = $profile->break_duration;
                 }
             }
         }

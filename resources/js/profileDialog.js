@@ -7,12 +7,13 @@ function showProfileDialog ()
     })
     .done (function(responseText)
     {
-        $('#profileForm #endHikeDayExtension').val(responseText.endHikeDayExtension);
-        
-        $("#profileSaveButton").off('click');
-        $("#profileSaveButton").click(function () { profileSave(); });
+        $("#profileForm [name='paceFactor']").val(responseText.paceFactor);
+        $("#profileForm [name='startTime']").val(toTimeString (responseText.startTime));
+        $("#profileForm [name='endTime']").val(toTimeString(responseText.endTime));
+        $("#profileForm [name='breakDuration']").val(responseText.breakDuration);
+        $('#profileForm [name="endDayExtension"]').val(responseText.endDayExtension);
+        $('#profileForm [name="endHikeDayExtension"]').val(responseText.endHikeDayExtension);
 
-        
         $("#profileDialog").modal ('show');
     });
 
@@ -23,6 +24,9 @@ function showProfileDialog ()
         
         var profile = objectifyForm($('#profileForm').serializeArray ());
         
+        profile.startTime = toTimeFloat(profile.startTime);
+        profile.endTime = toTimeFloat(profile.endTime);
+
         $.ajax({
             url: "/user/profile",
             headers:

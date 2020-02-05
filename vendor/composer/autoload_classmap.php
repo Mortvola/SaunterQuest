@@ -37,6 +37,7 @@ return array(
     'App\\Http\\Controllers\\TileController' => $baseDir . '/app/Http/Controllers/TileController.php',
     'App\\Http\\Controllers\\TrailConditionController' => $baseDir . '/app/Http/Controllers/TrailConditionController.php',
     'App\\Http\\Controllers\\TrailController' => $baseDir . '/app/Http/Controllers/TrailController.php',
+    'App\\Http\\Controllers\\UserController' => $baseDir . '/app/Http/Controllers/UserController.php',
     'App\\Http\\Controllers\\resupplyPlanController' => $baseDir . '/app/Http/Controllers/ResupplyPlanController.php',
     'App\\Http\\Kernel' => $baseDir . '/app/Http/Kernel.php',
     'App\\Http\\Middleware\\Authenticate' => $baseDir . '/app/Http/Middleware/Authenticate.php',

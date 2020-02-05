@@ -53,6 +53,13 @@ class User extends Authenticatable
 
     public function profile ()
     {
-        return (object)["endHikeDayExtension" => $this->endHikeDayExtension()];
+        return (object)[
+            "paceFactor" => $this->pace_factor,
+            "startTime" => $this->start_time,
+            "endTime" => $this->end_time,
+            "breakDuration" => $this->break_duration,
+            "endDayExtension" => $this->end_day_extension,
+            "endHikeDayExtension" => $this->end_hike_day_extension
+        ];
     }
 }

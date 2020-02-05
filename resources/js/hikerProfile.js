@@ -93,19 +93,22 @@ function findHikerProfileIndex (hikerProfileId)
 
 function toTimeString (time)
 {
-	var hour = Math.floor (time);
-	if (hour < 10)
-	{
-		hour = "0" + hour;
-	}
-	
-	var minutes = Math.floor((time - Math.floor (time)) * 60);
-	if (minutes < 10)
-	{
-		minutes = "0" + minutes;
-	}
-	
-	return hour + ":" + minutes;
+    if (time !== undefined)
+    {
+        var hour = Math.floor (time);
+        if (hour < 10)
+        {
+            hour = "0" + hour;
+        }
+        
+        var minutes = Math.floor((time - Math.floor (time)) * 60);
+        if (minutes < 10)
+        {
+            minutes = "0" + minutes;
+        }
+        
+        return hour + ":" + minutes;
+    }
 }
 
 
@@ -120,8 +123,8 @@ function editHikerProfile (hikerProfileId)
 	{
 		$("input[name='startDay']").val(hikerProfiles[h].startDay == "" ? hikerProfiles[h].startDay : parseInt(hikerProfiles[h].startDay) + 1);
 		$("input[name='endDay']").val(hikerProfiles[h].endDay == "" ? hikerProfiles[h].endDay : parseInt(hikerProfiles[h].endDay) + 1);
-		$("input[name='speedFactor']").val(hikerProfiles[h].speedFactor);
 		
+		$("input[name='speedFactor']").val(hikerProfiles[h].speedFactor);
 		$("input[name='startTime']").val(toTimeString (hikerProfiles[h].startTime));
 		$("input[name='endTime']").val(toTimeString(hikerProfiles[h].endTime));
 		$("input[name='breakDuration']").val(hikerProfiles[h].breakDuration);
@@ -237,7 +240,7 @@ function insertHikerProfile ()
 function removeHikerProfile (hikerProfileId)
 {
     $.ajax({
-        url: userHikeId + "/hikerProfile" + hikerProfileId,
+        url: userHikeId + "/hikerProfile/" + hikerProfileId,
         headers:
         {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),

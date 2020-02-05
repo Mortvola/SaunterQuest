@@ -267,7 +267,7 @@
                         <tr>
                         <th>Type</th>
                         <th>Description</th>
-                        <th style='text-align:right'>Speed Factor</th>
+                        <th style='text-align:right'>Pace Factor</th>
                         </tr>
                         </thead>
                         <tbody>

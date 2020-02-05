@@ -9,8 +9,28 @@
             </div>
             <div class="modal-body">
                 <form id='profileForm'>
-                    <label>End of Hike Day Extension (minutes)</label>
-                    <input type="text" class='form-control' name='endHikeDayExtension' id='endHikeDayExtension' value=''/>
+                    <label>Pace Factor (%):</label>
+                    <input type="number" class='form-control' name='paceFactor' value='100'/>
+                    <br/>
+
+                    <label>Start Time:</label>
+                    <input type="time" class='form-control' name='startTime' value='07:00'/>
+                    <br/>
+
+                    <label>End Time:</label>
+                    <input type="time" class='form-control' name='endTime' value='18:00'/>
+                    <br/>
+
+                    <label>Break Duration (minutes):</label>
+                    <input type="number" class='form-control' name='breakDuration' value='60'/>
+                    <br/>
+
+                    <label>End of Day Extension (minutes)</label>
+                    <input type="number" class='form-control' name='endDayExtension' value='60'/>
+                    <br/>
+
+                    <label>End of Hike Extension (minutes)</label>
+                    <input type="number" class='form-control' name='endHikeDayExtension' value='60'/>
                     <br/>
                 </form>
             </div>
