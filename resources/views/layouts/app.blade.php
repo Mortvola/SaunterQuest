@@ -75,6 +75,7 @@
                                 </a>
 
                                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                                    <a class="dropdown-item" href="javascript:showAccountDialog()">{{ __('Account') }}</a>
                                 	<a class="dropdown-item" href="javascript:showProfileDialog()">{{ __('Profile') }}</a>
                                     <a class="dropdown-item" href="{{ route('logout', null, false) }}"
                                        onclick="event.preventDefault();
@@ -96,6 +97,6 @@
         @yield('content')
     </div>
 
-    @include('profileDialog')
+    @include('accountDialog')
 </body>
 </html>
