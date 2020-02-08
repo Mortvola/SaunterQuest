@@ -133,6 +133,23 @@ class Map
         return sendRouteFindRequest ($request);
     }
 
+    public static function findPath ($points)
+    {
+        error_log ('anchors: ' . json_encode ($points));
+
+        $request = (object)[
+            "method" => "GET",
+            "command" => "/map/route",
+        ];
+
+        foreach ($points as $point)
+        {
+            $request->points[] = (object)["lat" => $point->lat, "lng" => $point->lng];
+        }
+
+        return sendRouteFindRequest ($request);
+    }
+
     public static function getIntersections ($bounds)
     {
         $boundingBox = "ST_SetSRID(ST_MakeBox2D(ST_Transform('SRID=4326;POINT(" .

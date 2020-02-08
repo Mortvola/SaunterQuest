@@ -16,15 +16,7 @@ class SegmentIterator implements \Iterator
 
     public function current()
     {
-        if ($this->trailIndex != -1)
-        {
-            if (isset ($this->route[$this->routeIndex]->trail))
-            {
-                return $this->route[$this->routeIndex]->trail[$this->trailIndex];
-            }
-        }
-
-        return $this->route[$this->routeIndex];
+        return [$this->getValue($this->routeIndex, $this->trailIndex), $this->nextValue()];
     }
 
     public function key()
@@ -34,23 +26,7 @@ class SegmentIterator implements \Iterator
 
     public function next()
     {
-        if (isset ($this->route[$this->routeIndex]->trail))
-        {
-            if ($this->trailIndex >= count($this->route[$this->routeIndex]->trail) - 1)
-            {
-                $this->routeIndex++;
-                $this->trailIndex = -1;
-            }
-            else
-            {
-                $this->trailIndex++;
-            }
-        }
-        else
-        {
-            $this->routeIndex++;
-            $this->trailIndex = -1;
-        }
+        list($this->routeIndex, $this->trailIndex) = $this->nextPosition ();
     }
 
     public function rewind()
@@ -61,13 +37,28 @@ class SegmentIterator implements \Iterator
 
     public function valid()
     {
-        if ($this->trailIndex != -1)
+        list($routeIndex, $trailIndex) = $this->nextPosition ();
+
+        return $this->isValid ($this->routeIndex, $this->trailIndex) && $this->isValid($routeIndex, $trailIndex);
+    }
+
+
+    private function nextValue()
+    {
+        list($routeIndex, $trailIndex) = $this->nextPosition ();
+
+        return $this->getValue($routeIndex, $trailIndex);
+    }
+
+    private function isValid($routeIndex, $trailIndex)
+    {
+        if ($trailIndex != -1)
         {
-            if (isset ($this->route[$this->routeIndex]))
+            if (isset ($this->route[$routeIndex]))
             {
-                if (isset($this->route[$this->routeIndex]->trail))
+                if (isset($this->route[$routeIndex]->trail))
                 {
-                    return isset($this->route[$this->routeIndex]->trail[$this->trailIndex]);
+                    return isset($this->route[$routeIndex]->trail[$trailIndex]);
                 }
 
                 return true;
@@ -76,6 +67,36 @@ class SegmentIterator implements \Iterator
             return false;
         }
 
-        return isset ($this->route[$this->routeIndex]);
+        return isset ($this->route[$routeIndex]);
     }
+
+    private function getValue ($routeIndex, $trailIndex)
+    {
+        if ($this->isValid($routeIndex, $trailIndex))
+        {
+            if ($trailIndex != -1 &&
+                isset ($this->route[$routeIndex]->trail))
+            {
+                return $this->route[$routeIndex]->trail[$trailIndex];
+            }
+
+            return $this->route[$routeIndex];
+        }
+    }
+
+    private function nextPosition ()
+    {
+        if (isset ($this->route[$this->routeIndex]->trail))
+        {
+            if ($this->trailIndex >= count($this->route[$this->routeIndex]->trail) - 1)
+            {
+                return [$this->routeIndex + 1, -1];
+            }
+
+            return [$this->routeIndex, $this->trailIndex + 1];
+        }
+
+        return [$this->routeIndex + 1, -1];
+    }
+
 }

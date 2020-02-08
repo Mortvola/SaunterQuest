@@ -1127,7 +1127,6 @@ function mapInitialize()
 	schedule = new Schedule (map);
 	
 	route.retrieve ();
-	schedule.retrieve ();
 
 	retrievePointsOfInterest ();
 	retrieveResupplyLocations ();

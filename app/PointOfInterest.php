@@ -39,6 +39,26 @@ class PointOfInterest
         return $result;
     }
 
+    public static function allWithin ($point, $distance)
+    {
+        $result = \DB::table(PointOfInterest::TABLE)
+            ->select(\DB::raw('ST_AsGeoJSON(ST_Transform(way, 4326)) as way'))
+            ->where(\DB::raw('way <-> ST_Transform(ST_SetSRID(ST_MakePoint(' . $point->lng . ',' . $point->lat . '), 4326), 3857)'), '<', $distance)
+            ->get ();
+
+        foreach ($result as $key => $value)
+        {
+            $point = json_decode($value->way);
+
+            $result[$key]->lat = $point->coordinates[1];
+            $result[$key]->lng = $point->coordinates[0];
+
+            unset($result[$key]->way);
+        }
+
+        return $result;
+    }
+
     public function save ()
     {
         $columns = [];

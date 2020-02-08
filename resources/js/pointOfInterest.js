@@ -147,7 +147,7 @@ function getInfoWindowMessage (poi)
 
 function addPointOfInterest (poi)
 {
-    poi.marker = new TrailMarker (map, elevationUrl);
+    poi.marker = new TrailMarker (map, campsiteUrl);
     poi.marker.setPosition(poi);
 	poi.marker.id = poi.id;
 	

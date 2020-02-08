@@ -713,23 +713,6 @@ class Route implements ArrayAccess
         }
     }
 
-    private function findPath ($anchors, $startRoute = null, $dumpGraph = false)
-    {
-        error_log ('anchors: ' . json_encode ($anchors));
-
-        $request = (object)[
-            "method" => "GET",
-            "command" => "/map/route",
-        ];
-
-        foreach ($anchors as $anchor)
-        {
-            $request->points[] = (object)["lat" => $anchor->lat, "lng" => $anchor->lng];
-        }
-
-        return sendRouteFindRequest ($request);
-    }
-
     private function findRouteBetweenAnchors ($anchorIndexes, $startRoute = null)
     {
         $anchors = [];
@@ -745,7 +728,7 @@ class Route implements ArrayAccess
             $anchors[] = $anchor;
         }
 
-        $newAnchorsArray = $this->findPath($anchors, $startRoute);
+        $newAnchorsArray = Map::findPath($anchors, $startRoute);
 
         if (isset($newAnchorsArray)) // && count($newAnchors) >= 2)
         {
