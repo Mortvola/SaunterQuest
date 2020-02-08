@@ -2,30 +2,66 @@
 
 namespace App;
 
-use Illuminate\Database\Eloquent\Model;
-use App\TimeConstraint;
 
-class PointOfInterest extends Model
+class PointOfInterest
 {
-    protected $table = 'point_of_interest';
-    public $timestamps = false;
-
-    protected $fillable = [
-        "name",
-        "description",
-        "lat",
-        "lng",
-        "hike_id"];
-
-    protected $hidden = [PointOfInterest::CREATED_AT, PointOfInterest::UPDATED_AT, "hike_id"];
-
-    public function constraints ()
+    public function __construct($initialValues)
     {
-        return $this->hasMany('\App\TimeConstraint', 'object_id');
+        $this->attributes = [];
+
+        foreach ($initialValues as $key => $value)
+        {
+            $this->attributes[$key] = $value;
+        }
     }
 
-    function hike ()
+    public function __toString()
     {
-        return $this->belongsTo('App\Hike', 'hike_id');
+        return json_encode($this->attributes);
+    }
+
+    const TABLE = 'point_of_interest';
+
+    public static function all ()
+    {
+        $result = \DB::table(PointOfInterest::TABLE)->select(['type', \DB::raw('ST_AsGeoJSON(ST_Transform(way, 4326)) as way')])->get ();
+
+        foreach ($result as $key => $value)
+        {
+            $point = json_decode($value->way);
+
+            $result[$key]->lat = $point->coordinates[1];
+            $result[$key]->lng = $point->coordinates[0];
+
+            unset($result[$key]->way);
+        }
+
+        return $result;
+    }
+
+    public function save ()
+    {
+        $columns = [];
+        foreach ($this->attributes as $key => $value)
+        {
+            if ($key != "lat" && $key != "lng")
+            {
+                $columns[$key] = $value;
+            }
+        }
+
+        if (isset($this->attributes["lat"]) && isset($this->attributes["lng"]))
+        {
+            $columns["way"] = \DB::raw('ST_Transform(ST_SetSRID(ST_MakePoint(' . $this->attributes["lng"] . ',' . $this->attributes["lat"] . '), 4326), 3857)');
+        }
+
+        if (isset($this->id))
+        {
+            \DB::table(PointOfInterest::TABLE)->where('id', $his->id)->update($columns);
+        }
+        else
+        {
+            $this->id = \DB::table(PointOfInterest::TABLE)->insertGetId($columns);
+        }
     }
 }

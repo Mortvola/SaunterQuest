@@ -4,6 +4,7 @@ const startPointUrl = "https://maps.google.com/mapfiles/ms/micons/green-dot.png"
 const wayPointUrl = "https://maps.google.com/mapfiles/ms/micons/lightblue.png";
 const endPointUrl = "https://maps.google.com/mapfiles/ms/micons/red-dot.png";
 const elevationUrl = "https://maps.google.com/mapfiles/ms/micons/yellow-dot.png";
+const campsiteUrl = "https://maps.google.com/mapfiles/ms/micons/orange-dot.png";
 
 const routeStrokeWeight = 6;
 
@@ -57,9 +58,9 @@ class Route
             headers:
             {
                 "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
-                "Content-type": "application/json"
             },
             type: "PUT",
+            contentType: "application/json",
             data: JSON.stringify({lat: position.lat, lng: position.lng}),
             context: this
         })
@@ -91,9 +92,9 @@ class Route
 	        headers:
 	        {
 	            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
-	            "Content-type": "application/json"
 	        },
 	        type: "PUT",
+            contentType: "application/json",
 	        data: JSON.stringify({lat: position.lat, lng: position.lng}),
 	        context: this
 	    })
@@ -125,8 +126,8 @@ class Route
             headers:
             {
                 "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
-                "Content-type": "application/json"
             },
+            contentType: "application/json",
             data: JSON.stringify({lat: position.lat, lng: position.lng}),
             context: this
         })
@@ -157,8 +158,8 @@ class Route
             headers:
             {
                 "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
-                "Content-type": "application/json"
             },
+            contentType: "application/json",
             data: JSON.stringify({lat: position.lat, lng: position.lng}),
             context: this
         })
@@ -189,8 +190,8 @@ class Route
             headers:
             {
                 "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
-                "Content-type": "application/json"
             },
+            contentType: "application/json",
             data: JSON.stringify({lat: position.lat, lng: position.lng}),
             context: this
         })
@@ -220,10 +221,10 @@ class Route
             url: hike.id + "/route/waypoint/" + marker.id + "/position",
             headers:
             {
-                "Content-type": "application/json",
                 "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
             },
             type: "PUT",
+            contentType: "application/json",
             data: JSON.stringify(marker.getPosition()),
             context: this
         })
@@ -766,10 +767,10 @@ class Route
             url: hike.id + "/route/waypoint/order",
             headers:
             {
-                "Content-type": "application/json",
                 "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
             },
             type: "PUT",
+            contentType: "application/json",
             data: JSON.stringify(order),
             context: this
         })

@@ -6,17 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\HikerProfile;
 
-function ifNotSetOrEmpty ($value, $alternate)
-{
-    if (!isset ($value) || $value === null || $value === '')
-    {
-        return $alternate;
-    }
-
-    return $value;
-}
-
-
 class HikerProfileController extends Controller
 {
     /**

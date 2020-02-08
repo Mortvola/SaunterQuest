@@ -168,9 +168,9 @@ function updateHikerProfile (hikerProfileId)
         headers:
         {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
-            "Content-type": "application/json"
         },
         type: "PUT",
+        contentType: "application/json",
         data: JSON.stringify(profile),
         dataType: "json"
     })
@@ -217,8 +217,8 @@ function insertHikerProfile ()
         headers:
         {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
-            "Content-type": "application/json"
         },
+        contentType: "application/json",
         data: JSON.stringify(profile),
         dataType: "json"
     })

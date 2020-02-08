@@ -93,9 +93,9 @@ function updatePointOfInterest (poiId)
         headers:
         {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
-            "Content-type": "application/json"
         },
         type: "PUT",
+        contentType: "application/json",
         data: JSON.stringify(pointOfInterest),
         dataType: "json"
     })
@@ -147,20 +147,14 @@ function getInfoWindowMessage (poi)
 
 function addPointOfInterest (poi)
 {
-	poi.marker = new google.maps.Marker({
-		position: {lat: parseFloat(poi.lat), lng: parseFloat(poi.lng)},
-		map: map,
-		icon: {
-			url: pointOfInterestUrl
-		}
-	});
-
+    poi.marker = new TrailMarker (map, elevationUrl);
+    poi.marker.setPosition(poi);
 	poi.marker.id = poi.id;
 	
-	setContextMenu (poi.marker, pointOfInterestCM);
-	
-	poi.listener = attachInfoWindowMessage(poi,
-		getInfoWindowMessage (poi));
+//	setContextMenu (poi.marker, pointOfInterestCM);
+//	
+//	poi.listener = attachInfoWindowMessage(poi,
+//		getInfoWindowMessage (poi));
 
 	pointsOfInterest.push(poi);
 }
@@ -186,8 +180,8 @@ function insertPointOfInterest (position)
         headers:
         {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
-            "Content-type": "application/json"
         },
+        contentType: "application/json",
         data: JSON.stringify(pointOfInterest),
         dataType: "json"
     })
@@ -214,7 +208,7 @@ function showAddPointOfInterest (object, position)
 function retrievePointsOfInterest ()
 {
     $.getJSON({
-        url: userHikeId + "/pointOfInterest",
+        url: "/pointOfInterest",
     })
     .done (function(responseText)
     {

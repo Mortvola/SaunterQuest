@@ -49,8 +49,8 @@ function insertTrailCondition ()
             headers:
             {
                 "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
-                "Content-type": "application/json"
             },
+            contentType: "application/json",
             data: JSON.stringify(trailCondition),
             dataType: "json"
         })
@@ -293,9 +293,9 @@ function updateTrailCondition (trailConditionId)
         headers:
         {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
-            "Content-type": "application/json"
         },
         type: "PUT",
+        contentType: "application/json",
         data: JSON.stringify(trailCondition),
         dataType: "json"
     })

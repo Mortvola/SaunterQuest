@@ -131,10 +131,10 @@ Route::middleware(['auth'])->group(function () {
         return (new PointOfInterestController())->get($hikeId);
     });
 
-    Route::post('/hike/{hikeId}/pointOfInterest', function ($hikeId, Request $request)
-    {
-        return (new PointOfInterestController())->post($hikeId, $request);
-    });
+//     Route::post('/hike/{hikeId}/pointOfInterest', function ($hikeId, Request $request)
+//     {
+//         return (new PointOfInterestController())->post($hikeId, $request);
+//     });
 
     Route::put('/hike/{hikeId}/pointOfInterest/{poiId}', function ($hikeId, $poiId, Request $request)
     {
@@ -145,6 +145,9 @@ Route::middleware(['auth'])->group(function () {
     {
         return (new PointOfInterestController())->delete($hikeId, $poiId);
     });
+
+    Route::get('/pointOfInterest', 'PointOfInterestController@get');
+    Route::post('/pointOfInterest', 'PointOfInterestController@post');
 
     Route::get('/hike/{hikeId}/resupplyLocation', function ($hikeId)
     {

@@ -25,8 +25,8 @@ function insertHike ()
         headers:
         {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
-            "Content-type": "application/json"
         },
+        contentType: "application/json",
         data: JSON.stringify(hike.name),
         dataType: "json"
     })

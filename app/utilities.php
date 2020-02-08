@@ -70,8 +70,22 @@ function sendRouteFindRequest ($request)
     return sendRequest ($request, "unix:///run/routeFind/routeFind.sock");
 }
 
+
 function sendMapRenderRequest ($request)
 {
     return sendRequest ($request, "unix:///run/mapRender/mapRender.sock");
 }
+
+
+function ifNotSetOrEmpty ($value, $alternate)
+{
+    if (!isset ($value) || $value === null || $value === '')
+    {
+        return $alternate;
+    }
+
+    return $value;
+}
+
+
 

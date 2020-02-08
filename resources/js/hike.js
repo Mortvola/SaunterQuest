@@ -12,7 +12,7 @@ var trailContextMenu;
 var editedRoute = [];
 var routeContextMenu;
 var vertexContextMenu;
-//var map;
+var map;
 var startPosition;
 var startSegment;
 var endPosition;
@@ -124,9 +124,9 @@ function moveAnchor (index, vertex)
         headers:
         {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
-            "Content-type": "application/json"
         },
         type: "PUT",
+        contentType: "application/json",
         data: JSON.stringify(routeUpdate),
         dataType: "json"
     })
@@ -211,9 +211,9 @@ function insertAnchor (index, vertex)
         headers:
         {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
-            "Content-type": "application/json"
         },
         type: "PUT",
+        contentType: "application/json",
         data: JSON.stringify(routeUpdate),
         dataType: "json"
     })
@@ -271,9 +271,9 @@ function deletePoints (index, length)
         headers:
         {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
-            "Content-type": "application/json"
         },
         type: "PUT",
+        contentType: "application/json",
         data: JSON.stringify(routeUpdate),
         dataType: "json"
     })
@@ -975,6 +975,35 @@ function whatIsHere (event)
 }
 
 
+function addCampsite (event)
+{
+    $("#pleaseWait").show ();
+    
+    $.ajax({
+        url: "/pointOfInterest",
+        headers:
+        {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+        },
+        type: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({type: 'campsite', lat: event.latlng.lat, lng: event.latlng.lng}),
+        context: this
+    })
+    .done (function(response)
+    {
+        let campsite = new TrailMarker (map, campsiteUrl);
+        campsite.setDraggable (true, (marker) => {  });
+        campsite.setPosition(event.latlng);
+        
+    })
+    .always (function ()
+    {
+        $("#pleaseWait").hide ();
+    });
+}
+
+
 function mapInitialize()
 {
 	window.onkeydown = function(e)
@@ -991,15 +1020,15 @@ function mapInitialize()
 	}
 
 	let waypointMenuItems = [
-	    {text:"Prepend Waypoint", callback: addStartWaypoint},
-        {text:"Insert Waypoint", callback: addWaypoint},
-        {text:"Append Waypoint", callback: addEndWaypoint},
+	    {text: "Prepend Waypoint", callback: addStartWaypoint},
+        {text: "Insert Waypoint", callback: addWaypoint},
+        {text: "Append Waypoint", callback: addEndWaypoint},
         {separator: true}
     ];
     
     let mapMenuItems = [
-        {text:"Display Location", callback: displayLocation},
-        {text:"Go to Location...", callback: gotoLocation},
+        {text: "Display Location", callback: displayLocation},
+        {text: "Go to Location...", callback: gotoLocation},
     ];
     
     mapMenuItems.splice(0, 0, ...waypointMenuItems);
@@ -1008,24 +1037,25 @@ function mapInitialize()
     {
         let adminMenuItems = [
             {separator: true},
-            {text:"Add Point of Interest", callback: showAddPointOfInterest, admin: true},
+            {text: "Add Point of Interest", callback: showAddPointOfInterest, admin: true},
             {text: "Add Note", callback: addNote, admin: true},
-            {text:"Create Resupply Location", callback: addResupplyLocation, admin: true},
-            {text:"Download Elevations", callback: downloadElevations, admin: true},
-            {text:"Show Intersections", callback: showIntersections, admin: true},
-            {text:"Higlight Nearest Trail", callback: highlightNearestTrail, admin: true},
-            {text:"Show Nearest Graph", callback: showNearestGraph, admin: true},
-            {text:"What is here?", callback: whatIsHere}
+            {text: "Create Resupply Location", callback: addResupplyLocation, admin: true},
+            {text: "Download Elevations", callback: downloadElevations, admin: true},
+            {text: "Show Intersections", callback: showIntersections, admin: true},
+            {text: "Higlight Nearest Trail", callback: highlightNearestTrail, admin: true},
+            {text: "Show Nearest Graph", callback: showNearestGraph, admin: true},
+            {text: "What is here?", callback: whatIsHere},
+            {text: "Add Campsite", callback: addCampsite},
         ];
         
         mapMenuItems.splice(mapMenuItems.length, 0, ...adminMenuItems);
     }
     
 	let trailMenuItems = [
-        {text:"Display Location", callback:displayLocation},
-        {text:"Add Point of Interest", callback:showAddPointOfInterest, admin: true},
-        {text:"Create Resupply Location", callback:addResupplyLocation, admin: true},
-        {text:"Trail Information", callback:displayTrailInfo, admin: true},
+        {text: "Display Location", callback:displayLocation},
+        {text: "Add Point of Interest", callback:showAddPointOfInterest, admin: true},
+        {text: "Create Resupply Location", callback:addResupplyLocation, admin: true},
+        {text: "Trail Information", callback:displayTrailInfo, admin: true},
     ]
 
     trailMenuItems.splice(0, 0, ...waypointMenuItems);
@@ -1052,7 +1082,7 @@ function mapInitialize()
 	setContextMenu (map, mapContextMenu);
     */
 
-    var map = L.map('map',
+    map = L.map('map',
         {
             contextmenu: true,
             contextmenuItems: mapMenuItems,
