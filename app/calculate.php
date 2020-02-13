@@ -14,7 +14,7 @@ require_once "coordinates.php";
 require_once "routeFile.php";
 require_once "utilities.php";
 require_once "Day.php";
-require_once "segmentIterator.php";
+require_once "RouteIterator.php";
 
 class Event
 {
@@ -471,7 +471,7 @@ function traverseRoute ($route, $schedule)
     global $activeHikerProfile;
     global $foodStart, $maxZ, $debug, $trailConditions, $lingerHours;
 
-    $it = new SegmentIterator($route);
+    $it = new RouteIterator($route);
 
     $restart = false;
 
@@ -497,6 +497,16 @@ function traverseRoute ($route, $schedule)
             // when reaching a new trail condition point or if starting the segment
             // mid-segment?
             processTimeConstraints ($s1, $schedule);
+
+            if (isset($s1->campsite))
+            {
+                $previousCampsite = (object)["day" => clone $schedule->currentDayGet (), "s1" => $s1, "s2" => $s2];
+
+                if (!isset($firstCampsite))
+                {
+                    $firstCampsite = $previousCampsite;
+                }
+            }
         }
 
         list ($trailConditionsSpeedFactor, $trailConditionType) = activeTrailConditionsGet($trailConditions, /*$it->key()*/ 0, $segmentMeters / $segmentLength);
@@ -646,11 +656,11 @@ function traverseRoute ($route, $schedule)
                         {
                             // echo "Following segments to resupply. dayMeters =
                             // $dayMeters\n";
-                            $pathIt = new SegmentIterator($event->segments, 1);
+                            $pathIt = new RouteIterator($event->segments, 1);
                             traverseSegments($pathIt, $schedule);
                             // echo "Reversing direction. dayMeters =
                             // $dayMeters\n";
-                            $pathIt = new SegmentIterator($event->segments, -1);
+                            $pathIt = new RouteIterator($event->segments, -1);
                             traverseSegments($pathIt, $schedule);
                             // echo "Returned from following segments to
                             // resupply. dayMeters = $dayMeters\n";
@@ -765,9 +775,6 @@ function traverseRoute ($route, $schedule)
         }
         else
         {
-            $minutesHiked = 0;
-            $metersHiked = 0;
-
             // Hike the remaining time of the day, if any.
             if ($currentTime < $schedule->currentDayGet()->endTime)
             {
@@ -781,60 +788,111 @@ function traverseRoute ($route, $schedule)
                 $currentTime = $schedule->currentDayGet()->currentTimeGet();
             }
 
-            // We ended the day between the start and end of the current
-            // segment.
-            // Determine where in the segment we ended and compute current
-            // elevation and
-            // lat/lng.
+            if (!isset ($endOfDayCampsite))
+            {
+                if (isset($previousCampsite))
+                {
+                    if ($currentTime - $previousCampsite->day->currentTimeGet () < 60)
+                    {
+                        $preEndOfDayCampsite = $previousCampsite;
+                    }
 
-            $segmentPercent = $segmentMeters / $segmentLength;
+                    unset ($previousCampsite);
+                }
 
-            // echo "segmentPercent = $segmentPercent\n";
-            // echo "segmentMeters = $segmentMeters\n";
-            // echo "segment start = ", $segment->dist, "\n";
-            // echo "segment end = ", $nextSegment->dist, "\n";
-            // echo "numerator = ", ($segmentMeters - $segment->dist), "\n";
-            // echo "denominator = ", ($nextSegment->dist - $segment->dist),
-            // "\n";
+                unset($firstCampsite);
 
-            $currentEle = elevationChange($s1, $s2) * $segmentPercent + $s1->point->ele;
+                $endOfDayCampsite = (object)["day" => clone $schedule->currentDayGet (), "s1" => $s1, "s2" => $s2];
 
-            $eleDelta = $currentEle - $lastEle;
+                // Extend the day hiking to look for a campsite
+                $schedule->currentDayGet()->endTime = $schedule->currentDayGet()->endTime + 60;
+            }
+            else
+            {
+                if (isset($firstCampsite) && isset($preEndOfDayCampsite))
+                {
+                    // Determine which site is closer to the end of day position
+                    if ($endOfDayCampsite->day->metersGet () - $preEndOfDayCampsite->day->metersGet () <
+                        $firstCampsite->day->metersGet () - $endOfDayCampsite->day->metersGet ())
+                    {
+                        $useCampsite = $preEndOfDayCampsite;
+                    }
+                    else
+                    {
+                        $useCampsite = $firstCampsite;
+                    }
+                }
+                else if (isset($firstCampsite))
+                {
+                    $useCampsite = $firstCampsite;
+                }
+                else if (isset($preEndOfDayCampsite))
+                {
+                    $useCampsite = $preEndOfDayCampsite;
+                }
+                else
+                {
+                    $useCampsite = $endOfDayCampsite;
+                }
 
-            $schedule->currentDayGet()->updateGainLoss($eleDelta);
+                // Set day and segments settings back to the settings found in $useCampsite
+                {
+                    $s1 = $useCampsite->s1;
+                    $s2 = $useCampsite->s2;
+                    $schedule->currentDayReset($useCampsite->day);
 
-            $lastEle = $currentEle;
+                    $segmentMeters = 0;
+                    $segmentLength = segmentLength($s1, $s2);
+                    $metersPerMinute = metersPerHourGet(elevationChange($s1, $s2), $segmentLength) / 60.0;
 
-            // todo: This is just a linear computation of lat/lng given the
-            // distance. Change this to
-            // use a geodesic computation.
-            $lat = ($s2->point->lat - $s1->point->lat) * $segmentPercent + $s1->point->lat;
-            $lng = ($s2->point->lng - $s1->point->lng) * $segmentPercent + $s1->point->lng;
+                    $lastEle = $s1->point->ele;
 
-            $schedule->currentDayGet()->end();
-            dayStart($schedule, (object)[
-                "lat" => $lat,
-                "lng" => $lng,
-                "ele" => $currentEle
-            ]);
+                    $currentTime = $schedule->currentDayGet()->currentTimeGet();
+                }
 
-//             $startPoint = (object)["lat" => $lat, "lng" => $lng];
+                // We ended the day between the start and end of the current
+                // segment.
+                // Determine where in the segment we ended and compute current
+                // elevation and
+                // lat/lng.
 
-//             $points = PointOfInterest::allWithin($startPoint, 2000);
+                $segmentPercent = $segmentMeters / $segmentLength;
 
-//             foreach ($points as $point)
-//             {
-//                 $trail = Map::getTrailFromPoint($point);
+                // echo "segmentPercent = $segmentPercent\n";
+                // echo "segmentMeters = $segmentMeters\n";
+                // echo "segment start = ", $segment->dist, "\n";
+                // echo "segment end = ", $nextSegment->dist, "\n";
+                // echo "numerator = ", ($segmentMeters - $segment->dist), "\n";
+                // echo "denominator = ", ($nextSegment->dist - $segment->dist),
+                // "\n";
 
-//                 $route = Map::findPath([$startPoint, $point]);
-//             }
+                $currentEle = elevationChange($s1, $s2) * $segmentPercent + $s1->point->ele;
 
-            // echo "Day $d, segment meters: " . currentDayGet ()->segmentMeters
-            // . "\n";
-            // echo "day $d start meters = " . currentDayGet ()->meters . "\n";
+                $eleDelta = $currentEle - $lastEle;
+
+                $schedule->currentDayGet()->updateGainLoss($eleDelta);
+
+                $lastEle = $currentEle;
+
+                // todo: This is just a linear computation of lat/lng given the
+                // distance. Change this to
+                // use a geodesic computation.
+                $lat = ($s2->point->lat - $s1->point->lat) * $segmentPercent + $s1->point->lat;
+                $lng = ($s2->point->lng - $s1->point->lng) * $segmentPercent + $s1->point->lng;
+
+                $schedule->currentDayGet()->end();
+                dayStart($schedule, (object)[
+                    "lat" => $lat,
+                    "lng" => $lng,
+                    "ele" => $currentEle
+                ]);
+
+                unset ($endOfDayCampsite);
+                unset ($preEndOfDayCampsite);
+                unset ($previousCampsite);
+                unset ($firstCampsite);
+            }
         }
-
-        // echo "Meters = $meters\n";
     }
 }
 
@@ -858,7 +916,7 @@ function traverseRouteOld ($route, $schedule)
 
     $z = 0;
 
-    $it = new SegmentIterator($route);
+    $it = new RouteIterator($route);
 
     foreach ($it as $segment)
     {

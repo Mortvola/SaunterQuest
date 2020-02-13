@@ -1,7 +1,7 @@
 <?php
 namespace bpp;
 
-class SegmentIterator implements \Iterator
+class RouteIterator implements \Iterator
 {
     private $route;
     private $routeIndex = 0;

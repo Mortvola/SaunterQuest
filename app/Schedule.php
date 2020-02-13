@@ -71,9 +71,19 @@ class Schedule
         return $this->days[$d];
     }
 
+    public function daySet ($d, $day)
+    {
+        $this->days[$d] = $day;
+    }
+
     public function currentDayGet ()
     {
         return $this->dayGet($this->currentDay);
+    }
+
+    public function currentDayReset ($day)
+    {
+        $this->daySet($this->currentDay, $day);
     }
 
     public function currentDayIndexGet ()

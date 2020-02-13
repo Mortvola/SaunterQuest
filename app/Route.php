@@ -23,6 +23,7 @@ class Route implements ArrayAccess
         {
             $this->getTrailPoints();
             $this->anchors->load('timeConstraints');
+            $this->anchors->each(function ($item, $key) { $item->loadCampsites (); });
         }
     }
 
@@ -874,18 +875,7 @@ class Route implements ArrayAccess
             $prevAnchor->next_line_id == $nextAnchor->prev_line_id &&
             $prevAnchor->next_fraction != $nextAnchor->prev_fraction)
         {
-            $trail = Map::getPath($prevAnchor->next_line_id, $prevAnchor->next_fraction, $nextAnchor->prev_fraction);
-
-            // array_splice ($this->anchors, $s + 1, 0, $trail);
-            // $s += count($trail);
-
-            if (isset($trail) && count($trail) > 0)
-            {
-                array_splice($trail, 0, 1);
-                array_splice($trail, count($trail) - 1, 1);
-            }
-
-            $prevAnchor->trail = $trail;
+            $prevAnchor->loadTrail ($nextAnchor->prev_fraction);
         }
         else
         {
