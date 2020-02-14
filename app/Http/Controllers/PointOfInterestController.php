@@ -59,9 +59,8 @@ class PointOfInterestController extends Controller
         return $poi;
     }
 
-    public function delete ($hikeId, $poiId)
+    public function delete ($poiId)
     {
-        TimeConstraint::where('point_of_interest_id', $poiId)->delete ();
         PointOfInterest::where('id', $poiId)->delete ();
     }
 

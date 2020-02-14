@@ -24,7 +24,7 @@ class PointOfInterest
 
     public static function all ()
     {
-        $result = \DB::table(PointOfInterest::TABLE)->select(['type', \DB::raw('ST_AsGeoJSON(ST_Transform(way, 4326)) as way')])->get ();
+        $result = \DB::table(PointOfInterest::TABLE)->select(['id', 'type', \DB::raw('ST_AsGeoJSON(ST_Transform(way, 4326)) as way')])->get ();
 
         foreach ($result as $key => $value)
         {
@@ -37,6 +37,11 @@ class PointOfInterest
         }
 
         return $result;
+    }
+
+    public static function where ($column, $value)
+    {
+        return \DB::table(PointOfInterest::TABLE)->where ($column, $value);
     }
 
     public static function allWithin ($point, $distance)

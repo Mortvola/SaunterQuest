@@ -18,10 +18,12 @@ function findPointOfInterestIndex (poiId)
 }
 
 
-function removePointOfInterest (object, position)
+function removePointOfInterest (poi)
 {
-	$.ajax({
-        url: userHikeId + "/pointOfInterest/" + object.id,
+    $("#pleaseWait").show ();
+
+    $.ajax({
+        url: "/pointOfInterest/" + poi.id,
         headers:
         {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
@@ -30,13 +32,16 @@ function removePointOfInterest (object, position)
     })
     .done (function()
     {
-		var index = findPointOfInterestIndex(object.id);
-		pointsOfInterest[index].marker.setMap (null);
-		removeContextMenu (pointsOfInterest[index].marker);
+		var index = findPointOfInterestIndex(poi.id);
+		pointsOfInterest[index].marker.removeMarker ();
 		
-		pointsOfInterest.splice (index);
+		pointsOfInterest.splice (index, 1);
 		
 		schedule.retrieve ();
+    })
+    .always (function ()
+    {
+        $("#pleaseWait").hide ();
     });
 }
 
@@ -151,10 +156,12 @@ function addPointOfInterest (poi)
     poi.marker.setPosition(poi);
 	poi.marker.id = poi.id;
 	
-//	setContextMenu (poi.marker, pointOfInterestCM);
-//	
-//	poi.listener = attachInfoWindowMessage(poi,
-//		getInfoWindowMessage (poi));
+    let wayPointCM = [
+        {text:"Remove Campsite", index: 0, callback: (event) => { removePointOfInterest (poi); }},
+        {separator: true, index: 1}
+    ];
+    
+    poi.marker.setContextMenu(wayPointCM);
 
 	pointsOfInterest.push(poi);
 }

@@ -78,7 +78,6 @@ class Route
         })
         .always (function ()
         {
-            
             $("#pleaseWait").hide ();
         });
     }
