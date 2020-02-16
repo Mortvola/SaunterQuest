@@ -39,6 +39,27 @@ class PointOfInterest
         return $result;
     }
 
+    public static function find ($id)
+    {
+        $result = \DB::table(PointOfInterest::TABLE)
+            ->select(\DB::raw('ST_AsGeoJSON(ST_Transform(way, 4326)) as way'))
+            ->find ($id);
+
+        if (isset($result))
+        {
+            $result->id = $id;
+
+            $point = json_decode($result->way);
+
+            $result->lat = $point->coordinates[1];
+            $result->lng = $point->coordinates[0];
+
+            unset($result->way);
+
+            return new PointOfInterest($result);
+        }
+    }
+
     public static function where ($column, $value)
     {
         return \DB::table(PointOfInterest::TABLE)->where ($column, $value);
@@ -80,13 +101,13 @@ class PointOfInterest
             $columns["way"] = \DB::raw('ST_Transform(ST_SetSRID(ST_MakePoint(' . $this->attributes["lng"] . ',' . $this->attributes["lat"] . '), 4326), 3857)');
         }
 
-        if (isset($this->id))
+        if (isset($this->attributes["id"]))
         {
-            \DB::table(PointOfInterest::TABLE)->where('id', $his->id)->update($columns);
+            \DB::table(PointOfInterest::TABLE)->where('id', $this->attributes["id"])->update($columns);
         }
         else
         {
-            $this->id = \DB::table(PointOfInterest::TABLE)->insertGetId($columns);
+            $this->attributes["id"] = \DB::table(PointOfInterest::TABLE)->insertGetId($columns);
         }
     }
 }

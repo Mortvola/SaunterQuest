@@ -4,7 +4,6 @@ const startPointUrl = "https://maps.google.com/mapfiles/ms/micons/green-dot.png"
 const wayPointUrl = "https://maps.google.com/mapfiles/ms/micons/lightblue.png";
 const endPointUrl = "https://maps.google.com/mapfiles/ms/micons/red-dot.png";
 const elevationUrl = "https://maps.google.com/mapfiles/ms/micons/yellow-dot.png";
-const campsiteUrl = "https://maps.google.com/mapfiles/ms/micons/orange-dot.png";
 
 const routeStrokeWeight = 6;
 

@@ -7,42 +7,53 @@ class TrailMarker
 	{
 		this.map = map;
 
-		this.iconUrl = iconUrl;
-		
-		this.icon = this.createIcon ();
-		
-		this.marker = new L.Marker([],
-		    {
-		        icon: this.icon
-		    }
-		);
-		
-		this.marker.bindPopup (
-		    () =>
-		    {
-		        let message = this.infoMessage ();
-		        
-		        if (this.infoMessageCallback)
-		        {
-		            message += this.infoMessageCallback ();
-		        }
-		        
-		        return message;
-		    } );
+		if (iconUrl !== undefined)
+		{
+		    this.createMarker (iconUrl, L.point(16, 32));
+		}
 	}
 
-	createIcon (label)
+	createMarker (iconUrl, iconAnchor)
 	{
-	    if (label === undefined)
+        this.iconUrl = iconUrl;
+        this.iconAnchor = iconAnchor;
+        
+        this.icon = this.createIcon ();
+        
+        this.marker = new L.Marker([],
+            {
+                icon: this.icon
+            }
+        );
+        
+        this.marker.bindPopup (
+            () =>
+            {
+                let message = this.infoMessage ();
+                
+                if (this.infoMessageCallback)
+                {
+                    message += this.infoMessageCallback ();
+                }
+                
+                return message;
+            } );
+	}
+
+	createIcon ()
+	{
+	    let label = "";
+	    
+	    if (this.label !== undefined)
 	    {
-	        label = "";
+	        label = this.label;
 	    }
 	    
 	    return L.divIcon(
 	        {
 	            className: 'trail-marker', 
 	            html: '<div class="trail-marker-label">' + label + '</div><img src="' + this.iconUrl + '">',
-	            iconAnchor: L.point(16,32),
+                iconAnchor: this.iconAnchor,
 	            popupAnchor: L.point(0,-32),
 	            tooltipAnchor: L.point(0,-32),
 	        });
@@ -68,17 +79,12 @@ class TrailMarker
 	
 	setDraggable (draggable, listener, context)
 	{
-		if (draggable)
+		if (draggable && listener)
 		{
-			var trailMarker = this;
-			
-			this.dragListener = this.marker.on ("dragend", function ()
-			{
-				if (listener)
-				{
-					listener (trailMarker);
-				}
-			});
+            this.marker.on ("dragend", () =>
+            {
+                listener (this);
+            });
 		}
 		
 		this.marker.options.draggable = draggable;
@@ -148,11 +154,11 @@ class TrailMarker
 	
 	setLabel (label)
 	{
-        this.icon = this.createIcon(label);
+        this.label = label;
+
+        this.icon = this.createIcon();
 
         this.marker.setIcon(this.icon);
-
-        this.label = label;
 	}
 	
 	getLabel ()
@@ -160,6 +166,18 @@ class TrailMarker
 	    return this.label;
 	}
 }
+
+
+class campsiteMarker extends TrailMarker
+{
+    constructor (map)
+    {
+        super (map);
+
+        this.createMarker (campsiteUrl, L.point(12, 12));
+    }
+}
+
 
 class StartOfTrailMarker extends TrailMarker
 {

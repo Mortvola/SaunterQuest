@@ -148,6 +148,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/pointOfInterest', 'PointOfInterestController@get');
     Route::post('/pointOfInterest', 'PointOfInterestController@post');
+    Route::put('/pointOfInterest/{poiId}', 'PointOfInterestController@put');
     Route::delete('/pointOfInterest/{poiId}', 'PointOfInterestController@delete');
 
     Route::get('/hike/{hikeId}/resupplyLocation', function ($hikeId)

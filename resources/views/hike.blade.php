@@ -316,6 +316,7 @@
         var tileServerUrl = "{{ env('TILE_SERVER_URL', '') }}";
         var endOfDayUrl = "{{ asset('moon_pin.png') }}";
         var campUrl = "{{ asset('camp-ltblue-dot.png') }}";
+        var campsiteUrl = "{{ asset('camping.svg') }}";
 
         var touchDevice = window.matchMedia('(pointer: coarse)').matches;
     </script>

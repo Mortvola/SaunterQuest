@@ -150,12 +150,34 @@ function getInfoWindowMessage (poi)
 }
 
 
+function updatePOI (poi)
+{
+    let position = poi.marker.getPosition();
+
+    $.ajax({
+        url: "/pointOfInterest/" + poi.id,
+        headers:
+        {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+        },
+        type: "PUT",
+        contentType: "application/json",
+        data: JSON.stringify(position),
+        dataType: "json"
+    })
+    .done (function(responseText)
+    {
+    });
+}
+
+
 function addPointOfInterest (poi)
 {
-    poi.marker = new TrailMarker (map, campsiteUrl);
+    poi.marker = new campsiteMarker (map);
+    poi.marker.setDraggable (true, function () { updatePOI (poi); });
     poi.marker.setPosition(poi);
 	poi.marker.id = poi.id;
-	
+
     let wayPointCM = [
         {text:"Remove Campsite", index: 0, callback: (event) => { removePointOfInterest (poi); }},
         {separator: true, index: 1}

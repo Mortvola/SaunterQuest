@@ -43,16 +43,16 @@ class PointOfInterestController extends Controller
         return $poi;
     }
 
-    public function put ($hikeId, $poiId, Request $request)
+    public function put ($poiId, Request $request)
     {
         $pointOfInterest = json_decode($request->getContent());
 
         $poi = PointOfInterest::find ($poiId);
 
-        $poi->lat = $pointOfInterest->lat;
-        $poi->lng = $pointOfInterest->lng;
-        $poi->name = $pointOfInterest->name;
-        $poi->description = $pointOfInterest->description;
+        $poi->attributes['lat'] = $pointOfInterest->lat;
+        $poi->attributes['lng'] = $pointOfInterest->lng;
+        //$poi->name = $pointOfInterest->name;
+        //$poi->description = $pointOfInterest->description;
 
         $poi->save ();
 

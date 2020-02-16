@@ -988,14 +988,12 @@ function addCampsite (event)
         type: "POST",
         contentType: "application/json",
         data: JSON.stringify({type: 'campsite', lat: event.latlng.lat, lng: event.latlng.lng}),
-        context: this
+        context: this,
+        dataType: "json"
     })
     .done (function(response)
     {
-        let campsite = new TrailMarker (map, campsiteUrl);
-        campsite.setDraggable (true, (marker) => {  });
-        campsite.setPosition(event.latlng);
-        
+        addPointOfInterest (response);
     })
     .always (function ()
     {
