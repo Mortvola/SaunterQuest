@@ -74,8 +74,7 @@
             }
 
             body {
-                background-color: black;
-                background-image: url({{ asset ('Forester.jpg') }});
+                background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1)), url({{ asset ('Forester.jpg') }});
                 background-repeat: no-repeat;
                 background-attachment: fixed;
                 background-position: center;
@@ -91,8 +90,6 @@
             .title {
                 font-size: var(--title-font-size);
                 color: white;
-                background-color: rgba(0, 0, 0, 0.45);
-                box-shadow: 0 0 512px 512px rgba(0,0,0,0.45);
                 line-height: 85%;
                 padding: 14px;
             }
@@ -107,8 +104,8 @@
             .quote {
                 font-size: calc(15px + 0.5vw);
                 color: white;
-                background-color: rgba(0, 0, 0, 0.25);
-                box-shadow: 0 0 32px 32px rgba(0,0,0,0.25);
+                background-color: rgba(0, 0, 0, 0.2);
+                box-shadow: 0 0 32px 32px rgba(0,0,0,0.2);
                 line-height: 85%;
                 padding: 14px;
                 margin-top:28px;
