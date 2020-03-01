@@ -80,10 +80,33 @@
             .title {
                 font-size: calc(15px + 5vw);
                 color: white;
-                background-color: rgba(0, 0, 0, 0.65);
-                box-shadow: 0 0 32px 32px rgba(0,0,0,0.65);
+                background-color: rgba(0, 0, 0, 0.45);
+                box-shadow: 0 0 128px 128px rgba(0,0,0,0.45);
                 line-height: 85%;
                 padding: 14px;
+            }
+
+            .subtitle {
+                font-size: calc(15px + 1vw);
+                color: white;
+                line-height: 85%;
+                padding: 14px;
+            }
+
+            .quote {
+                font-size: calc(15px + 0.5vw);
+                color: white;
+                background-color: rgba(0, 0, 0, 0.25);
+                box-shadow: 0 0 32px 32px rgba(0,0,0,0.25);
+                line-height: 85%;
+                padding: 14px;
+                margin-top:28px;
+            }
+
+            .attribution {
+                text-align:right;
+                margin-right: 64px;
+                margin-top: 14px;
             }
 
         </style>
@@ -105,6 +128,16 @@
             <div class="content">
                 <div class="title">
                     SaunterQuest
+                </div>
+                <div class="subtitle">
+                    It's about <u><em>time</em></u>
+                </div>
+                <div class="quote">
+                    <div>
+                    “I don't like either the word [hike] or the thing.
+                    </div>
+                    <div>People ought to saunter in the mountains..."</div>
+                    <div class="attribution">-- John Muir</div>
                 </div>
             </div>
         </div>
