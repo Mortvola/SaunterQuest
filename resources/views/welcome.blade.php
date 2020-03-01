@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Backpacker's Planner</title>
+        <title>SaunterQuest</title>
 
         <!-- Scripts -->
         <script src="{{ asset('js/jquery-3.4.1.min.js') }}"></script>
@@ -103,7 +103,7 @@
 
             <div class="content">
                 <div class="title" style="color: white; background-color: rgba(0, 0, 0, 0.65)">
-                    Backpacker's Planner
+                    SaunterQuest
                 </div>
             </div>
         </div>
