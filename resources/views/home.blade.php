@@ -1,5 +1,16 @@
 @extends('layouts.app')
 
+<style>
+            body {
+                background-color: black;
+                background-image: url({{ asset ('Forester.jpg') }});
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+                background-position: center;
+                background-size: cover;
+            }
+</style>
+
 @section('content')
     <!-- Modal -->
     <div class="modal fade" id="hikeDialog" role="dialog">
@@ -29,7 +40,7 @@
 
 	<div class="row no-gutters" style="height:100%">
         <div class="col-md-12" style="overflow-y:scroll;height:100%">
-            <h4>Planned Hikes</h4>
+            <h4>Planned Saunters</h4>
             <div id='userHikeLastRow' style='display:inline'>
             <div><a class='btn btn-sm' href='javascript:showHikeDialog()'><i class='fas fa-plus'></i></a></div>
             </div>
@@ -56,7 +67,7 @@
                         }
                     ?>
             </div>
-            <h4>Completed Hikes</h4>
+            <h4>Completed Saunters</h4>
             <table class="table table-condensed">
                 <thead><tr><th>Name</th><th>Length</th><th>Duration</th><th>Start Date</th></tr></thead>
                 <tbody>
