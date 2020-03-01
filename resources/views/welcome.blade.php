@@ -56,7 +56,8 @@
             }
 
             .content {
-                text-align: center;
+                display: grid;
+                justify-items: center;
             }
 
             .links > a {
@@ -87,33 +88,38 @@
                 }
             }
 
+            .titles{
+                display: grid;
+                justify-items: center;
+                background-color: rgba(0, 0, 0, 0.3);
+                box-shadow: 0 0 32px 32px rgba(0,0,0,0.3);
+                width: max-content;
+                color: white;
+            }
+
             .title {
                 font-size: var(--title-font-size);
-                color: white;
                 line-height: 85%;
-                padding: 14px;
             }
 
             .subtitle {
                 font-size: calc(15px + 1vw);
-                color: white;
                 line-height: 85%;
-                padding: 14px;
             }
 
             .quote {
                 font-size: calc(15px + 0.5vw);
                 color: white;
-                background-color: rgba(0, 0, 0, 0.2);
-                box-shadow: 0 0 32px 32px rgba(0,0,0,0.2);
+                background-color: rgba(0, 0, 0, 0.3);
+                box-shadow: 0 0 32px 32px rgba(0,0,0,0.3);
                 line-height: 85%;
-                padding: 14px;
-                margin-top:28px;
+                margin-top:64px;
+                width: max-content;
+                text-align: center;
             }
 
             .attribution {
                 text-align:right;
-                margin-right: 64px;
                 margin-top: 14px;
             }
 
@@ -134,11 +140,13 @@
             @endif
 
             <div class="content">
-                <div class="title">
-                    SaunterQuest
-                </div>
-                <div class="subtitle">
-                    It's about <u><em>time</em></u>
+                <div class="titles">
+                    <div class="title">
+                        SaunterQuest
+                    </div>
+                    <div class="subtitle">
+                        It's about <u><em>time</em></u>
+                    </div>
                 </div>
                 <div class="quote">
                     <div>
