@@ -81,7 +81,7 @@
                 font-size: calc(15px + 5vw);
                 color: white;
                 background-color: rgba(0, 0, 0, 0.45);
-                box-shadow: 0 0 128px 128px rgba(0,0,0,0.45);
+                box-shadow: 0 0 512px 512px rgba(0,0,0,0.45);
                 line-height: 85%;
                 padding: 14px;
             }
