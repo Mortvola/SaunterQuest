@@ -54,10 +54,6 @@
                 text-align: center;
             }
 
-            .title {
-                font-size: 84px;
-            }
-
             .links > a {
                 color: #636b6f;
                 padding: 0 25px;
@@ -83,6 +79,11 @@
 
             .title {
                 font-size: calc(15px + 5vw);
+                color: white;
+                background-color: rgba(0, 0, 0, 0.65);
+                box-shadow: 0 0 32px 32px rgba(0,0,0,0.65);
+                line-height: 85%;
+                padding: 14px;
             }
 
         </style>
@@ -102,7 +103,7 @@
             @endif
 
             <div class="content">
-                <div class="title" style="color: white; background-color: rgba(0, 0, 0, 0.65)">
+                <div class="title">
                     SaunterQuest
                 </div>
             </div>
