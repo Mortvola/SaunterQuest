@@ -21,6 +21,11 @@
 
         <!-- Styles -->
         <style>
+            :root {
+                --title-font-size: calc(15px + 5vw);
+            }
+
+
             html, body {
                 background-color: #fff;
                 color: #636b6f;
@@ -77,8 +82,14 @@
                 background-size: cover;
             }
 
+            @media screen and (max-width: 668px) {
+                :root {
+                    --title-font-size: calc(15px + 8vw);
+                }
+            }
+
             .title {
-                font-size: calc(15px + 5vw);
+                font-size: var(--title-font-size);
                 color: white;
                 background-color: rgba(0, 0, 0, 0.45);
                 box-shadow: 0 0 512px 512px rgba(0,0,0,0.45);
