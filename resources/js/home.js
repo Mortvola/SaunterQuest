@@ -175,6 +175,12 @@ function getHikes ()
                     .appendTo(body);
                 
                 $('<button></button>')
+                    .addClass ('btn btn-sm btn-outline-secondary')
+                    .text ('Delete')
+                    .on('click', function () { deleteHike (hike.id); })
+                    .appendTo (buttons);
+        
+                $('<button></button>')
                     .addClass ('btn btn-outline-secondary')
                     .attr('type', 'button')
                     .text ('Open')
@@ -182,12 +188,6 @@ function getHikes ()
                     .attr('href', '/hike/' + hike.id)
                     .appendTo (buttons);
                 
-                $('<button></button>')
-                    .addClass ('btn btn-outline-secondary')
-                    .text ('Delete')
-                    .on('click', function () { deleteHike (hike.id); })
-                    .appendTo (buttons);
-            
                 body.appendTo(card);
                 
                 card.appendTo ('.hikes');
