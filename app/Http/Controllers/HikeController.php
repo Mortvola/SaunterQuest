@@ -33,7 +33,18 @@ class HikeController extends Controller
         }
         else
         {
-            return Auth::user()->hikes->get ();
+            $hikes = Auth::user()->hikes()->get ();
+
+            if (isset($hikes))
+            {
+                foreach ($hikes as $hike)
+                {
+                    $hike->days = $hike->getDuration ();
+                    $hike->distance = $hike->getDistance ();
+                }
+            }
+
+            return $hikes;
         }
     }
 

@@ -33,11 +33,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/user/profile', 'UserController@getProfile');
     Route::put('/user/profile', 'UserController@putProfile');
 
-    Route::get('/home', 'HomeController@index')->name('home');
+    Route::get('/home', 'HomeController@index');
 
     Route::get('/gear', function ()
     {
         return view('gear');
+    });
+
+    Route::get('/hikes', function ($hikeId = null)
+    {
+        return (new HikeController())->get($hikeId);
     });
 
     Route::post('/hike', 'HikeController@post');

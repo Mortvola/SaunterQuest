@@ -46,7 +46,7 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav mr-auto">
-	                    <a class="nav-link" href="/home" style="color:white">Saunters</a>
+	                    <a class="nav-link" href="/home" style="color:white">Hikes</a>
                         @if (Request::is('hike/*'))
 	                    <a class="nav-link" href="javascript:showExportTrailModal()" style="color:white">Export Trail</a>
                         @endif

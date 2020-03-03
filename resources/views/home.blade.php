@@ -1,14 +1,23 @@
 @extends('layouts.app')
 
 <style>
-            body {
-                background-color: black;
-                background-image: url({{ asset ('Forester.jpg') }});
-                background-repeat: no-repeat;
-                background-attachment: fixed;
-                background-position: center;
-                background-size: cover;
-            }
+    body {
+        background-color: black;
+        background-image: url({{ asset ('Forester.jpg') }});
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-position: center;
+        background-size: cover;
+    }
+
+    .hikes
+    {
+        display: flex;
+        flex-wrap: wrap;
+        overflow: auto;
+        padding-left: 14px;
+        padding-right: 14px;
+    }
 </style>
 
 @section('content')
@@ -40,39 +49,14 @@
 
 	<div class="row no-gutters" style="height:100%">
         <div class="col-md-12" style="overflow-y:scroll;height:100%">
-            <h4>Planned Saunters</h4>
-            <div id='userHikeLastRow' style='display:inline'>
-            <div><a class='btn btn-sm' href='javascript:showHikeDialog()'><i class='fas fa-plus'></i></a></div>
+            <h4>Hikes<a class='btn btn-sm' href='javascript:showHikeDialog()'><i class='fas fa-plus'></i></a></h4>
+            <div class='hikes'>
             </div>
-            <div class='d-flex flex-column flex-sm-row' style='overflow: auto; padding-left: 14px; padding-right: 14px'>
-                    <?php
-                        $results = Auth::user()->hikes()->get ();
-
-                        foreach ($results as $hike)
-                        {
-                            $days = $hike->getDuration ();
-                            $distance = metersToMilesRounded($hike->getDistance ());
-
-                            echo "<div class='card bpp-shadow mr-4 mb-4 flex-shrink-0 flex-grow-0' style='width:250px' id='userHike_", $hike->id, "'>\n";
-                            echo "<div class='card-header'>";
-                            echo "<div class='edit-hike-name' data-url='hike/", $hike->id, "' data-prop='name'>", $hike->name, "</div>";
-                            echo "</div>";
-                            echo "<div class='card-body'>";
-                            echo "<div>Distance: ", $distance, " miles</div>\n";
-                            echo "<div>Duration: ", $days, " days</div>\n";
-                            echo "<a class='btn btn-sm' href='/hike/", $hike->id, "'><i class='fas fa-pencil-alt'></i></a>\n";
-                            echo "<a class='btn btn-sm' href='javascript:deleteHike(", $hike->id, ")'><i class='fas fa-trash-alt'></i></a>\n";
-                            echo "</div>\n";
-                            echo "</div>\n";
-                        }
-                    ?>
+            <div class="map-please-wait" id="pleaseWait">
+                <div class="spinner-border text-primary m-2 map-please-wait-spinner" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
             </div>
-            <h4>Completed Saunters</h4>
-            <table class="table table-condensed">
-                <thead><tr><th>Name</th><th>Length</th><th>Duration</th><th>Start Date</th></tr></thead>
-                <tbody>
-                </tbody>
-            </table>
         </div>
     </div>
 

@@ -63,6 +63,13 @@ class Hike extends Model
             "command" => "/hike/" . $this->id . "/distance",
         ];
 
-        return sendRouteFindRequest ($request);
+        $distance = sendRouteFindRequest ($request);
+
+        if (!isset($distance))
+        {
+            $distance = 0;
+        }
+
+        return $distance;
     }
 }
