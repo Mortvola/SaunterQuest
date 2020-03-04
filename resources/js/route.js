@@ -843,6 +843,13 @@ class Route
                     retrieveTrailConditions ();
                 }
             }
+            else if (this.map)
+            {
+                if (this.initialLoad)
+                {
+                    this.map.setView ([41.35, -96.0], 5);
+                }
+            }
             
             document.dispatchEvent(new Event('routeUpdated'));
             

@@ -1061,8 +1061,6 @@ function mapInitialize()
         {
             contextmenu: true,
             contextmenuItems: mapMenuItems,
-            center: [41.35, -96.0],
-            zoom: 4,
             maxZoom: 16,
             minZoom: 4,
         });
