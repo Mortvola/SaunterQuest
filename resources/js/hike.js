@@ -710,9 +710,8 @@ function displayLocationPopup (map, latLng, elevation)
 
 function displayLocation (event)
 {
-    $.get({
+    $.getJSON({
         url: "/elevation/point?lat=" + event.latlng.lat + "&lng=" + event.latlng.lng,
-        dataType: "json",
         context: this
     })
     .done (function(elevation)
@@ -825,9 +824,8 @@ function showIntersections (event)
 {
 	var bounds = this.getBounds ();
 
-    $.get({
+    $.getJSON({
         url: "/map/intersections?b=" + bounds.toBBoxString(),
-        dataType: "json",
         context: this
     })
     .done (function(responseText)
@@ -863,9 +861,8 @@ function showIntersections (event)
 
 function highlightNearestTrail (event)
 {
-    $.get({
+    $.getJSON({
         url: "/map/nearestTrail?lat=" + event.latlng.lat + "&lng=" + event.latlng.lng,
-        dataType: "json",
         context: this
     })
     .done (function(responseText)
@@ -888,9 +885,8 @@ function highlightNearestTrail (event)
 
 function showNearestGraph (event)
 {
-    $.get({
+    $.getJSON({
         url: "/map/nearestGraph?lat=" + event.latlng.lat + "&lng=" + event.latlng.lng,
-        dataType: "json",
         context: this
     })
     .done (function(graph)
@@ -937,9 +933,8 @@ function showNearestGraph (event)
 
 function whatIsHere (event)
 {
-    $.get({
+    $.getJSON({
         url: "/map/whatishere?lat=" + event.latlng.lat + "&lng=" + event.latlng.lng,
-        dataType: "json",
         context: this
     })
     .done (function(result)

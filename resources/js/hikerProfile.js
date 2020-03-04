@@ -48,9 +48,8 @@ function hikerProfileRowGet (profile)
 
 function retrieveHikerProfiles ()
 {
-    $.get({
+    $.getJSON({
         url: userHikeId + "/hikerProfile",
-        dataType: "json"
     })
     .done (function(responseText)
     {
@@ -214,14 +213,13 @@ function insertHikerProfile ()
 
 	profile.userHikeId = userHikeId;
 	
-    $.ajax({
+    $.post({
         url: userHikeId + "/hikerProfile",
         headers:
         {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
             "Content-type": "application/json"
         },
-        type: "POST",
         data: JSON.stringify(profile),
         dataType: "json"
     })

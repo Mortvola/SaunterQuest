@@ -451,13 +451,12 @@
 
             function submitForm (event, type, url, success)
             {
-                $.ajax({
+                $.post({
                     url: url,
                     headers:
                     {
                         "Content-type": "application/x-www-form-urlencoded"
                     },
-                    type: "POST",
                     data: $('#' + type + 'Form').serialize (),
                     dataType: "json"
                 })

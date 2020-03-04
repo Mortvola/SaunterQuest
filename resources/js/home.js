@@ -20,14 +20,13 @@ function insertHike ()
 {
     var hike = objectifyForm($("#userHikeForm").serializeArray());
 
-    $.ajax({
+    $.post({
         url: "hike",
         headers:
         {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
             "Content-type": "application/json"
         },
-        type: "POST",
         data: JSON.stringify(hike.name),
         dataType: "json"
     })
@@ -110,9 +109,8 @@ function getHikes ()
 {
     $("#pleaseWait").show ();
 
-    $.get({
+    $.getJSON({
         url: "/hikes",
-        dataType: "json",
         context: this
     })
     .done (function(response)

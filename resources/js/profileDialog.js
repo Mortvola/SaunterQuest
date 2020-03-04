@@ -1,8 +1,7 @@
 function showProfileDialog ()
 {
-    $.get({
+    $.getJSON({
         url: "/user/profile",
-        dataType: "json",
         context: this
     })
     .done (function(responseText)

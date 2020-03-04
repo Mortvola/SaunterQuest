@@ -45,14 +45,13 @@ function insertTrailCondition ()
 	// Both markers must be placed on the map.
 	if (trailCondition.start && trailCondition.end)
 	{
-        $.ajax({
+        $.post({
             url: userHikeId + "/trailCondition",
             headers:
             {
                 "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
                 "Content-type": "application/json"
             },
-            type: "POST",
             data: JSON.stringify(trailCondition),
             dataType: "json"
         })
@@ -133,9 +132,8 @@ function getTrailConditionColor (type)
 
 function retrieveTrailConditions ()
 {
-    $.get({
+    $.getJSON({
         url: userHikeId + "/trailCondition",
-        dataType: "json"
     })
     .done (function(trailConditions)
     {

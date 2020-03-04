@@ -120,14 +120,13 @@ class Route
     {
         $("#pleaseWait").show ();
         
-        $.ajax({
+        $.post({
             url: hike.id + "/route/startPoint",
             headers:
             {
                 "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
                 "Content-type": "application/json"
             },
-            type: "POST",
             data: JSON.stringify({lat: position.lat, lng: position.lng}),
             context: this
         })
@@ -153,14 +152,13 @@ class Route
     {
         $("#pleaseWait").show ();
         
-        $.ajax({
+        $.post({
             url: hike.id + "/route/endPoint",
             headers:
             {
                 "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
                 "Content-type": "application/json"
             },
-            type: "POST",
             data: JSON.stringify({lat: position.lat, lng: position.lng}),
             context: this
         })
@@ -186,14 +184,13 @@ class Route
     {
         $("#pleaseWait").show ();
         
-        $.ajax({
+        $.post({
             url: hike.id + "/route/waypoint",
             headers:
             {
                 "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
                 "Content-type": "application/json"
             },
-            type: "POST",
             data: JSON.stringify({lat: position.lat, lng: position.lng}),
             context: this
         })
@@ -810,9 +807,8 @@ class Route
     
     retrieve ()
     {
-        $.get({
+        $.getJSON({
             url: hike.id + "/route",
-            dataType: "json",
             context: this
         })
         .done (function(responseText)

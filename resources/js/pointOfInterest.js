@@ -181,14 +181,13 @@ function insertPointOfInterest (position)
 		delete pointOfInterest.hangOut;
 	}
 
-    $.ajax({
+    $.post({
         url: userHikeId + "/pointOfInterest",
         headers:
         {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
             "Content-type": "application/json"
         },
-        type: "POST",
         data: JSON.stringify(pointOfInterest),
         dataType: "json"
     })
@@ -214,9 +213,8 @@ function showAddPointOfInterest (object, position)
 
 function retrievePointsOfInterest ()
 {
-    $.get({
+    $.getJSON({
         url: userHikeId + "/pointOfInterest",
-        dataType: "json"
     })
     .done (function(responseText)
     {
