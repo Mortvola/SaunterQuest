@@ -91,8 +91,6 @@
             .titles{
                 display: grid;
                 justify-items: center;
-                background-color: rgba(0, 0, 0, 0.3);
-                box-shadow: 0 0 32px 32px rgba(0,0,0,0.3);
                 width: max-content;
                 color: white;
             }
@@ -100,22 +98,23 @@
             .title {
                 font-size: var(--title-font-size);
                 line-height: 85%;
+                text-shadow: black 0px 2px 4px, black 0px -2px 4px, black -2px 0px 4px, black 2px 0px 4px;
             }
 
             .subtitle {
                 font-size: calc(15px + 1vw);
                 line-height: 85%;
+                text-shadow: black 0px 2px 2px, black 0px -2px 2px, black -2px 0px 2px, black 2px 0px 2px;
             }
 
             .quote {
                 font-size: calc(15px + 0.5vw);
                 color: white;
-                background-color: rgba(0, 0, 0, 0.3);
-                box-shadow: 0 0 32px 32px rgba(0,0,0,0.3);
                 line-height: 85%;
                 margin-top:64px;
                 width: max-content;
                 text-align: center;
+                text-shadow: black 0px 1px 1px, black 0px -1px 1px, black 1px 0px 1px, black -1px 0px 1px;
             }
 
             .attribution {
