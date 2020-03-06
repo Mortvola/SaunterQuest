@@ -18,6 +18,12 @@
         padding-left: 14px;
         padding-right: 14px;
     }
+
+    div.hike-card-header
+    {
+        background-color: burlywood;
+    }
+
 </style>
 
 @section('content')

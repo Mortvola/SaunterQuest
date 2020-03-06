@@ -121,6 +121,7 @@ function getHikes ()
                 {
                     var nameA = a.name.toUpperCase(); // ignore upper and lowercase
                     var nameB = b.name.toUpperCase(); // ignore upper and lowercase
+                  
                     if (nameA < nameB)
                     {
                       return -1;
@@ -132,7 +133,7 @@ function getHikes ()
                     }
     
                     // names must be equal
-                    return 0;                
+                    return 0;
                 });
             
             for (let hike of response)
@@ -151,7 +152,7 @@ function getHikes ()
                 makeEditable (name);
                 
                 let header = $('<div></div>')
-                    .addClass('card-header');
+                    .addClass('hike-card-header card-header');
                 
                 name.appendTo(header);
                 header.appendTo(card);
