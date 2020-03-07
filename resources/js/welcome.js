@@ -78,7 +78,7 @@ function submitLogin (event)
 
 function forgotPassword (event)
 {
-    submitForm(event, 'forgotPassword', "/password.email",
+    submitForm(event, 'forgotPassword', "/password/email",
         function (responseText)
         {
             $("#resetEmailSent").find(".alert-success").html(responseText);
