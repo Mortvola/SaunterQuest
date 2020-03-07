@@ -67,6 +67,6 @@
     </div>
 
     <script>
-    <?php require_once resource_path('js/home.js'); ?>
+    {{File::requireOnce(resource_path('js/home.js'))}}
     </script>
 @endsection

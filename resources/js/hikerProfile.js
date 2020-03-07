@@ -1,4 +1,3 @@
-<script>
 "use strict";
 
 var hikerProfiles = [];
@@ -251,4 +250,3 @@ function removeHikerProfile (hikerProfileId)
 		schedule.retrieve ();
     });
 }
-</script>

@@ -1,4 +1,3 @@
-<script>
 "use strict";
 
 const routeHighlightStrokePadding = 4;
@@ -148,5 +147,3 @@ class RouteHighlighter
 		this.markers[marker].marker.remove();
 	}
 }
-
-</script>

@@ -337,10 +337,13 @@
         var hike = new Hike;
 
         hike.id = {{ $hikeId }};
+
+        {{File::requireOnce(resource_path('js/trails.js'))}}
+        {{File::requireOnce(resource_path('js/hikerProfile.js'))}}
+        {{File::requireOnce(resource_path('js/routeHighlighter.js'))}}
+        {{File::requireOnce(resource_path('js/trailCondition.js'))}}
     </script>
-    <?php require_once resource_path('js/trails.js'); ?>
-    <?php require_once resource_path('js/hikerProfile.js'); ?>
-    <?php require_once resource_path('js/resupplyPlan.js'); ?>
-    <?php require_once resource_path('js/routeHighlighter.js'); ?>
-    <?php require_once resource_path('js/trailCondition.js'); ?>
+
+    {{File::requireOnce(resource_path('js/resupplyPlan.js'))}}
+
 @endsection

@@ -1,4 +1,3 @@
-<script>
 "use strict"
 
 const zoomDisplayThreshold = 10;
@@ -432,5 +431,3 @@ class Trails
 	}
 
 }
-
-</script>

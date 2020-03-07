@@ -25,7 +25,6 @@
                 --title-font-size: calc(15px + 5vw);
             }
 
-
             html, body {
                 background-color: #fff;
                 color: #636b6f;
@@ -105,6 +104,7 @@
                 font-size: calc(15px + 1vw);
                 line-height: 85%;
                 text-shadow: black 0px 2px 2px, black 0px -2px 2px, black -2px 0px 2px, black 2px 0px 2px;
+                margin-top: 14px
             }
 
             .quote {
@@ -132,8 +132,8 @@
                         <a href="/home" style="color:white">Home</a>
                     @else
                         <!-- a href="{{ route('login', null, false) }}" style="color:white">Login</a -->
-                        <a href="javascript:showLoginDialog()" style="color:white">Login</a>
-                        <a href="javascript:showRegisterDialog()" style="color:white">Register</a>
+                        <a id="loginLink" style="color:white; cursor: pointer;">Login</a>
+                        <a id="registerLink" style="color:white; cursor: pointer;">Register</a>
                     @endauth
                 </div>
             @endif
@@ -300,6 +300,8 @@
                         <button type="button" class="close" data-dismiss="modal">&times;</button>
                     </div>
                     <div class="card-body">
+
+                    @reg
                         <form id="registerForm">
                             @csrf
 
@@ -356,132 +358,18 @@
                                 </div>
                             </div>
                         </form>
-                    </div>
 
+                    @else
+                        This site is under development. Registrations are currently only availble through invititation.
+                    @endreg
+
+                    </div>
                 </div>
             </div>
         </div> <!--  Modal -->
 
         <script>
-            function showCard (current, target)
-            {
-                $(current).hide ();
-                $(current).removeClass ('show');
-                $(target).addClass ('show');
-                $(target).show ();
-            }
-
-            $("[data-toggle='tablink']").on('click', function (event)
-            {
-                event.preventDefault();
-                var target = $(this).attr('href');
-                var current = $(this).parents(".tab-pane");
-                showCard(current, target);
-            });
-
-            function showLoginDialog ()
-            {
-                if ($('#forgotPassword').hasClass('show'))
-                {
-                    $('#forgotPassword').hide ();
-                    $('#forgotPassword').removeClass ('show');
-                }
-
-                if ($('#resetEmailSent').hasClass('show'))
-                {
-                    $('#resetEmailSent').hide ();
-                    $('#resetEmailSent').removeClass ('show');
-                }
-
-                $('#login').addClass ('show');
-                $('#login').show ();
-
-                $("#loginForm").off('submit');
-                $("#forgotPasswordForm").off('submit');
-
-                $("#loginForm").submit(submitLogin);
-                $("#forgotPasswordForm").submit(forgotPassword);
-                $("#loginDialog").modal ('show');
-            }
-
-            function showRegisterDialog ()
-            {
-                $("#registerForm").off('submit');
-
-                $("#registerForm").submit(submitRegistration);
-                $("#registerDialog").modal ('show');
-            }
-
-            function displayErrors (errors, id)
-            {
-                var txt = "";
-
-                if (errors)
-                {
-                    for (let e of errors)
-                    {
-                        txt += "<div style='font-size:small'>" + e + "</div>";
-                    }
-                }
-
-                $(id).html(txt);
-            }
-
-            function submitRegistration (event)
-            {
-                submitForm (event, 'register', "{{ route('register', null, false) }}",
-                    function (responseText) { window.location.assign(responseText); });
-            }
-
-            function submitLogin (event)
-            {
-                submitForm(event, 'login', "{{ route('login', null, false) }}",
-                    function (responseText) { window.location.assign(responseText); });
-            }
-
-            function forgotPassword (event)
-            {
-                submitForm(event, 'forgotPassword', "{{ route('password.email', null, false) }}",
-                    function (responseText)
-                    {
-                    	$("#resetEmailSent").find(".alert-success").html(responseText);
-                    	showCard ('#forgotPassword', '#resetEmailSent');
-                    });
-            }
-
-            function submitForm (event, type, url, success)
-            {
-                $.post({
-                    url: url,
-                    headers:
-                    {
-                        "Content-type": "application/x-www-form-urlencoded"
-                    },
-                    data: $('#' + type + 'Form').serialize (),
-                    dataType: "json"
-                })
-                .done (function(response)
-                {
-                    success(response);
-                })
-                .fail (function (xhr, status, errorThrown)
-            	{
-                    if (xhr.status == 422)
-                    {
-                        var response = xhr.responseJSON;
-
-                        displayErrors (response.errors.username, '#' + type + 'UsernameErrors');
-                        displayErrors (response.errors.email, '#' + type + 'EmailErrors');
-                        displayErrors (response.errors.password, '#' + type + 'PasswordErrors');
-                    }
-                    else
-                    {
-                        displayErrors (["An error occured. Please try again later."], '#' + type + 'GeneralErrors');
-                    }
-            	});
-
-                event.preventDefault();
-            }
+            {{File::requireOnce(resource_path('js/welcome.js'))}}
         </script>
     </body>
 </html>

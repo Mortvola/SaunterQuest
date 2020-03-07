@@ -1,4 +1,3 @@
-<script>
 var trailConditions = [];
 var editingTrailConditionId = null;
 var trailConditionMenu;
@@ -352,4 +351,3 @@ function removeTrailCondition (trailConditionId)
 		schedule.retrieve ();
     });
 }
-</script>
