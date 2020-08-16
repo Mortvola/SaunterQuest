@@ -26,9 +26,9 @@ use App\Http\Controllers\TileController;
 
 Route::view ('/', 'welcome')->name('welcome');
 
-Auth::routes();
+Auth::routes(['verify' => true]);
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/user/profile', 'UserController@getProfile');
     Route::put('/user/profile', 'UserController@putProfile');

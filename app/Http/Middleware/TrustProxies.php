@@ -12,12 +12,12 @@ class TrustProxies extends Middleware
      *
      * @var array|string
      */
-    protected $proxies = "*";
+    protected $proxies = ["127.0.0.1"];
 
     /**
      * The headers that should be used to detect proxies.
      *
      * @var int
      */
-    protected $headers = Request::HEADER_X_FORWARDED_AWS_ELB;
+    protected $headers = Request::HEADER_X_FORWARDED_ALL;
 }

@@ -1,26 +1,59 @@
 {
-    "private": true,
-    "scripts": {
-        "dev": "npm run development",
-        "development": "cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
-        "watch": "npm run development -- --watch",
-        "watch-poll": "npm run watch -- --watch-poll",
-        "hot": "cross-env NODE_ENV=development node_modules/webpack-dev-server/bin/webpack-dev-server.js --inline --hot --config=node_modules/laravel-mix/setup/webpack.config.js",
-        "prod": "npm run production",
-        "production": "cross-env NODE_ENV=production node_modules/webpack/bin/webpack.js --no-progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js"
-    },
-    "devDependencies": {
-        "axios": "^0.19",
-        "bootstrap": "^4.1.0",
-        "cross-env": "^5.1",
-        "jquery": "^3.2",
-        "laravel-mix": "^4.0.7",
-        "lodash": "^4.17.13",
-        "popper.js": "^1.12",
-        "resolve-url-loader": "^2.3.1",
-        "sass": "^1.15.2",
-        "sass-loader": "^7.1.0",
-        "vue": "^2.5.17",
-        "vue-template-compiler": "^2.6.10"
-    }
+  "private": true,
+  "scripts": {
+    "dev-build": "browserify -t [ babelify --presets [ @babel/preset-react @babel/env ] ] src/Welcome.jsx --extension=.jsx > public/welcome.js",
+    "build": "NODE_ENV=production browserify -t [ babelify --presets [ @babel/preset-react @babel/env ] ]  -t dotenvify src/Welcome.jsx --extension=.jsx | terser --compress --mangle > public/welcome.js"
+  },
+  "dependencies": {
+    "@babel/preset-react": "^7.10.4",
+    "babel-cli": "^6.26.0",
+    "babelify": "^10.0.0",
+    "braces": "^2.3.2",
+    "caniuse-lite": "^1.0.30001114",
+    "eslint-plugin-react-hooks": "^4.0.7",
+    "popper": "^1.0.1",
+    "prop-types": "^15.7.2",
+    "react": "^16.13.1",
+    "react-bootstrap": "^1.3.0",
+    "react-dom": "^16.13.1",
+    "regenerator-runtime": "^0.13.7"
+  },
+  "devDependencies": {
+    "axios": "^0.19.2",
+    "bootstrap": "^4.5.2",
+    "cross-env": "^5.1",
+    "dotenvify": "^1.0.0",
+    "eslint": "^7.4.0",
+    "eslint-config-airbnb": "^18.2.0",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-jsx-a11y": "^6.3.1",
+    "eslint-plugin-react": "^7.20.3",
+    "jquery": "^3.5.1",
+    "laravel-mix": "^4.0.7",
+    "lodash": "^4.17.20",
+    "popper.js": "^1.16.1",
+    "resolve-url-loader": "^2.3.1",
+    "sass": "^1.26.10",
+    "sass-loader": "^7.1.0",
+    "vue": "^2.6.11",
+    "vue-template-compiler": "^2.6.11"
+  },
+  "name": "BackpackerPlanner",
+  "version": "1.0.0",
+  "main": "webpack.mix.js",
+  "directories": {
+    "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mortvola/backpackersPlanner.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mortvola/backpackersPlanner/issues"
+  },
+  "homepage": "https://github.com/Mortvola/backpackersPlanner#readme",
+  "description": ""
 }

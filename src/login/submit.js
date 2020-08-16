@@ -1,0 +1,40 @@
+function submitForm(event, form, url, success, fail) {
+    const formData = new FormData(form);
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            Accept: 'application/json',
+        },
+        body: formData,
+    })
+        .then(async (response) => {
+            if (response.ok) {
+                const json = await response.json();
+                success(json);
+            }
+            else if (fail) {
+                if (response.status === 422) {
+                    const json = await response.json();
+                    fail(json.errors);
+                }
+                else {
+                    fail({ general: ['An error occured. Please try again later.'] });
+                }
+            }
+        });
+
+    if (event) {
+        event.preventDefault();
+    }
+}
+
+const defaultErrors = {
+    username: [],
+    password: [],
+    email: [],
+    general: [],
+};
+
+export { submitForm, defaultErrors };
