@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { metersToMilesRounded } from '../utilities';
 import EditableText from './EditableText';
+import DeleteConfirmation from '../DeleteConfirmation';
 
 const Hike = ({
     hike,
     onDelete,
 }) => {
+    const [confirmDelete, setConfirmDelete] = useState(false);
+
     const deleteHike = () => {
         fetch(`hike/${hike.id}`, {
             method: 'DELETE',
@@ -17,6 +20,14 @@ const Hike = ({
             .then(() => {
                 onDelete(hike.id);
             });
+    };
+
+    const handleDeleteClick = () => {
+        setConfirmDelete(true);
+    };
+
+    const handleHide = () => {
+        setConfirmDelete(false);
     };
 
     return (
@@ -43,7 +54,7 @@ const Hike = ({
                     <button
                         type="button"
                         className="btn btn-sm btn-outline-secondary"
-                        onClick={deleteHike}
+                        onClick={handleDeleteClick}
                     >
                         Delete
                     </button>
@@ -58,6 +69,13 @@ const Hike = ({
                     </button>
                 </div>
             </div>
+            <DeleteConfirmation
+                show={confirmDelete}
+                onHide={handleHide}
+                onConfirm={deleteHike}
+            >
+                Are you sure you want to delete this hike?
+            </DeleteConfirmation>
         </div>
     );
 };
