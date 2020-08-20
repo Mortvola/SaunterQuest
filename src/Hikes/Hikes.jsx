@@ -1,54 +1,27 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import HikeDialog from './HikeDialog';
 import Hike from './Hike';
 import PleaseWait from './PleaseWait';
+import { requestHikes, requestHikeDeletion } from '../redux/actions';
 
-const Hikes = () => {
+const mapStateToProps = (state) => ({
+    hikes: state.hikes.hikes,
+    requesting: state.hikes.requesting,
+});
+
+const Hikes = ({
+    hikes,
+    requesting,
+    dispatch,
+}) => {
     const [initialized, setInitialized] = useState(false);
     const [showHikeDialog, setShowHikeDialog] = useState(false);
-    const [hikes, setHikes] = useState(null);
-    const [waiting, setWaiting] = useState(false);
-
-    function getHikes() {
-        setWaiting(true);
-
-        fetch('/hikes')
-            .then(async (response) => {
-                if (response.ok) {
-                    const json = await response.json();
-                    if (Array.isArray(json)) {
-                        json.sort((a, b) => {
-                            const nameA = a.name.toUpperCase(); // ignore upper and lowercase
-                            const nameB = b.name.toUpperCase(); // ignore upper and lowercase
-
-                            if (nameA < nameB) {
-                                return -1;
-                            }
-
-                            if (nameA > nameB) {
-                                return 1;
-                            }
-
-                            // names must be equal
-                            return 0;
-                        });
-
-                        setHikes(json);
-                    }
-                }
-            })
-            .then(() => {
-                setWaiting(false);
-            })
-            .catch((error) => {
-                console.log(error);
-                setWaiting(false);
-            });
-    }
 
     if (!initialized) {
         setInitialized(true);
-        getHikes();
+        dispatch(requestHikes());
     }
 
     const handleClick = () => {
@@ -60,14 +33,7 @@ const Hikes = () => {
     };
 
     const handleDelete = (id) => {
-        const index = hikes.findIndex((h) => h.id === id);
-
-        if (index !== -1) {
-            setHikes([
-                ...hikes.slice(0, index),
-                ...hikes.slice(index + 1),
-            ]);
-        }
+        dispatch(requestHikeDeletion(id));
     };
 
     return (
@@ -81,18 +47,27 @@ const Hikes = () => {
                 </h4>
                 <div className="hikes">
                     {
-                        hikes
-                            ? hikes.map((h) => (
-                                <Hike key={h.id} hike={h} onDelete={handleDelete} />
-                            ))
-                            : null
+                        hikes.map((h) => (
+                            <Hike key={h.id} hike={h} onDelete={handleDelete} />
+                        ))
                     }
                 </div>
-                <PleaseWait show={waiting} />
+                <PleaseWait show={requesting} />
             </div>
             <HikeDialog show={showHikeDialog} onHide={handleHide} />
         </div>
     );
 };
 
-export default Hikes;
+Hikes.propTypes = {
+    hikes: PropTypes.arrayOf(PropTypes.shape()),
+    requesting: PropTypes.bool.isRequired,
+    dispatch: PropTypes.func,
+};
+
+Hikes.defaultProps = {
+    hikes: [],
+    dispatch: null,
+};
+
+export default connect(mapStateToProps)(Hikes);

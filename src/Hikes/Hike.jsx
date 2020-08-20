@@ -10,18 +10,6 @@ const Hike = ({
 }) => {
     const [confirmDelete, setConfirmDelete] = useState(false);
 
-    const deleteHike = () => {
-        fetch(`hike/${hike.id}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            },
-        })
-            .then(() => {
-                onDelete(hike.id);
-            });
-    };
-
     const handleDeleteClick = () => {
         setConfirmDelete(true);
     };
@@ -72,7 +60,7 @@ const Hike = ({
             <DeleteConfirmation
                 show={confirmDelete}
                 onHide={handleHide}
-                onConfirm={deleteHike}
+                onConfirm={onDelete}
             >
                 Are you sure you want to delete this hike?
             </DeleteConfirmation>
