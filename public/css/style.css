@@ -1,0 +1,28 @@
+.background-picture {
+    background-color: black;
+    background-image: url(/Forester.jpg);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center;
+    background-size: cover;
+}
+
+.hikes
+{
+    display: flex;
+    flex-wrap: wrap;
+    overflow: auto;
+    padding-left: 14px;
+    padding-right: 14px;
+}
+
+div.hike-card-header
+{
+    background-color: burlywood;
+}
+
+.bpp-shadow
+{
+    box-shadow:0 2px 7px 1px rgba(0,0,0,0.3);
+}
+

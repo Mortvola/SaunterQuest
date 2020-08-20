@@ -9,9 +9,9 @@ function nvl(value, replacement) {
 function objectifyForm(formArray) {
     const returnObject = {};
 
-    for (const i in formArray) {
+    formArray.forEach((i) => {
         returnObject[formArray[i].name] = formArray[i].value;
-    }
+    });
 
     return returnObject;
 }
@@ -71,3 +71,5 @@ function unformatTime(t) {
 
     return parseInt(time[0], 10) * 60 + parseInt(time[1], 10);
 }
+
+export { objectifyForm, metersToMilesRounded };
