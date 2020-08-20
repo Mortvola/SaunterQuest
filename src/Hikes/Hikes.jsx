@@ -37,25 +37,27 @@ const Hikes = ({
     };
 
     return (
-        <div className="row no-gutters" style={{ height: '100%' }}>
-            <div className="col-md-12" style={{ overflowY: 'scroll', height: '100%' }}>
-                <h4>
-                    Hikes
-                    <button type="button" className="btn btn-sm" onClick={handleClick}>
-                        <i className="fas fa-plus" />
-                    </button>
-                </h4>
-                <div className="hikes">
-                    {
-                        hikes.map((h) => (
-                            <Hike key={h.id} hike={h} onDelete={handleDelete} />
-                        ))
-                    }
+        <>
+            <div className="row no-gutters" style={{ height: '100%' }}>
+                <div className="col-md-12" style={{ overflowY: 'scroll', height: '100%' }}>
+                    <h4>
+                        Hikes
+                        <button type="button" className="btn btn-sm" onClick={handleClick}>
+                            <i className="fas fa-plus" />
+                        </button>
+                    </h4>
+                    <div className="hikes">
+                        {
+                            hikes.map((h) => (
+                                <Hike key={h.id} hike={h} onDelete={handleDelete} />
+                            ))
+                        }
+                    </div>
+                    <PleaseWait show={requesting} />
                 </div>
-                <PleaseWait show={requesting} />
             </div>
             <HikeDialog show={showHikeDialog} onHide={handleHide} />
-        </div>
+        </>
     );
 };
 
