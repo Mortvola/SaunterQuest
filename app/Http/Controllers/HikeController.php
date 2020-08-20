@@ -50,7 +50,7 @@ class HikeController extends Controller
 
     public function post (Request $request)
     {
-        $name = $request->input ()[0];
+        $name = $request->input ('name');
         $userId = Auth::user()->id;
 
         $hike = new Hike ([
