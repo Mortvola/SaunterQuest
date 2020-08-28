@@ -23,6 +23,20 @@ const Menubar = ({ dispatch }) => {
     const [ProfileDialog, showProfileDialog] = useProfileDialog();
     const [AccountDialog, showAccountDialog] = useAccountDialog();
 
+    const logout = () => {
+        fetch('/logout', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            },
+        })
+            .then((response) => {
+                if (response.ok) {
+                    window.location.replace('/');
+                }
+            });
+    };
+
     const handleSelect = (eventKey) => {
         switch (eventKey) {
         case MENU_EVENT_KEY_ACCOUNT:
@@ -30,6 +44,10 @@ const Menubar = ({ dispatch }) => {
             break;
         case MENU_EVENT_KEY_PROFILE:
             showProfileDialog();
+            break;
+
+        case MENU_EVENT_KEY_LOGOUT:
+            logout();
             break;
 
         default:
