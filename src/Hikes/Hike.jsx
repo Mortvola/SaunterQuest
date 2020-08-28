@@ -18,6 +18,11 @@ const Hike = ({
         setConfirmDelete(false);
     };
 
+    const handleConfirm = () => {
+        onDelete(hike.id);
+        setConfirmDelete(false);
+    };
+
     return (
         <div
             className="card bpp-shadow mr-4 mb-4 flex-shrink-0 flex-grow-0"
@@ -60,7 +65,7 @@ const Hike = ({
             <DeleteConfirmation
                 show={confirmDelete}
                 onHide={handleHide}
-                onConfirm={onDelete}
+                onConfirm={handleConfirm}
             >
                 Are you sure you want to delete this hike?
             </DeleteConfirmation>

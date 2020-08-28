@@ -66,8 +66,10 @@ const requestHikeDeletion = (id) => (
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
             },
         })
-            .then(() => {
-                dispatch(deleteHike(id));
+            .then((response) => {
+                if (response.ok) {
+                    dispatch(deleteHike(id));
+                }
             });
     }
 );

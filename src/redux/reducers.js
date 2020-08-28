@@ -20,14 +20,14 @@ const hikes = (
         return { ...state, requesting: false, hikes: action.hikes };
 
     case DELETE_HIKE: {
-        const index = state.findIndex((h) => h.id === action.id);
+        const index = state.hikes.findIndex((h) => h.id === action.id);
 
         if (index !== -1) {
             return {
                 ...state,
                 hikes: [
-                    ...state.slice(0, index),
-                    ...state.slice(index + 1),
+                    ...state.hikes.slice(0, index),
+                    ...state.hikes.slice(index + 1),
                 ],
             };
         }
