@@ -38,7 +38,6 @@
     <script>
     sessionStorage.setItem('username', '{{ Auth::user()->username }}');
     <?php require_once resource_path('js/accountDialog.js'); ?>
-    <?php require_once resource_path('js/profileDialog.js'); ?>
     </script>
 </body>
 </html>
