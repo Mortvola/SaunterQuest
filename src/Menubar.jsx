@@ -17,15 +17,22 @@ import {
     MENU_EVENT_KEY_LOGOUT,
 } from './menuEvents';
 import { useProfileDialog } from './ProfileDialog';
+import { useAccountDialog } from './AccountDialog';
 
 const Menubar = ({ dispatch }) => {
     const [ProfileDialog, showProfileDialog] = useProfileDialog();
+    const [AccountDialog, showAccountDialog] = useAccountDialog();
 
     const handleSelect = (eventKey) => {
-        if (eventKey === MENU_EVENT_KEY_PROFILE) {
+        switch (eventKey) {
+        case MENU_EVENT_KEY_ACCOUNT:
+            showAccountDialog();
+            break;
+        case MENU_EVENT_KEY_PROFILE:
             showProfileDialog();
-        }
-        else {
+            break;
+
+        default:
             dispatch(navigate(eventKey));
         }
     };
@@ -50,6 +57,7 @@ const Menubar = ({ dispatch }) => {
                     </Nav>
                 </div>
             </Container>
+            <AccountDialog />
             <ProfileDialog />
         </Navbar>
     );

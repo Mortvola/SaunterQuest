@@ -33,11 +33,7 @@
         @yield('content')
     </div>
 
-    @include('accountDialog')
-
     <script>
-    sessionStorage.setItem('username', '{{ Auth::user()->username }}');
-    <?php require_once resource_path('js/accountDialog.js'); ?>
     </script>
 </body>
 </html>
