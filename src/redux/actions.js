@@ -2,7 +2,19 @@ import {
     REQUESTING_HIKES,
     RECEIVE_HIKES,
     DELETE_HIKE,
+    SET_VIEW,
 } from './actionTypes';
+import {
+    VIEW_HIKES,
+    VIEW_GEAR,
+    VIEW_FOOD,
+    MENU_EVENT_KEY_LOGOUT,
+} from '../menuEvents';
+
+const setView = (view) => ({
+    type: SET_VIEW,
+    view,
+});
 
 const requestingHikes = (requesting) => ({
     type: REQUESTING_HIKES,
@@ -74,7 +86,25 @@ const requestHikeDeletion = (id) => (
     }
 );
 
+const navigate = (eventKey) => (
+    (dispatch) => {
+        switch (eventKey) {
+        case VIEW_HIKES:
+        case VIEW_FOOD:
+        case VIEW_GEAR:
+        case MENU_EVENT_KEY_LOGOUT:
+            dispatch(setView(eventKey));
+            break;
+
+        default:
+            break;
+        }
+    }
+);
+
 export {
+    setView,
     requestHikes,
     requestHikeDeletion,
-}
+    navigate,
+};

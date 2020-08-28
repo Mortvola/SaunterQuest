@@ -56,10 +56,10 @@ function formatTime(t) {
     }
 
     if (m < 10) {
-        formattedTime += `:0${ m}`;
+        formattedTime += `:0${m}`;
     }
     else {
-        formattedTime += `:${ m}`;
+        formattedTime += `:${m}`;
     }
 
     return formattedTime;
@@ -72,4 +72,31 @@ function unformatTime(t) {
     return parseInt(time[0], 10) * 60 + parseInt(time[1], 10);
 }
 
-export { objectifyForm, metersToMilesRounded };
+function toTimeString(time) {
+    if (time !== undefined) {
+        let hour = Math.floor(time);
+        if (hour < 10) {
+            hour = `0${hour}`;
+        }
+
+        let minutes = Math.floor((time - Math.floor(time)) * 60);
+        if (minutes < 10) {
+            minutes = `0${minutes}`;
+        }
+
+        return `${hour}:${minutes}`;
+    }
+
+    return null;
+}
+
+function toTimeFloat(time) {
+    return parseInt(time.substring(0, 2), 10) + parseInt(time.substring(3), 10) / 60.0;
+}
+
+export {
+    objectifyForm,
+    metersToMilesRounded,
+    toTimeString,
+    toTimeFloat,
+};

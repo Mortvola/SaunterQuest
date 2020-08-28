@@ -20,9 +20,4 @@ else {
     );
 }
 
-const store = createStore(
-    hikeApp,
-    enhancer,
-);
-
-export default store;
+export default createStore(hikeApp, enhancer);

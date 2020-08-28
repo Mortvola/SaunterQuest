@@ -3,7 +3,9 @@ import {
     REQUESTING_HIKES,
     RECEIVE_HIKES,
     DELETE_HIKE,
+    SET_VIEW,
 } from './actionTypes';
+import { VIEW_HIKES } from '../menuEvents';
 
 const hikes = (
     state = {
@@ -40,7 +42,26 @@ const hikes = (
     }
 };
 
+function selections(
+    state = {
+        view: VIEW_HIKES,
+    },
+    action,
+) {
+    switch (action.type) {
+    case SET_VIEW:
+        return {
+            ...state,
+            view: action.view,
+        };
+
+    default:
+        return state;
+    }
+}
+
 const hikeApp = combineReducers({
+    selections,
     hikes,
 });
 
