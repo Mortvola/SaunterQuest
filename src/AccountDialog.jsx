@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { Modal } from 'react-bootstrap';
 import { Formik, Form, Field } from 'formik';
+import useModal from './Modal';
 
 const AccountDialog = ({
     show,
@@ -56,40 +57,9 @@ AccountDialog.propTypes = {
     onHide: PropTypes.func.isRequired,
 };
 
-const useAccountDialog = (
-    onSave,
-) => {
-    const [show, setShow] = useState(false);
-
-    const handleShowClick = () => {
-        setShow(true);
-    };
-
-    const handleHide = () => {
-        setShow(false);
-    };
-
-    const handleSave = () => {
-        if (onSave) {
-            onSave();
-        }
-
-        handleHide();
-    };
-
-    const createDialog = () => (
-        <AccountDialog
-            show={show}
-            onHide={handleHide}
-            onConfirm={handleSave}
-        />
-    );
-
-    return [
-        createDialog,
-        handleShowClick,
-    ];
-};
+const useAccountDialog = () => (
+    useModal(AccountDialog)
+);
 
 export default AccountDialog;
 export { useAccountDialog };

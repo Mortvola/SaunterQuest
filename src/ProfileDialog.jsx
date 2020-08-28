@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Formik, Form, Field } from 'formik';
 import { Modal } from 'react-bootstrap';
+import useModal from './Modal';
 import { toTimeFloat, toTimeString } from './utilities';
 
 const ProfileDialog = ({
@@ -85,10 +86,8 @@ ProfileDialog.propTypes = {
     onHide: PropTypes.func.isRequired,
 };
 
-const useProfileDialog = (
-    onSave,
-) => {
-    const [show, setShow] = useState(false);
+const useProfileDialog = () => {
+    const [DialogModal, showDialogModal] = useModal(ProfileDialog);
     const [values, setValues] = useState({
         paceFactor: '100',
         startTime: '07:00',
@@ -103,34 +102,17 @@ const useProfileDialog = (
             .then(async (response) => {
                 if (response.ok) {
                     setValues(await response.json());
-                    setShow(true);
+                    showDialogModal();
                 }
             });
     };
 
-    const handleHide = () => {
-        setShow(false);
-    };
-
-    const handleSave = () => {
-        if (onSave) {
-            onSave();
-        }
-
-        handleHide();
-    };
-
-    const createDialog = () => (
-        <ProfileDialog
-            values={values}
-            show={show}
-            onHide={handleHide}
-            onConfirm={handleSave}
-        />
+    const createProfileDialog = () => (
+        <DialogModal values={values} />
     );
 
     return [
-        createDialog,
+        createProfileDialog,
         handleShowClick,
     ];
 };
