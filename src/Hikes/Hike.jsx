@@ -1,27 +1,19 @@
-import React, { useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { metersToMilesRounded } from '../utilities';
 import EditableText from './EditableText';
-import DeleteConfirmation from '../DeleteConfirmation';
+import { useDeleteConfirmation } from '../DeleteConfirmation';
 
 const Hike = ({
     hike,
     onDelete,
 }) => {
-    const [confirmDelete, setConfirmDelete] = useState(false);
-
-    const handleDeleteClick = () => {
-        setConfirmDelete(true);
-    };
-
-    const handleHide = () => {
-        setConfirmDelete(false);
-    };
-
-    const handleConfirm = () => {
-        onDelete(hike.id);
-        setConfirmDelete(false);
-    };
+    const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
+        'Are you sure you want to delete this hike?',
+        () => {
+            onDelete(hike.id);
+        },
+    );
 
     return (
         <div
@@ -62,13 +54,7 @@ const Hike = ({
                     </button>
                 </div>
             </div>
-            <DeleteConfirmation
-                show={confirmDelete}
-                onHide={handleHide}
-                onConfirm={handleConfirm}
-            >
-                Are you sure you want to delete this hike?
-            </DeleteConfirmation>
+            <DeleteConfirmation />
         </div>
     );
 };

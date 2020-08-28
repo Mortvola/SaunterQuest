@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Modal, Button } from 'react-bootstrap';
 
@@ -34,4 +34,40 @@ DeleteConfirmation.defaultProps = {
     children: null,
 };
 
+const useDeleteConfirmation = (
+    message,
+    onDelete,
+) => {
+    const [confirmDelete, setConfirmDelete] = useState(false);
+
+    const handleDeleteClick = () => {
+        setConfirmDelete(true);
+    };
+
+    const handleHide = () => {
+        setConfirmDelete(false);
+    };
+
+    const handleConfirm = () => {
+        onDelete();
+        handleHide();
+    };
+
+    const createConfirmation = () => (
+        <DeleteConfirmation
+            show={confirmDelete}
+            onHide={handleHide}
+            onConfirm={handleConfirm}
+        >
+            {message}
+        </DeleteConfirmation>
+    );
+
+    return [
+        createConfirmation,
+        handleDeleteClick,
+    ];
+};
+
 export default DeleteConfirmation;
+export { useDeleteConfirmation };
