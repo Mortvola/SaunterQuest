@@ -34,7 +34,6 @@
     </div>
 
     @include('accountDialog')
-    @include('profileDialog')
 
     <script>
     sessionStorage.setItem('username', '{{ Auth::user()->username }}');
