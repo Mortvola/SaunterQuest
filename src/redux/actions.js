@@ -5,6 +5,7 @@ import {
     SET_VIEW,
     SET_MAP,
     RECEIVE_SCHEDULE,
+    RECEIVE_ROUTE,
 } from './actionTypes';
 import {
     VIEW_HIKES,
@@ -104,10 +105,23 @@ const navigate = (eventKey) => (
     }
 );
 
-const setMap = (map) => ({
-    type: SET_MAP,
-    map,
+const receiveRoute = (anchors) => ({
+    type: RECEIVE_ROUTE,
+    anchors,
 });
+
+const requestRoute = (route) => (
+    (dispatch) => {
+        fetch(`${sessionStorage.getItem('hikeId')}/route`)
+            .then(async (response) => {
+                if (response.ok) {
+                    route.setAnchors(await response.json());
+
+                    dispatch(receiveRoute(route));
+                }
+            });
+    }
+);
 
 const receiveSchedule = (schedule) => ({
     type: RECEIVE_SCHEDULE,
@@ -125,6 +139,21 @@ const requestSchedule = () => (
     }
 );
 
+const routeUpdated = () => (
+    (dispatch) => {
+        dispatch(requestSchedule());
+    }
+);
+
+const setMap = (map) => (
+    (dispatch) => {
+        dispatch({
+            type: SET_MAP,
+            map,
+        });
+    }
+);
+
 export {
     setView,
     requestHikes,
@@ -132,4 +161,6 @@ export {
     navigate,
     setMap,
     requestSchedule,
+    requestRoute,
+    routeUpdated,
 };

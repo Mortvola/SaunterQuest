@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { mapInitialize } from './hike';
+import { setMap, requestRoute } from '../redux/actions';
+import Route from './route';
 
 const Map = ({
     dispatch,
@@ -11,7 +13,12 @@ const Map = ({
     useEffect(() => {
         if (!initialized) {
             setInitialized(true);
-            mapInitialize(dispatch);
+            const map = mapInitialize(dispatch);
+
+            dispatch(setMap(map));
+
+            const route = new Route(map);
+            dispatch(requestRoute(route));
         }
     });
 

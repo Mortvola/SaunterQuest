@@ -74,7 +74,10 @@ class TrailMarker {
             this.meters = position.dist;
             this.ele = position.ele;
             this.marker.setLatLng(position);
-            this.marker.addTo(this.map);
+
+            if (this.map) {
+                this.marker.addTo(this.map);
+            }
 
             this.addListener();
         }

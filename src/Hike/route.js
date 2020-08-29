@@ -6,6 +6,8 @@ import StartOfTrailMarker from './trailMarker/StartOfTrailMarker';
 import EndOfTrailMarker from './trailMarker/EndOfTrailMarker';
 import TrailMarker from './trailMarker/trailMarker';
 import { metersToFeet, metersToMiles, formatTime } from '../utilities';
+import store from '../redux/store';
+import { routeUpdated } from '../redux/actions';
 
 const startPointUrl = 'https://maps.google.com/mapfiles/ms/micons/green-dot.png';
 const wayPointUrl = 'https://maps.google.com/mapfiles/ms/micons/lightblue.png';
@@ -40,9 +42,9 @@ function startRouteMeasurement(event) {
 
 
 class Route {
-    constructor(map, hikeId) {
+    constructor(map) {
         this.map = map;
-        this.hikeId = hikeId;
+        this.hikeId = sessionStorage.getItem('hikeId');
 
         this.startOfTrailMarker = new StartOfTrailMarker(map, startPointUrl);
 
@@ -560,7 +562,7 @@ class Route {
             // Renumber waypoints
             this.relabelWaypoints();
 
-            document.dispatchEvent(new Event('routeUpdated'));
+            store.dispatch(routeUpdated());
         }
     }
 
@@ -718,42 +720,45 @@ class Route {
         return this.actualRoute.length;
     }
 
+    setAnchors(anchors) {
+        this.anchors = anchors;
+
+        if (this.anchors.length > 0) {
+            this.load();
+
+            if (this.map) {
+                this.draw();
+
+                if (this.initialLoad) {
+                    this.map.fitBounds(this.actualRoutePolyline.getBounds());
+                    const z = this.map.getZoom();
+                    if (z > 13) {
+                        this.map.setZoom(13);
+                    }
+                }
+            }
+
+            if (this.anchors.length > 1) {
+                retrieveTrailConditions();
+            }
+        }
+        else if (this.map) {
+            if (this.initialLoad) {
+                this.map.setView([41.35, -96.0], 5);
+            }
+        }
+
+        store.dispatch(routeUpdated());
+
+        this.initialLoad = false;
+    }
+
     retrieve() {
-        $.getJSON({
-            url: `${this.hikeId}/route`,
-            context: this,
-        })
-            .done(function (responseText) {
-                this.anchors = responseText;
-
-                if (this.anchors.length > 0) {
-                    this.load();
-
-                    if (this.map) {
-                        this.draw();
-
-                        if (this.initialLoad) {
-                            this.map.fitBounds(this.actualRoutePolyline.getBounds());
-                            const z = this.map.getZoom();
-                            if (z > 13) {
-                                this.map.setZoom(13);
-                            }
-                        }
-                    }
-
-                    if (this.anchors.length > 1) {
-                        retrieveTrailConditions();
-                    }
+        fetch(`${this.hikeId}/route`)
+            .then(async (response) => {
+                if (response.ok) {
+                    this.setAnchors(await response.json());
                 }
-                else if (this.map) {
-                    if (this.initialLoad) {
-                        this.map.setView([41.35, -96.0], 5);
-                    }
-                }
-
-                document.dispatchEvent(new Event('routeUpdated'));
-
-                this.initialLoad = false;
             });
     }
 

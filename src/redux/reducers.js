@@ -6,6 +6,7 @@ import {
     SET_VIEW,
     SET_MAP,
     RECEIVE_SCHEDULE,
+    RECEIVE_ROUTE,
 } from './actionTypes';
 import { VIEW_HIKES } from '../menuEvents';
 
@@ -63,12 +64,25 @@ function selections(
 }
 
 function map(
-    state = null,
+    state = {
+        map: null,
+        route: null,
+    },
     action,
 ) {
     switch (action.type) {
     case SET_MAP:
-        return action.map;
+        return {
+            ...state,
+            map: action.map,
+        };
+
+    case RECEIVE_ROUTE:
+        return {
+            ...state,
+            route: action.route,
+        };
+
     default:
         return state;
     }

@@ -1,13 +1,11 @@
 import L from 'leaflet';
-import Route from './route';
 import Trails from './trails';
 import { retrieveResupplyLocations } from './resupplyPlan';
 import { retrieveHikerProfiles } from './hikerProfile';
 import { getAndLoadElevationData } from './elevationChart';
-import { setRoute, getRoute } from './tempstore';
+import { getRoute } from './tempstore';
 import { showAddPointOfInterest, retrievePointsOfInterest } from './pointOfInterest';
 import { metersToMilesRounded } from '../utilities';
-import { setMap } from '../redux/actions';
 
 let trails;
 
@@ -808,7 +806,7 @@ function whatIsHere(event) {
         });
 }
 
-function mapInitialize(dispatch) {
+function mapInitialize() {
     window.onkeydown = function (e) {
         controlDown = ((e.keyIdentifier === 'Control') || (e.ctrlKey === true));
     };
@@ -904,8 +902,6 @@ function mapInitialize(dispatch) {
         .addLayer(detailLayer)
         .addTo(map);
 
-    dispatch(setMap(map));
-
     /*
     map.on('locationfound', function (e)
         {
@@ -925,19 +921,21 @@ function mapInitialize(dispatch) {
 */
 
     trails = new Trails(map);
-    const route = new Route(map, hike.id);
+    // const route = new Route(map, hike.id);
 
-    setRoute(route);
+    // setRoute(route);
 
-    $(document).on('routeUpdated', () => {
-        getAndLoadElevationData(0, route.getLength());
-    });
+    // $(document).on('routeUpdated', () => {
+    //     getAndLoadElevationData(0, route.getLength());
+    // });
 
-    route.retrieve();
+    // await route.retrieve();
 
     retrievePointsOfInterest();
     retrieveResupplyLocations();
     retrieveHikerProfiles(); // todo: only do this when visiting the tab of hiker profiles
+
+    return map;
 }
 
 export { mapInitialize, trails };

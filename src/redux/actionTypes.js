@@ -4,3 +4,4 @@ export const DELETE_HIKE = 'DELETE_HIKE';
 export const SET_VIEW = 'SET_VIEW';
 export const SET_MAP = 'SET_MAP';
 export const RECEIVE_SCHEDULE = 'RECEIVE_SCHEDULE';
+export const RECEIVE_ROUTE = 'RECEIVE_ROUTE';

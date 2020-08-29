@@ -9,7 +9,7 @@ import {
 // import EndOfDayMarker from './trailMarker/EndOfDayMarker';
 
 const mapStateToProps = (state) => ({
-    map: state.map,
+    map: state.map.map,
     schedule: state.schedule,
 });
 

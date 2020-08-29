@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { Provider, connect } from 'react-redux';
 import 'regenerator-runtime/runtime';
 import store from '../redux/store';
-import { requestSchedule } from '../redux/actions';
+import { requestRoute, requestSchedule } from '../redux/actions';
 import Menubar from '../Menubar';
 import ElevationChart from './elevationChart';
 import Map from './Map';
@@ -32,5 +32,3 @@ ReactDOM.render(
     </Provider>,
     document.querySelector('.app'),
 );
-
-store.dispatch(requestSchedule());
