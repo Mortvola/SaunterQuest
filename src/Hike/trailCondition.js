@@ -1,6 +1,6 @@
 import { RouteHighlighter } from './routeHighlighter';
 import { getRoute, getSchedule } from './tempstore';
-import { positionMapToBounds } from '../utilities';
+import { positionMapToBounds } from './mapUtils';
 
 const trailConditions = [];
 let editingTrailConditionId = null;

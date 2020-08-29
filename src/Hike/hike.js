@@ -1,13 +1,13 @@
 import L from 'leaflet';
 import Route from './route';
 import Trails from './trails';
-// import Schedule from './schedule';
 import { retrieveResupplyLocations } from './resupplyPlan';
 import { retrieveHikerProfiles } from './hikerProfile';
 import { getAndLoadElevationData } from './elevationChart';
 import { setRoute, getRoute } from './tempstore';
 import { showAddPointOfInterest, retrievePointsOfInterest } from './pointOfInterest';
 import { metersToMilesRounded } from '../utilities';
+import { setMap } from '../redux/actions';
 
 let trails;
 
@@ -808,7 +808,7 @@ function whatIsHere(event) {
         });
 }
 
-function mapInitialize() {
+function mapInitialize(dispatch) {
     window.onkeydown = function (e) {
         controlDown = ((e.keyIdentifier === 'Control') || (e.ctrlKey === true));
     };
@@ -888,21 +888,23 @@ function mapInitialize() {
             minZoom: 4,
         });
 
-    const terrainLayer = new L.tileLayer(`${sessionStorage.getItem('tileServerUrl')}/terrain/{z}/{x}/{y}`, {
+    const terrainLayer = L.tileLayer(`${sessionStorage.getItem('tileServerUrl')}/terrain/{z}/{x}/{y}`, {
         updateWhenZooming: true,
     });
 
-    const detailLayer = new L.tileLayer(
+    const detailLayer = L.tileLayer(
         `${sessionStorage.getItem('tileServerUrl')}/tile/{z}/{x}/{y}`, {
             attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
             updateWhenZooming: true,
-        }
-);
+        },
+    );
 
     L.layerGroup()
         .addLayer(terrainLayer)
         .addLayer(detailLayer)
         .addTo(map);
+
+    dispatch(setMap(map));
 
     /*
     map.on('locationfound', function (e)
@@ -924,21 +926,14 @@ function mapInitialize() {
 
     trails = new Trails(map);
     const route = new Route(map, hike.id);
-//    const schedule = new Schedule(map);
-
-    // $(document).on('routeUpdated', () => {
-    //     schedule.retrieve();
-    // });
 
     setRoute(route);
-    // setSchedule(schedule);
 
     $(document).on('routeUpdated', () => {
         getAndLoadElevationData(0, route.getLength());
     });
 
     route.retrieve();
-    // schedule.retrieve();
 
     retrievePointsOfInterest();
     retrieveResupplyLocations();

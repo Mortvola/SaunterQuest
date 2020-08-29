@@ -4,6 +4,8 @@ import {
     RECEIVE_HIKES,
     DELETE_HIKE,
     SET_VIEW,
+    SET_MAP,
+    RECEIVE_SCHEDULE,
 } from './actionTypes';
 import { VIEW_HIKES } from '../menuEvents';
 
@@ -60,9 +62,35 @@ function selections(
     }
 }
 
+function map(
+    state = null,
+    action,
+) {
+    switch (action.type) {
+    case SET_MAP:
+        return action.map;
+    default:
+        return state;
+    }
+}
+
+function schedule(
+    state = [],
+    action,
+) {
+    switch (action.type) {
+    case RECEIVE_SCHEDULE:
+        return action.schedule;
+    default:
+        return state;
+    }
+}
+
 const hikeApp = combineReducers({
     selections,
     hikes,
+    map,
+    schedule,
 });
 
 export default hikeApp;

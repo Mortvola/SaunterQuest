@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
 import { mapInitialize } from './hike';
 
-const Map = () => {
+const Map = ({
+    dispatch,
+}) => {
     const [initialized, setInitialized] = useState(false);
 
     useEffect(() => {
         if (!initialized) {
             setInitialized(true);
-            mapInitialize();
+            mapInitialize(dispatch);
         }
     });
 
@@ -30,4 +34,8 @@ const Map = () => {
     );
 };
 
-export default Map;
+Map.propTypes = {
+    dispatch: PropTypes.func.isRequired,
+};
+
+export default connect()(Map);

@@ -1,42 +1,39 @@
-import React, { useState } from 'react';
-// import { getRoute, getSchedule } from './tempstore';
+import React from 'react';
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
+import { positionMapToBounds } from './mapUtils';
 import {
-    metersToFeet, gramsToPoundsAndOunces, metersToMilesRounded, formatTime, positionMapToBounds,
+    metersToFeet, gramsToPoundsAndOunces, metersToMilesRounded, formatTime,
 } from '../utilities';
+// import { getRoute } from './tempstore';
 // import EndOfDayMarker from './trailMarker/EndOfDayMarker';
 
-const Schedule = () => {
-    const [initialized, setInitialized] = useState(false);
-    const [days, setDays] = useState(null);
+const mapStateToProps = (state) => ({
+    map: state.map,
+    schedule: state.schedule,
+});
 
-    if (!initialized) {
-        setInitialized(true);
-
-        fetch(`${sessionStorage.getItem('hikeId')}/schedule`)
-            .then(async (response) => {
-                if (response.ok) {
-                    setDays(await response.json());
-                }
-            });
-    }
-
-    //
-    // Position the map so that the two endpoints (today's and tomorrow's) are visible.
-    // todo: take into account the area the whole path uses. Some paths go out of window
-    // even though the two endpoints are within the window.
-    //
+const Schedule = ({
+    map,
+    schedule,
+}) => {
     const positionMapToDay = (d) => {
-        // if (d < this.days.length - 1) {
-        //     positionMapToBounds(this.map, this.days[d].point, this.days[d + 1].point);
-        // }
-        // else {
-        //     positionMapToBounds(
-        //         this.map, this.days[d].point, {
-        //             lat: this.days[d].endLat,
-        //             lng: this.days[d].endLng,
-        //         },
-        //     );
-        // }
+        //
+        // Position the map so that the two endpoints (today's and tomorrow's) are visible.
+        // todo: take into account the area the whole path uses. Some paths go out of window
+        // even though the two endpoints are within the window.
+        //
+        if (d < schedule.length - 1) {
+            positionMapToBounds(map, schedule[d].point, schedule[d + 1].point);
+        }
+        else {
+            positionMapToBounds(
+                map, schedule[d].point, {
+                    lat: schedule[d].endLat,
+                    lng: schedule[d].endLng,
+                },
+            );
+        }
     };
 
     const renderDay = (day, dayNumber) => {
@@ -44,7 +41,7 @@ const Schedule = () => {
 
         return (
             <div key={dayNumber} className="card">
-                <div className="card-header" style={{ padding: '5px 5px 5px 5px' }} onClick={() => positionMapToDay(day)}>
+                <div className="card-header" style={{ padding: '5px 5px 5px 5px' }} onClick={() => positionMapToDay(dayNumber)}>
                     <div className="day-card-header">
                         <div>{`Day ${dayNumber + 1}`}</div>
                         <div>{`Gain/Loss (feet): ${metersToFeet(day.gain)}/${metersToFeet(day.loss)}`}</div>
@@ -62,13 +59,12 @@ const Schedule = () => {
     return (
         <>
             {
-                days ? days.map((day, index) => renderDay(day, index)) : null
+                schedule.map((day, index) => renderDay(day, index))
             }
         </>
     );
 
     // const processResponse = (days) => {
-    //     const txt = '';
 
     //     if (this.days != null) {
     //         for (let d = 0; d < this.days.length; d += 1) {
@@ -98,8 +94,6 @@ const Schedule = () => {
     //         }
     //     }
 
-    //     $('#schedule').html(txt);
-
     //     //
     //     // Remove any remaining markers at the end of the array that are in
     //     // excess.
@@ -114,4 +108,14 @@ const Schedule = () => {
     // };
 };
 
-export default Schedule;
+Schedule.propTypes = {
+    map: PropTypes.shape(),
+    schedule: PropTypes.arrayOf(PropTypes.shape()),
+};
+
+Schedule.defaultProps = {
+    map: null,
+    schedule: [],
+};
+
+export default connect(mapStateToProps)(Schedule);

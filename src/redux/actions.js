@@ -3,6 +3,8 @@ import {
     RECEIVE_HIKES,
     DELETE_HIKE,
     SET_VIEW,
+    SET_MAP,
+    RECEIVE_SCHEDULE,
 } from './actionTypes';
 import {
     VIEW_HIKES,
@@ -102,9 +104,32 @@ const navigate = (eventKey) => (
     }
 );
 
+const setMap = (map) => ({
+    type: SET_MAP,
+    map,
+});
+
+const receiveSchedule = (schedule) => ({
+    type: RECEIVE_SCHEDULE,
+    schedule,
+});
+
+const requestSchedule = () => (
+    (dispatch) => {
+        fetch(`${sessionStorage.getItem('hikeId')}/schedule`)
+            .then(async (response) => {
+                if (response.ok) {
+                    dispatch(receiveSchedule(await response.json()));
+                }
+            });
+    }
+);
+
 export {
     setView,
     requestHikes,
     requestHikeDeletion,
     navigate,
+    setMap,
+    requestSchedule,
 };

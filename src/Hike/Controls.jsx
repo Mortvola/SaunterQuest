@@ -2,7 +2,7 @@ import React from 'react';
 import { loadResupply } from './resupplyPlan';
 import { addHikerProfile } from './hikerProfile';
 import { addTrailCondition } from './trailCondition';
-import Schedule from './schedule';
+import Schedule from './Schedule';
 
 const Controls = () => (
     <div className="controls-grid-item">
