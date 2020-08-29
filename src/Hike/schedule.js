@@ -1,7 +1,8 @@
-import { getRoute } from './tempstore';
+import { getRoute, getSchedule } from './tempstore';
 import {
-    metersToFeet, gramsToPoundsAndOunces, metersToMilesRounded, formatTime,
-} from './utilities';
+    metersToFeet, gramsToPoundsAndOunces, metersToMilesRounded, formatTime, positionMapToBounds,
+} from '../utilities';
+import EndOfDayMarker from './trailMarker/EndOfDayMarker';
 
 class Schedule {
     constructor(map) {
@@ -17,7 +18,7 @@ class Schedule {
             url: `${sessionStorage.getItem('hikeId')}/schedule`,
         })
             .done((responseText) => {
-        	schedule.processResponse(responseText);
+                schedule.processResponse(responseText);
             });
     }
 
@@ -30,13 +31,13 @@ class Schedule {
         if (this.days != null) {
             for (let d = 0; d < this.days.length; d += 1) {
                 txt += "<div class='card'>";
-                txt += `<div class='card-header' style='padding:5px 5px 5px 5px' onclick='schedule.positionMapToDay(${d})'>`;
+                txt += `<div class='card-header' style='padding:5px 5px 5px 5px' onclick='getSchedule().positionMapToDay(${d})'>`;
                 txt += "<div class='day-card-header'>";
-                txt += `${'<div>' + 'Day '}${ parseInt(d) + 1 }</div>`;
-                txt += `${'<div>' + 'Gain/Loss (feet): '}${ metersToFeet(this.days[d].gain) }/${ metersToFeet(this.days[d].loss) }</div>`;
-                txt += `${'<div>' + 'Food: '}${ gramsToPoundsAndOunces(this.days[d].accumWeight) }</div>`;
-                txt += '<div>' + '' + '</div>';
-                txt += `${'<div>' + 'Miles: '}${ metersToMilesRounded(this.days[d].meters) }</div>`;
+                txt += `${'<div>Day '}${parseInt(d, 10) + 1}</div>`;
+                txt += `${'<div>Gain/Loss (feet): '}${metersToFeet(this.days[d].gain)}/${metersToFeet(this.days[d].loss)}</div>`;
+                txt += `${'<div>Food: '}${gramsToPoundsAndOunces(this.days[d].accumWeight)}</div>`;
+                txt += '<div></div>';
+                txt += `${'<div>Miles: '}${metersToMilesRounded(this.days[d].meters)}</div>`;
                 txt += '</div>';
                 txt += '</div>';
 
@@ -81,11 +82,13 @@ class Schedule {
                 //				}
                 //			}
 
-                txt += `<div style='padding:2px 2px 2px 2px'>${formatTime(this.days[d].endTime)}, ` + 'mile ';
+                txt += `<div style='padding:2px 2px 2px 2px'>${formatTime(this.days[d].endTime)}, mile `;
 
-                txt += metersToMilesRounded(this.days[parseInt(d)].startMeters + this.days[parseInt(d)].meters);
+                txt += metersToMilesRounded(
+                    this.days[parseInt(d, 10)].startMeters + this.days[parseInt(d, 10)].meters,
+                );
 
-                txt += ': stop ' + '</div>';
+                txt += ': stop </div>';
 
                 txt += '</div>';
 
@@ -140,7 +143,12 @@ class Schedule {
             positionMapToBounds(this.map, this.days[d].point, this.days[d + 1].point);
         }
         else {
-            positionMapToBounds(this.map, this.days[d].point, { lat: this.days[d].endLat, lng: this.days[d].endLng });
+            positionMapToBounds(
+                this.map, this.days[d].point, {
+                    lat: this.days[d].endLat,
+                    lng: this.days[d].endLng,
+                },
+            );
         }
     }
 }

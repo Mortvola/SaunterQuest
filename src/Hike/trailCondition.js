@@ -1,5 +1,6 @@
 import { RouteHighlighter } from './routeHighlighter';
-import { getRoute } from './tempstore';
+import { getRoute, getSchedule } from './tempstore';
+import { positionMapToBounds } from '../utilities';
 
 const trailConditions = [];
 let editingTrailConditionId = null;
@@ -67,7 +68,7 @@ function insertTrailCondition() {
 
                 $('#conditionsLastRow').before(trailConditionRowGet(trailCondition));
 
-                schedule.retrieve();
+                getSchedule().retrieve();
 
                 closeEditTrailConditions();
             });
@@ -276,7 +277,7 @@ function updateTrailCondition(trailConditionId) {
 
             $(`#trailCondition_${ trailConditionId}`).replaceWith(trailConditionRowGet(trailCondition));
 
-            schedule.retrieve();
+            getSchedule().retrieve();
 
             closeEditTrailConditions();
         });
@@ -302,7 +303,7 @@ function removeTrailCondition(trailConditionId) {
             trailConditions.splice(t, 1);
 
             $(`#trailCondition_${ trailConditionId}`).remove();
-            schedule.retrieve();
+            getSchedule().retrieve();
         });
 }
 

@@ -5,7 +5,7 @@ import { getRoute } from './tempstore';
 import StartOfTrailMarker from './trailMarker/StartOfTrailMarker';
 import EndOfTrailMarker from './trailMarker/EndOfTrailMarker';
 import TrailMarker from './trailMarker/trailMarker';
-import { metersToFeet, metersToMiles, formatTime } from './utilities';
+import { metersToFeet, metersToMiles, formatTime } from '../utilities';
 
 const startPointUrl = 'https://maps.google.com/mapfiles/ms/micons/green-dot.png';
 const wayPointUrl = 'https://maps.google.com/mapfiles/ms/micons/lightblue.png';

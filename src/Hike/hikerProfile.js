@@ -1,4 +1,5 @@
-import { formatTime } from './utilities';
+import { formatTime } from '../utilities';
+import { getSchedule } from './tempstore';
 
 let hikerProfiles = [];
 
@@ -156,7 +157,7 @@ function updateHikerProfile(hikerProfileId) {
 
             $(`#hikerProfile_${ hikerProfileId}`).replaceWith(hikerProfileRowGet(profile));
 
-            schedule.retrieve();
+            getSchedule().retrieve();
         });
 }
 
@@ -196,7 +197,7 @@ function insertHikerProfile() {
 
             $('#hikerProfileLastRow').before(hikerProfileRowGet(profile));
 
-            schedule.retrieve();
+            getSchedule().retrieve();
         });
 }
 
@@ -211,7 +212,7 @@ function removeHikerProfile(hikerProfileId) {
     })
         .done((responseText) => {
             $(`#hikerProfile_${ hikerProfileId}`).remove();
-            schedule.retrieve();
+            getSchedule().retrieve();
         });
 }
 

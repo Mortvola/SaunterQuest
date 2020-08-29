@@ -1,5 +1,5 @@
 import L from 'leaflet';
-import { metersToMilesRounded } from '../utilities';
+import { metersToMilesRounded } from '../../utilities';
 
 class TrailMarker {
     constructor(map, iconUrl) {

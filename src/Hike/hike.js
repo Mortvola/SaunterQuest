@@ -5,12 +5,11 @@ import Schedule from './schedule';
 import { retrieveResupplyLocations } from './resupplyPlan';
 import { retrieveHikerProfiles } from './hikerProfile';
 import { getAndLoadElevationData } from './elevationChart';
-import { setRoute, getRoute } from './tempstore';
+import { setRoute, getRoute, setSchedule } from './tempstore';
 import { showAddPointOfInterest, retrievePointsOfInterest } from './pointOfInterest';
-import { metersToMilesRounded } from './utilities';
+import { metersToMilesRounded } from '../utilities';
 
 let trails;
-let schedule;
 
 let controlDown = false;
 
@@ -650,30 +649,6 @@ function displayTrailInfo(object, position) {
     map.infoWindow.open(map);
 }
 
-function positionMapToBounds(map, p1, p2) {
-    const bounds = {};
-
-    if (p1.lng < p2.lng) {
-        bounds.east = p2.lng;
-        bounds.west = p1.lng;
-    }
-    else {
-        bounds.east = p1.lng;
-        bounds.west = p2.lng;
-    }
-
-    if (p1.lat < p2.lat) {
-        bounds.north = p2.lat;
-        bounds.south = p1.lat;
-    }
-    else {
-        bounds.north = p1.lat;
-        bounds.south = p2.lat;
-    }
-
-    map.fitBounds([[bounds.south, bounds.west], [bounds.north, bounds.east]]);
-}
-
 function setStartLocation(object, position) {
     getRoute().setStart(position);
 }
@@ -949,13 +924,14 @@ function mapInitialize() {
 
     trails = new Trails(map);
     const route = new Route(map, hike.id);
-    schedule = new Schedule(map);
+    const schedule = new Schedule(map);
 
     $(document).on('routeUpdated', () => {
         schedule.retrieve();
     });
 
     setRoute(route);
+    setSchedule(schedule);
 
     $(document).on('routeUpdated', () => {
         getAndLoadElevationData(0, route.getLength());

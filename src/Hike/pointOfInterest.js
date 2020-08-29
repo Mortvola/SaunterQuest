@@ -1,3 +1,5 @@
+import { getSchedule } from './tempstore';
+
 const pointOfInterestCM = {};
 const pointOfInterestUrl = 'https://maps.google.com/mapfiles/ms/micons/blue.png';
 const pointsOfInterest = [];
@@ -28,7 +30,7 @@ function removePointOfInterest(object, position) {
 
             pointsOfInterest.splice(index);
 
-            schedule.retrieve();
+            getSchedule().retrieve();
         });
 }
 
@@ -169,7 +171,7 @@ function insertPointOfInterest(position) {
 
             addPointOfInterest(poi);
 
-            schedule.retrieve();
+            getSchedule().retrieve();
         });
 }
 
