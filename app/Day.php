@@ -1,13 +1,12 @@
 <?php
 namespace bpp;
 
-// use const bpp\Day\$cantMoveStartMeters as false;
 class Day implements \JsonSerializable
 {
 
-    private $meters = 0;
-
     private $startMeters = 0;
+
+    private $meters = 0;
 
     private $point;
 
@@ -23,18 +22,23 @@ class Day implements \JsonSerializable
 
     private $elapsedTime = 0;
 
-    // in minutes
+    // in minutes from midnight
     private $startTime;
+    private $endTime;
 
-    // in minutes from midnight
-    public $endTime;
+    public static function load ($startTime, $elapsedTime, $startMeters, $meters, $point, $gain, $loss)
+    {
+        $self = new self ();
+        $self->startTime = $startTime;
+        $self->elapsedTime = $elapsedTime;
+        $self->startMeters = $startMeters;
+        $self->meters = $meters;
+        $self->point = $point;
+        $self->gain = $gain;
+        $self->loss = $loss;
 
-    // in minutes from midnight
-    public $notes;
-
-    private $cantMoveStartMeters = false;
-
-    public $events = [ ];
+        return $self;
+    }
 
     public function jsonSerialize ()
     {
@@ -47,9 +51,13 @@ class Day implements \JsonSerializable
             "gain" => $this->gain,
             "loss" => $this->loss,
             "accumWeight" => $this->accumWeight,
-            "foodPlanId" => $this->foodPlanId,
-            "camp" => $this->camp
+            "foodPlanId" => $this->foodPlanId
         ];
+
+        if (isset($this->camp))
+        {
+            $array["camp"] = $this->camp;
+        }
 
         if (isset($this->endLat))
         {
@@ -83,11 +91,6 @@ class Day implements \JsonSerializable
 
         list ($this->foodPlanId, $this->foodWeight) = getFoodPlan();
 
-        if ($this->notes == null)
-        {
-            $this->notes = "";
-        }
-
         if ($this->startTime === null)
         {
             if ($startTime === null)
@@ -115,9 +118,29 @@ class Day implements \JsonSerializable
         $this->events = [ ];
     }
 
+    public function startTimeGet ()
+    {
+        return $this->startTime;
+    }
+
+    public function endTimeSet ($endTime)
+    {
+        $this->endTime = $endTime;
+    }
+
+    public function endTimeGet ()
+    {
+        return $this->endTime;
+    }
+
     public function end ()
     {
         $this->endTime = $this->startTime + $this->elapsedTime;
+    }
+
+    public function startMetersGet ()
+    {
+        return $this->startMeters;
     }
 
     public function metersAdd ($meters)
@@ -148,6 +171,16 @@ class Day implements \JsonSerializable
     public function timeAdd ($minutes)
     {
         $this->elapsedTime += $minutes;
+    }
+
+    public function gainGet ()
+    {
+        return $this->gain;
+    }
+
+    public function lossGet ()
+    {
+        return $this->loss;
     }
 
     public function updateGainLoss ($eleDelta)

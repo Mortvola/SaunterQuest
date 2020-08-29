@@ -99,7 +99,7 @@ class Schedule
 					// Add a day marker, if needed.
 					if (d - 1 >= this.dayMarkers.length)
 					{
-					    if (this.days[d].camp !== null)
+					    if (this.days[d].camp)
 					    {
 					        if (this.days[d].camp.type == 'waypoint')
 					        {

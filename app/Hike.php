@@ -53,7 +53,7 @@ class Hike extends Model
 
     public function getDuration ()
     {
-        return (new Schedule($this->user_id, $this->id))->getDuration ();
+        return (new Schedule($this->user_id, $this))->getDuration ();
     }
 
     public function getDistance ()

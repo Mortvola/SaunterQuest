@@ -3,6 +3,7 @@ namespace App;
 require_once app_path('routeFile.php');
 require_once app_path('calculate.php');
 
+use App\Hike;
 use bpp\Day;
 use App\HikerProfile;
 use Illuminate\Support\Facades\Auth;
@@ -12,7 +13,7 @@ class Schedule
 
     private $userId;
 
-    private $hikeId;
+    private $hike;
 
     private $days = [ ];
 
@@ -20,35 +21,59 @@ class Schedule
 
     private $hikerProfiles;
 
-    public function __construct ($userId, $hikeId)
+    public function __construct ($userId, Hike $hike)
     {
         $this->userId = $userId;
-        $this->hikeId = $hikeId;
+        $this->hike = $hike;
 
-        $this->hikerProfiles = HikerProfile::where('hike_id', $hikeId)->get();
+        $this->hikerProfiles = HikerProfile::where('hike_id', $this->hike->id)->get();
     }
 
     public function get ()
     {
-        $route = new Route($this->hikeId, true);
-
-        if ($route->anchorCount() >= 2)
+        if (!$this->hike->schedule_params_modified)
         {
-            \bpp\getSchedule($this, $this->userId, $this->hikeId, $route);
+             $this->retrieveSchedule ();
 
-            $this->storeSchedule();
-
-            return $this->days;
+             if (count($this->days) >= 2)
+             {
+                 return $this->days;
+             }
         }
+        else
+        {
+            $route = new Route($this->hike->id, true);
+
+            if ($route->verifyAnchors() && $route->anchorCount() >= 2)
+            {
+                \bpp\getSchedule($this, $this->userId, $this->hike->id, $route);
+
+                $this->storeSchedule();
+
+                return $this->days;
+            }
+        }
+
+        return 0;
     }
 
     public function getDuration ()
     {
-        $route = new Route($this->hikeId, true);
-
-        if ($route->anchorCount() >= 2)
+        if (!$this->hike->schedule_params_modified)
         {
-            \bpp\getSchedule($this, $this->userId, $this->hikeId, $route);
+            $this->retrieveSchedule ();
+
+            if (count($this->days) >= 2)
+            {
+                return count($this->days);
+            }
+        }
+
+        $route = new Route($this->hike->id, true);
+
+        if ($route->verifyAnchors() && $route->anchorCount() >= 2)
+        {
+            \bpp\getSchedule($this, $this->userId, $this->hike->id, $route);
 
             return count($this->days);
         }
@@ -121,8 +146,8 @@ class Schedule
         $hikerProfile = (object)[ ];
 
         $hikerProfile->speedFactor = Auth::user()->pace_factor;
-        $hikerProfile->startTime = Auth::user()->start_time * 60;
-        $hikerProfile->endTime = Auth::user()->end_time * 60;
+        $hikerProfile->startTime = intval(Auth::user()->start_time * 60);
+        $hikerProfile->endTime = intval(Auth::user()->end_time * 60);
         $hikerProfile->breakDuration = Auth::user()->break_duration;
 
         foreach ($this->hikerProfiles as $profile)
@@ -136,12 +161,12 @@ class Schedule
 
                 if (isset($profile->start_time))
                 {
-                    $hikerProfile->startTime = $profile->start_time * 60;
+                    $hikerProfile->startTime = intval($profile->start_time * 60);
                 }
 
                 if (isset($profile->end_time))
                 {
-                    $hikerProfile->endTime = $profile->end_time * 60;
+                    $hikerProfile->endTime = intval($profile->end_time * 60);
                 }
 
                 if (isset($profile->break_duration))
@@ -156,8 +181,51 @@ class Schedule
 
     private function storeSchedule ()
     {
-        // $fileName = getHikeFolder($this->hikeId) . "schedule.json";
+        \DB::table('schedule')->where('hike_id', $this->hike->id)->delete ();
 
-        // file_put_contents($fileName, json_encode($this->days));
+        $order = 0;
+
+        foreach ($this->days as $day)
+        {
+            $point = $day->pointGet ();
+
+            \DB::table('schedule')->insert ([
+                'hike_id' => $this->hike->id,
+                'start_time' => $day->startTimeGet (),
+                'elapsed_time' => intval($day->elapsedTimeGet ()),
+                'start_meters' => $day->startMetersGet (),
+                'meters' => $day->metersGet (),
+                'way' => \DB::raw('ST_Transform(ST_SetSRID(ST_MakePoint(' . $point->lng . ',' . $point->lat . ', ' . $point->ele. '), 4326), 3857)'),
+                'gain' => $day->gainGet (),
+                'loss' => $day->lossGet (),
+                'sort_order' => $order++
+            ]);
+        }
+
+        $this->hike->schedule_params_modified = false;
+        $this->hike->save ();
+    }
+
+    private function retrieveSchedule ()
+    {
+        $result = \DB::table('schedule')->select([
+            'start_time',
+            'elapsed_time',
+            'start_meters',
+            'meters',
+            \DB::raw("ST_AsGeoJSON(ST_Transform(way, 4326))::json->'coordinates' as coordinates"),
+            'gain',
+            'loss'])
+            ->where ('hike_id', $this->hike->id)
+            ->orderBy('sort_order')
+            ->get ();
+
+        foreach ($result as $r)
+        {
+            $coordinates = json_decode($r->coordinates);
+            $point = (object)["lat" => $coordinates[1], "lng" => $coordinates[0], "ele" => $coordinates[2]];
+
+            $this->days[] = Day::load ($r->start_time, $r->elapsed_time, $r->start_meters, $r->meters, $point, $r->gain, $r->loss);
+        }
     }
 }

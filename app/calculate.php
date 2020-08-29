@@ -76,102 +76,6 @@ function computeFoodWeight ($schedule, $foodStart)
     return $d + 1;
 }
 
-function StrategyEndLater ($timeShift, $schedule, $hoursNeeded)
-{
-    global $activeHikerProfile;
-
-    $earliestChangedDay = -1;
-    $d = $schedule->currentDayIndexGet() - 1;
-
-    // Try extending the end hours for the past days
-    for (; $d > 0; $d--)
-    {
-        $amountToShift = $activeHikerProfile->endTime + $timeShift - $schedule->dayGet($d)->endTime;
-
-        if ($amountToShift > 0)
-        {
-            $schedule->dayGet($d)->endTime += $amountToShift;
-            $hoursNeeded -= $amountToShift;
-
-            $schedule->dayGet($d)->notes = "changed end time to " . $schedule->dayGet($d)->endTime . ";";
-            // echo "Day $d, end time ", $schedule->dayGet ($d)->endTime, "\n";
-
-            $earliestChangedDay = $d;
-
-            if ($hoursNeeded <= 0)
-            {
-                break;
-            }
-        }
-        else
-        {
-            // echo "Day $d, could not move end time\n";
-        }
-
-        //
-        // If the start of this day can't be moved then look no earlier
-        //
-        if ($schedule->dayGet($d)->cantMoveStartMeters)
-        {
-            break;
-        }
-    }
-
-    return [
-        $earliestChangedDay,
-        $hoursNeeded
-    ];
-}
-
-function StrategyStartEarlier ($timeShift, $schedule, $hoursNeeded)
-{
-    global $activeHikerProfile;
-
-    $earliestChangedDay = -1;
-    $d = $schedule->currentDayIndexGet();
-
-    //
-    // Try starting earlier for the past days
-    //
-    for (; $d > 0; $d--)
-    {
-        $amountToShift = $schedule->dayGet($d)->startTime - ($activeHikerProfile->startTime - $timeShift);
-
-        if ($amountToShift > 0)
-        {
-            $schedule->dayGet($d)->startTime -= $amountToShift;
-            $hoursNeeded -= $amountToShift;
-
-            $schedule->dayGet($d)->notes = "changed start time to " . $schedule->dayGet($d)->startTime . ";";
-            // echo "Day $d, start time ", $schedule->dayGet ($d)->startTime,
-            // "\n";
-
-            $earliestChangedDay = $d;
-
-            if ($hoursNeeded <= 0)
-            {
-                break;
-            }
-        }
-        else
-        {
-            // echo "Day $d, could not move start time\n";
-        }
-
-        //
-        // If the start of this day can't be moved then look no earlier
-        //
-        if ($schedule->dayGet($d)->cantMoveStartMeters)
-        {
-            break;
-        }
-    }
-
-    return [
-        $earliestChangedDay,
-        $hoursNeeded
-    ];
-}
 
 function findEvent ($eventType, $events)
 {
@@ -519,7 +423,7 @@ function traverseRoute ($route, $schedule)
 
         if (isset($debug))
         {
-            echo "Segment Meters: ", $segmentMeters, " current time: ", $currentTime, ", minutes remaining: ", $schedule->currentDayGet()->endTime - $currentTime, ", Minutes to end of segmetn: ", $minutesToEndOfSegment, "\n";
+            echo "Segment Meters: ", $segmentMeters, " current time: ", $currentTime, ", minutes remaining: ", $schedule->currentDayGet()->endTimeGet () - $currentTime, ", Minutes to end of segment: ", $minutesToEndOfSegment, "\n";
         }
 
         // If we hike until the next event, will we hike through our afternoon
@@ -553,7 +457,7 @@ function traverseRoute ($route, $schedule)
         // process the events
         // at that point. If not, then camp.
 
-        if ($currentTime + $minutesToEndOfSegment < $schedule->currentDayGet()->endTime)
+        if ($currentTime + $minutesToEndOfSegment < $schedule->currentDayGet()->endTimeGet ())
         {
             // There is enough time remaining to hike to the next event...
 
@@ -776,9 +680,9 @@ function traverseRoute ($route, $schedule)
         else
         {
             // Hike the remaining time of the day, if any.
-            if ($currentTime < $schedule->currentDayGet()->endTime)
+            if ($currentTime < $schedule->currentDayGet()->endTimeGet ())
             {
-                $minutesHiked = $schedule->currentDayGet()->endTime - $currentTime;
+                $minutesHiked = $schedule->currentDayGet()->endTimeGet () - $currentTime;
                 $metersHiked = $minutesHiked * $currentMetersPerMinute;
 
                 $segmentMeters += $metersHiked;
@@ -805,7 +709,7 @@ function traverseRoute ($route, $schedule)
                 $endOfDayCampsite = (object)["day" => clone $schedule->currentDayGet (), "s1" => $s1, "s2" => $s2];
 
                 // Extend the day hiking to look for a campsite
-                $schedule->currentDayGet()->endTime = $schedule->currentDayGet()->endTime + 60;
+                $schedule->currentDayGet()->endTimeSet ($schedule->currentDayGet()->endTimeGet () + 60);
             }
             else
             {

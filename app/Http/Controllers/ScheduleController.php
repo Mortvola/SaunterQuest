@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Hike;
 use App\Schedule;
 
 class ScheduleController extends Controller
@@ -22,8 +23,16 @@ class ScheduleController extends Controller
     {
         $userId = Auth::user()->id;
 
-        $schedule = new Schedule ($userId, $hikeId);
+        if (isset($userId))
+        {
+            $hike = Hike::find($hikeId);
 
-        return json_encode($schedule->get ());
+            if (isset($hike))
+            {
+                $schedule = new Schedule ($userId, $hike);
+
+                return json_encode($schedule->get ());
+            }
+        }
     }
 }

@@ -120,10 +120,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Schedule operations
 
-    Route::get('/hike/{hikeId}/schedule', function ($hikeId)
-    {
-        return (new ScheduleController())->get($hikeId);
-    });
+    Route::get('/hike/{hikeId}/schedule', 'ScheduleController@get');
 
     // Point of Interest operations
     Route::get('/hike/{hikeId}/pointOfInterest', function ($hikeId)

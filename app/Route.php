@@ -27,6 +27,19 @@ class Route implements ArrayAccess
         }
     }
 
+    public function verifyAnchors ()
+    {
+        $results = \DB::select ('select line.line_id, route.*
+            from route_point AS route
+            left join planet_osm_line AS line ON (line.line_id = route.prev_line_id OR line.line_id = route.next_line_id)
+            where hike_id = :hikeId
+            and line.line_id IS NULL',
+            ['hikeId' => $this->hikeId]);
+
+        return count($results) == 0;
+    }
+
+
     public function save ()
     {
         foreach ($this->anchors as $anchor)
