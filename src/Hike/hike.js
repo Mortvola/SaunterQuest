@@ -1,11 +1,11 @@
 import L from 'leaflet';
 import Route from './route';
 import Trails from './trails';
-import Schedule from './schedule';
+// import Schedule from './schedule';
 import { retrieveResupplyLocations } from './resupplyPlan';
 import { retrieveHikerProfiles } from './hikerProfile';
 import { getAndLoadElevationData } from './elevationChart';
-import { setRoute, getRoute, setSchedule } from './tempstore';
+import { setRoute, getRoute } from './tempstore';
 import { showAddPointOfInterest, retrievePointsOfInterest } from './pointOfInterest';
 import { metersToMilesRounded } from '../utilities';
 
@@ -924,21 +924,21 @@ function mapInitialize() {
 
     trails = new Trails(map);
     const route = new Route(map, hike.id);
-    const schedule = new Schedule(map);
+//    const schedule = new Schedule(map);
 
-    $(document).on('routeUpdated', () => {
-        schedule.retrieve();
-    });
+    // $(document).on('routeUpdated', () => {
+    //     schedule.retrieve();
+    // });
 
     setRoute(route);
-    setSchedule(schedule);
+    // setSchedule(schedule);
 
     $(document).on('routeUpdated', () => {
         getAndLoadElevationData(0, route.getLength());
     });
 
     route.retrieve();
-    schedule.retrieve();
+    // schedule.retrieve();
 
     retrievePointsOfInterest();
     retrieveResupplyLocations();

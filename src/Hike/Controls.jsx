@@ -2,6 +2,7 @@ import React from 'react';
 import { loadResupply } from './resupplyPlan';
 import { addHikerProfile } from './hikerProfile';
 import { addTrailCondition } from './trailCondition';
+import Schedule from './schedule';
 
 const Controls = () => (
     <div className="controls-grid-item">
@@ -16,7 +17,9 @@ const Controls = () => (
             <li className="nav-item"><a className="nav-link" data-toggle="tab" href="#waypoints">Route</a></li>
         </ul>
         <div className="tab-content" style={{ overflowY: 'scroll', width: '100%', height: '100%' }}>
-            <div id="schedule" className="tab-pane fade show active" />
+            <div id="schedule" className="tab-pane fade show active">
+                <Schedule />
+            </div>
             <div id="hikerProfiles" className="tab-pane fade">
                 <table className="table table-condensed">
                     <thead>
