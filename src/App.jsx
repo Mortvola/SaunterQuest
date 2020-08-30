@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { Provider, connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import 'regenerator-runtime/runtime';
+import 'leaflet-contextmenu';
 import store from './redux/store';
 import Hikes from './Hikes/Hikes';
 import Menubar from './Menubar';

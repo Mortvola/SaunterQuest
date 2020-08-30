@@ -1,5 +1,5 @@
 import RouteHighlighter from './routeHighlighter';
-import { getAndLoadElevationData, setElevationMinMax } from './elevationChart';
+// import { getAndLoadElevationData } from './ElevationChart';
 import { retrieveTrailConditions } from './trailCondition';
 import { getRoute } from './tempstore';
 import StartOfTrailMarker from './trailMarker/StartOfTrailMarker';
@@ -47,7 +47,7 @@ function displayRouteElevations(startSegment, endSegment) {
     if (startSegment !== undefined && endSegment !== undefined) {
         if (startSegment === endSegment) {
             if (endSegment + 1 < getRoute().getLength()) {
-                getAndLoadElevationData(startSegment, endSegment + 1);
+//                getAndLoadElevationData(startSegment, endSegment + 1);
             }
         }
         else {
@@ -61,7 +61,7 @@ function displayRouteElevations(startSegment, endSegment) {
                 [start, end] = [end, start];
             }
 
-            getAndLoadElevationData(start, Math.min(end + 1, getRoute().getLength()));
+            // getAndLoadElevationData(start, Math.min(end + 1, getRoute().getLength()));
         }
     }
 }
@@ -82,7 +82,7 @@ function stopRouteMeasurement() {
 
     $('#distanceWindow').hide();
 
-    getAndLoadElevationData(0, getRoute().getLength());
+    // getAndLoadElevationData(0, getRoute().getLength());
 }
 
 function startRouteMeasurement(event) {
@@ -1059,14 +1059,20 @@ class Route {
         return polyline;
     }
 
-    getElevations(elevationData, s, e) {
+    getElevations(startIndex, endIndex) {
+        const elevations = {
+            data: [],
+        };
+
         if (this.actualRoute !== undefined && this.actualRoute.length > 0) {
+            const s = startIndex === undefined ? 0 : startIndex;
+            const e = endIndex === undefined ? this.actualRoute.length : endIndex;
             let elevationMin = metersToFeet(this.actualRoute[s].ele);
             let elevationMax = elevationMin;
 
             for (let r = s; r < e; r += 1) {
                 if (!isNaN(this.actualRoute[r].ele) && this.actualRoute[r].ele !== null) {
-                    elevationData.push([
+                    elevations.data.push([
                         metersToMiles(this.actualRoute[r].dist),
                         metersToFeet(this.actualRoute[r].ele),
                     ]);
@@ -1076,8 +1082,11 @@ class Route {
                 }
             }
 
-            setElevationMinMax(elevationMin, elevationMax);
+            elevations.min = elevationMin;
+            elevations.max = elevationMax;
         }
+
+        return elevations;
     }
 
     measure(startPosition, startSegment, endPosition, endSegment) {

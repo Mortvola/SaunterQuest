@@ -1,7 +1,6 @@
 import L from 'leaflet';
 import Trails from './trails';
 import { retrieveResupplyLocations, addResupplyLocation } from './resupplyPlan';
-import { getAndLoadElevationData } from './elevationChart';
 import { getRoute } from './tempstore';
 import { showAddPointOfInterest, retrievePointsOfInterest } from './pointOfInterest';
 import store from '../redux/store';
