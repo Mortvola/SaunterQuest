@@ -1,3 +1,5 @@
+import L from 'leaflet';
+
 const routeHighlightStrokePadding = 4;
 
 class RouteHighlighter {
@@ -28,12 +30,16 @@ class RouteHighlighter {
         if (this.markers[0]) {
             return this.markers[0].position;
         }
+
+        return null;
     }
 
     getEndPosition() {
         if (this.markers[1]) {
             return this.markers[1].position;
         }
+
+        return null;
     }
 
     setRouteHighlightMarker(marker, position) {
@@ -57,7 +63,7 @@ class RouteHighlighter {
 
             this.highlightBetweenMarkers();
 
-            if (this.listener != undefined) {
+            if (this.listener !== undefined) {
                 this.listener(this);
             }
         }
@@ -124,4 +130,4 @@ class RouteHighlighter {
     }
 }
 
-export { RouteHighlighter };
+export default RouteHighlighter;
