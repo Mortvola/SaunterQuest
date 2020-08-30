@@ -40,18 +40,20 @@ const Schedule = ({
         const miles = metersToMilesRounded(day.startMeters + day.meters);
 
         return (
-            <div key={dayNumber} className="card">
+            <div key={dayNumber} className="day-card">
                 <div className="card-header" style={{ padding: '5px 5px 5px 5px' }} onClick={() => positionMapToDay(dayNumber)}>
                     <div className="day-card-header">
                         <div>{`Day ${dayNumber + 1}`}</div>
-                        <div>{`Gain/Loss (feet): ${metersToFeet(day.gain)}/${metersToFeet(day.loss)}`}</div>
-                        <div>{`Food: ${gramsToPoundsAndOunces(day.accumWeight)}`}</div>
                         <div />
-                        <div>{`Miles: ${metersToMilesRounded(day.meters)}`}</div>
+                        <div>{`${metersToMilesRounded(day.meters)} miles`}</div>
                     </div>
                 </div>
-                <div style={{ padding: '2px 2px 2px 2px' }}>{`${formatTime(day.startTime)}, mile ${metersToMilesRounded(day.startMeters)}: start`}</div>
-                <div style={{ padding: '2px 2px 2px 2px' }}>{`${formatTime(day.endTime)}, mile ${miles}: stop`}</div>
+                <div className="day-card-body">
+                    <div>{`Start: ${formatTime(day.startTime)}, mile ${metersToMilesRounded(day.startMeters)}`}</div>
+                    <div>{`Stop: ${formatTime(day.endTime)}, mile ${miles}`}</div>
+                    <div>{`Gain/Loss (feet): ${metersToFeet(day.gain)}/${metersToFeet(day.loss)}`}</div>
+                    <div>{`Food: ${gramsToPoundsAndOunces(day.accumWeight)}`}</div>
+                </div>
             </div>
         );
     };

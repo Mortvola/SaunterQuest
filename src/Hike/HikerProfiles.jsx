@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { requestHikerProfiles, requestHikerProfileDeletion } from '../redux/actions';
@@ -7,14 +7,15 @@ import { useHikerProfileDialog } from './HikerProfileDialog';
 import { useDeleteConfirmation } from '../DeleteConfirmation';
 
 const HikerProfile = ({
+    hikeId,
     profile,
     dispatch,
 }) => {
-    const [HikerProfilDialog, showHikerProfileDialog] = useHikerProfileDialog(profile);
+    const [HikerProfilDialog, showHikerProfileDialog] = useHikerProfileDialog();
     const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
         'Are you sure you want to delete this profile?',
         () => {
-            dispatch(requestHikerProfileDeletion(profile.id));
+            dispatch(requestHikerProfileDeletion(hikeId, profile.id));
         },
     );
 
@@ -50,13 +51,14 @@ const HikerProfile = ({
             <td style={{ textAlign: 'right' }}>{formatTime(nvl(profile.startTime * 60, ''))}</td>
             <td style={{ textAlign: 'right' }}>{formatTime(nvl(profile.endTime * 60, ''))}</td>
             <td style={{ textAlign: 'right' }}>{nvl(profile.breakDuration, '')}</td>
-            <HikerProfilDialog />
+            <HikerProfilDialog hikeId={hikeId} profile={profile} />
             <DeleteConfirmation />
         </tr>
     );
 };
 
 HikerProfile.propTypes = {
+    hikeId: PropTypes.number.isRequired,
     profile: PropTypes.shape().isRequired,
     dispatch: PropTypes.func.isRequired,
 };
@@ -66,16 +68,19 @@ const mapStateToProps = (state) => ({
 });
 
 const HikerProfiles = ({
+    hikeId,
     profiles,
     dispatch,
 }) => {
     const [initialized, setInitialized] = useState(false);
-    const [HikerProfilDialog, showHikerProfileDialog] = useHikerProfileDialog(null);
+    const [HikerProfilDialog, showHikerProfileDialog] = useHikerProfileDialog();
 
-    if (!initialized) {
-        setInitialized(true);
-        dispatch(requestHikerProfiles());
-    }
+    useEffect(() => {
+        if (!initialized) {
+            setInitialized(true);
+            dispatch(requestHikerProfiles(hikeId));
+        }
+    }, [profiles]);
 
     return (
         <table className="table table-condensed">
@@ -115,7 +120,14 @@ const HikerProfiles = ({
             </thead>
             <tbody id="hikerProfilesTable">
                 {
-                    profiles.map((p) => <HikerProfile key={p.id} profile={p} dispatch={dispatch} />)
+                    profiles.map((p) => (
+                        <HikerProfile
+                            key={p.id}
+                            hikeId={hikeId}
+                            profile={p}
+                            dispatch={dispatch}
+                        />
+                    ))
                 }
                 <tr id="hikerProfileLastRow">
                     <td>
@@ -125,12 +137,13 @@ const HikerProfiles = ({
                     </td>
                 </tr>
             </tbody>
-            <HikerProfilDialog />
+            <HikerProfilDialog hikeId={hikeId} />
         </table>
     );
 };
 
 HikerProfiles.propTypes = {
+    hikeId: PropTypes.number.isRequired,
     profiles: PropTypes.arrayOf(PropTypes.shape()),
     dispatch: PropTypes.func.isRequired,
 };

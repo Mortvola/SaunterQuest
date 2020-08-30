@@ -3,10 +3,12 @@ import PropTypes from 'prop-types';
 import { metersToMilesRounded } from '../utilities';
 import EditableText from './EditableText';
 import { useDeleteConfirmation } from '../DeleteConfirmation';
+import { requestHike } from '../redux/actions';
 
 const Hike = ({
     hike,
     onDelete,
+    dispatch,
 }) => {
     const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
         'Are you sure you want to delete this hike?',
@@ -47,7 +49,7 @@ const Hike = ({
                         type="button"
                         className="btn btn-sm btn-outline-secondary"
                         onClick={() => {
-                            window.location.href = `/hike/${hike.id}`;
+                            dispatch(requestHike(hike.id));
                         }}
                     >
                         Open
@@ -62,6 +64,7 @@ const Hike = ({
 Hike.propTypes = {
     hike: PropTypes.shape().isRequired,
     onDelete: PropTypes.func.isRequired,
+    dispatch: PropTypes.func.isRequired,
 };
 
 export default Hike;

@@ -3,7 +3,6 @@
   "scripts": {
     "dev-welcome-build": "browserify -t [ babelify --presets [ @babel/preset-react @babel/env ] ] src/Welcome.jsx --extension=.jsx > public/welcome.js",
     "dev-app-build": "browserify -t [ babelify --presets [ @babel/preset-react @babel/env ] ] src/App.jsx --extension=.jsx > public/app.js",
-    "dev-hike-build": "browserify -t [ babelify --presets [ @babel/preset-react @babel/env ] ] src/Hike/Hike.jsx --extension=.jsx > public/hike.js",
     "welcome-build": "NODE_ENV=production browserify -t [ babelify --presets [ @babel/preset-react @babel/env ] ]  -t dotenvify src/Welcome.jsx --extension=.jsx | terser --compress --mangle > public/welcome.js",
     "app-build": "NODE_ENV=production browserify -t [ babelify --presets [ @babel/preset-react @babel/env ] ]  -t dotenvify src/App.jsx --extension=.jsx | terser --compress --mangle > public/app.js"
   },

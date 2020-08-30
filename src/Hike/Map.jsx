@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import 'leaflet-contextmenu';
 import { mapInitialize } from './hike';
@@ -7,6 +6,7 @@ import { setMap, requestRoute } from '../redux/actions';
 import Route from './route';
 
 const Map = ({
+    hikeId,
     dispatch,
 }) => {
     const [initialized, setInitialized] = useState(false);
@@ -14,12 +14,12 @@ const Map = ({
     useEffect(() => {
         if (!initialized) {
             setInitialized(true);
-            const map = mapInitialize(dispatch);
+            const map = mapInitialize(hikeId);
 
             dispatch(setMap(map));
 
-            const route = new Route(map);
-            dispatch(requestRoute(route));
+            const route = new Route(hikeId, map);
+            dispatch(requestRoute(hikeId, route));
         }
     });
 
@@ -43,7 +43,8 @@ const Map = ({
 };
 
 Map.propTypes = {
+    hikeId: PropTypes.number.isRequired,
     dispatch: PropTypes.func.isRequired,
 };
 
-export default connect()(Map);
+export default Map;

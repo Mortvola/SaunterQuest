@@ -184,16 +184,16 @@ function showAddPointOfInterest(object, position) {
     $('#addPointOfInterest').modal('show');
 }
 
-function retrievePointsOfInterest() {
-    $.getJSON({
-        url: `${sessionStorage.getItem('hikeId')}/pointOfInterest`,
-    })
-        .done((responseText) => {
-            const poi = responseText;
+function retrievePointsOfInterest(hikeId, map) {
+    fetch(`/hike/${hikeId}/pointOfInterest`)
+        .then(async (response) => {
+            if (response.ok) {
+                const poi = await response.json();
 
-            if (map) {
-                for (const p in poi) {
-                    addPointOfInterest(poi[p]);
+                if (map) {
+                    poi.forEach((p) => {
+                        addPointOfInterest(p);
+                    });
                 }
             }
         });

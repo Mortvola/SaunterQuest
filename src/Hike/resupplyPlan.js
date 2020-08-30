@@ -3,8 +3,8 @@ const resupplyUrl = 'https://maps.google.com/mapfiles/ms/micons/postoffice-us.pn
 
 let resupplyLocations = [];
 
-function loadResupply() {
-    fetch(`${sessionStorage.getItem('hikeId')}/resupplyPlan`)
+function loadResupply(hikeId) {
+    fetch(`/hike/${hikeId}/resupplyPlan`)
         .then((response) => {
             if (response.ok) {
                 const resupplyPlan = JSON.parse(this.responseText);
@@ -90,7 +90,7 @@ function insertResupplyLocation(position) {
 
     xmlhttp.open('POST', '/resupplyLocation.php', true);
     xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-    xmlhttp.send(`userHikeId=${ userHikeId }\&resupplyLocation=${ JSON.stringify(resupplyLocation)}`);
+    xmlhttp.send(`userHikeId=${userHikeId}\&resupplyLocation=${JSON.stringify(resupplyLocation)}`);
 }
 
 function addResupplyLocation(object, position) {
@@ -102,47 +102,42 @@ function addResupplyLocation(object, position) {
     $('#addResupplyLocation').modal('show');
 }
 
-function retrieveResupplyLocations() {
-    const xmlhttp = new XMLHttpRequest();
-    xmlhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            resupplyLocations = JSON.parse(this.responseText);
+function retrieveResupplyLocations(hikeId, map) {
+    fetch(`/hike/${hikeId}/resupplyLocation`)
+        .then(async (response) => {
+            if (response.ok) {
+                resupplyLocations = await response.json();
+                if (map) {
+                    resupplyLocations.forEach((r) => {
+                        // resupplyLocations[r].marker = new google.maps.Marker({
+                        //     position: {
+                        //         lat: parseFloat(r.lat),
+                        //         lng: parseFloat(r.lng),
+                        //     },
+                        //     map,
+                        //     icon: {
+                        //         url: resupplyUrl,
+                        //     },
+                        // });
 
-            if (map) {
-                resupplyLocations.forEach((r) => {
-                    resupplyLocations[r].marker = new google.maps.Marker({
-                        position: {
-                            lat: parseFloat(resupplyLocations[r].lat),
-                            lng: parseFloat(resupplyLocations[r].lng),
-                        },
-                        map,
-                        icon: {
-                            url: resupplyUrl,
-                        },
+                        const { shippingLocationId } = r.id;
+                        r.marker.addListener('rightclick', (event) => {
+                            resupplyLocationCM.open(map, event, shippingLocationId);
+                        });
+
+                        if (r.address2 == null) {
+                            r.address2 = '';
+                        }
+
+                        // r.listener = attachInfoWindowMessage(resupplyLocations[r],
+                        //     `<div>${ resupplyLocations[r].name }</div>`
+                        //     + `<div>${ resupplyLocations[r].address1 }</div>`
+                        //     + `<div>${ resupplyLocations[r].address2 }</div>`
+                        //     + `<div>${ resupplyLocations[r].city }, ${ resupplyLocations[r].state } ${ resupplyLocations[r].zip }</div>`);
                     });
-
-                    const { shippingLocationId } = resupplyLocations[r];
-                    resupplyLocations[r].marker.addListener('rightclick', (event) => {
-                        resupplyLocationCM.open(map, event, shippingLocationId);
-                    });
-
-                    if (resupplyLocations[r].address2 == null) {
-                        resupplyLocations[r].address2 = '';
-                    }
-
-                    resupplyLocations[r].listener = attachInfoWindowMessage(resupplyLocations[r],
-                        `<div>${ resupplyLocations[r].name }</div>`
-                        + `<div>${ resupplyLocations[r].address1 }</div>`
-                        + `<div>${ resupplyLocations[r].address2 }</div>`
-                        + `<div>${ resupplyLocations[r].city }, ${ resupplyLocations[r].state } ${ resupplyLocations[r].zip }</div>`);
-                });
+                }
             }
-        }
-    };
-
-    xmlhttp.open('GET', `${sessionStorage.getItem('hikeId')}/resupplyLocation`, true);
-    // xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    xmlhttp.send();
+        });
 }
 
 function resupplyFromLocation(object, position) {
@@ -150,7 +145,7 @@ function resupplyFromLocation(object, position) {
 
     const xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
+        if (this.readyState === 4 && this.status === 200) {
         }
     };
 
@@ -216,4 +211,4 @@ function updateResupplyLocation(shippingLocationId) {
 function deleteResupplyLocation(object, position) {
 }
 
-export { loadResupply, retrieveResupplyLocations };
+export { loadResupply, retrieveResupplyLocations, addResupplyLocation };

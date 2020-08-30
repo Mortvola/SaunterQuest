@@ -2,7 +2,7 @@ import { RouteHighlighter } from './routeHighlighter';
 import { getRoute, getSchedule } from './tempstore';
 import { positionMapToBounds } from './mapUtils';
 
-const trailConditions = [];
+let trailConditions = [];
 let editingTrailConditionId = null;
 let trailConditionMenu;
 let trailConditionRouteHighlighter;
@@ -118,24 +118,25 @@ function getTrailConditionColor(type) {
     return '#FF00FF'; // '#C0C0C0'; //'#708090'
 }
 
-function retrieveTrailConditions() {
-    $.getJSON({
-        url: `${sessionStorage.getItem('hikeId')}/trailCondition`,
-    })
-        .done((trailConditions) => {
-            let txt = '';
+function retrieveTrailConditions(hikeId) {
+    fetch(`/hike/${hikeId}/trailCondition`)
+        .then(async (response) => {
+            if (response.ok) {
+                trailConditions = await response.json();
+                let txt = '';
 
-            for (const t in trailConditions) {
-                trailConditions[t].polyLine = routeHighlightPolylineCreate(
-                    new google.maps.LatLng({ lat: parseFloat(trailConditions[t].startLat), lng: parseFloat(trailConditions[t].startLng) }),
-                    new google.maps.LatLng({ lat: parseFloat(trailConditions[t].endLat), lng: parseFloat(trailConditions[t].endLng) }),
-                    getTrailConditionColor(trailConditions[t].type),
-                );
+                trailConditions.forEach((t) => {
+                    // t.polyLine = routeHighlightPolylineCreate(
+                    //     new google.maps.LatLng({ lat: parseFloat(t.startLat), lng: parseFloat(t.startLng) }),
+                    //     new google.maps.LatLng({ lat: parseFloat(t.endLat), lng: parseFloat(t.endLng) }),
+                    //     getTrailConditionColor(t.type),
+                    // );
 
-                txt += trailConditionRowGet(trailConditions[t]);
+                    // txt += trailConditionRowGet(t);
+                });
+
+                $('#conditionsLastRow').before(txt);
             }
-
-            $('#conditionsLastRow').before(txt);
         });
 }
 

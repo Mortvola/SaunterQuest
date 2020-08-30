@@ -26,6 +26,9 @@
 <body>
     <script>
         sessionStorage.setItem('username', '{{ Auth::user()->username }}');
+        @if (Auth::user()->admin)
+        sessionStorage.setItem('userAdmin', {{ Auth::user()->admin ? 'true' : 'false' }});
+        @endif
     </script>
 
     <div id="app" class="background-picture">

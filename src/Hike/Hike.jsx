@@ -1,33 +1,38 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
-import { Provider, connect } from 'react-redux';
-import 'regenerator-runtime/runtime';
-import store from '../redux/store';
-import Menubar from '../Menubar';
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
 import ElevationChart from './elevationChart';
 import Map from './Map';
 import Controls from './Controls';
 
-const Hike = () => (
-    <div className="hike-grid">
-        <Map />
-        <ElevationChart />
-        <Controls />
-    </div>
-);
+const mapStateToProps = (state) => ({
+    hikeId: state.selections.params.hikeId,
+});
 
-const App = () => (
-    <>
-        <Menubar />
-        <Hike />
-    </>
-);
+const Hike = ({
+    hikeId,
+    dispatch,
+}) => {
+    if (hikeId) {
+        return (
+            <div className="hike-grid">
+                <Map hikeId={hikeId} dispatch={dispatch} />
+                <ElevationChart />
+                <Controls hikeId={hikeId} />
+            </div>
+        );
+    }
 
-const ConnectedApp = connect()(App);
+    return null;
+};
 
-ReactDOM.render(
-    <Provider store={store}>
-        <ConnectedApp />
-    </Provider>,
-    document.querySelector('.app'),
-);
+Hike.propTypes = {
+    hikeId: PropTypes.number,
+    dispatch: PropTypes.func.isRequired,
+};
+
+Hike.defaultProps = {
+    hikeId: null,
+};
+
+export default connect(mapStateToProps)(Hike);

@@ -6,7 +6,8 @@ import 'regenerator-runtime/runtime';
 import store from './redux/store';
 import Hikes from './Hikes/Hikes';
 import Menubar from './Menubar';
-import { VIEW_HIKES, VIEW_GEAR } from './menuEvents';
+import { VIEW_HIKES, VIEW_HIKE, VIEW_GEAR } from './menuEvents';
+import Hike from './Hike/Hike';
 
 const mapStateToProps = (state) => ({
     view: state.selections.view,
@@ -19,6 +20,9 @@ const App = ({
         switch (view) {
         case VIEW_HIKES:
             return <Hikes />;
+
+        case VIEW_HIKE:
+            return <Hike />;
 
         case VIEW_GEAR:
         default:

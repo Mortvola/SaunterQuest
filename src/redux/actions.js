@@ -1,7 +1,10 @@
 import {
+    REQUEST_HIKES,
     REQUESTING_HIKES,
     RECEIVE_HIKES,
+    REQUEST_HIKE_DELETION,
     DELETE_HIKE,
+    REQUEST_HIKE,
     SET_VIEW,
     SET_MAP,
     RECEIVE_SCHEDULE,
@@ -19,16 +22,16 @@ import {
     REQUEST_HIKER_PROFILE_DELETION,
     DELETE_HIKER_PROFILE,
 } from './actionTypes';
-import {
-    VIEW_HIKES,
-    VIEW_GEAR,
-    VIEW_FOOD,
-    MENU_EVENT_KEY_LOGOUT,
-} from '../menuEvents';
 
-const setView = (view) => ({
+const requestHike = (id) => ({
+    type: REQUEST_HIKE,
+    id,
+});
+
+const setView = (view, params) => ({
     type: SET_VIEW,
     view,
+    params,
 });
 
 const requestingHikes = (requesting) => ({
@@ -41,84 +44,23 @@ const receiveHikes = (hikes) => ({
     hikes,
 });
 
-const requestHikes = () => (
-    (dispatch) => {
-        dispatch(requestingHikes(true));
-
-        fetch('/hikes')
-            .then(async (response) => {
-                if (response.ok) {
-                    const json = await response.json();
-                    if (Array.isArray(json)) {
-                        json.sort((a, b) => {
-                            const nameA = a.name.toUpperCase(); // ignore upper and lowercase
-                            const nameB = b.name.toUpperCase(); // ignore upper and lowercase
-
-                            if (nameA < nameB) {
-                                return -1;
-                            }
-
-                            if (nameA > nameB) {
-                                return 1;
-                            }
-
-                            // names must be equal
-                            return 0;
-                        });
-
-                        dispatch(receiveHikes(json));
-                    }
-                }
-            })
-            .then(() => {
-                dispatch(requestingHikes(false));
-            })
-            .catch((error) => {
-                console.log(error);
-                dispatch(requestingHikes(false));
-            });
-    }
-);
+const requestHikes = () => ({
+    type: REQUEST_HIKES,
+});
 
 const deleteHike = (id) => ({
     type: DELETE_HIKE,
     id,
 });
 
-const requestHikeDeletion = (id) => (
-    (dispatch) => {
-        fetch(`hike/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            },
-        })
-            .then((response) => {
-                if (response.ok) {
-                    dispatch(deleteHike(id));
-                }
-            });
-    }
-);
+const requestHikeDeletion = (id) => ({
+    type: REQUEST_HIKE_DELETION,
+    id,
+});
 
-const navigate = (eventKey) => (
-    (dispatch) => {
-        switch (eventKey) {
-        case VIEW_HIKES:
-        case VIEW_FOOD:
-        case VIEW_GEAR:
-        case MENU_EVENT_KEY_LOGOUT:
-            dispatch(setView(eventKey));
-            break;
-
-        default:
-            break;
-        }
-    }
-);
-
-const requestRoute = (route) => ({
+const requestRoute = (hikeId, route) => ({
     type: REQUEST_ROUTE,
+    hikeId,
     route,
 });
 
@@ -132,8 +74,9 @@ const receiveSchedule = (schedule) => ({
     schedule,
 });
 
-const routeUpdated = () => ({
+const routeUpdated = (hikeId) => ({
     type: ROUTE_UPDATED,
+    hikeId,
 });
 
 const setMap = (map) => ({
@@ -146,23 +89,27 @@ const receiveRouteUpdates = (updates) => ({
     updates,
 });
 
-const addWaypoint = (position) => ({
+const addWaypoint = (hikeId, position) => ({
     type: ADD_WAYPOINT,
+    hikeId,
     position,
 });
 
-const addStartWaypoint = (position) => ({
+const addStartWaypoint = (hikeId, position) => ({
     type: ADD_START_WAYPOINT,
+    hikeId,
     position,
 });
 
-const addEndWaypoint = (position) => ({
+const addEndWaypoint = (hikeId, position) => ({
     type: ADD_END_WAYPOINT,
+    hikeId,
     position,
 });
 
-const requestHikerProfiles = () => ({
+const requestHikerProfiles = (hikeId) => ({
     type: REQUEST_HIKER_PROFILES,
+    hikeId,
 });
 
 const receiveHikerProfiles = (profiles) => ({
@@ -175,8 +122,9 @@ const updateHikerProfile = (profile) => ({
     profile,
 });
 
-const requestHikerProfileDeletion = (id) => ({
+const requestHikerProfileDeletion = (hikeId, id) => ({
     type: REQUEST_HIKER_PROFILE_DELETION,
+    hikeId,
     id,
 });
 
@@ -193,8 +141,11 @@ const addHikerProfile = (profile) => ({
 export {
     setView,
     requestHikes,
+    requestingHikes,
+    receiveHikes,
     requestHikeDeletion,
-    navigate,
+    deleteHike,
+    requestHike,
     setMap,
     receiveSchedule,
     requestRoute,

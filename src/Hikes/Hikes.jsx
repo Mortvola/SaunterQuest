@@ -49,7 +49,12 @@ const Hikes = ({
                     <div className="hikes">
                         {
                             hikes.map((h) => (
-                                <Hike key={h.id} hike={h} onDelete={handleDelete} />
+                                <Hike
+                                    key={h.id}
+                                    hike={h}
+                                    onDelete={handleDelete}
+                                    dispatch={dispatch}
+                                />
                             ))
                         }
                     </div>

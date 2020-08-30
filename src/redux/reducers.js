@@ -53,15 +53,18 @@ const hikes = (
 function selections(
     state = {
         view: VIEW_HIKES,
+        params: null,
     },
     action,
 ) {
     switch (action.type) {
-    case SET_VIEW:
+    case SET_VIEW: {
         return {
             ...state,
             view: action.view,
+            params: action.params,
         };
+    }
 
     default:
         return state;

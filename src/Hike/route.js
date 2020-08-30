@@ -97,9 +97,9 @@ function startRouteMeasurement(event) {
 }
 
 class Route {
-    constructor(map) {
+    constructor(hikeId, map) {
         this.map = map;
-        this.hikeId = sessionStorage.getItem('hikeId');
+        this.hikeId = hikeId;
 
         this.startOfTrailMarker = new StartOfTrailMarker(map, startPointUrl);
 
@@ -141,7 +141,7 @@ class Route {
             url: `${this.hikeId}/route/startPoint`,
             headers:
             {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                 'Content-type': 'application/json',
             },
             type: 'PUT',
@@ -169,7 +169,7 @@ class Route {
             url: `${this.hikeId}/route/endPoint`,
             headers:
             {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                 'Content-type': 'application/json',
             },
             type: 'PUT',
@@ -193,26 +193,27 @@ class Route {
     updateWaypoint(marker) {
         $('#pleaseWait').show();
 
-        $.ajax({
-            url: `${this.hikeId}/route/waypoint/${marker.id}/position`,
+        fetch(`/hike/${this.hikeId}/route/waypoint/${marker.id}/position`, {
+            method: 'PUT',
             headers:
             {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                 'Content-type': 'application/json',
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
             },
-            type: 'PUT',
-            data: JSON.stringify(marker.getPosition()),
-            context: this,
+            body: JSON.stringify(marker.getPosition()),
         })
-            .done(function (updates) {
-                if (updates === undefined) {
-                    this.retrieve();
+            .then(async (response) => {
+                if (response.ok) {
+                    const updates = await response.json();
+
+                    if (updates === undefined) {
+                        this.retrieve();
+                    }
+                    else {
+                        this.applyUpdates(updates);
+                    }
                 }
-                else {
-                    this.applyUpdates(updates);
-                }
-            })
-            .always(() => {
+
                 $('#pleaseWait').hide();
             });
     }
@@ -224,7 +225,7 @@ class Route {
             url: `${this.hikeId}/route/waypoint/${marker.id}`,
             headers:
             {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
             },
             type: 'DELETE',
             context: this,
@@ -657,7 +658,7 @@ class Route {
                 url: `${this.hikeId}/route/waypoint/${marker.id}/details`,
                 headers:
                 {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                 },
                 type: 'PUT',
                 contentType: 'application/json',
@@ -680,8 +681,8 @@ class Route {
             url: `${this.hikeId}/route/waypoint/order`,
             headers:
             {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                 'Content-type': 'application/json',
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
             },
             type: 'PUT',
             data: JSON.stringify(order),
@@ -730,7 +731,7 @@ class Route {
             }
 
             if (this.anchors.length > 1) {
-                retrieveTrailConditions();
+                retrieveTrailConditions(this.hikeId);
             }
         }
         else if (this.map) {
@@ -739,7 +740,7 @@ class Route {
             }
         }
 
-        store.dispatch(routeUpdated());
+        store.dispatch(routeUpdated(this.hikeId));
 
         this.initialLoad = false;
     }

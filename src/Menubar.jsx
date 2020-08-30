@@ -7,7 +7,7 @@ import {
     Nav,
     NavDropdown,
 } from 'react-bootstrap';
-import { navigate } from './redux/actions';
+import { setView } from './redux/actions';
 import {
     VIEW_HIKES,
     VIEW_GEAR,
@@ -51,7 +51,7 @@ const Menubar = ({ dispatch }) => {
             break;
 
         default:
-            dispatch(navigate(eventKey));
+            dispatch(setView(eventKey));
         }
     };
 

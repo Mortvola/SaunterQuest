@@ -1,6 +1,9 @@
+export const REQUEST_HIKES = 'REQUEST_HIKES';
 export const REQUESTING_HIKES = 'REQUESTING_HIKES';
 export const RECEIVE_HIKES = 'RECEIVE_HIKES';
+export const REQUEST_HIKE_DELETION = 'REQUEST_HIKE_DELETION';
 export const DELETE_HIKE = 'DELETE_HIKE';
+export const REQUEST_HIKE = 'REQUEST_HIKE';
 export const SET_VIEW = 'SET_VIEW';
 export const SET_MAP = 'SET_MAP';
 export const RECEIVE_SCHEDULE = 'RECEIVE_SCHEDULE';

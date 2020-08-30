@@ -8,7 +8,8 @@ import { toTimeFloat, toTimeString } from '../utilities';
 import { addHikerProfile, updateHikerProfile } from '../redux/actions';
 
 const HikerProfileDialog = ({
-    values,
+    hikeId,
+    profile,
     show,
     onHide,
     dispatch,
@@ -30,7 +31,7 @@ const HikerProfileDialog = ({
     };
 
     const handleSubmit = async (vals) => {
-        let url = `${sessionStorage.getItem('hikeId')}/hikerProfile`;
+        let url = `/hike/${hikeId}/hikerProfile`;
         let method = 'POST';
         const { id, ...v2 } = vals;
         if (id !== undefined && id !== null) {
@@ -82,11 +83,11 @@ const HikerProfileDialog = ({
         <Modal show={show} onHide={onHide}>
             <Formik
                 initialValues={{
-                    ...nullsToEmptyStrings(values),
-                    startTime: toTimeString(values.startTime),
-                    endTime: toTimeString(values.endTime),
-                    startDay: incrementValue(values.startDay),
-                    endDay: incrementValue(values.endDay),
+                    ...nullsToEmptyStrings(profile),
+                    startTime: toTimeString(profile.startTime),
+                    endTime: toTimeString(profile.endTime),
+                    startDay: incrementValue(profile.startDay),
+                    endDay: incrementValue(profile.endDay),
                 }}
                 onSubmit={handleSubmit}
             >
@@ -138,17 +139,15 @@ const HikerProfileDialog = ({
 };
 
 HikerProfileDialog.propTypes = {
-    values: PropTypes.shape().isRequired,
+    hikeId: PropTypes.number.isRequired,
+    profile: PropTypes.shape(),
     show: PropTypes.bool.isRequired,
     onHide: PropTypes.func.isRequired,
     dispatch: PropTypes.func.isRequired,
 };
 
-const useHikerProfileDialog = (
-    profile,
-) => {
-    const [DialogModal, showDialogModal] = useModal(connect()(HikerProfileDialog));
-    const values = {
+HikerProfileDialog.defaultProps = {
+    profile: {
         startDay: '',
         endDay: '',
         speedFactor: 100,
@@ -157,18 +156,14 @@ const useHikerProfileDialog = (
         breakDuration: 60,
         endDayExtension: 60,
         endHikeDayExtension: 60,
-    };
+    },
+};
 
-    const createHikerProfileDialog = () => {
-        if (profile) {
-            return <DialogModal values={profile} />;
-        }
-
-        return <DialogModal values={values} />;
-    };
+const useHikerProfileDialog = () => {
+    const [DialogModal, showDialogModal] = useModal(connect()(HikerProfileDialog));
 
     return [
-        createHikerProfileDialog,
+        DialogModal,
         showDialogModal,
     ];
 };
