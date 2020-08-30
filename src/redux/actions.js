@@ -12,6 +12,12 @@ import {
     ADD_WAYPOINT,
     ADD_START_WAYPOINT,
     ADD_END_WAYPOINT,
+    REQUEST_HIKER_PROFILES,
+    RECEIVE_HIKER_PROFILES,
+    ADD_HIKER_PROFILE,
+    UPDATE_HIKER_PROFILE,
+    REQUEST_HIKER_PROFILE_DELETION,
+    DELETE_HIKER_PROFILE,
 } from './actionTypes';
 import {
     VIEW_HIKES,
@@ -155,6 +161,35 @@ const addEndWaypoint = (position) => ({
     position,
 });
 
+const requestHikerProfiles = () => ({
+    type: REQUEST_HIKER_PROFILES,
+});
+
+const receiveHikerProfiles = (profiles) => ({
+    type: RECEIVE_HIKER_PROFILES,
+    profiles,
+});
+
+const updateHikerProfile = (profile) => ({
+    type: UPDATE_HIKER_PROFILE,
+    profile,
+});
+
+const requestHikerProfileDeletion = (id) => ({
+    type: REQUEST_HIKER_PROFILE_DELETION,
+    id,
+});
+
+const deleteHikerProfile = (id) => ({
+    type: DELETE_HIKER_PROFILE,
+    id,
+});
+
+const addHikerProfile = (profile) => ({
+    type: ADD_HIKER_PROFILE,
+    profile,
+});
+
 export {
     setView,
     requestHikes,
@@ -169,4 +204,10 @@ export {
     addWaypoint,
     addStartWaypoint,
     addEndWaypoint,
+    requestHikerProfiles,
+    receiveHikerProfiles,
+    addHikerProfile,
+    updateHikerProfile,
+    requestHikerProfileDeletion,
+    deleteHikerProfile,
 };

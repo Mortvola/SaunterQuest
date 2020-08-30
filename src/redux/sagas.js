@@ -7,9 +7,12 @@ import {
     ADD_WAYPOINT,
     ADD_START_WAYPOINT,
     ADD_END_WAYPOINT,
+    REQUEST_HIKER_PROFILES,
+    REQUEST_HIKER_PROFILE_DELETION,
 } from './actionTypes';
 import {
     requestRoute, receiveRoute, receiveSchedule, receiveRouteUpdates, routeUpdated,
+    receiveHikerProfiles, deleteHikerProfile,
 } from './actions';
 
 function* fetchRoute(action) {
@@ -124,6 +127,42 @@ function* postEndWaypoint(action) {
     }
 }
 
+function* fetchHikerProfiles() {
+    const profiles = yield fetch(`${sessionStorage.getItem('hikeId')}/hikerProfile`)
+        .then(async (response) => {
+            if (response.ok) {
+                return response.json();
+            }
+
+            return null;
+        });
+
+    yield put(receiveHikerProfiles(profiles));
+}
+
+function* requestHikerProfileDeletion(action) {
+    const deleted = yield fetch(`${sessionStorage.getItem('hikeId')}/hikerProfile/${action.id}`, {
+        method: 'DELETE',
+        headers:
+        {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        },
+    })
+        .then(async (response) => {
+            if (response.ok) {
+                return true;
+            }
+
+            return false;
+        });
+
+    if (deleted) {
+        yield put(deleteHikerProfile(action.id));
+    }
+
+    // todo: handle the error case.
+}
+
 function* watchRouteRequests() {
     yield takeEvery(REQUEST_ROUTE, fetchRoute);
 }
@@ -144,6 +183,14 @@ function* watchAddEndWaypoint() {
     yield takeEvery(ADD_END_WAYPOINT, postEndWaypoint);
 }
 
+function* watchHikerProfilesRequest() {
+    yield takeEvery(REQUEST_HIKER_PROFILES, fetchHikerProfiles);
+}
+
+function* watchHikerProfileDeletionRequest() {
+    yield takeEvery(REQUEST_HIKER_PROFILE_DELETION, requestHikerProfileDeletion);
+}
+
 export default function* rootSaga() {
     yield all([
         watchRouteRequests(),
@@ -151,5 +198,7 @@ export default function* rootSaga() {
         watchAddWaypoint(),
         watchAddStartWaypoint(),
         watchAddEndWaypoint(),
+        watchHikerProfilesRequest(),
+        watchHikerProfileDeletionRequest(),
     ]);
 }

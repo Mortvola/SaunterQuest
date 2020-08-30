@@ -172,9 +172,6 @@
 
     </style>
 
-    @component('hikerProfileDialog')
-    @endcomponent
-
 	@component('addResupplyLocationDialog')
 	@endcomponent
 

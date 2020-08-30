@@ -103,4 +103,5 @@ export {
     metersToMiles,
     gramsToPoundsAndOunces,
     formatTime,
+    nvl,
 };

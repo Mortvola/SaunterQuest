@@ -1,7 +1,6 @@
 import L from 'leaflet';
 import Trails from './trails';
 import { retrieveResupplyLocations } from './resupplyPlan';
-import { retrieveHikerProfiles } from './hikerProfile';
 import { getAndLoadElevationData } from './elevationChart';
 import { getRoute } from './tempstore';
 import { showAddPointOfInterest, retrievePointsOfInterest } from './pointOfInterest';
@@ -862,7 +861,6 @@ function mapInitialize() {
 
     retrievePointsOfInterest();
     retrieveResupplyLocations();
-    retrieveHikerProfiles(); // todo: only do this when visiting the tab of hiker profiles
 
     return map;
 }

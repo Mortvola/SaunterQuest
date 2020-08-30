@@ -1,8 +1,8 @@
 import React from 'react';
 import { loadResupply } from './resupplyPlan';
-import { addHikerProfile } from './hikerProfile';
 import { addTrailCondition } from './trailCondition';
 import Schedule from './Schedule';
+import HikerProfiles from './HikerProfiles';
 
 const Controls = () => (
     <div className="controls-grid-item">
@@ -21,51 +21,7 @@ const Controls = () => (
                 <Schedule />
             </div>
             <div id="hikerProfiles" className="tab-pane fade">
-                <table className="table table-condensed">
-                    <thead>
-                        <tr>
-                            <th style={{ textAlign: 'right' }}>
-                                Start
-                                <br />
-                                Day
-                            </th>
-                            <th style={{ textAlign: 'right' }}>
-                                End
-                                <br />
-                                Day
-                            </th>
-                            <th style={{ textAlign: 'right' }}>
-                                Speed
-                                <br />
-                                Factor
-                            </th>
-                            <th style={{ textAlign: 'right' }}>
-                                Start
-                                <br />
-                                Time
-                            </th>
-                            <th style={{ textAlign: 'right' }}>
-                                End
-                                <br />
-                                Time
-                            </th>
-                            <th style={{ textAlign: 'right' }}>
-                                Break
-                                <br />
-                                Duration
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody id="hikerProfilesTable">
-                        <tr id="hikerProfileLastRow">
-                            <td>
-                                <button type="button" className="btn btn-sm" onClick={addHikerProfile}>
-                                    <i className="fas fa-plus" />
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                <HikerProfiles />
             </div>
             <div id="equipment" className="tab-pane fade">
                 <table className="table table-condensed">

@@ -8,6 +8,10 @@ import {
     RECEIVE_SCHEDULE,
     RECEIVE_ROUTE,
     RECEIVE_ROUTE_UPDATES,
+    RECEIVE_HIKER_PROFILES,
+    UPDATE_HIKER_PROFILE,
+    DELETE_HIKER_PROFILE,
+    ADD_HIKER_PROFILE,
 } from './actionTypes';
 import { VIEW_HIKES } from '../menuEvents';
 
@@ -106,11 +110,58 @@ function schedule(
     }
 }
 
+function hikerProfiles(
+    state = [],
+    action,
+) {
+    switch (action.type) {
+    case RECEIVE_HIKER_PROFILES:
+        return action.profiles;
+
+    case ADD_HIKER_PROFILE:
+        return [
+            ...state,
+            action.profile,
+        ];
+
+    case UPDATE_HIKER_PROFILE: {
+        const index = state.findIndex((p) => p.id === action.profile.id);
+
+        if (index !== -1) {
+            return [
+                ...state.slice(0, index),
+                action.profile,
+                ...state.slice(index + 1),
+            ];
+        }
+
+        return state;
+    }
+
+    case DELETE_HIKER_PROFILE: {
+        const index = state.findIndex((p) => p.id === action.id);
+
+        if (index !== -1) {
+            return [
+                ...state.slice(0, index),
+                ...state.slice(index + 1),
+            ];
+        }
+
+        return state;
+    }
+
+    default:
+        return state;
+    }
+}
+
 const hikeApp = combineReducers({
     selections,
     hikes,
     map,
     schedule,
+    hikerProfiles,
 });
 
 export default hikeApp;

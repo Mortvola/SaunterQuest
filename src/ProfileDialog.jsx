@@ -89,12 +89,12 @@ ProfileDialog.propTypes = {
 const useProfileDialog = () => {
     const [DialogModal, showDialogModal] = useModal(ProfileDialog);
     const [values, setValues] = useState({
-        paceFactor: '100',
-        startTime: '07:00',
-        endTime: '18:00',
-        breakDuration: '60',
-        endDayExtension: '60',
-        endHikeDayExtension: '60',
+        paceFactor: 100,
+        startTime: 7.0,
+        endTime: 18.0,
+        breakDuration: 60,
+        endDayExtension: 60,
+        endHikeDayExtension: 60,
     });
 
     const handleShowClick = () => {
