@@ -5,7 +5,8 @@ import { retrieveHikerProfiles } from './hikerProfile';
 import { getAndLoadElevationData } from './elevationChart';
 import { getRoute } from './tempstore';
 import { showAddPointOfInterest, retrievePointsOfInterest } from './pointOfInterest';
-import { metersToMilesRounded } from '../utilities';
+import store from '../redux/store';
+import { addWaypoint, addStartWaypoint, addEndWaypoint } from '../redux/actions';
 
 let trails;
 
@@ -482,35 +483,6 @@ function clearVertices() {
     stopRouteMeasurement();
 }
 
-function measureRouteDistance(startPosition, endPosition) {
-    let distance = 0;
-
-    if (startPosition != undefined && endPosition != undefined) {
-        distance = getRoute().measure(startPosition, startPosition.segment, endPosition, endPosition.segment);
-
-        // If less than a 0.10 miles then measure in feet, otherwise measure in
-        // miles.
-        if (distance >= 160.934) {
-            const miles = metersToMilesRounded(distance);
-            $('#distance').html(`${miles} miles`);
-        }
-        else {
-            const feet = metersToFeet(distance);
-            $('#distance').html(`${feet} feet`);
-        }
-    }
-}
-
-function measureMarkerSet(highlighter) {
-    const startPosition = highlighter.getStartPosition();
-    const endPosition = highlighter.getEndPosition();
-
-    if (startPosition && endPosition) {
-        measureRouteDistance(startPosition, endPosition);
-        displayRouteElevations(startPosition.segment, endPosition.segment);
-    }
-}
-
 function toggleEdit(object, position) {
     editedRoute = [];
 
@@ -520,28 +492,6 @@ function toggleEdit(object, position) {
     editedRoute.splice(0, 0, ...anchors);
 
     createEditablePolyline();
-}
-
-function displayRouteElevations(startSegment, endSegment) {
-    const distance = 0;
-
-    if (startSegment !== undefined && endSegment !== undefined) {
-        if (startSegment === endSegment) {
-            if (endSegment + 1 < getRoute().getLength()) {
-                getAndLoadElevationData(startSegment, endSegment + 1);
-            }
-        }
-        else {
-            //
-            // Swap the values if needed.
-            //
-            if (startSegment > endSegment) {
-                endSegment = [startSegment, startSegment = endSegment][0];
-            }
-
-            getAndLoadElevationData(startSegment, Math.min(endSegment + 1, getRoute().getLength()));
-        }
-    }
 }
 
 function sqr(x) {
@@ -653,18 +603,6 @@ function setStartLocation(object, position) {
 
 function setEndLocation(object, position) {
     getRoute().setEnd(position);
-}
-
-function addWaypoint(event) {
-    getRoute().addWaypoint(event.latlng);
-}
-
-function addStartWaypoint(event) {
-    getRoute().addStartWaypoint(event.latlng);
-}
-
-function addEndWaypoint(event) {
-    getRoute().addEndWaypoint(event.latlng);
 }
 
 let intersections = [];
@@ -818,9 +756,9 @@ function mapInitialize() {
     };
 
     const waypointMenuItems = [
-        { text: 'Prepend Waypoint', callback: addStartWaypoint },
-        { text: 'Insert Waypoint', callback: addWaypoint },
-        { text: 'Append Waypoint', callback: addEndWaypoint },
+        { text: 'Prepend Waypoint', callback: (event) => store.dispatch(addStartWaypoint(event.latlng)) },
+        { text: 'Insert Waypoint', callback: (event) => store.dispatch(addWaypoint(event.latlng)) },
+        { text: 'Append Waypoint', callback: (event) => store.dispatch(addEndWaypoint(event.latlng)) },
         { separator: true },
     ];
 
@@ -921,15 +859,6 @@ function mapInitialize() {
 */
 
     trails = new Trails(map);
-    // const route = new Route(map, hike.id);
-
-    // setRoute(route);
-
-    // $(document).on('routeUpdated', () => {
-    //     getAndLoadElevationData(0, route.getLength());
-    // });
-
-    // await route.retrieve();
 
     retrievePointsOfInterest();
     retrieveResupplyLocations();

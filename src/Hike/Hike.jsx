@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom';
 import { Provider, connect } from 'react-redux';
 import 'regenerator-runtime/runtime';
 import store from '../redux/store';
-import { requestRoute, requestSchedule } from '../redux/actions';
 import Menubar from '../Menubar';
 import ElevationChart from './elevationChart';
 import Map from './Map';

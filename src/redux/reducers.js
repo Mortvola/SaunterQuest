@@ -7,6 +7,7 @@ import {
     SET_MAP,
     RECEIVE_SCHEDULE,
     RECEIVE_ROUTE,
+    RECEIVE_ROUTE_UPDATES,
 } from './actionTypes';
 import { VIEW_HIKES } from '../menuEvents';
 
@@ -82,6 +83,11 @@ function map(
             ...state,
             route: action.route,
         };
+
+    case RECEIVE_ROUTE_UPDATES:
+        state.route.applyUpdates(action.updates);
+
+        return state;
 
     default:
         return state;

@@ -5,7 +5,9 @@ import { getRoute } from './tempstore';
 import StartOfTrailMarker from './trailMarker/StartOfTrailMarker';
 import EndOfTrailMarker from './trailMarker/EndOfTrailMarker';
 import TrailMarker from './trailMarker/trailMarker';
-import { metersToFeet, metersToMiles, formatTime } from '../utilities';
+import {
+    metersToFeet, metersToMiles, metersToMilesRounded, formatTime,
+} from '../utilities';
 import store from '../redux/store';
 import { routeUpdated } from '../redux/actions';
 
@@ -19,6 +21,60 @@ const routeStrokeWeight = 6;
 const touchDevice = window.matchMedia('(pointer: coarse)').matches;
 
 let routeHighlighter;
+
+function measureRouteDistance(startPosition, endPosition) {
+    let distance = 0;
+
+    if (startPosition !== undefined && endPosition !== undefined) {
+        distance = getRoute().measure(
+            startPosition, startPosition.segment, endPosition, endPosition.segment,
+        );
+
+        // If less than a 0.10 miles then measure in feet, otherwise measure in
+        // miles.
+        if (distance >= 160.934) {
+            const miles = metersToMilesRounded(distance);
+            $('#distance').html(`${miles} miles`);
+        }
+        else {
+            const feet = metersToFeet(distance);
+            $('#distance').html(`${feet} feet`);
+        }
+    }
+}
+
+function displayRouteElevations(startSegment, endSegment) {
+    if (startSegment !== undefined && endSegment !== undefined) {
+        if (startSegment === endSegment) {
+            if (endSegment + 1 < getRoute().getLength()) {
+                getAndLoadElevationData(startSegment, endSegment + 1);
+            }
+        }
+        else {
+            //
+            // Swap the values if needed.
+            //
+            let start = startSegment;
+            let end = endSegment;
+
+            if (start > end) {
+                [start, end] = [end, start];
+            }
+
+            getAndLoadElevationData(start, Math.min(end + 1, getRoute().getLength()));
+        }
+    }
+}
+
+function measureMarkerSet(highlighter) {
+    const startPosition = highlighter.getStartPosition();
+    const endPosition = highlighter.getEndPosition();
+
+    if (startPosition && endPosition) {
+        measureRouteDistance(startPosition, endPosition);
+        displayRouteElevations(startPosition.segment, endPosition.segment);
+    }
+}
 
 function stopRouteMeasurement() {
     routeHighlighter.end();
@@ -39,7 +95,6 @@ function startRouteMeasurement(event) {
 
     $('#distanceWindow').show();
 }
-
 
 class Route {
     constructor(map) {
@@ -121,91 +176,13 @@ class Route {
             data: JSON.stringify({ lat: position.lat, lng: position.lng }),
             context: this,
         })
-        .done(function (updates) {
+            .done(function (updates) {
                 if (updates === undefined) {
                     this.retrieve();
                 }
                 else {
                     this.applyUpdates(updates);
                     this.endOfTrailMarker.setPosition(this.anchors[this.anchors.length - 1]);
-                }
-        })
-            .always(() => {
-                $('#pleaseWait').hide();
-            });
-    }
-
-    addStartWaypoint(position) {
-        $('#pleaseWait').show();
-
-        $.post({
-            url: `${this.hikeId}/route/startPoint`,
-            headers:
-            {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                'Content-type': 'application/json',
-            },
-            data: JSON.stringify({ lat: position.lat, lng: position.lng }),
-            context: this,
-        })
-            .done(function (updates) {
-                if (updates === undefined) {
-                    this.retrieve();
-                }
-                else {
-                    this.applyUpdates(updates);
-                }
-            })
-            .always(() => {
-                $('#pleaseWait').hide();
-            });
-    }
-
-    addEndWaypoint(position) {
-        $('#pleaseWait').show();
-
-        $.post({
-            url: `${this.hikeId}/route/endPoint`,
-            headers:
-            {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                'Content-type': 'application/json',
-            },
-            data: JSON.stringify({ lat: position.lat, lng: position.lng }),
-            context: this,
-        })
-            .done(function (updates) {
-                if (updates === undefined) {
-                    this.retrieve();
-                }
-                else {
-                    this.applyUpdates(updates);
-                }
-            })
-            .always(() => {
-                $('#pleaseWait').hide();
-            });
-    }
-
-    addWaypoint(position) {
-        $('#pleaseWait').show();
-
-        $.post({
-            url: `${this.hikeId}/route/waypoint`,
-            headers:
-            {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                'Content-type': 'application/json',
-            },
-            data: JSON.stringify({ lat: position.lat, lng: position.lng }),
-            context: this,
-        })
-            .done(function (updates) {
-                if (updates === undefined) {
-                    this.retrieve();
-                }
-                else {
-                    this.applyUpdates(updates);
                 }
             })
             .always(() => {
@@ -281,8 +258,8 @@ class Route {
                 const startDistance = 0;
                 const numberOfPointsToReplace = 1;
 
-                let route = [];
-                for (const anchor of update) {
+                const route = [];
+                update.forEach((anchor) => {
                     Route.addPointsToArray(anchor, route);
                     anchor.actualRouteIndex += firstPointToReplace;
                     anchor.dist += startDistance;
@@ -290,7 +267,7 @@ class Route {
                     if (Route.anchorIsWaypoint(anchor)) {
                         this.updateOrAddWaypoint(anchor);
                     }
-                }
+                }, this);
 
                 if (this.actualRoute === undefined) {
                     this.actualRoute = [];
@@ -303,7 +280,7 @@ class Route {
                 // Update the polyline
                 const path = this.actualRoutePolyline.getLatLngs();
 
-                for (let p = 0; p < Math.min(route.length, numberOfPointsToReplace); p++) {
+                for (let p = 0; p < Math.min(route.length, numberOfPointsToReplace); p += 1) {
                     path[p + firstPointToReplace] = route[p];
                     this.actualRoute[p + firstPointToReplace] = route[p];
                     this.actualRoute[p + firstPointToReplace].dist += startDistance;
@@ -325,7 +302,7 @@ class Route {
                     this.newPolyline();
                 }
                 else {
-                    const lastIndex = this.anchors.findIndex((entry) => entry.id == update[1].id);
+                    const lastIndex = this.anchors.findIndex((entry) => entry.id === update[1].id);
 
                     const lastPointToReplace = this.anchors[lastIndex].actualRouteIndex;
 
@@ -340,7 +317,7 @@ class Route {
 
                     // The anchor is the first anchor. Make sure there is no trail
                     // before it.
-                    for (let p = 0; p < lastPointToReplace; p++) {
+                    for (let p = 0; p < lastPointToReplace; p += 1) {
                         // Since we are removing elements there is no need to
                         // walk the array, just keeping removing the same index
                         path.splice(0, 1);
@@ -349,11 +326,11 @@ class Route {
 
                     this.actualRoute[0].dist = 0;
 
-                    // Update all of the actualRouteIndex and distance data members in the anchors beyond
-                    // the point of update.
+                    // Update all of the actualRouteIndex and distance data members
+                    // in the anchors beyond the point of update.
                     const indexDelta = this.anchors[lastIndex].actualRouteIndex;
                     const distDelta = this.anchors[lastIndex].dist;
-                    for (let i = lastIndex; i < this.anchors.length; i++) {
+                    for (let i = lastIndex; i < this.anchors.length; i += 1) {
                         this.anchors[i].actualRouteIndex -= indexDelta;
                         this.anchors[i].dist -= distDelta;
                     }
@@ -363,10 +340,10 @@ class Route {
                 }
             }
             else if (update[1].id === -1) {
-                const firstIndex = this.anchors.findIndex((entry) => entry.id == update[0].id);
+                const firstIndex = this.anchors.findIndex((entry) => entry.id === update[0].id);
                 const lastIndex = this.anchors.length - 1;
 
-                var firstPointToReplace = this.anchors[firstIndex].actualRouteIndex;
+                const firstPointToReplace = this.anchors[firstIndex].actualRouteIndex;
 
                 update[0].actualRouteIndex = firstPointToReplace;
                 update[0].dist = this.anchors[firstIndex].dist;
@@ -390,23 +367,26 @@ class Route {
             else {
                 // Find the anchor in the array of anchors that
                 // corresponds to the first anchor in this update
-                const firstIndex = this.anchors.findIndex((entry) => entry.id == update[0].id);
+                const firstIndex = this.anchors.findIndex((entry) => entry.id === update[0].id);
 
                 if (firstIndex > -1) {
                     // Find the anchor in the array that corresponds to the
                     // last anchor in this update
-                    var lastIndex = this.anchors.findIndex((entry) => entry.id == update[update.length - 1].id);
+                    const lastIndex = this.anchors.findIndex(
+                        (entry) => entry.id === update[update.length - 1].id,
+                    );
 
                     if (lastIndex > -1) {
-                        // The first and last anchors were found. Replace the anchors in the array of anchors
-                        // with this update.
+                        // The first and last anchors were found. Replace
+                        // the anchors in the array of anchors with this update.
 
-                        var route = [];
-                        var firstPointToReplace = this.anchors[firstIndex].actualRouteIndex;
-                        const numberOfPointsToReplace = this.anchors[lastIndex].actualRouteIndex - firstPointToReplace + 1;
-                        var startDistance = this.anchors[firstIndex].dist;
+                        const route = [];
+                        const firstPointToReplace = this.anchors[firstIndex].actualRouteIndex;
+                        const numberOfPointsToReplace = this.anchors[lastIndex].actualRouteIndex
+                            - firstPointToReplace + 1;
+                        const startDistance = this.anchors[firstIndex].dist;
 
-                        for (const anchor of update) {
+                        update.forEach((anchor) => {
                             Route.addPointsToArray(anchor, route);
                             anchor.actualRouteIndex += firstPointToReplace;
                             anchor.dist += startDistance;
@@ -414,22 +394,25 @@ class Route {
                             if (Route.anchorIsWaypoint(anchor)) {
                                 this.updateOrAddWaypoint(anchor);
                             }
-                        }
+                        }, this);
 
-                        // The last anchor in the update needs to adopt the trail from the anchor that will be replaced.
+                        // The last anchor in the update needs to adopt the
+                        // trail from the anchor that will be replaced.
                         update[update.length - 1].trail = this.anchors[lastIndex].trail;
 
                         // Update the polyline
                         const path = this.actualRoutePolyline.getLatLngs();
 
-                        for (let p = 0; p < Math.min(route.length, numberOfPointsToReplace); p++) {
+                        for (let p = 0;
+                            p < Math.min(route.length, numberOfPointsToReplace);
+                            p += 1) {
                             path[p + firstPointToReplace] = route[p];
                             this.actualRoute[p + firstPointToReplace] = route[p];
                             this.actualRoute[p + firstPointToReplace].dist += startDistance;
                         }
 
                         if (numberOfPointsToReplace > route.length) {
-                            for (let p = route.length; p < numberOfPointsToReplace; p++) {
+                            for (let p = route.length; p < numberOfPointsToReplace; p += 1) {
                                 // Since we are removing elements there is no need to
                                 // walk the array, just keeping removing the same index
                                 path.splice(route.length + firstPointToReplace, 1);
@@ -437,24 +420,27 @@ class Route {
                             }
                         }
                         else if (route.length > numberOfPointsToReplace) {
-                            for (let p = numberOfPointsToReplace; p < route.length; p++) {
+                            for (let p = numberOfPointsToReplace; p < route.length; p += 1) {
                                 path.splice(p + firstPointToReplace, 0, route[p]);
                                 this.actualRoute.splice(p + firstPointToReplace, 0, route[p]);
                                 this.actualRoute[p + firstPointToReplace].dist += startDistance;
                             }
                         }
 
-                        // Update all of the actualRouteIndex and distance data members in the anchors beyond
-                        // the point of update.
-                        var indexDelta = route.length - numberOfPointsToReplace;
-                        var distDelta = update[update.length - 1].dist - this.anchors[lastIndex].dist;
-                        for (let i = lastIndex; i < this.anchors.length; i++) {
+                        // Update all of the actualRouteIndex and distance data
+                        // members in the anchors beyond the point of update.
+                        const indexDelta = route.length - numberOfPointsToReplace;
+                        const distDelta = update[update.length - 1].dist
+                            - this.anchors[lastIndex].dist;
+                        for (let i = lastIndex; i < this.anchors.length; i += 1) {
                             this.anchors[i].actualRouteIndex += indexDelta;
                             this.anchors[i].dist += distDelta;
                         }
 
                         // Update all of the actual route point distances beyond this update.
-                        for (let p = this.anchors[lastIndex].actualRouteIndex + 1; p < this.actualRoute.length; p++) {
+                        for (let p = this.anchors[lastIndex].actualRouteIndex + 1;
+                            p < this.actualRoute.length;
+                            p += 1) {
                             this.actualRoute[p].dist += distDelta;
                         }
 
@@ -462,14 +448,14 @@ class Route {
                         this.anchors.splice(firstIndex, lastIndex - firstIndex + 1, ...update);
                     }
                     else {
-                        // Only the first anchor was found. Insert the anchors to the end of the array of anchors
-                        // with this update.
+                        // Only the first anchor was found. Insert the anchors
+                        // to the end of the array of anchors with this update.
 
-                        var route = [];
-                        var firstPointToReplace = this.anchors[firstIndex].actualRouteIndex;
-                        var startDistance = this.anchors[firstIndex].dist;
+                        const route = [];
+                        const firstPointToReplace = this.anchors[firstIndex].actualRouteIndex;
+                        const startDistance = this.anchors[firstIndex].dist;
 
-                        for (const anchor of update) {
+                        update.forEach((anchor) => {
                             Route.addPointsToArray(anchor, route);
                             anchor.actualRouteIndex += firstPointToReplace;
                             anchor.dist += startDistance;
@@ -477,7 +463,7 @@ class Route {
                             if (Route.anchorIsWaypoint(anchor)) {
                                 this.updateOrAddWaypoint(anchor);
                             }
-                        }
+                        }, this);
 
                         // Update the polyline
                         if (this.actualRoutePolyline === undefined) {
@@ -486,7 +472,7 @@ class Route {
 
                         const path = this.actualRoutePolyline.getLatLngs();
 
-                        for (let p = 1; p < route.length; p++) {
+                        for (let p = 1; p < route.length; p += 1) {
                             path.splice(p + firstPointToReplace, 0, route[p]);
                             this.actualRoute.splice(p + firstPointToReplace, 0, route[p]);
                             this.actualRoute[p + firstPointToReplace].dist += startDistance;
@@ -499,23 +485,26 @@ class Route {
                 else {
                     // Find the anchor in the array that corresponds to the
                     // last anchor in this update (it should be zero).
-                    var lastIndex = this.anchors.findIndex((entry) => entry.id == update[update.length - 1].id);
+                    const lastIndex = this.anchors.findIndex(
+                        (entry) => entry.id === update[update.length - 1].id,
+                    );
 
                     if (lastIndex === 0) {
-                        // The last anchor was found. Insert the anchors to the beginning of the array of anchors
-                        // with this update.
+                        // The last anchor was found. Insert the anchors to
+                        // the beginning of the array of anchors with this update.
 
-                        var route = [];
+                        const route = [];
 
-                        for (const anchor of update) {
+                        update.forEach((anchor) => {
                             Route.addPointsToArray(anchor, route);
 
                             if (Route.anchorIsWaypoint(anchor)) {
                                 this.updateOrPrependWaypoint(anchor);
                             }
-                        }
+                        }, this);
 
-                        // The last anchor in the update needs to adopt the trail from the anchor that will be replaced.
+                        // The last anchor in the update needs to adopt the trail
+                        // from the anchor that will be replaced.
                         update[update.length - 1].trail = this.anchors[lastIndex].trail;
 
                         // Update (or add) the polyline
@@ -525,22 +514,24 @@ class Route {
 
                         const path = this.actualRoutePolyline.getLatLngs();
 
-                        for (let p = 0; p < route.length - 1; p++) {
+                        for (let p = 0; p < route.length - 1; p += 1) {
                             path.splice(p, 0, route[p]);
                             this.actualRoute.splice(p, 0, route[p]);
                         }
 
-                        // Update all of the actualRouteIndex and distance data members in the anchors beyond
-                        // the point of update.
-                        var indexDelta = route.length - 1;
-                        var distDelta = update[update.length - 1].dist;
-                        for (let i = 0; i < this.anchors.length; i++) {
+                        // Update all of the actualRouteIndex and distance data
+                        // members in the anchors beyond the point of update.
+                        const indexDelta = route.length - 1;
+                        const distDelta = update[update.length - 1].dist;
+                        for (let i = 0; i < this.anchors.length; i += 1) {
                             this.anchors[i].actualRouteIndex += indexDelta;
                             this.anchors[i].dist += distDelta;
                         }
 
                         // Update all of the actual route point distances beyond this update.
-                        for (let p = this.anchors[0].actualRouteIndex; p < this.actualRoute.length; p++) {
+                        for (let p = this.anchors[0].actualRouteIndex;
+                            p < this.actualRoute.length;
+                            p += 1) {
                             this.actualRoute[p].dist += distDelta;
                         }
 
@@ -562,13 +553,13 @@ class Route {
             // Renumber waypoints
             this.relabelWaypoints();
 
-            store.dispatch(routeUpdated());
+            // store.dispatch(routeUpdated());
         }
     }
 
     relabelWaypoints() {
         let waypointLabel = 'A';
-        for (const w of this.waypoints) {
+        this.waypoints.forEach((w) => {
             if (w.remove) {
                 w.removeMarker();
             }
@@ -585,7 +576,7 @@ class Route {
                     waypointLabel = String.fromCharCode(waypointLabel.charCodeAt(0) + 1);
                 }
             }
-        }
+        });
     }
 
     editWaypoint(marker) {
@@ -754,12 +745,12 @@ class Route {
     }
 
     retrieve() {
-        fetch(`${this.hikeId}/route`)
-            .then(async (response) => {
-                if (response.ok) {
-                    this.setAnchors(await response.json());
-                }
-            });
+        // fetch(`${this.hikeId}/route`)
+        //     .then(async (response) => {
+        //         if (response.ok) {
+        //             this.setAnchors(await response.json());
+        //         }
+        //     });
     }
 
     static anchorIsWaypoint(anchor) {
@@ -843,7 +834,7 @@ class Route {
     updateOrAddWaypoint(anchor) {
         let waypoint = this.getWaypoint(anchor);
 
-        if (waypoint === undefined) {
+        if (waypoint === null || waypoint === undefined) {
             waypoint = this.newWaypoint(anchor);
 
             this.waypoints.push(waypoint);
@@ -859,7 +850,7 @@ class Route {
     updateOrPrependWaypoint(anchor) {
         let waypoint = this.getWaypoint(anchor);
 
-        if (waypoint === undefined) {
+        if (waypoint === null || waypoint === undefined) {
             waypoint = this.newWaypoint(anchor);
 
             this.waypoints.splice(0, 0, waypoint);
@@ -1014,7 +1005,7 @@ class Route {
         if (this.actualRoute.length > 1) {
             let shortestDistance;
 
-            for (let r = 0; r < this.actualRoute.length - 1; r++) {
+            for (let r = 0; r < this.actualRoute.length - 1; r += 1) {
                 const distance = distToSegmentSquared(
                     { x: position.lng, y: position.lat },
                     { x: this.actualRoute[r].lng, y: this.actualRoute[r].lat },
@@ -1057,7 +1048,7 @@ class Route {
         polyline.push({ lat: startPosition.lat, lng: startPosition.lng });
 
         if (startSegment != endSegment) {
-            for (let r = startSegment + 1; r <= endSegment; r++) {
+            for (let r = startSegment + 1; r <= endSegment; r += 1) {
                 polyline.push({ lat: this.actualRoute[r].lat, lng: this.actualRoute[r].lng });
             }
         }

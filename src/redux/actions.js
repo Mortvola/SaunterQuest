@@ -5,7 +5,13 @@ import {
     SET_VIEW,
     SET_MAP,
     RECEIVE_SCHEDULE,
+    REQUEST_ROUTE,
     RECEIVE_ROUTE,
+    RECEIVE_ROUTE_UPDATES,
+    ROUTE_UPDATED,
+    ADD_WAYPOINT,
+    ADD_START_WAYPOINT,
+    ADD_END_WAYPOINT,
 } from './actionTypes';
 import {
     VIEW_HIKES,
@@ -105,54 +111,49 @@ const navigate = (eventKey) => (
     }
 );
 
-const receiveRoute = (anchors) => ({
-    type: RECEIVE_ROUTE,
-    anchors,
+const requestRoute = (route) => ({
+    type: REQUEST_ROUTE,
+    route,
 });
 
-const requestRoute = (route) => (
-    (dispatch) => {
-        fetch(`${sessionStorage.getItem('hikeId')}/route`)
-            .then(async (response) => {
-                if (response.ok) {
-                    route.setAnchors(await response.json());
-
-                    dispatch(receiveRoute(route));
-                }
-            });
-    }
-);
+const receiveRoute = (route) => ({
+    type: RECEIVE_ROUTE,
+    route,
+});
 
 const receiveSchedule = (schedule) => ({
     type: RECEIVE_SCHEDULE,
     schedule,
 });
 
-const requestSchedule = () => (
-    (dispatch) => {
-        fetch(`${sessionStorage.getItem('hikeId')}/schedule`)
-            .then(async (response) => {
-                if (response.ok) {
-                    dispatch(receiveSchedule(await response.json()));
-                }
-            });
-    }
-);
+const routeUpdated = () => ({
+    type: ROUTE_UPDATED,
+});
 
-const routeUpdated = () => (
-    (dispatch) => {
-        dispatch(requestSchedule());
-    }
-);
+const setMap = (map) => ({
+    type: SET_MAP,
+    map,
+});
 
-const setMap = (map) => (
-    (dispatch) => {
-        dispatch({
-            type: SET_MAP,
-            map,
-        });
-    }
-);
+const receiveRouteUpdates = (updates) => ({
+    type: RECEIVE_ROUTE_UPDATES,
+    updates,
+});
+
+const addWaypoint = (position) => ({
+    type: ADD_WAYPOINT,
+    position,
+});
+
+const addStartWaypoint = (position) => ({
+    type: ADD_START_WAYPOINT,
+    position,
+});
+
+const addEndWaypoint = (position) => ({
+    type: ADD_END_WAYPOINT,
+    position,
+});
 
 export {
     setView,
@@ -160,7 +161,12 @@ export {
     requestHikeDeletion,
     navigate,
     setMap,
-    requestSchedule,
+    receiveSchedule,
     requestRoute,
+    receiveRoute,
     routeUpdated,
+    receiveRouteUpdates,
+    addWaypoint,
+    addStartWaypoint,
+    addEndWaypoint,
 };

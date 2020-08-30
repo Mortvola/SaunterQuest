@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import 'leaflet-contextmenu';
 import { mapInitialize } from './hike';
 import { setMap, requestRoute } from '../redux/actions';
 import Route from './route';
