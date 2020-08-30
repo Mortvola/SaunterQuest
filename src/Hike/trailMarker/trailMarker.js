@@ -1,5 +1,5 @@
 import L from 'leaflet';
-import { metersToMilesRounded } from '../../utilities';
+import { metersToMilesRounded, metersToFeet } from '../../utilities';
 
 class TrailMarker {
     constructor(map, iconUrl) {
@@ -11,8 +11,6 @@ class TrailMarker {
 
         this.marker = new L.Marker([],
             {
-                contextmenu: true,
-                contextmenuItems: [],
                 icon: this.icon,
             });
 
@@ -110,7 +108,7 @@ class TrailMarker {
     }
 
     setContextMenu(contextMenu) {
-        // this.marker.bindContextMenu({ contextmenu: true, contextmenuItems: contextMenu });
+        this.marker.bindContextMenu({ contextmenu: true, contextmenuItems: contextMenu });
     }
 
     setIcon(iconUrl) {

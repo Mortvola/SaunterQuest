@@ -230,7 +230,7 @@ class Route {
             context: this,
         })
             .done(function (updates) {
-                const index = this.waypoints.findIndex((entry) => entry.id == marker.id);
+                const index = this.waypoints.findIndex((entry) => entry.id === marker.id);
 
                 if (index > -1) {
                     this.waypoints[index].removeMarker();
@@ -974,10 +974,10 @@ class Route {
                 { separator: true, index: 1 },
             ];
 
-            // this.actualRoutePolyline.bindContextMenu({
-            //     contextmenu: true,
-            //     contextmenuItems: routeMenuItems
-            // });
+            this.actualRoutePolyline.bindContextMenu({
+                contextmenu: true,
+                contextmenuItems: routeMenuItems,
+            });
         }
         else {
             setContextMenu(this.actualRoutePolyline, menu);
