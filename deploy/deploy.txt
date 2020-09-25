@@ -1,14 +1,10 @@
 sudo apt update
 sudo apt upgrade
-sudo apt install php7.2
-sudo apt install php7.2-pgsql
-sudo apt install php-mbstring
-sudo apt install php-tokenizer 
-sudo apt install php-json
-sudo apt install php-xml
-sudo apt install composer 
+sudo apt install php7.2 php7.2-pgsql php-mbstring php-tokenizer  php-json php-xml composer 
 sudo apt install git
 
+sudo apt install libgdal libjsoncpp-dev libpng++-dev 
+ 
 https://switch2osm.org/manually-building-a-tile-server-18-04-lts/
 
 sudo apt install libboost-all-dev git-core tar unzip wget bzip2 build-essential autoconf libtool libxml2-dev libgeos-dev libgeos++-dev libpq-dev libbz2-dev libproj-dev munin-node munin libprotobuf-c0-dev protobuf-c-compiler libfreetype6-dev libtiff5-dev libicu-dev libgdal-dev libcairo-dev libcairomm-1.0-dev libagg-dev liblua5.2-dev ttf-unifont lua5.1 liblua5.1-dev libgeotiff-epsg curl

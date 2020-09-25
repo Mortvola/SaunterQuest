@@ -23,16 +23,18 @@ const Schedule = ({
         // todo: take into account the area the whole path uses. Some paths go out of window
         // even though the two endpoints are within the window.
         //
-        if (d < schedule.length - 1) {
-            positionMapToBounds(map, schedule[d].point, schedule[d + 1].point);
-        }
-        else {
-            positionMapToBounds(
-                map, schedule[d].point, {
-                    lat: schedule[d].endLat,
-                    lng: schedule[d].endLng,
-                },
-            );
+        if (schedule) {
+            if (d < schedule.length - 1) {
+                positionMapToBounds(map, schedule[d].point, schedule[d + 1].point);
+            }
+            else {
+                positionMapToBounds(
+                    map, schedule[d].point, {
+                        lat: schedule[d].endLat,
+                        lng: schedule[d].endLng,
+                    },
+                );
+            }
         }
     };
 
@@ -61,7 +63,9 @@ const Schedule = ({
     return (
         <>
             {
-                schedule.map((day, index) => renderDay(day, index))
+                schedule
+                    ? schedule.map((day, index) => renderDay(day, index))
+                    : null
             }
         </>
     );

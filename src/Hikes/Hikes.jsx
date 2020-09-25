@@ -61,7 +61,7 @@ const Hikes = ({
                     <PleaseWait show={requesting} />
                 </div>
             </div>
-            <HikeDialog show={showHikeDialog} onHide={handleHide} />
+            <HikeDialog show={showHikeDialog} onHide={handleHide} dispatch={dispatch} />
         </>
     );
 };

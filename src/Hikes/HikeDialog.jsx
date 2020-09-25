@@ -1,10 +1,12 @@
 import React, { useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Modal } from 'react-bootstrap';
+import { requestHike } from '../redux/actions';
 
 const HikeDialog = ({
     show,
     onHide,
+    dispatch,
 }) => {
     const formRef = useRef(null);
 
@@ -22,7 +24,7 @@ const HikeDialog = ({
             .then(async (response) => {
                 if (response.ok) {
                     const json = await response.json();
-                    document.location.href = `/hike/${json.id}`;
+                    dispatch(requestHike(json.id));
                 }
             });
     };
@@ -56,6 +58,7 @@ const HikeDialog = ({
 HikeDialog.propTypes = {
     show: PropTypes.bool.isRequired,
     onHide: PropTypes.func.isRequired,
+    dispatch: PropTypes.func.isRequired,
 };
 
 export default HikeDialog;
