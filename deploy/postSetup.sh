@@ -8,13 +8,15 @@ GRANT ALL ON planet_osm_polygon TO PUBLIC;
 GRANT ALL ON planet_osm_point TO PUBLIC;
 GRANT ALL ON planet_osm_roads TO PUBLIC;
 
+CREATE SEQUENCE IF NOT EXISTS line_id_seq;
+
 ALTER TABLE planet_osm_line
    ADD COLUMN IF NOT EXISTS line_id bigint NOT NULL DEFAULT nextval('line_id_seq'::regclass);
 
 CREATE INDEX planet_osm_line_line_id_idx
   ON planet_osm_line (line_id);
 
-CREATE USER ${USER};
+--CREATE USER ${USER};
 
 GRANT ALL ON users TO PUBLIC;
 GRANT ALL ON nav_nodes TO PUBLIC;
