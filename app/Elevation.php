@@ -2,6 +2,8 @@
 namespace App;
 require_once app_path('utilities.php');
 
+use Illuminate\Support\Facades\Http;
+
 class Elevation
 {
 
@@ -121,12 +123,8 @@ class Elevation
 
     public function getElevation ($lat, $lng)
     {
-        $request = (object)[
-            "method" => "GET",
-            "command" => "/elevation/point",
-            "point" => (object)["lat" => floatval($lat), "lng" => floatval($lng)]
-        ];
+        $response = Http::get(env('PATHFINDER_SERVER') . '/elevation/point?lat=' . $lat . '&lng=' . $lng);
 
-        return sendRouteFindRequest ($request);
+        return $response->json()["ele"];
     }
 }

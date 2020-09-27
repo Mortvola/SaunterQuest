@@ -3,6 +3,8 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Http;
+
 require_once app_path('routeFile.php');
 require_once app_path('utilities.php');
 
@@ -58,18 +60,8 @@ class Hike extends Model
 
     public function getDistance ()
     {
-        $request = (object)[
-            "method" => "GET",
-            "command" => "/hike/" . $this->id . "/distance",
-        ];
+        $response = Http::get(env('PATHFINDER_SERVER') . '/hike/' . $this->id . '/distance');
 
-        $distance = sendRouteFindRequest ($request);
-
-        if (!isset($distance))
-        {
-            $distance = 0;
-        }
-
-        return $distance;
+        return $response->json()["distance"];
     }
 }
