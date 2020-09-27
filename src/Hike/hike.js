@@ -358,12 +358,12 @@ function mapInitialize(hikeId) {
             minZoom: 4,
         });
 
-    const terrainLayer = L.tileLayer(`${sessionStorage.getItem('tileServerUrl')}/terrain/{z}/{x}/{y}`, {
+    const terrainLayer = L.tileLayer(`${sessionStorage.getItem('tileServerUrl')}/tile/terrain/{z}/{x}/{y}`, {
         updateWhenZooming: true,
     });
 
     const detailLayer = L.tileLayer(
-        `${sessionStorage.getItem('tileServerUrl')}/tile/{z}/{x}/{y}`, {
+        `${sessionStorage.getItem('tileServerUrl')}/tile/detail/{z}/{x}/{y}`, {
             attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
             updateWhenZooming: true,
         },
