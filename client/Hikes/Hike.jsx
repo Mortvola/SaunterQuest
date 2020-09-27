@@ -1,15 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import { Spinner, Button } from 'react-bootstrap';
 import { metersToMilesRounded } from '../utilities';
 import EditableText from './EditableText';
 import { useDeleteConfirmation } from '../DeleteConfirmation';
-import { requestHike } from '../redux/actions';
+import { requestHike, requestHikeDetails } from '../redux/actions';
 
 const Hike = ({
     hike,
     onDelete,
     dispatch,
 }) => {
+    const [initialized, setInitialized] = useState(false);
+
+    if (!initialized) {
+        setInitialized(true);
+        dispatch(requestHikeDetails(hike.id));
+    }
+
     const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
         'Are you sure you want to delete this hike?',
         () => {
@@ -32,28 +40,35 @@ const Hike = ({
             <div className="card-body">
                 <div />
                 <div>
-                    {`Distance: ${metersToMilesRounded(hike.distance)} miles`}
+                    Distance:
+                    {
+                        hike.distance === null
+                            ? <Spinner animation="border" size="sm" role="status" className="hike-detail-spinner" />
+                            : <span className="hike-detail">{`${metersToMilesRounded(hike.distance)} miles`}</span>
+                    }
                 </div>
                 <div>
-                    {`Duration: ${hike.days} days`}
+                    Duration:
+                    {
+                        hike.duration === null
+                            ? <Spinner animation="border" size="sm" role="status" className="hike-detail-spinner" />
+                            : <span className="hike-detail">{`${hike.duration} days`}</span>
+                    }
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '14px' }}>
-                    <button
-                        type="button"
-                        className="btn btn-sm btn-outline-secondary"
+                    <Button
+                        variant="light"
                         onClick={handleDeleteClick}
                     >
                         Delete
-                    </button>
-                    <button
-                        type="button"
-                        className="btn btn-sm btn-outline-secondary"
+                    </Button>
+                    <Button
                         onClick={() => {
                             dispatch(requestHike(hike.id));
                         }}
                     >
                         Open
-                    </button>
+                    </Button>
                 </div>
             </div>
             <DeleteConfirmation />

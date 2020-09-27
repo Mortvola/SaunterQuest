@@ -5,6 +5,8 @@ import {
     REQUEST_HIKE_DELETION,
     DELETE_HIKE,
     REQUEST_HIKE,
+    REQUEST_HIKE_DETAILS,
+    RECEIVE_HIKE_DETAILS,
     SET_VIEW,
     SET_MAP,
     RECEIVE_SCHEDULE,
@@ -26,6 +28,17 @@ import {
 const requestHike = (id) => ({
     type: REQUEST_HIKE,
     id,
+});
+
+const requestHikeDetails = (id) => ({
+    type: REQUEST_HIKE_DETAILS,
+    id,
+});
+
+const receiveHikeDetails = (id, details) => ({
+    type: RECEIVE_HIKE_DETAILS,
+    id,
+    details,
 });
 
 const setView = (view, params) => ({
@@ -146,6 +159,8 @@ export {
     requestHikeDeletion,
     deleteHike,
     requestHike,
+    requestHikeDetails,
+    receiveHikeDetails,
     setMap,
     receiveSchedule,
     requestRoute,

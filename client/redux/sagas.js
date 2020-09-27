@@ -4,6 +4,7 @@ import {
 import {
     REQUEST_HIKES,
     REQUEST_HIKE,
+    REQUEST_HIKE_DETAILS,
     REQUEST_HIKE_DELETION,
     REQUEST_ROUTE,
     ROUTE_UPDATED,
@@ -20,7 +21,7 @@ import {
     requestingHikes, receiveHikes, requestRoute, receiveRoute, receiveSchedule,
     receiveRouteUpdates, routeUpdated,
     receiveHikerProfiles, deleteHikerProfile, setView,
-    deleteHike,
+    deleteHike, receiveHikeDetails,
 } from './actions';
 
 function* fetchHikes() {
@@ -61,6 +62,19 @@ function* fetchHikes() {
     // todo: handle error case
 
     yield put(requestingHikes(false));
+}
+
+function* fetchHikeDetails(action) {
+    const details = yield fetch(`/hike/${action.id}/details`)
+        .then((response) => {
+            if (response.ok) {
+                return response.json();
+            }
+
+            return null;
+        });
+
+    yield put(receiveHikeDetails(action.id, details));
 }
 
 function* fetchHike(action) {
@@ -285,6 +299,7 @@ export default function* rootSaga() {
     yield all([
         watchHikesRequests(),
         watchHikeRequests(),
+        yield takeEvery(REQUEST_HIKE_DETAILS, fetchHikeDetails),
         watchHikeDeleteionRequest(),
         watchRouteRequests(),
         watchRouteUpdated(),

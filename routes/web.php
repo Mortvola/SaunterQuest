@@ -62,6 +62,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return (new HikeController())->delete($hikeId);
     });
 
+    Route::get('/hike/{hikeId}/details', function ($hikeId)
+    {
+        return (new HikeController())->getDetails($hikeId);
+    });
+
     Route::get('/hike/{hikeId}/route', function ($hikeId)
     {
         return (new RouteController())->get($hikeId);

@@ -35,17 +35,23 @@ class HikeController extends Controller
         {
             $hikes = Auth::user()->hikes()->get ();
 
-            if (isset($hikes))
-            {
-                foreach ($hikes as $hike)
-                {
-                    $hike->days = $hike->getDuration ();
-                    $hike->distance = $hike->getDistance ();
-                }
-            }
-
             return $hikes;
         }
+    }
+
+    public function getDetails ($hikeId)
+    {
+        $hike = Auth::user()->hikes()->find($hikeId);
+
+        if (!isset($hike))
+        {
+            return abort(404);
+        }
+
+        return [
+            "duration" => $hike->getDuration (),
+            "distance" => $hike->getDistance ()
+        ];
     }
 
     public function post (Request $request)

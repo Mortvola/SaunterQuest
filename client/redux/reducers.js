@@ -2,6 +2,7 @@ import { combineReducers } from 'redux';
 import {
     REQUESTING_HIKES,
     RECEIVE_HIKES,
+    RECEIVE_HIKE_DETAILS,
     DELETE_HIKE,
     SET_VIEW,
     SET_MAP,
@@ -15,6 +16,26 @@ import {
 } from './actionTypes';
 import { VIEW_HIKES } from '../menuEvents';
 
+const hike = (
+    state = {
+        duration: null,
+        distance: null,
+    },
+    action,
+) => {
+    switch (action.type) {
+    case RECEIVE_HIKE_DETAILS:
+        return {
+            ...state,
+            duration: action.details.duration,
+            distance: action.details.distance,
+        };
+
+    default:
+        return state;
+    }
+};
+
 const hikes = (
     state = {
         requesting: false,
@@ -27,7 +48,13 @@ const hikes = (
         return { ...state, requesting: action.requesting };
 
     case RECEIVE_HIKES:
-        return { ...state, requesting: false, hikes: action.hikes };
+        return {
+            ...state,
+            requesting: false,
+            hikes: action.hikes.map((h) => (
+                { ...hike(undefined, action), ...h }
+            )),
+        };
 
     case DELETE_HIKE: {
         const index = state.hikes.findIndex((h) => h.id === action.id);
@@ -45,8 +72,22 @@ const hikes = (
         return state;
     }
 
-    default:
+    default: {
+        const index = state.hikes.findIndex((h) => h.id === action.id);
+
+        if (index !== -1) {
+            return {
+                ...state,
+                hikes: [
+                    ...state.hikes.slice(0, index),
+                    hike(state.hikes[index], action),
+                    ...state.hikes.slice(index + 1),
+                ],
+            };
+        }
+
         return state;
+    }
     }
 };
 

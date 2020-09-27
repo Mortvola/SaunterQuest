@@ -224,3 +224,11 @@ div.hike-card-header
     text-align:center;
 }
 
+.hike-detail {
+    margin-left: 0.5rem;
+}
+
+.hike-detail-spinner {
+    color: lightgray;
+    margin-left: 0.5rem;
+}
