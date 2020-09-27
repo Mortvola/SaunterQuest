@@ -9,7 +9,6 @@
         <!-- Scripts -->
         <script src="{{ asset('js/jquery-3.4.1.min.js') }}"></script>
         <script src="{{ asset('js/bootstrap-4.3.1.bundle.min.js') }}"></script>
-        <script src="{{ asset('js/utilities.js') }}"></script>
 
         <!-- Fonts -->
         <link rel="dns-prefetch" href="//fonts.gstatic.com">

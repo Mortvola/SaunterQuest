@@ -99,4 +99,9 @@ export {
     metersToMilesRounded,
     toTimeString,
     toTimeFloat,
+    metersToFeet,
+    metersToMiles,
+    gramsToPoundsAndOunces,
+    formatTime,
+    nvl,
 };

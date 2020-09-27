@@ -44,23 +44,28 @@ function metersToMilesRounded ($meters)
 
 function sendRequest ($request, $socket)
 {
-    $stream = stream_socket_client($socket);
-
-    if ($stream !== false)
+    try
     {
-        $bytesWritten = fwrite ($stream, json_encode ($request) . "\n");
+        $stream = stream_socket_client($socket);
 
-        if ($bytesWritten > 0)
+        if ($stream !== false)
         {
-            $response = stream_get_contents ($stream);
+            $bytesWritten = fwrite ($stream, json_encode ($request) . "\n");
 
-            fclose ($stream);
-
-            if ($response !== false)
+            if ($bytesWritten > 0)
             {
-                return json_decode($response);
+                $response = stream_get_contents ($stream);
+
+                fclose ($stream);
+
+                if ($response !== false)
+                {
+                    return json_decode($response);
+                }
             }
         }
+    } catch (Exception $e) {
+        error_log("Caught exception: " . $e->getMessage() . "\n");
     }
 }
 

@@ -4,6 +4,14 @@ import {
     RECEIVE_HIKES,
     DELETE_HIKE,
     SET_VIEW,
+    SET_MAP,
+    RECEIVE_SCHEDULE,
+    RECEIVE_ROUTE,
+    RECEIVE_ROUTE_UPDATES,
+    RECEIVE_HIKER_PROFILES,
+    UPDATE_HIKER_PROFILE,
+    DELETE_HIKER_PROFILE,
+    ADD_HIKER_PROFILE,
 } from './actionTypes';
 import { VIEW_HIKES } from '../menuEvents';
 
@@ -45,15 +53,106 @@ const hikes = (
 function selections(
     state = {
         view: VIEW_HIKES,
+        params: null,
     },
     action,
 ) {
     switch (action.type) {
-    case SET_VIEW:
+    case SET_VIEW: {
         return {
             ...state,
             view: action.view,
+            params: action.params,
         };
+    }
+
+    default:
+        return state;
+    }
+}
+
+function map(
+    state = {
+        map: null,
+        route: null,
+    },
+    action,
+) {
+    switch (action.type) {
+    case SET_MAP:
+        return {
+            ...state,
+            map: action.map,
+        };
+
+    case RECEIVE_ROUTE:
+        return {
+            ...state,
+            route: action.route,
+        };
+
+    case RECEIVE_ROUTE_UPDATES:
+        state.route.applyUpdates(action.updates);
+
+        return state;
+
+    default:
+        return state;
+    }
+}
+
+function schedule(
+    state = [],
+    action,
+) {
+    switch (action.type) {
+    case RECEIVE_SCHEDULE:
+        return action.schedule;
+    default:
+        return state;
+    }
+}
+
+function hikerProfiles(
+    state = [],
+    action,
+) {
+    switch (action.type) {
+    case RECEIVE_HIKER_PROFILES:
+        return action.profiles;
+
+    case ADD_HIKER_PROFILE:
+        return [
+            ...state,
+            action.profile,
+        ];
+
+    case UPDATE_HIKER_PROFILE: {
+        const index = state.findIndex((p) => p.id === action.profile.id);
+
+        if (index !== -1) {
+            return [
+                ...state.slice(0, index),
+                action.profile,
+                ...state.slice(index + 1),
+            ];
+        }
+
+        return state;
+    }
+
+    case DELETE_HIKER_PROFILE: {
+        const index = state.findIndex((p) => p.id === action.id);
+
+        if (index !== -1) {
+            return [
+                ...state.slice(0, index),
+                ...state.slice(index + 1),
+            ];
+        }
+
+        return state;
+    }
 
     default:
         return state;
@@ -63,6 +162,9 @@ function selections(
 const hikeApp = combineReducers({
     selections,
     hikes,
+    map,
+    schedule,
+    hikerProfiles,
 });
 
 export default hikeApp;

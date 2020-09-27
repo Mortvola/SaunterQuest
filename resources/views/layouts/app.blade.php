@@ -12,7 +12,6 @@
     <!-- Scripts -->
     <script src="{{ asset('js/jquery-3.4.1.min.js') }}"></script>
     <script src="{{ asset('js/bootstrap-4.3.1.bundle.min.js') }}"></script>
-    <script src="{{ asset('js/utilities.js') }}"></script>
     <script src="{{ asset('js/jquery-ui-1.12.1.js') }}"></script>
 
     <!-- Fonts -->
@@ -27,6 +26,9 @@
 <body>
     <script>
         sessionStorage.setItem('username', '{{ Auth::user()->username }}');
+        @if (Auth::user()->admin)
+        sessionStorage.setItem('userAdmin', {{ Auth::user()->admin ? 'true' : 'false' }});
+        @endif
     </script>
 
     <div id="app" class="background-picture">
