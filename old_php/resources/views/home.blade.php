@@ -29,4 +29,6 @@
     </script>
 
     <script src="app.js" />
+    <?php require_once resource_path('js/dragDivider.js'); ?>
+    <?php require_once resource_path('js/editable.js'); ?>
 @endsection

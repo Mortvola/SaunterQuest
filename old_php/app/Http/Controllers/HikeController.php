@@ -29,7 +29,13 @@ class HikeController extends Controller
                 return abort(404);
             }
 
-            return view('hike', ['hikeId' => $hikeId]);
+            $gearConfigId = $hike->gear_configuration_id;
+
+            if (!isset($gearConfigId))
+            {
+                $gearConfigId = -1;
+            }
+            return view('hike', ['hikeId' => $hikeId, 'gearConfigId' => $gearConfigId]);
         }
         else
         {
@@ -76,9 +82,14 @@ class HikeController extends Controller
 
         if ($hike)
         {
-	        if (isset($update->name))
-	        {
+            if (isset($update->name))
+            {
                 $hike->name = $update->name;
+            }
+
+            if (isset($update->gearConfigId))
+            {
+                $hike->gear_configuration_id = $update->gearConfigId;
             }
 
             $hike->save ();

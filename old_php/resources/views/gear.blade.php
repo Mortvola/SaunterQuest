@@ -1,83 +1,442 @@
 @extends('layouts.app')
 
-
 @section('content')
-	<div class="row no-gutters" style="height:100%">
-        <div class="col-md-6" style="overflow-y:scroll;height:100%">
-            <table id="bs-table">
-            </table>
+<style>
+    :root
+    {
+/*         --gear-title-bg-color: #5d4037; */
+/*         --gear-title-color: white; */
+/*         --gear-card-container-bg-color: #b3e5fc; */
+/*         --gear-card-bg-color: gray; */
+/*         --gear-card-color: white; */
+/*         --gear-title-bg-color: #89b555;
+         --gear-inventory-bg-color: #89b555;
+         --gear-title-color: white;
+         --gear-card-container-bg-color: black;
+         --gear-card-bg-color: #adb6bb;
+         --gear-card-color: black;
+         --gear-bg-color: #45525d;
+         --gear-color: white;
+         --gear-card-header-bg-color: #45525d;
+*/
+         --gear-title-color: white;
+         --gear-card-container-bg-color: black;
+
+         --gear-config-title-bg-color: #6c3108;
+         --gear-config-header-bg-color: #c3ac8a;
+         --gear-config-header-color: black;
+         --gear-config-bg-color: #e4dacb;
+
+         --gear-title-bg-color: #4d5461;
+         --gear-card-color: black;
+         --gear-bg-color: #bec0c5;
+         --gaer-color: black;
+    }
+
+    input[type="checkbox"][readonly]
+    {
+      pointer-events: none;
+    }
+
+    .gear-main
+    {
+        display: grid;
+        grid-template-rows: min-content minmax(0px, 1fr);
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-areas:
+            "inventory-title kits-title"
+            "inventory kits"
+            ;
+        width: 100%;
+        height: 100%;
+
+        background-color: var(--gear-card-container-bg-color);
+    }
+
+    .gear-collapse
+    {
+        background-color: var(--gear-card-container-bg-color);
+    }
+
+    .gear-inventory-title
+    {
+        background-color: var(--gear-title-bg-color);
+        color: var(--gear-title-color);
+        grid-area: inventory-title;
+        margin-right: 14px;
+        user-select: none;
+    }
+
+    .gear-config-add
+    {
+        color: var(--gear-title-color);
+    }
+
+    .gear-config-header
+    {
+        padding: 0;
+        background-color: var(--gear-config-header-bg-color);
+
+        display: grid;
+        grid-template-columns: min-content minmax(0, 1fr) 150px 90px 150px 90px min-content;
+        align-items: center;
+    }
+
+    .gear-inventory
+    {
+        grid-area: inventory;
+
+        display: flex;
+        flex-direction: column;
+
+        padding-right: 14px;
+
+        height: 100%;
+        width: 100%;
+        overflow: auto;
+
+        background-color: var(--gear-card-container-bg-color);
+    }
+
+    .gear-kits-title
+    {
+        background-color: var(--gear-config-title-bg-color);
+        color: var(--gear-title-color);
+        grid-area: kits-title;
+        user-select: none;
+    }
+
+    .btn-link
+    {
+        color: var(--gear-config-header-color);
+    }
+
+    .btn-link:hover
+    {
+        color: white;
+    }
+
+    .gear-kits
+    {
+        grid-area: kits;
+        place-self: stretch stretch;
+
+        height: 100%;
+        width: 100%;
+        min-width: 0;
+        overflow: auto;
+
+        background-color: var(--gear-card-container-bg-color);
+    }
+
+    .gear-item
+    {
+        display: grid;
+        grid-template-columns: 14px 14px minmax(0, 1fr) minmax(0, 2fr) min-content minmax(0, 1fr) 100px 50px 75px;
+        grid-gap: 4px;
+        padding-right: 8px;
+
+        background-color: var(--gear-bg-color);
+        color: var(--gear-color);
+    }
+
+    .gear-item input, .gear-item select
+    {
+        background-color: var(--gear-bg-color);
+        color: var(--gear-color);
+    }
+
+    .gear-title
+    {
+        border-bottom-style: solid;
+    }
+
+    .gear-weight
+    {
+        display:grid;
+        grid-template-columns: 1fr min-content;
+        grid-template-rows: min-content minmax(0, 1fr);
+        grid-template-areas:
+            "label label"
+            "input select"
+            ;
+        width: 100%;
+    }
+
+    .uofm-select
+    {
+        display: none;
+    }
+
+    .gear-config-item
+    {
+        display: grid;
+        grid-template-columns: 14px minmax(0, 2fr) minmax(0, 3fr) min-content minmax(0, 1fr)  min-content minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+        grid-gap: 4px;
+        padding-right: 8px;
+
+        background-color: var(--gear-config-bg-color);
+        color: var(--gear-card-color);
+    }
+
+    .gear-config-item input, .gear-config-item select
+    {
+        background-color: var(--gear-config-bg-color);
+        color: var(--gear-card-color);
+    }
+
+    .gear-config-label
+    {
+        display: none;
+    }
+
+    @media screen and (max-width: 800px)
+    {
+        .gear-main
+        {
+            display: grid;
+            grid-template-rows: min-content minmax(0px, 1fr) min-content minmax(0px, 1fr);
+            grid-template-columns: minmax(0, 1fr);
+            grid-template-areas:
+                "kits-title"
+                "kits"
+                "inventory-title"
+                "inventory"
+                ;
+        }
+
+        .gear-inventory-title
+        {
+            margin-right: 0;
+            --drag-divider: true;
+        }
+
+        .gear-inventory
+        {
+            padding-right: 0;
+            overflow-y: scroll;
+        }
+
+        .gear-kits
+        {
+            padding-right: 0;
+            overflow-y: scroll;
+        }
+
+        .gear-item
+        {
+            display: grid;
+            grid-template-columns: 14px repeat(4, minmax(0, 1fr)) min-content;
+            grid-template-rows: repeat(3, minmax(0, 1fr));
+            grid-template-areas:
+                "menu name name name system consumable"
+                ". description description description description description"
+                ". weight . days distance ."
+                ;
+            border: 1px solid rgba(0, 0, 0, 0.125);
+            margin: 2px;
+            border-radius: 8px;
+        }
+
+        .gear-config-item
+        {
+            display: grid;
+            grid-template-columns: 14px repeat(3, minmax(0, 1fr)) min-content min-content;
+            grid-template-rows: repeat(3, minmax(0, 1fr));
+            grid-template-areas:
+                "menu name name system consumable location"
+                ". description description description description description"
+                ". weight quantity totalWeight . ."
+                ;
+            border: 1px solid rgba(0, 0, 0, 0.125);
+            margin: 2px;
+            border-radius: 8px;
+        }
+
+        .drag-handle
+        {
+            grid-area: drag;
+        }
+
+        .gear-menu
+        {
+            grid-area: menu;
+        }
+
+        .gear-name
+        {
+            grid-area: name;
+        }
+
+        .gear-config-label
+        {
+            display: block;
+            font-size: small;
+            align-self: end;
+            margin: 0;
+            border-bottom: black solid thin;
+            width: 100%;
+        }
+
+        .gear-config-description
+        {
+            grid-area: description;
+        }
+
+        .gear-weight-label
+        {
+            grid-area: label;
+        }
+
+        .gear-weight
+        {
+            grid-area: weight;
+        }
+
+        .drag-handle
+        {
+            display: none;
+        }
+
+        .gear-title-bar
+        {
+            display: none;
+            height: 100%;
+        }
+
+        .gear-days
+        {
+            grid-area: days;
+        }
+
+        .gear-distance
+        {
+            grid-area: distance;
+        }
+
+        .gear-config-title-bar
+        {
+            display: none;
+        }
+
+        .gear-config-group
+        {
+            display:grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: min-content minmax(0, 1fr);
+        }
+
+        .gear-config-check-group
+        {
+            display:grid;
+            grid-template-columns: min-content;
+            grid-template-rows: min-content 1fr;
+        }
+
+        .gear-config-quantity
+        {
+            grid-area: quantity;
+        }
+
+        .gear-config-totalWeight
+        {
+            grid-area: totalWeight;
+        }
+
+        .gear-config-system
+        {
+            grid-area: system;
+        }
+
+        .gear-config-location
+        {
+            grid-area: location;
+        }
+
+        .gear-config-consumable
+        {
+            grid-area: consumable
+        }
+    }
+
+    .gear-number
+    {
+        text-align: right;
+    }
+
+    .gear-item div, .gear-config-item div
+    {
+        width: 100%;
+    }
+
+    .gear-item input, .gear-config-item input
+    {
+        border-style:none;
+        padding:2px;
+        width: 100%;
+    }
+
+    .gear-item select, .gear-config-item select
+    {
+        border-style:none;
+    }
+
+    .gear-item input:hover, .gear-config-item input:hover:not([readonly])
+    {
+        border-style:solid;
+        border-width:2px;
+        padding:0;
+    }
+
+    .gear-item input:focus, .gear-config-item input:focus
+    {
+        border-style:solid;
+        border-width:2px;
+        padding:0;
+    }
+
+    .gear-select-item
+    {
+        cursor: default;
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .gear-select-item:hover
+    {
+        background-color: lightblue;
+    }
+
+</style>
+
+	<div class="gear-main">
+        <div class="gear-inventory-title drag-divider" data-div-thing1='gear-kits' data-div-thing2='gear-inventory'>Gear Inventory</div>
+        <div class="gear-inventory" id="gear-inventory">
+            <div class="gear-item gear-title-bar">
+                <div></div>
+                <div></div>
+                <div class="gear-title">Item Name</div>
+                <div class="gear-title">Description</div>
+                <div class="gear-title"><i class="fas fa-utensils"></i></div>
+                <div class="gear-title">System</div>
+                <div class="gear-title gear-number">Weight</div>
+                <div class="gear-title gear-number">Days</div>
+                <div class="gear-title gear-number">Distance</div>
+            </div>
+        </div>
+        <div class="gear-kits-title">Gear Configurations<button class='btn btn-link' data-add="gear-config"><i class='fas fa-plus gear-config-add'></i></button></div>
+        <div class="gear-kits" id="gear-kits">
         </div>
     </div>
 
+    <datalist id="gear-location">
+        <option value="Pack">
+        <option value="Worn">
+    </datalist>
+    <datalist id="gear-system">
     <script>
-    "use strict";
-
-    $('#bs-table').bootstrapTable({
-        cellInputEnabled: true,
-        columns: [{
-          field: 'system',
-          title: 'System',
-          cellInputEnabled: true,
-          cellInputType: 'select',
-          cellInputSelectOptinons: [
-              {text: '', value: '', disabled: true, default: true},
-              {text: 'Sleep', value: 'sleep', disabled: false},
-              {text: 'Cook', value: 'cook', disabled: false},
-              {text: 'Electronics', value: 'electronics', disabled: false},
-              {text: 'Hygiene', value: 'hygiene', disabled: false},
-              {text: 'Navigation', value: 'navigation', disabled: false},
-              {text: 'Pack', value: 'pack', disabled: false},
-              {text: 'Rain', value: 'rain', disabled: false},
-              {text: 'Shelter', value: 'shelter', disabled: false},
-              {text: 'Sleep', value: 'sleep', disabled: false},
-              {text: 'Snow', value: 'snow', disabled: false},
-              {text: 'Sun/Bugs', value: 'sun-bugs', disabled: false},
-              {text: 'Water', value: 'water', disabled: false},
-          ],
-        }, {
-          field: 'description',
-          title: 'Description',
-          cellInputEnabled: true,
-          cellInputType: 'text',
-        }, {
-          field: 'brand',
-          title: 'Brand',
-          cellInputEnabled: true,
-          cellInputType: 'text',
-        }, {
-          field: 'quantity',
-          title: 'Quantity',
-          cellInputEnabled: true,
-          cellInputType: 'text',
-        },{
-          field: 'unit_weight',
-          title: 'Weight',
-          cellInputEnabled: true,
-          cellInputType: 'text',
-        }],
-        data: [{
-          system: 'sleep',
-          description: 'Item 1',
-          brand: 'Zpacks',
-          quantity: 1,
-          unit_weight: 16.5,
-        }, {
-          id: 2,
-          name: 'Item 2',
-          price: '$2'
-        }, {
-            id: 3,
-            name: 'Item 2',
-            price: '$2'
-          }, {
-              id: 4,
-              name: 'Item 2',
-              price: '$2'
-            }, {
-                id: 5,
-                name: 'Item 2',
-                price: '$2'
-              }]
-      })
+    <?php require_once resource_path('js/gear.js'); ?>
+    <?php require_once resource_path('js/dragDivider.js'); ?>
+    <?php require_once resource_path('js/editable.js'); ?>
     </script>
 @endsection
