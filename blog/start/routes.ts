@@ -20,4 +20,11 @@
 
 import Route from '@ioc:Adonis/Core/Route'
 
-Route.on('/').render('welcome')
+Route.get('/', 'HomeController.index');
+
+Route.post('register', 'AuthController.register');
+Route.post('/login', 'AuthController.login');
+
+Route.post('/password/email', 'AuthController.forgotPassword');
+Route.get('/password/reset/:id/:token', 'AuthController.resetPassword');
+Route.post('/password/update', 'AuthController.updatePassword').as('updatePassword');

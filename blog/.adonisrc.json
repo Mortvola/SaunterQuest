@@ -2,7 +2,8 @@
     "typescript": true,
     "commands": [
         "./commands",
-        "@adonisjs/core/build/commands"
+        "@adonisjs/core/build/commands",
+        "@adonisjs/lucid/build/commands"
     ],
     "exceptionHandlerNamespace": "App/Exceptions/Handler",
     "aliases": {
@@ -19,7 +20,11 @@
         "./providers/AppProvider",
         "@adonisjs/core",
         "@adonisjs/session",
-        "@adonisjs/view"
+        "@adonisjs/view",
+        "@adonisjs/shield",
+        "@adonisjs/auth",
+        "@adonisjs/lucid",
+        "@adonisjs/mail"
     ],
     "metaFiles": [
         ".env",

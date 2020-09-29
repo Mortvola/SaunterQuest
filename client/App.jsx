@@ -15,6 +15,7 @@ const mapStateToProps = (state) => ({
 });
 
 const App = ({
+    username,
     view,
 }) => {
     const renderView = () => {
@@ -33,21 +34,24 @@ const App = ({
 
     return (
         <>
-            <Menubar />
+            <Menubar username={username} />
             {renderView()}
         </>
     );
 };
 
 App.propTypes = {
+    username: PropTypes.string.isRequired,
     view: PropTypes.string.isRequired,
 };
 
 const ConnectedApp = connect(mapStateToProps)(App);
+let initialProps = document.querySelector('.app').getAttribute('data-props');
+initialProps = JSON.parse(initialProps);
 
 ReactDOM.render(
     <Provider store={store}>
-        <ConnectedApp />
+        <ConnectedApp {...initialProps} />
     </Provider>,
     document.querySelector('.app'),
 );

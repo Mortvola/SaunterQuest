@@ -19,7 +19,10 @@ import {
 import { useProfileDialog } from './ProfileDialog';
 import { useAccountDialog } from './AccountDialog';
 
-const Menubar = ({ dispatch }) => {
+const Menubar = ({
+    username,
+    dispatch,
+}) => {
     const [ProfileDialog, showProfileDialog] = useProfileDialog();
     const [AccountDialog, showAccountDialog] = useAccountDialog();
 
@@ -67,7 +70,7 @@ const Menubar = ({ dispatch }) => {
                         <Nav.Link eventKey={VIEW_GEAR}>Gear</Nav.Link>
                     </Nav>
                     <Nav className="ml-auto">
-                        <NavDropdown className="dropdown menubar-item" title={sessionStorage.getItem('username')}>
+                        <NavDropdown className="dropdown menubar-item" title={username}>
                             <Nav.Link eventKey={MENU_EVENT_KEY_ACCOUNT}>Account</Nav.Link>
                             <Nav.Link eventKey={MENU_EVENT_KEY_PROFILE}>Profile</Nav.Link>
                             <Nav.Link eventKey={MENU_EVENT_KEY_LOGOUT}>Logout</Nav.Link>
@@ -82,6 +85,7 @@ const Menubar = ({ dispatch }) => {
 };
 
 Menubar.propTypes = {
+    username: PropTypes.string.isRequired,
     dispatch: PropTypes.func.isRequired,
 };
 

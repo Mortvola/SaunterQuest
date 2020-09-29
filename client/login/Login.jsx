@@ -29,8 +29,10 @@ const Login = ({
         setWaiting(true);
         submitForm(null, formRef.current, '/login',
             (responseText) => {
-                setWaiting(false);
-                window.location.assign(responseText);
+                if (responseText) {
+                    setWaiting(false);
+                    window.location.assign(responseText);
+                }
             },
             (err) => {
                 setWaiting(false);
