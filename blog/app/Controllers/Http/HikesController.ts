@@ -15,7 +15,6 @@ export default class HikesController {
             const hike = await Hike.findByOrFail('id', params.hikeId);
 
             if (hike) {
-
                 response.header('content-type', 'application/json');
                 response.send(JSON.stringify({
                     duration: await hike.getDuration(),

@@ -120,14 +120,16 @@ const HikerProfiles = ({
             </thead>
             <tbody id="hikerProfilesTable">
                 {
-                    profiles.map((p) => (
-                        <HikerProfile
-                            key={p.id}
-                            hikeId={hikeId}
-                            profile={p}
-                            dispatch={dispatch}
-                        />
-                    ))
+                    profiles
+                        ? profiles.map((p) => (
+                            <HikerProfile
+                                key={p.id}
+                                hikeId={hikeId}
+                                profile={p}
+                                dispatch={dispatch}
+                            />
+                        ))
+                        : null
                 }
                 <tr id="hikerProfileLastRow">
                     <td>
