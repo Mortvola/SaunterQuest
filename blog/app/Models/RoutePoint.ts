@@ -19,6 +19,9 @@ export default class RoutePoint extends BaseModel {
   @column()
   public lng: number;
 
+  @column()
+  public type: string;
+
   @column({ serializeAs: null })
   public prevLineId: number;
 
