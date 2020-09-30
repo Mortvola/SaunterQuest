@@ -16,6 +16,7 @@ const mapStateToProps = (state) => ({
 
 const App = ({
     username,
+    tileServerUrl,
     view,
 }) => {
     const renderView = () => {
@@ -24,7 +25,7 @@ const App = ({
             return <Hikes />;
 
         case VIEW_HIKE:
-            return <Hike />;
+            return <Hike tileServerUrl={tileServerUrl} />;
 
         case VIEW_GEAR:
         default:
@@ -42,6 +43,7 @@ const App = ({
 
 App.propTypes = {
     username: PropTypes.string.isRequired,
+    tileServerUrl: PropTypes.string.isRequired,
     view: PropTypes.string.isRequired,
 };
 
