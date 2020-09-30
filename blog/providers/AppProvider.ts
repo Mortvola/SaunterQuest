@@ -1,4 +1,9 @@
 import { IocContract } from '@adonisjs/fold'
+import { types } from 'pg';
+
+types.setTypeParser(20, (val) => (
+  parseInt(val)
+));
 
 export default class AppProvider {
   constructor (protected $container: IocContract) {
