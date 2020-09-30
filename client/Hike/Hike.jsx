@@ -17,6 +17,7 @@ const Hike = ({
     hikeId,
     route,
     tileServerUrl,
+    extendedMenu,
     dispatch,
 }) => {
     const [initialized, setInitialized] = useState(false);
@@ -25,7 +26,7 @@ const Hike = ({
         if (!initialized) {
             setInitialized(true);
             setInitialized(true);
-            const map = mapInitialize(hikeId, tileServerUrl);
+            const map = mapInitialize(hikeId, tileServerUrl, extendedMenu);
 
             dispatch(setMap(map));
             dispatch(requestRoute(hikeId, new Route(hikeId, map)));
@@ -49,12 +50,14 @@ Hike.propTypes = {
     hikeId: PropTypes.number,
     route: PropTypes.shape(),
     tileServerUrl: PropTypes.string.isRequired,
+    extendedMenu: PropTypes.bool,
     dispatch: PropTypes.func.isRequired,
 };
 
 Hike.defaultProps = {
     hikeId: null,
     route: null,
+    extendedMenu: false,
 };
 
 export default connect(mapStateToProps)(Hike);

@@ -278,7 +278,7 @@ function whatIsHere(event) {
         });
 }
 
-function mapInitialize(hikeId, tileServerUrl) {
+function mapInitialize(hikeId, tileServerUrl, extendedMenu) {
     window.onkeydown = function (e) {
         controlDown = ((e.keyIdentifier === 'Control') || (e.ctrlKey === true));
     };
@@ -303,7 +303,7 @@ function mapInitialize(hikeId, tileServerUrl) {
 
     mapMenuItems.splice(0, 0, ...waypointMenuItems);
 
-    if (sessionStorage.getItem('userAdmin')) {
+    if (extendedMenu) {
         const adminMenuItems = [
             { separator: true },
             { text: 'Add Point of Interest', callback: showAddPointOfInterest, admin: true },

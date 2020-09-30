@@ -17,6 +17,7 @@ const mapStateToProps = (state) => ({
 const App = ({
     username,
     tileServerUrl,
+    extendedMenu,
     view,
 }) => {
     const renderView = () => {
@@ -25,7 +26,7 @@ const App = ({
             return <Hikes />;
 
         case VIEW_HIKE:
-            return <Hike tileServerUrl={tileServerUrl} />;
+            return <Hike tileServerUrl={tileServerUrl} extendedMenu={extendedMenu} />;
 
         case VIEW_GEAR:
         default:
@@ -44,7 +45,12 @@ const App = ({
 App.propTypes = {
     username: PropTypes.string.isRequired,
     tileServerUrl: PropTypes.string.isRequired,
+    extendedMenu: PropTypes.bool,
     view: PropTypes.string.isRequired,
+};
+
+App.defaultProps = {
+    extendedMenu: false,
 };
 
 const ConnectedApp = connect(mapStateToProps)(App);
