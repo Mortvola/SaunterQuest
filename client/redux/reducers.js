@@ -24,12 +24,17 @@ const hike = (
     action,
 ) => {
     switch (action.type) {
-    case RECEIVE_HIKE_DETAILS:
-        return {
-            ...state,
-            duration: action.details.duration,
-            distance: action.details.distance,
-        };
+    case RECEIVE_HIKE_DETAILS: {
+        if (action.details) {
+            return {
+                ...state,
+                duration: action.details.duration,
+                distance: action.details.distance,
+            };
+        }
+
+        return state;
+    }
 
     default:
         return state;

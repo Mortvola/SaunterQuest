@@ -28,3 +28,7 @@ Route.post('/login', 'AuthController.login');
 Route.post('/password/email', 'AuthController.forgotPassword');
 Route.get('/password/reset/:id/:token', 'AuthController.resetPassword');
 Route.post('/password/update', 'AuthController.updatePassword').as('updatePassword');
+
+Route.get('/hikes', 'HikesController.get');
+Route.get('/hike/:hikeId/details', 'HikesController.getDetails');
+
