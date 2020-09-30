@@ -31,4 +31,5 @@ Route.post('/password/update', 'AuthController.updatePassword').as('updatePasswo
 
 Route.get('/hikes', 'HikesController.get');
 Route.get('/hike/:hikeId/details', 'HikesController.getDetails');
+Route.get('/hike/:hikeId/route', 'RouteController.get');
 

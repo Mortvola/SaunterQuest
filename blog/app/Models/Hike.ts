@@ -5,13 +5,13 @@ export default class Hike extends BaseModel {
   public static table = 'hike';
   
   @column({ isPrimary: true })
-  public id: number
+  public id: number;
 
   @column.dateTime({ autoCreate: true })
-  public createdAt: DateTime
+  public createdAt: DateTime;
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
-  public updatedAt: DateTime
+  public updatedAt: DateTime;
 
   @column()
   public userId: number;
