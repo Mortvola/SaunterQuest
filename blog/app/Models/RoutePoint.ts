@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, column, computed } from '@ioc:Adonis/Lucid/Orm'
 
 export default class RoutePoint extends BaseModel {
   public static table = 'route_point';
@@ -7,10 +7,10 @@ export default class RoutePoint extends BaseModel {
   @column({ isPrimary: true })
   public id: number
 
-  @column.dateTime({ autoCreate: true })
+  @column.dateTime({ autoCreate: true, serializeAs: null })
   public createdAt: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
   public updatedAt: DateTime;
 
   @column()
@@ -18,4 +18,19 @@ export default class RoutePoint extends BaseModel {
 
   @column()
   public lng: number;
+
+  @column({ serializeAs: null })
+  public prevLineId: number;
+
+  @column({ serializeAs: null })
+  public prevFraction: number;
+
+  @column({ serializeAs: null })
+  public nextLineId: number;
+
+  @column({ serializeAs: null })
+  public nextFraction: number;
+
+  @computed()
+  public trail: any;
 }

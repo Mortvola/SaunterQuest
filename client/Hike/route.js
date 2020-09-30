@@ -871,17 +871,17 @@ class Route {
         anchor.actualRouteIndex = route.length - 1;
 
         if (anchor.trail && anchor.trail.length > 0) {
-            if (anchor.lat === anchor.trail[0].point.lat
-                && anchor.lng === anchor.trail[0].point.lng) {
+            if (anchor.lat === anchor.trail[0].lat
+                && anchor.lng === anchor.trail[0].lng) {
                 console.log('same coordinate');
             }
 
             anchor.trail.forEach((t) => {
                 route.push({
-                    lat: t.point.lat,
-                    lng: t.point.lng,
+                    lat: t.lat,
+                    lng: t.lng,
                     dist: t.dist,
-                    ele: t.point.ele,
+                    ele: t.ele,
                 });
             });
         }
@@ -890,9 +890,9 @@ class Route {
     load() {
         this.actualRoute = [];
 
-        for (const w of this.waypoints) {
+        this.waypoints.forEach((w) => {
             w.remove = true;
-        }
+        });
 
         let waypointIndex = 0;
 
