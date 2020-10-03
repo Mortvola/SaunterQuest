@@ -4,11 +4,16 @@
   "private": true,
   "scripts": {
     "build": "node ace build",
-    "start": "node ace serve --watch"
+    "start": "node ace serve --watch",
+    "lint": "eslint . --ext .ts"
   },
   "devDependencies": {
     "@adonisjs/assembler": "^2.1.5",
+    "@typescript-eslint/eslint-plugin": "^4.3.0",
+    "@typescript-eslint/parser": "^4.3.0",
     "adonis-preset-ts": "^1.0.4",
+    "eslint": "^7.10.0",
+    "eslint-import-resolver-alias": "^1.1.2",
     "pino-pretty": "^4.2.1",
     "typescript": "^4.0.3",
     "youch": "^2.0.10",
@@ -26,6 +31,7 @@
     "@adonisjs/view": "^2.0.9",
     "jsonwebtoken": "^8.5.1",
     "luxon": "^1.25.0",
+    "node-fetch": "^2.6.1",
     "pg": "^8.3.3",
     "phc-argon2": "^1.0.10",
     "phc-bcrypt": "^1.0.3",

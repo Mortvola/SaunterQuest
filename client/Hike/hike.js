@@ -329,25 +329,25 @@ function mapInitialize(hikeId, tileServerUrl, extendedMenu) {
     trailMenuItems.splice(0, 0, ...waypointMenuItems);
 
     /*
-	trailContextMenu = new ContextMenu (trailMenuItems);
+        trailContextMenu = new ContextMenu (trailMenuItems);
 
-	pointOfInterestCM = new ContextMenu ([
-		{title:"Edit Point of Interest", func:editPointOfInterest},
-		{title:"Remove Point of Interest", func:removePointOfInterest}]);
+        pointOfInterestCM = new ContextMenu ([
+            {title:"Edit Point of Interest", func:editPointOfInterest},
+            {title:"Remove Point of Interest", func:removePointOfInterest}]);
 
-	resupplyLocationCM = new ContextMenu ([
-		{title:"Resupply from this location", func:resupplyFromLocation},
-		{title:"Edit Resupply Location", func:editResupplyLocation},
-		{title:"Delete Resupply Location", func:deleteResupplyLocation}]);
+        resupplyLocationCM = new ContextMenu ([
+            {title:"Resupply from this location", func:resupplyFromLocation},
+            {title:"Edit Resupply Location", func:editResupplyLocation},
+            {title:"Delete Resupply Location", func:deleteResupplyLocation}]);
     */
 
     /*
-	routeContextMenu = new ContextMenu (routeMenuItems);
+        routeContextMenu = new ContextMenu (routeMenuItems);
 
-	vertexContextMenu = new ContextMenu ([
-		{title:"Delete", func:deleteVertex}]);
+        vertexContextMenu = new ContextMenu ([
+            {title:"Delete", func:deleteVertex}]);
 
-	setContextMenu (map, mapContextMenu);
+        setContextMenu (map, mapContextMenu);
     */
 
     const map = L.map('map',

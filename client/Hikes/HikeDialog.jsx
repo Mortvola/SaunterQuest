@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import PropTypes from 'prop-types';
-import { Modal } from 'react-bootstrap';
+import { Modal, Button } from 'react-bootstrap';
 import { requestHike } from '../redux/actions';
 
 const HikeDialog = ({
@@ -42,14 +42,8 @@ const HikeDialog = ({
                 </form>
             </Modal.Body>
             <Modal.Footer>
-                <button type="button" className="btn" onClick={onHide}>Cancel</button>
-                <button
-                    type="button"
-                    className="btn btn-default"
-                    onClick={insertHike}
-                >
-                    Save
-                </button>
+                <Button variant="secondary" onClick={onHide}>Cancel</Button>
+                <Button variant="primary" onClick={insertHike}>Save</Button>
             </Modal.Footer>
         </Modal>
     );

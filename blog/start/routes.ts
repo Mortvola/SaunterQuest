@@ -18,7 +18,7 @@
 |
 */
 
-import Route from '@ioc:Adonis/Core/Route'
+import Route from '@ioc:Adonis/Core/Route';
 
 Route.get('/', 'HomeController.index');
 
@@ -30,6 +30,11 @@ Route.get('/password/reset/:id/:token', 'AuthController.resetPassword');
 Route.post('/password/update', 'AuthController.updatePassword').as('updatePassword');
 
 Route.get('/hikes', 'HikesController.get');
+Route.post('/hike', 'HikesController.addHike');
 Route.get('/hike/:hikeId/details', 'HikesController.getDetails');
 Route.get('/hike/:hikeId/route', 'RouteController.get');
+Route.post('/hike/:hikeId/route/start-point', 'RouteController.addStartPoint');
+Route.post('/hike/:hikeId/route/end-point', 'RouteController.addEndPoint');
+Route.post('/hike/:hikeId/route/waypoint', 'RouteController.addWaypoint');
 
+Route.put('/hike/:hikeId/route/waypoint/:waypointId/position', 'RouteController.updateWaypointPosition');

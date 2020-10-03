@@ -192,10 +192,9 @@ function* postStartWaypoint(action) {
 }
 
 function* postEndWaypoint(action) {
-    const updates = yield fetch(`/hike/${action.hikeId}/route/endPoint`, {
+    const updates = yield fetch(`/hike/${action.hikeId}/route/end-point`, {
         method: 'POST',
-        headers:
-        {
+        headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
             'Content-type': 'application/json',
         },

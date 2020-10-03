@@ -15,6 +15,7 @@
 
 import Logger from '@ioc:Adonis/Core/Logger'
 import HttpExceptionHandler from '@ioc:Adonis/Core/HttpExceptionHandler'
+import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
 export default class ExceptionHandler extends HttpExceptionHandler {
   protected statusPages = {
@@ -24,5 +25,10 @@ export default class ExceptionHandler extends HttpExceptionHandler {
 
   constructor () {
     super(Logger)
+  }
+
+  public async report (error: Error, ctx: HttpContextContract) {
+    console.log(error.stack);
+    return super.report(error, ctx)
   }
 }

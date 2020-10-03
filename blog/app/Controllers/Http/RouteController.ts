@@ -1,56 +1,59 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Database from '@ioc:Adonis/Lucid/Database';
-import RoutePoint from 'App/Models/RoutePoint';
+import Hike from 'App/Models/Hike';
 
 export default class RouteController {
-    public async get ({ params, response }: HttpContextContract) {
-        let routePoints = await RoutePoint
-            .query()
-            .where('hike_id', params.hikeId)
-            .orderBy('sort_order');
+  public async get ({ params, response }: HttpContextContract) {
+    let hike = await Hike.findOrFail(params.hikeId);
 
-        routePoints = await Promise.all(routePoints.map(async (p, index) => {
-            if (index < routePoints.length - 1) {
-                const n = routePoints[index + 1];
+    let routePoints = await hike.getFullRoute();
 
-                if (p.nextLineId !== n.prevLineId) {
-                    throw(new Error(`Previous and next IDs do not match: ${p.nextLineId}, ${n.prevLineId}`));
-                }
+    response.header('content-type', 'application/json');
+    response.send(JSON.stringify(routePoints));
+  }
 
-                let startFraction = p.nextFraction;
-                let endFraction = n.prevFraction;
-                let wayColumn = 'way';
+  public async addEndPoint ({ request, params, response }: HttpContextContract) {
+    const point = request.post();
 
-                if (startFraction > endFraction) {
-                    startFraction = 1 - startFraction;
-                    endFraction =  1 - endFraction;
-                    wayColumn = 'ST_Reverse(way)';
-                }
+    const updates = await Database.transaction(async (trx) => {
+      const hike = await Hike.findOrFail(params.hikeId);
+      hike.useTransaction(trx);
+      await hike.preload('routePoints', (query) => query.orderBy('sort_order'));
 
-                const line = await Database
-                    .query()
-                    .select(Database.raw(
-                        `ST_AsGeoJSON(ST_Transform(ST_LineSubstring (${wayColumn}, ${startFraction}, ${endFraction}), 4326)) AS linestring`,
-                    ))
-                    .from('planet_osm_line')
-                    .where('line_id', p.nextLineId)
-                    .first();
+      return await hike.addEndpoint(point);
+    });
 
-                if (line) {
-                    const coordinates = JSON.parse(line.linestring).coordinates;
+    response.header('content-type', 'application/json');
+    response.send(JSON.stringify(updates));
+  }
 
-                    p.trail = coordinates.map((c) => (
-                            { lat: c[1], lng: c[0] }
-                        ));
+  public async addWaypoint ({ request, params, response }: HttpContextContract) {
+    const point = request.post();
 
-                    return p;
-                }
-            }
+    const updates = await Database.transaction(async (trx) => {
+      const hike = await Hike.findOrFail(params.hikeId);
+      hike.useTransaction(trx);
+      await hike.preload('routePoints', (query) => query.orderBy('sort_order'));
 
-            return p;
-        }));
+      return await hike.addWaypoint(point);
+    });
 
-        response.header('content-type', 'application/json');
-        response.send(JSON.stringify(routePoints));
-    }
+    response.header('content-type', 'application/json');
+    response.send(JSON.stringify(updates));
+  }
+
+  public async updateWaypointPosition({ request, params, response }: HttpContextContract) {
+    const point = request.post();
+
+    const updates = await Database.transaction(async (trx) => {
+      const hike = await Hike.findOrFail(parseInt(params.hikeId, 10));
+      hike.useTransaction(trx);
+      await hike.preload('routePoints', (query) => query.orderBy('sort_order'));
+
+      return await hike.updateWaypointPosition(parseInt(params.waypointId), point);
+    });
+
+    response.header('content-type', 'application/json');
+    response.send(JSON.stringify(updates));
+  }
 }
