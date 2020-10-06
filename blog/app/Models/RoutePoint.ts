@@ -1,6 +1,8 @@
 import { DateTime } from 'luxon';
-import { BaseModel, column, computed } from '@ioc:Adonis/Lucid/Orm';
+import { BaseModel, beforeFetch, column, computed, ModelQueryBuilderContract } from '@ioc:Adonis/Lucid/Orm';
 import Database from '@ioc:Adonis/Lucid/Database';
+import Point from 'App/Types/Point';
+import Router from 'App/Services/Router';
 
 export default class RoutePoint extends BaseModel {
   public static table = 'route_point';
@@ -19,6 +21,8 @@ export default class RoutePoint extends BaseModel {
 
   @column()
   public lng: number;
+
+  public ele: number = 0;
 
   @column()
   public type: string;
@@ -42,7 +46,18 @@ export default class RoutePoint extends BaseModel {
   public sortOrder: number;
 
   @computed()
-  public trail: Array<object> | null;
+  public trail: Array<Point> | null;
+
+  @computed()
+  public trailLength: number = 0;
+
+  @computed()
+  public distance: number = 0;
+
+  @beforeFetch()
+  public static sortRoutePoints(query: ModelQueryBuilderContract<typeof RoutePoint>) {
+    query.orderBy('sort_order');
+  }
 
   public async loadTrail(this: RoutePoint, endFraction: number) {
     if (this.nextLineId === null || this.nextFraction === null) {
@@ -70,9 +85,18 @@ export default class RoutePoint extends BaseModel {
     if (line) {
       const coordinates = JSON.parse(line.linestring).coordinates;
 
-      this.trail = coordinates.map((c: Array<number>) => (
-          { lat: c[1], lng: c[0] }
-        ));
+      let distance = 0;
+      this.trail = coordinates.map((c: Array<number>, index: number) => {
+        if (index > 0) {
+          distance += Router.haversineGreatCircleDistance(
+            coordinates[index - 1][1], coordinates[index - 1][0],
+            c[1], c[0]);
+        }
+
+        return { lat: c[1], lng: c[0], dist: distance, ele: 0 } as Point;
+      });
+
+      this.trailLength = distance;
     }
   }
 }

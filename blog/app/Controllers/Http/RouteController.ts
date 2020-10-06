@@ -18,7 +18,7 @@ export default class RouteController {
     const updates = await Database.transaction(async (trx) => {
       const hike = await Hike.findOrFail(params.hikeId);
       hike.useTransaction(trx);
-      await hike.preload('routePoints', (query) => query.orderBy('sort_order'));
+      await hike.preload('routePoints');
 
       return await hike.addEndpoint(point);
     });
@@ -33,7 +33,7 @@ export default class RouteController {
     const updates = await Database.transaction(async (trx) => {
       const hike = await Hike.findOrFail(params.hikeId);
       hike.useTransaction(trx);
-      await hike.preload('routePoints', (query) => query.orderBy('sort_order'));
+      await hike.preload('routePoints',);
 
       return await hike.addWaypoint(point);
     });
@@ -48,7 +48,7 @@ export default class RouteController {
     const updates = await Database.transaction(async (trx) => {
       const hike = await Hike.findOrFail(parseInt(params.hikeId, 10));
       hike.useTransaction(trx);
-      await hike.preload('routePoints', (query) => query.orderBy('sort_order'));
+      await hike.preload('routePoints');
 
       return await hike.updateWaypointPosition(parseInt(params.waypointId), point);
     });

@@ -4,7 +4,8 @@
     "dev-welcome-build": "browserify -t [ babelify --presets [ @babel/preset-react @babel/env ] ] client/Welcome.jsx --extension=.jsx > blog/public/welcome.js",
     "dev-app-build": "browserify -t [ babelify --presets [ @babel/preset-react @babel/env ] ] client/App.jsx --extension=.jsx > blog/public/app.js",
     "welcome-build": "NODE_ENV=production browserify -t [ babelify --presets [ @babel/preset-react @babel/env ] ]  -t dotenvify client/Welcome.jsx --extension=.jsx | terser --compress --mangle > blog/public/welcome.js",
-    "app-build": "NODE_ENV=production browserify -t [ babelify --presets [ @babel/preset-react @babel/env ] ]  -t dotenvify client/App.jsx --extension=.jsx | terser --compress --mangle > blog/public/app.js"
+    "app-build": "NODE_ENV=production browserify -t [ babelify --presets [ @babel/preset-react @babel/env ] ]  -t dotenvify client/App.jsx --extension=.jsx | terser --compress --mangle > blog/public/app.js",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@babel/preset-react": "^7.10.4",
@@ -28,15 +29,19 @@
     "redux-logger": "^3.0.6",
     "redux-saga": "^1.1.3",
     "redux-thunk": "^2.3.0",
-    "regenerator-runtime": "^0.13.7"
+    "regenerator-runtime": "^0.13.7",
+    "typescript": "^4.0.3"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.3.0",
+    "@typescript-eslint/parser": "^4.3.0",
     "axios": "^0.19.2",
     "bootstrap": "^4.5.2",
     "cross-env": "^5.1",
     "dotenvify": "^1.0.0",
     "eslint": "^7.4.0",
     "eslint-config-airbnb": "^18.2.0",
+    "eslint-import-resolver-alias": "^1.1.2",
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-jsx-a11y": "^6.3.1",
     "eslint-plugin-react": "^7.20.3",
@@ -50,7 +55,7 @@
     "vue": "^2.6.11",
     "vue-template-compiler": "^2.6.11"
   },
-  "name": "BackpackerPlanner",
+  "name": "saunterquest",
   "version": "1.0.0",
   "main": "webpack.mix.js",
   "directories": {

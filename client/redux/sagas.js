@@ -78,7 +78,12 @@ function* fetchHikeDetails(action) {
 }
 
 function* fetchHike(action) {
-    yield put(setView(VIEW_HIKE, { hikeId: action.id }));
+    try {
+        yield put(setView(VIEW_HIKE, { hikeId: action.id }));
+    }
+    catch(error) {
+        console.log(error);
+    }
 }
 
 function* requestHikeDeletion(action) {
@@ -123,7 +128,8 @@ function* fetchRoute(action) {
 }
 
 function* requestSchedule(action) {
-    const schedule = yield fetch(`/hike/${action.hikeId}/schedule`)
+    try {
+        const schedule = yield fetch(`/hike/${action.hikeId}/schedule`)
         .then(async (response) => {
             if (response.ok) {
                 return response.json();
@@ -132,7 +138,11 @@ function* requestSchedule(action) {
             return null;
         });
 
-    yield put(receiveSchedule(schedule));
+        yield put(receiveSchedule(schedule));
+    }
+    catch (error) {
+        console.log(error);
+    }
 }
 
 function* postWaypoint(action) {
