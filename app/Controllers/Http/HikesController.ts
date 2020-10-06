@@ -2,7 +2,8 @@ import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Hike from 'App/Models/Hike';
 
 export default class HikesController {
-  public async get({ auth, response }: HttpContextContract) {
+  // eslint-disable-next-line class-methods-use-this
+  public async get({ auth, response }: HttpContextContract) : Promise<void> {
     if (auth.user) {
       const hikes = await auth.user.related('hikes').query();
 
@@ -10,7 +11,8 @@ export default class HikesController {
     }
   }
 
-  public async addHike({ auth, request, response }: HttpContextContract) {
+  // eslint-disable-next-line class-methods-use-this
+  public async addHike({ auth, request, response }: HttpContextContract) : Promise<void> {
     if (auth.user) {
       const name = request.input('name');
 
@@ -19,13 +21,14 @@ export default class HikesController {
         name,
       });
 
-      hike.save ();
+      hike.save();
 
       response.send(hike);
     }
   }
 
-  public async getDetails ({ auth, params, response }: HttpContextContract) {
+  // eslint-disable-next-line class-methods-use-this
+  public async getDetails ({ auth, params, response }: HttpContextContract) : Promise<void> {
     if (auth.user) {
       const hike = await Hike.findByOrFail('id', params.hikeId);
 
@@ -38,5 +41,4 @@ export default class HikesController {
       }
     }
   }
-
 }

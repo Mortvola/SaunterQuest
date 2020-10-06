@@ -6,11 +6,10 @@ module.exports = {
     node: true,
   },
   extends: [
+    'airbnb',
     'plugin:react/recommended',
     'plugin:@typescript-eslint/eslint-recommended',
     'plugin:@typescript-eslint/recommended',
-    'plugin:adonis/typescriptApp',
-    'airbnb',
   ],
   globals: {
     Atomics: 'readonly',
@@ -22,10 +21,12 @@ module.exports = {
     },
     ecmaVersion: 2018,
     sourceType: 'module',
+    project: './tsconfig.json',
   },
   plugins: [
     'react',
     '@typescript-eslint',
+    'import',
   ],
   rules: {
     "indent": ["error", 2],
@@ -38,4 +39,9 @@ module.exports = {
     "no-param-reassign": ["error", { "props": false }],
     "jsx-a11y/label-has-associated-control": ["off"],
   },
+  settings: {
+    'import/resolver': {
+      typescript: {}
+    }
+  }
 };

@@ -13,7 +13,9 @@ class Scheduler {
   days: Day[] = [];
 
   user: User | null = null;
+
   trailConditions: any = null;
+
   hikerProfiles: any = null;
 
   public createSchedule(routePoints: RoutePoint[], user: User, profiles: HikerProfile[]) : void {
@@ -61,15 +63,15 @@ class Scheduler {
           if (profile.speedFactor !== undefined) {
             hikerProfile.speedFactor = profile.speedFactor;
           }
-  
+
           if (profile.startTime !== undefined) {
             hikerProfile.startTime = profile.startTime * 60;
           }
-  
+
           if (profile.endTime !== undefined) {
             hikerProfile.endTime = profile.endTime * 60;
           }
-  
+
           if (profile.breakDuration !== undefined) {
             hikerProfile.breakDuration = profile.breakDuration;
           }
@@ -100,15 +102,15 @@ class Scheduler {
     return 0;
   }
 
-  private static segmentLength (point1: Point, point2: Point) {
-      return point2.dist - point1.dist;
+  private static segmentLength(point1: Point, point2: Point) {
+    return point2.dist - point1.dist;
   }
 
   private currentDayIndexGet() {
-      return this.currentDay;
+    return this.currentDay;
   }
 
-  private currentDaySet (day: number) {
+  private currentDaySet(day: number) {
     if (day < this.currentDay) {
       this.days.splice(day + 1);
     }
@@ -120,7 +122,7 @@ class Scheduler {
     this.currentDaySet(this.currentDayIndexGet() - 1);
   }
 
-  private traverseRoute (route: RoutePoint[]) {
+  private traverseRoute(route: RoutePoint[]) {
     if (this.user === null) {
       throw (new Error('User is null'));
     }
@@ -130,6 +132,7 @@ class Scheduler {
     let point: Point | null = null;
     const routeIterator = RouteIterator(route);
 
+    // eslint-disable-next-line no-restricted-syntax
     for (point of routeIterator) {
       if (prevPoint !== null) {
         const segmentLength = Scheduler.segmentLength(prevPoint, point);
@@ -153,11 +156,13 @@ class Scheduler {
           //   $restart = false;
           // }
           // else {
-            let segmentMeters = 0;
-            const lastEle = prevPoint.ele;
+          let segmentMeters = 0;
+          const lastEle = prevPoint.ele;
           // }
 
-          [restart, segmentMeters] = this.traverseSegment(prevPoint, point, segmentMeters, lastEle, null);
+          [restart, segmentMeters] = this.traverseSegment(
+            prevPoint, point, segmentMeters, lastEle, null,
+          );
 
           if (restart) {
             // decrease by one since the for loop will increase it by one
@@ -179,14 +184,14 @@ class Scheduler {
 
     let day = this.currentDayGet();
 
-    const elapsedTime = day.elapsedTimeGet ();
+    const elapsedTime = day.elapsedTimeGet();
 
     // If the day didn't start with an explicit camp and
     // we are within the max time limit to extend the day to
     // reach the end then delete today and
     // add today's elapsed time to the previous day.
     // TODO: This does't take into account any change in hiker profiles
-    const dayExtension = this.user.endHikeDayExtension ();
+    const dayExtension = this.user.endHikeDayExtension();
 
     if (
       dayExtension !== undefined
@@ -195,8 +200,8 @@ class Scheduler {
       && (day.camp === undefined || day.camp === null)
     ) {
       this.currentDayDelete();
-      day = this.currentDayGet ();
-      day.timeAdd (elapsedTime);
+      day = this.currentDayGet();
+      day.timeAdd(elapsedTime);
     }
 
     day.end();
@@ -227,7 +232,7 @@ class Scheduler {
     // Sometimes elevation data is wrong and it may look like one is
     // climbing up an extremely steep cliff.
     if (metersPerHour < 500) {
-        metersPerHour = 500;
+      metersPerHour = 500;
     }
 
     return metersPerHour;
@@ -240,10 +245,11 @@ class Scheduler {
     if (this.trailConditions !== null && this.trailConditions !== undefined) {
       this.trailConditions.forEach((tc) => {
         if ((tc.startSegment.segment < segmentIndex
-          || (tc.startSegment.segment == segmentIndex && tc.startSegment.percentage <= segmentPercentage))
-          && (tc.endSegment.segment > segmentIndex
-            || (tc.endSegment.segment == segmentIndex && tc.endSegment.percentage > segmentPercentage)))
-        {
+          || (tc.startSegment.segment === segmentIndex
+            && tc.startSegment.percentage <= segmentPercentage))
+            && (tc.endSegment.segment > segmentIndex
+            || (tc.endSegment.segment === segmentIndex
+              && tc.endSegment.percentage > segmentPercentage))) {
           // echo "Active trail condition: start segment: ",
           // tc.startSegment->segment, ", end segment: ",
           // tc.endSegment->segment, "\n";
@@ -263,7 +269,7 @@ class Scheduler {
 
     return [
       speedFactor,
-      type
+      type,
     ];
   }
 
@@ -314,7 +320,8 @@ class Scheduler {
     //                 // across all days since the start, or a mix of the
     //                 // two.
 
-    //                 list ($startDay1, $hoursNeeded) = StrategyEndLater(1, $schedule, $hoursNeeded);
+    //                 list ($startDay1, $hoursNeeded)
+    //                    = StrategyEndLater(1, $schedule, $hoursNeeded);
 
     //                 if ($startDay1 == -1)
     //                 {
@@ -323,7 +330,8 @@ class Scheduler {
 
     //                 if ($hoursNeeded > 0)
     //                 {
-    //                     list ($startDay2, $hoursNeeded) = StrategyStartEarlier(1, $schedule, $hoursNeeded);
+    //                     list ($startDay2, $hoursNeeded)
+    //                        = StrategyStartEarlier(1, $schedule, $hoursNeeded);
 
     //                     if ($startDay2 == -1)
     //                     {
@@ -345,8 +353,11 @@ class Scheduler {
     //                 return;
     //             }
 
-    //             this.currentDayGet()->events[] = new Event("arriveBefore", $event->poiId, $event->lat, $event->lng, $segmentMeters, $currentTime,
-    //                 "Arrive Before: " . $arriveBeforeTime . ", arrived at " . $currentTime . ";");
+    //             this.currentDayGet()->events[]
+    //                = new Event("arriveBefore", $event->poiId, $event->lat,
+    //                    $event->lng, $segmentMeters, $currentTime,
+    //                    "Arrive Before: " . $arriveBeforeTime .
+    //                    ", arrived at " . $currentTime . ";");
     //         }
     //         elseif ($event->type == "resupply" && $event->enabled)
     //         {
@@ -368,7 +379,9 @@ class Scheduler {
 
     //             if ($event)
     //             {
-    //                 this.currentDayGet()->events[] = new Event("resupply", $event->poiId, $event->lat, $event->lng, $event->shippingLocationId,
+    //                 this.currentDayGet()->events[]
+    //                    = new Event("resupply", $event->poiId,
+    //                     $event->lat, $event->lng, $event->shippingLocationId,
     //                     $segmentMeters, $currentTime, "");
     //             }
     //         }
@@ -376,7 +389,9 @@ class Scheduler {
     //         {
     //             // todo: error out if a mustStop is in a noCamping area?
 
-    //             this.currentDayGet()->events[] = new Event("stop", $event->poiId, $event->lat, $event->lng, $segmentMeters, $currentTime, "");
+    //             this.currentDayGet()->events[]
+    //                = new Event("stop", $event->poiId, $event->lat,
+    //                  $event->lng, $segmentMeters, $currentTime, "");
 
     //             // todo: Determine what to do here. If we are
     //             // mid-segment then it seems we should just initialize
@@ -462,12 +477,12 @@ class Scheduler {
 
   private applyTimeConstraints(point1: Point, timeConstraints: any) {
     if (timeConstraints !== null && timeConstraints !== undefined && timeConstraints.length > 0) {
-      const camps = timeConstraints.where('type', 'camp').get ();
+      const camps = timeConstraints.where('type', 'camp').get();
 
       camps.some((camp: any) => {
         if (camp.time !== 0) {
           let startTime = null;
-          const startTimes = timeConstraints().where('type', 'startTime').get ();
+          const startTimes = timeConstraints().where('type', 'startTime').get();
 
           if (startTimes && startTimes.length > 0) {
             startTime = startTimes[0].time;
@@ -487,38 +502,41 @@ class Scheduler {
         return false;
       });
 
-      let delays = timeConstraints.where('type', 'delay').get();
+      const delays = timeConstraints.where('type', 'delay').get();
 
       delays.forEach((delay: any) => {
         if (delay.time !== null) {
-            this.currentDayGet().timeAdd(delay.time);
+          this.currentDayGet().timeAdd(delay.time);
         }
       });
     }
   }
 
-  private traverseSegment (
+  private traverseSegment(
     point1: Point,
     point2: Point,
-    segmentMeters: number,
-    lastEle: number,
+    initialSegmentMeters: number,
+    initialEle: number,
     timeConstraints: any | null,
   ): [boolean, number] {
+    let segmentMeters = initialSegmentMeters;
+    let lastEle = initialEle;
     const restart = false;
     const metersPerMinute = Scheduler.metersPerHourGet(
       Scheduler.elevationChange(point1, point2),
       Scheduler.segmentLength(point1, point2),
     ) / 60.0;
-  
+
     // todo: do we need to call this per segment or should the results just be
     // global and only call this
     // when reaching a new trail condition point or if starting the segment
     // mid-segment?
-    let [trailConditionsSpeedFactor] = this.activeTrailConditionsGet(
-      /*it.key()*/ 0, segmentMeters / Scheduler.segmentLength(point1, point2),
+    const [trailConditionsSpeedFactor] = this.activeTrailConditionsGet(
+      /* it.key() */ 0, segmentMeters / Scheduler.segmentLength(point1, point2),
     );
 
-    const currentMetersPerMinute = metersPerMinute * trailConditionsSpeedFactor * (this.activeHikerProfile.speedFactor / 100.0);
+    const currentMetersPerMinute = metersPerMinute * trailConditionsSpeedFactor
+      * (this.activeHikerProfile.speedFactor / 100.0);
     let metersToEndOfSegment = Scheduler.segmentLength(point1, point2) - segmentMeters;
     let minutesToEndOfSegment = metersToEndOfSegment / currentMetersPerMinute;
 
@@ -554,7 +572,10 @@ class Scheduler {
         metersToEndOfSegment -= metersHiked;
         minutesToEndOfSegment -= minutesHiked;
       }
-      else if (currentTime >= 12 * 60 && currentTime < 12 * 60 + this.activeHikerProfile.breakDuration) {
+      else if (
+        currentTime >= 12 * 60 && currentTime
+        < 12 * 60 + this.activeHikerProfile.breakDuration
+      ) {
         // It is after noon but before 1pm
         this.currentDayGet().timeAdd(12 * 60 + this.activeHikerProfile.breakDuration - currentTime);
         currentTime = this.currentDayGet().currentTimeGet();
@@ -564,11 +585,18 @@ class Scheduler {
       // process the events
       // at that point. If not, then camp.
 
-      if (currentTime + minutesToEndOfSegment < this.currentDayGet().endTime!) {
+      const { endTime } = this.currentDayGet();
+      if (endTime === null) {
+        throw (new Error('endTime is null'));
+      }
+
+      if (currentTime + minutesToEndOfSegment < endTime) {
         // There is enough time remaining to hike to the next event...
 
         segmentMeters += metersToEndOfSegment;
-        const remainingSegmentMeters = Math.max(Scheduler.segmentLength(point1, point2) - segmentMeters, 0);
+        const remainingSegmentMeters = Math.max(
+          Scheduler.segmentLength(point1, point2) - segmentMeters, 0,
+        );
 
         this.currentDayGet().timeAdd(minutesToEndOfSegment);
         this.currentDayGet().metersAdd(metersToEndOfSegment);
@@ -592,13 +620,14 @@ class Scheduler {
 
         // if (isset($debug))
         // {
-        //     echo "Continuing segment. Segment Meters = ", $segmentMeters, " Meters Remaining = ", $remainingSegmentMeters, "\n\n";
+        //     echo "Continuing segment. Segment Meters = ", $segmentMeters,
+        //        " Meters Remaining = ", $remainingSegmentMeters, "\n\n";
         // }
       }
       else {
         // Hike the remaining time of the day, if any.
-        if (currentTime < this.currentDayGet().endTime!) {
-          const minutesHiked = this.currentDayGet().endTime! - currentTime;
+        if (currentTime < endTime) {
+          const minutesHiked = endTime - currentTime;
           const metersHiked = minutesHiked * currentMetersPerMinute;
 
           segmentMeters += metersHiked;

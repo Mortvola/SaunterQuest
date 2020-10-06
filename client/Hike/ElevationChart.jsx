@@ -3,54 +3,54 @@ import PropTypes from 'prop-types';
 import Chart from 'react-google-charts';
 
 const ElevationChart = ({
-    route,
+  route,
 }) => {
-    const [elevationData, setElevationData] = useState([]);
+  const [elevationData, setElevationData] = useState([]);
 
-    useEffect(() => {
-        if (route) {
-            const elevations = route.getElevations();
+  useEffect(() => {
+    if (route) {
+      const elevations = route.getElevations();
 
-            if (elevations.data.length > 0) {
-                setElevationData({
-                    ...elevations,
-                    data: [
-                        [{ label: 'Distance', type: 'number' }, { label: 'Elevation', type: 'number' }],
-                        ...elevations.data,
-                    ],
-                });
-            }
-        }
-    }, [route]);
+      if (elevations.data.length > 0) {
+        setElevationData({
+          ...elevations,
+          data: [
+            [{ label: 'Distance', type: 'number' }, { label: 'Elevation', type: 'number' }],
+            ...elevations.data,
+          ],
+        });
+      }
+    }
+  }, [route]);
 
-    return (
-        <div className="ele-grid-item">
-            <Chart
-                chartType="LineChart"
-                width="100%"
-                height="100%"
-                data={elevationData.data}
-                options={{
-                    legend: { position: 'none' },
-                    focusTarget: 'datum',
-                    vAxis: {
-                        viewWindow: {
-                            min: elevationData.min,
-                            max: Math.max(elevationData.max, 10),
-                        },
-                    },
-                }}
-            />
-        </div>
-    );
+  return (
+    <div className="ele-grid-item">
+      <Chart
+        chartType="LineChart"
+        width="100%"
+        height="100%"
+        data={elevationData.data}
+        options={{
+          legend: { position: 'none' },
+          focusTarget: 'datum',
+          vAxis: {
+            viewWindow: {
+              min: elevationData.min,
+              max: Math.max(elevationData.max, 10),
+            },
+          },
+        }}
+      />
+    </div>
+  );
 };
 
 ElevationChart.propTypes = {
-    route: PropTypes.shape(),
+  route: PropTypes.shape(),
 };
 
 ElevationChart.defaultProps = {
-    route: null,
+  route: null,
 };
 
 export default ElevationChart;
