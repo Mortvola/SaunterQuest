@@ -179,23 +179,25 @@ class Scheduler {
 
     let day = this.currentDayGet();
 
-    // const elapsedTime = day.elapsedTimeGet ();
+    const elapsedTime = day.elapsedTimeGet ();
 
     // If the day didn't start with an explicit camp and
     // we are within the max time limit to extend the day to
     // reach the end then delete today and
     // add today's elapsed time to the previous day.
     // TODO: This does't take into account any change in hiker profiles
-    // const dayExtension = this.user.endHikeDayExtension ();
+    const dayExtension = this.user.endHikeDayExtension ();
 
-    // if (
-    //   dayExtension !== undefined && dayExtension !== null
-    //   && elapsedTime <= dayExtension && day.camp === undefined || day.camp == null
-    // ) {
-    //   this.currentDayDelete();
-    //   day = this.currentDayGet ();
-    //   day.timeAdd (elapsedTime);
-    // }
+    if (
+      dayExtension !== undefined
+      && dayExtension !== null
+      && elapsedTime <= dayExtension
+      && (day.camp === undefined || day.camp === null)
+    ) {
+      this.currentDayDelete();
+      day = this.currentDayGet ();
+      day.timeAdd (elapsedTime);
+    }
 
     day.end();
 
