@@ -5,11 +5,13 @@
     "exclude": [
         "node_modules",
         "blog/node_modules",
+        "build",
         "blog/build"
     ],
+    "extends": "./node_modules/adonis-preset-ts/tsconfig",
     "compilerOptions": {
         "outDir": "build",
-        "rootDir": "./blog/",
+        "rootDir": "./",
         "sourceMap": true,
         "baseUrl": "./",
         "paths": {

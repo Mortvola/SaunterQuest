@@ -15,6 +15,7 @@ import {
     ADD_HIKER_PROFILE,
 } from './actionTypes';
 import { VIEW_HIKES } from '../menuEvents';
+import EndOfDayMarker from '../Hike/trailMarker/EndOfDayMarker';
 
 const hike = (
     state = {
@@ -121,6 +122,7 @@ function map(
     state = {
         map: null,
         route: null,
+        dayMarkers: null,
     },
     action,
 ) {
@@ -139,6 +141,24 @@ function map(
 
     case RECEIVE_ROUTE_UPDATES:
         state.route.applyUpdates(action.updates);
+
+        return state;
+
+    case RECEIVE_SCHEDULE:
+        if (state.map) {
+            return {
+                ...state,
+                dayMarkers: action.schedule.map((d, index) => {
+                    const marker = new EndOfDayMarker(
+                        state.map, 'moon_pin.png',
+                    );
+
+                    marker.setDay(index, d);
+
+                    return marker;
+                }),
+            }
+        }
 
         return state;
 
