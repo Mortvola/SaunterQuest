@@ -25,6 +25,12 @@ export default class Day extends BaseModel {
   @column()
   private meters = 0;
 
+  @column()
+  public lat = 0;
+
+  @column()
+  public lng = 0;
+
   @computed()
   private startMeters = 0;
 
@@ -84,7 +90,9 @@ export default class Day extends BaseModel {
       this.endTime = hikerProfile.endTime;
     }
 
-    this.point = point;
+    this.lat = point.lat;
+    this.lng = point.lng;
+    
     this.camp = camp;
 
     this.gain = 0;
