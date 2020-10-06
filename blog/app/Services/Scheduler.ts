@@ -22,11 +22,6 @@ class Scheduler {
     if (routePoints && routePoints.length > 0 && routePoints[0].trail !== null) {
       this.dayStart(routePoints[0].trail[0]);
       this.traverseRoute(routePoints);
-
-      if (isNaN(this.days[0].loss)) {
-        throw (new Error('loss is NaN'));
-      }
-  
     }
   }
 
@@ -90,13 +85,8 @@ class Scheduler {
   }
 
   public dayGet(d: number) : Day {
-    console.log(`DayGet: ${d}`);
     if (this.days[d] === undefined) {
       this.days[d] = new Day();
-      if (isNaN(this.days[d].loss)) {
-        throw (new Error('loss is NaN'));
-      }
-      console.log(`New Day: ${JSON.stringify(this.days[d])}`)
     }
 
     return this.days[d];
@@ -141,15 +131,8 @@ class Scheduler {
     const routeIterator = RouteIterator(route);
 
     for (point of routeIterator) {
-      console.log(`iterate: ${JSON.stringify(point)}, ${JSON.stringify(prevPoint)}`);
-
-      if (isNaN(point.ele)) {
-        throw (new Error('point.ele is NaN'));
-      }
-
       if (prevPoint !== null) {
         const segmentLength = Scheduler.segmentLength(prevPoint, point);
-        console.log(`segmentLength = ${segmentLength}`);
         // if (isset($debug))
         // {
         //     echo "Segment Length = ", segmentLength($prevSegment, $segment), "\n";
@@ -172,10 +155,6 @@ class Scheduler {
           // else {
             let segmentMeters = 0;
             const lastEle = prevPoint.ele;
-
-            if (isNaN(prevPoint.ele)) {
-              throw (new Error('prevPoint.ele is NaN'));
-            }
           // }
 
           [restart, segmentMeters] = this.traverseSegment(prevPoint, point, segmentMeters, lastEle, null);
@@ -510,7 +489,6 @@ class Scheduler {
 
       delays.forEach((delay: any) => {
         if (delay.time !== null) {
-            console.log (`Delaying for ${delay.time} minutes`);
             this.currentDayGet().timeAdd(delay.time);
         }
       });
@@ -530,12 +508,6 @@ class Scheduler {
       Scheduler.segmentLength(point1, point2),
     ) / 60.0;
   
-    console.log(`segmentMeters = ${segmentMeters}`);
-
-    if (isNaN(this.days[0].loss)) {
-      throw (new Error('loss is NaN'));
-    }
-
     // todo: do we need to call this per segment or should the results just be
     // global and only call this
     // when reaching a new trail condition point or if starting the segment
@@ -548,18 +520,10 @@ class Scheduler {
     let metersToEndOfSegment = Scheduler.segmentLength(point1, point2) - segmentMeters;
     let minutesToEndOfSegment = metersToEndOfSegment / currentMetersPerMinute;
 
-    console.log(`metersPerMinute = ${metersPerMinute}`)
-    console.log(`trailConditionsSpeedFactor = ${trailConditionsSpeedFactor}`);
-    console.log(`currentMetersPerMinute = ${currentMetersPerMinute}`);
-
     this.applyTimeConstraints(point1, timeConstraints);
-
-    // throw(new Error('test'));
 
     for (;;) {
       let currentTime = this.currentDayGet().currentTimeGet();
-
-      console.log(`currentTime = ${currentTime}`);
 
       // if (isset($debug))
       // {
@@ -598,8 +562,6 @@ class Scheduler {
       // process the events
       // at that point. If not, then camp.
 
-      console.log(`this.currentDayGet().endTime = ${this.currentDayGet().endTime}`);
-
       if (currentTime + minutesToEndOfSegment < this.currentDayGet().endTime!) {
         // There is enough time remaining to hike to the next event...
 
@@ -610,17 +572,10 @@ class Scheduler {
         this.currentDayGet().metersAdd(metersToEndOfSegment);
         currentTime = this.currentDayGet().currentTimeGet();
 
-        console.log(`currentTime = ${currentTime}`);
-
         // Process any events at this point
         Scheduler.processEvents();
 
         if (remainingSegmentMeters <= 0) {
-
-          if (isNaN(lastEle)) {
-            throw (new Error('lastEle is NaN'));
-          }
-
           const eleDelta = point2.ele - lastEle;
 
           this.currentDayGet().updateGainLoss(eleDelta);
@@ -669,10 +624,6 @@ class Scheduler {
 
         const currentEle = Scheduler.elevationChange(point1, point2) * segmentPercent + point1.ele;
 
-        if (isNaN(currentEle)) {
-          throw (new Error('currentEle is NaN'));
-        }
-
         const eleDelta = currentEle - lastEle;
 
         this.currentDayGet().updateGainLoss(eleDelta);
@@ -686,9 +637,6 @@ class Scheduler {
         const lng = (point2.lng - point1.lng) * segmentPercent + point1.lng;
 
         this.currentDayGet().end();
-        if (isNaN(this.days[0].loss)) {
-          throw (new Error('loss is NaN'));
-        }
 
         this.dayStart({
           lat,
@@ -697,10 +645,6 @@ class Scheduler {
           dist: 0,
         });
 
-        if (isNaN(this.days[0].loss)) {
-          throw (new Error('loss is NaN'));
-        }
-    
         // echo "Day $d, segment meters: " . currentDayGet ()->segmentMeters
         // . "\n";
         // echo "day $d start meters = " . currentDayGet ()->meters . "\n";

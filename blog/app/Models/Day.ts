@@ -112,7 +112,6 @@ export default class Day extends BaseModel {
   }
 
   public end () {
-    console.log(`startTime: ${this.startTime}, elapsedTime: ${this.elapsedTime}`);
     this.endTime = this.startTime! + this.elapsedTime;
   }
 
