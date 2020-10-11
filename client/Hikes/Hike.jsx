@@ -27,14 +27,14 @@ const Hike = ({
 
     return (
         <div
-            className="card bpp-shadow mr-4 mb-4 flex-shrink-0 flex-grow-0"
-            style={{ width: '250px' }}
+          className="card bpp-shadow mr-4 mb-4 flex-shrink-0 flex-grow-0"
+          style={{ width: '250px' }}
         >
             <div className="hike-card-header card-header">
                 <EditableText
-                    defaultValue={hike.name}
-                    url={`hike/${hike.id}`}
-                    prop="name"
+                  defaultValue={hike.name}
+                  url={`hike/${hike.id}`}
+                  prop="name"
                 />
             </div>
             <div className="card-body">
@@ -57,13 +57,13 @@ const Hike = ({
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '14px' }}>
                     <Button
-                        variant="light"
-                        onClick={handleDeleteClick}
+                      variant="light"
+                      onClick={handleDeleteClick}
                     >
                         Delete
                     </Button>
                     <Button
-                        onClick={() => {
+                      onClick={() => {
                             dispatch(requestHike(hike.id));
                         }}
                     >

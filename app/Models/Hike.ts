@@ -1,3 +1,4 @@
+/* eslint-disable brace-style */
 import { DateTime } from 'luxon';
 import {
   BaseModel,
@@ -14,6 +15,7 @@ import Schedule from 'App/Models/Schedule';
 import Scheduler from 'App/Services/Scheduler';
 import User from 'App/Models/User';
 import Router from 'App/Services/Router';
+import Point from 'App/Types/Point';
 
 const MAX_ORDER = 100000;
 
@@ -77,28 +79,29 @@ export default class Hike extends BaseModel {
 
   private async loadAnchorTrail(
     anchorIndex: number,
-  ) {
-    if (anchorIndex < this.routePoints.length - 1) {
-      const routePoint = this.routePoints[anchorIndex];
-      const n = this.routePoints[anchorIndex + 1];
-
-      if (n.prevLineId === null || n.prevFraction === null) {
-        throw (new Error(`prevLineId or prevFraction is null: ${JSON.stringify(routePoint)}, index: ${anchorIndex + 1}`));
-      }
-
-      if (routePoint.nextLineId !== n.prevLineId) {
-        console.trace('test');
-        throw (new Error(`Previous and next IDs do not match: ${routePoint.nextLineId}, ${n.prevLineId}, ${JSON.stringify(routePoint)}, ${JSON.stringify(n)}`));
-      }
-
-      await routePoint.loadTrail(n.prevFraction);
+  ) : Promise<void> {
+    if (anchorIndex >= this.routePoints.length - 1) {
+      throw (new Error(`Index beyond end of routePoints: ${anchorIndex}, ${this.routePoints.length}`));
     }
+
+    const routePoint = this.routePoints[anchorIndex];
+    const n = this.routePoints[anchorIndex + 1];
+
+    if (n.prevLineId === null || n.prevFraction === null) {
+      throw (new Error(`prevLineId or prevFraction is null: ${JSON.stringify(routePoint)}, index: ${anchorIndex + 1}`));
+    }
+
+    if (routePoint.nextLineId !== n.prevLineId) {
+      throw (new Error(`Previous and next IDs do not match: ${routePoint.nextLineId}, ${n.prevLineId}, ${JSON.stringify(routePoint)}, ${JSON.stringify(n)}`));
+    }
+
+    return routePoint.loadTrail(n.prevFraction);
   }
 
   public async getAnchor(anchorIndex: number, includeTrail = true) : Promise<RoutePoint> {
     const routePoint = this.routePoints[anchorIndex];
 
-    if (includeTrail) {
+    if (includeTrail && anchorIndex < this.routePoints.length - 1) {
       await this.loadAnchorTrail(anchorIndex);
     }
 
@@ -107,40 +110,59 @@ export default class Hike extends BaseModel {
 
   public async loadTrails(
     this: Hike,
-    startAnchorIndex: number = 0,
+    startAnchorIndex = 0,
     endAnchorIndex: number = this.routePoints.length - 1,
   ): Promise<void[]> {
-    if (startAnchorIndex === endAnchorIndex) {
-      throw (new Error(`Start and end anchor are the same: ${startAnchorIndex}, ${endAnchorIndex}`));
+    if (this.routePoints.length > 1) {
+      if (startAnchorIndex === endAnchorIndex) {
+        throw (new Error(`Start and end anchor are the same: ${startAnchorIndex}, ${endAnchorIndex}`));
+      }
+
+      const promises: Promise<void>[] = [];
+
+      for (let i = startAnchorIndex; i <= endAnchorIndex - 1; i += 1) {
+        promises.push(this.loadAnchorTrail(i));
+      }
+
+      return Promise.all(promises);
     }
 
-    const promises: Promise<void>[] = [];
-
-    for (let i = startAnchorIndex; i <= endAnchorIndex - 1; i++) {
-      promises.push(this.loadAnchorTrail(i));
-    }
-
-    return Promise.all(promises);
+    return [];
   }
 
-  public async getTrail(this: Hike, startAnchorIndex: number, endAnchorIndex: number): Promise<RoutePoint[]> {
+  public async getTrail(
+    this: Hike,
+    startAnchorIndex: number,
+    endAnchorIndex: number,
+  ): Promise<RoutePoint[]> {
     if (startAnchorIndex === endAnchorIndex) {
       throw (new Error(`Start and end anchor are the same: ${startAnchorIndex}, ${endAnchorIndex}`));
     }
 
-    return Promise.all(this.routePoints.slice(startAnchorIndex, endAnchorIndex + 1).map(async (p, index) => {
-      await this.loadAnchorTrail(index);
-      return p;
-    }));
+    // Load the trails following each anchor
+    const promises: Promise<void>[] = [];
+
+    for (let i = startAnchorIndex; i <= endAnchorIndex; i += 1) {
+      if (i < this.routePoints.length - 1) {
+        promises.push(this.loadAnchorTrail(i));
+      }
+    }
+
+    await Promise.all(promises);
+
+    return this.routePoints.slice(startAnchorIndex, endAnchorIndex + 1);
   }
 
   public async getFullRoute(this: Hike) : Promise<RoutePoint[]> {
     await this.preload('routePoints', (query) => query.orderBy('sort_order'));
 
-    return Promise.all(this.routePoints.map(async (p, index) => {
-      await this.loadAnchorTrail(index);
-      return p;
-    }));
+    return Promise.all(this.routePoints
+      .map(async (p, index) => {
+        if (index < this.routePoints.length - 1) {
+          await this.loadAnchorTrail(index);
+        }
+        return p;
+      }));
   }
 
   private static edgeFractionBetweenAnchors(
@@ -162,7 +184,7 @@ export default class Hike extends BaseModel {
 
   private findNextWaypointIndex(startIndex: number): number | null {
     if (this.routePoints.length >= 2) {
-      for (let i = startIndex + 1; i < this.routePoints.length; i++) {
+      for (let i = startIndex + 1; i < this.routePoints.length; i += 1) {
         if ((this.routePoints[i].type !== null)) {
           return i;
         }
@@ -174,7 +196,7 @@ export default class Hike extends BaseModel {
 
   private findPrevWaypointIndex(startIndex: number): number | null {
     if (this.routePoints.length >= 2) {
-      for (let i = startIndex - 1; i >= 0; i--) {
+      for (let i = startIndex - 1; i >= 0; i -= 1) {
         if (this.routePoints[i].type !== null) {
           return i;
         }
@@ -187,8 +209,8 @@ export default class Hike extends BaseModel {
   public async updateWaypointPosition(
     this: Hike,
     waypointId: number,
-    point: any,
-  ) : Promise<(RoutePoint | null)[][]> {
+    point: Point,
+  ) : Promise<(RoutePoint)[]> {
     let waypointIndex = this.routePoints.findIndex((p: RoutePoint) => p.id === waypointId);
 
     if (waypointIndex === -1) {
@@ -202,6 +224,13 @@ export default class Hike extends BaseModel {
 
     waypoint.lat = trailInfo.point.lat;
     waypoint.lng = trailInfo.point.lng;
+
+    if (
+      waypoint.lat !== this.routePoints[waypointIndex].lat
+      || waypoint.lng !== this.routePoints[waypointIndex].lng
+    ) {
+      throw (new Error('lat/lng did not change'));
+    }
 
     if (waypointIndex !== 0) {
       waypoint.prevLineId = trailInfo.line_id;
@@ -218,7 +247,7 @@ export default class Hike extends BaseModel {
     // If this is the only anchor in the array of anchors then just
     // move the anchor (there is no route finding to worry about).
     if (this.routePoints.length === 1) {
-      return await this.prepareUpdates([[0]]);
+      return this.prepareUpdates([0]);
     }
 
     // Determine if the point is on the route already
@@ -235,7 +264,7 @@ export default class Hike extends BaseModel {
         this.routePoints[waypointIndex + 1],
       )
     ) {
-      return await this.prepareUpdates([[waypointIndex - 1, waypointIndex + 1]]);
+      return this.prepareUpdates([waypointIndex - 1, waypointIndex]);
     }
 
     let prevWaypointIndex = this.findPrevWaypointIndex(waypointIndex);
@@ -243,7 +272,7 @@ export default class Hike extends BaseModel {
 
     if (prevWaypointIndex === null) {
       if (nextWaypointIndex === null) {
-        return await this.prepareUpdates([[waypointIndex]]);
+        return this.prepareUpdates([waypointIndex]);
       }
 
       const nextWaypointId = this.routePoints[nextWaypointIndex].id;
@@ -253,7 +282,7 @@ export default class Hike extends BaseModel {
       waypointIndex = this.routePoints.findIndex((p: RoutePoint) => p.id === waypointId);
       nextWaypointIndex = this.routePoints.findIndex((p: RoutePoint) => p.id === nextWaypointId);
 
-      return await this.prepareUpdates([[waypointIndex, nextWaypointIndex]]);
+      return this.prepareUpdates([waypointIndex, nextWaypointIndex]);
     }
 
     if (nextWaypointIndex === null) {
@@ -264,7 +293,7 @@ export default class Hike extends BaseModel {
       prevWaypointIndex = this.routePoints.findIndex((p: RoutePoint) => p.id === prevAnchorId);
       waypointIndex = this.routePoints.findIndex((p: RoutePoint) => p.id === waypointId);
 
-      return await this.prepareUpdates([[prevWaypointIndex, waypointIndex]]);
+      return this.prepareUpdates([prevWaypointIndex, waypointIndex]);
     }
 
     const prevWaypointId = this.routePoints[prevWaypointIndex].id;
@@ -275,30 +304,40 @@ export default class Hike extends BaseModel {
     prevWaypointIndex = this.routePoints.findIndex((p: RoutePoint) => p.id === prevWaypointId);
     nextWaypointIndex = this.routePoints.findIndex((p: RoutePoint) => p.id === nextWaypointId);
 
-    return await this.prepareUpdates([[prevWaypointIndex, nextWaypointIndex]]);
+    return this.prepareUpdates([prevWaypointIndex, nextWaypointIndex]);
   }
 
   private deleteRoutePoints(index1: number, index2: number) {
-    for (let i = index1; i < index2; i++) {
-      this.routePoints[i].delete();
-    }
+    if (index1 < index2) {
+      for (let i = index1; i < index2; i += 1) {
+        this.routePoints[i].delete();
+      }
 
-    this.routePoints.splice(index1, index2 - index1);
+      this.routePoints.splice(index1, index2 - index1);
+    }
   }
 
-  private static transferRoutePointInfo(dst: RoutePoint, src) {
-    dst.lat = src.point.lat;
-    dst.lng = src.point.lng;
+  private static transferRoutePointInfo(src: any) {
+    let info = {
+      lat: src.point.lat,
+      lng: src.point.lng,
+    };
 
     if (src.prev) {
-      dst.prevLineId = src.prev.line_id;
-      dst.prevFraction = src.prev.fraction;
+      info = Object.assign(info, {
+        prevLineId: src.prev.line_id,
+        prevFraction: src.prev.fraction,
+      });
     }
 
     if (src.next) {
-      dst.nextLineId = src.next.line_id;
-      dst.nextFraction = src.next.fraction;
+      info = Object.assign(info, {
+        nextLineId: src.next.line_id,
+        nextFraction: src.next.fraction,
+      });
     }
+
+    return info;
   }
 
   private async updateSortOrder(this: Hike) {
@@ -315,7 +354,7 @@ export default class Hike extends BaseModel {
   private async getSortOrder(prevAnchorIndex: number, nextAnchorIndex: number) {
     let order = MAX_ORDER / 2;
 
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < 2; i += 1) {
       let prevOrder = 0;
       if (prevAnchorIndex >= 0 && this.routePoints.length !== 0) {
         prevOrder = this.routePoints[prevAnchorIndex].sortOrder;
@@ -334,7 +373,8 @@ export default class Hike extends BaseModel {
 
       if (
         (prevAnchorIndex >= 0 && order === this.routePoints[prevAnchorIndex].sortOrder)
-        || (nextAnchorIndex < this.routePoints.length && order === this.routePoints[nextAnchorIndex].sortOrder)
+        || (nextAnchorIndex < this.routePoints.length
+          && order === this.routePoints[nextAnchorIndex].sortOrder)
       ) {
         await this.updateSortOrder();
       }
@@ -373,27 +413,31 @@ export default class Hike extends BaseModel {
     const newAnchorsArray = await Hike.findPath(anchors);
 
     if (newAnchorsArray) {
-      for (let a = 0; a < anchors.length - 1; a++) {
+      for (let a = 0; a < anchors.length - 1; a += 1) {
         const newAnchors = newAnchorsArray[a];
 
         const anchorIndex1 = this.routePoints.findIndex(
           (p: RoutePoint) => p.id === anchors[a].id,
         );
-        const anchorIndex2 = this.routePoints.findIndex(
+        let anchorIndex2 = this.routePoints.findIndex(
           (p: RoutePoint) => p.id === anchors[a + 1].id,
         );
 
         // Delete 'soft' anchors between the two anchors
         this.deleteRoutePoints(anchorIndex1 + 1, anchorIndex2);
 
-        const anchor1 = this.routePoints[anchorIndex1];
-        Hike.transferRoutePointInfo(anchor1, newAnchors[0]);
+        const anchor1 = Object.assign(
+          this.routePoints[anchorIndex1],
+          Hike.transferRoutePointInfo(newAnchors[0]),
+        );
+        this.routePoints.splice(anchorIndex1, 1, anchor1);
         await this.related('routePoints').save(anchor1);
 
-        for (let i = 1; i < newAnchors.length - 1; i++) {
-          const routePoint = new RoutePoint();
-
-          Hike.transferRoutePointInfo(routePoint, newAnchors[i]);
+        for (let i = 1; i < newAnchors.length - 1; i += 1) {
+          const routePoint = Object.assign(
+            new RoutePoint(),
+            Hike.transferRoutePointInfo(newAnchors[i]),
+          );
 
           routePoint.sortOrder = await this.getSortOrder(anchorIndex1 + i - 1, anchorIndex1 + i);
 
@@ -401,15 +445,19 @@ export default class Hike extends BaseModel {
           await this.related('routePoints').save(routePoint);
         }
 
-        const lastNewAnchor = newAnchors[newAnchors.length - 1];
+        anchorIndex2 = this.routePoints.findIndex(
+          (p: RoutePoint) => p.id === anchors[a + 1].id,
+        );
 
-        const anchor2 = this.routePoints.find((p: RoutePoint) => p.id === anchors[anchors.length - 1].id);
-
-        if (anchor2 === undefined) {
+        if (anchorIndex2 === -1) {
           throw (new Error(`Unable to find route point with id ${anchors[anchors.length - 1].id}`));
         }
 
-        Hike.transferRoutePointInfo(anchor2, lastNewAnchor);
+        const anchor2 = Object.assign(
+          this.routePoints[anchorIndex2],
+          Hike.transferRoutePointInfo(newAnchors[newAnchors.length - 1]),
+        );
+        this.routePoints.splice(anchorIndex2, 1, anchor2);
         await this.related('routePoints').save(anchor2);
       }
     }
@@ -438,7 +486,8 @@ export default class Hike extends BaseModel {
             + `${this.routePoints[index].nextLineId}, `
             + `${this.routePoints[index + 1].prevLineId}`));
         }
-        else if (this.routePoints[index].nextFraction === null || this.routePoints[index].nextLineId === null) {
+        else if (this.routePoints[index].nextFraction === null
+          || this.routePoints[index].nextLineId === null) {
           throw (new Error(`Internal point has null next values: ${JSON.stringify(this.routePoints[index])}`));
         }
       }
@@ -451,53 +500,48 @@ export default class Hike extends BaseModel {
         throw (new Error('Last point has non-null next values: '
           + `${JSON.stringify(this.routePoints[index])}, `
           + `${JSON.stringify(this.routePoints[index].nextFraction)}, `
-          + `${JSON.stringify(this.routePoints[index].nextLineId)}, `,
-        ));
+          + `${JSON.stringify(this.routePoints[index].nextLineId)}, `));
       }
     });
   }
 
   private async prepareUpdates(
     this: Hike,
-    updates: (number[] | [])[],
-  ): Promise<(RoutePoint | null)[][]> {
+    update: number[],
+  ): Promise<RoutePoint[]> {
     this.validateUpdate();
 
-    return Promise.all(updates.map(async (update) => {
-      let routeUpdate: Array<RoutePoint | null> | null = null;
+    let routeUpdate: RoutePoint[];
 
-      if (update.length >= 2) {
-        if (update[0] === -1) {
-          if (update[1] === -1) {
-            routeUpdate = [null, null];
-          }
-          else {
-            routeUpdate = [null, await this.getAnchor(update[1])];
-          }
-        }
-        else if (update[1] === -1) {
-          const anchor = await this.getAnchor(update[0]);
-          anchor.trail = null;
-          routeUpdate = [anchor, null];
+    if (update.length >= 2) {
+      if (update[0] === -1) {
+        if (update[1] === -1) {
+          routeUpdate = [];
         }
         else {
-          return this.getTrail(update[0], update[1]);
+          routeUpdate = [await this.getAnchor(update[1])];
         }
       }
-      else {
+      else if (update[1] === -1) {
         const anchor = await this.getAnchor(update[0]);
         anchor.trail = null;
-
         routeUpdate = [anchor];
       }
+      else {
+        return this.getTrail(update[0], update[1]);
+      }
+    }
+    else {
+      const anchor = await this.getAnchor(update[0]);
+      anchor.trail = null;
 
-      // Make sure the trail in the last element is null
+      routeUpdate = [anchor];
+    }
 
-      return routeUpdate;
-    }));
+    return routeUpdate;
   }
 
-  public async setStart(this: Hike, point: any): Promise<number[][]> {
+  public async setStart(this: Hike, point: Point): Promise<number[]> {
     const anchor = this.routePoints[0];
 
     if (anchor === undefined) {
@@ -525,7 +569,7 @@ export default class Hike extends BaseModel {
 
         nextAnchorIndex = this.routePoints.findIndex((p) => p.id === nextAnchorId);
 
-        return [[0, nextAnchorIndex]];
+        return [0, nextAnchorIndex];
       }
 
       const trailInfo = await Router.getTrailFromPoint(point);
@@ -534,10 +578,10 @@ export default class Hike extends BaseModel {
       this.routePoints[0].lng = trailInfo.point.lng;
     }
 
-    return [[0]];
+    return [0];
   }
 
-  public async setEnd(this: Hike, point: any): Promise<number[][]> {
+  public async setEnd(this: Hike, point: Point): Promise<number[]> {
     const anchor = this.routePoints[this.routePoints.length - 1];
 
     // If there is only one anchor then it must be the start
@@ -549,7 +593,9 @@ export default class Hike extends BaseModel {
       routePoint.lat = point.lat;
       routePoint.lng = point.lng;
 
-      routePoint.sortOrder = await this.getSortOrder(this.routePoints.length - 1, this.routePoints.length);
+      routePoint.sortOrder = await this.getSortOrder(
+        this.routePoints.length - 1, this.routePoints.length,
+      );
 
       this.routePoints.push(routePoint);
       await this.related('routePoints').save(routePoint);
@@ -567,7 +613,7 @@ export default class Hike extends BaseModel {
 
         prevAnchorIndex = this.routePoints.findIndex((p) => p.id === prevAnchorId);
 
-        return [[prevAnchorIndex, this.routePoints.length - 1]];
+        return [prevAnchorIndex, this.routePoints.length - 1];
       }
 
       const trailInfo = await Router.getTrailFromPoint(point);
@@ -576,12 +622,12 @@ export default class Hike extends BaseModel {
       this.routePoints[0].lng = trailInfo.point.lng;
     }
 
-    return [[0]];
+    return [0];
   }
 
-  public async addEndpoint(this: Hike, point: any): Promise<(RoutePoint | null)[][]> {
+  public async addEndpoint(this: Hike, point: Point): Promise<(RoutePoint | null)[]> {
     if (this.routePoints.length === 0) {
-      return await this.prepareUpdates(await this.setStart(point));
+      return this.prepareUpdates(await this.setStart(point));
     }
 
     const routePoint = new RoutePoint();
@@ -599,21 +645,25 @@ export default class Hike extends BaseModel {
       [this.routePoints.length - 2, this.routePoints.length - 1],
     );
 
-    return await this.prepareUpdates([[this.routePoints.length - 2, this.routePoints.length - 1]]);
+    return this.prepareUpdates([this.routePoints.length - 2, this.routePoints.length - 1]);
   }
 
-  private static nearestSegmentFind(lat: number, lng: number, segments: any[]) {
+  private static nearestSegmentFind(lat: number, lng: number, segments: Point[]) {
     let closestIndex = -1;
     let closestDistance = 0;
 
     if (segments.length > 1) {
       let k = 0;
 
-      closestDistance = Router.haversineGreatCircleDistance(lat, lng, segments[k].point.lat, segments[k].point.lng);
+      closestDistance = Router.haversineGreatCircleDistance(
+        lat, lng, segments[k].lat, segments[k].lng,
+      );
       closestIndex = k;
 
-      for (k++; k < segments.length - 1; k++) {
-        const d = Router.haversineGreatCircleDistance(lat, lng, segments[k].point.lat, segments[k].point.lng);
+      for (k += 1; k < segments.length - 1; k += 1) {
+        const d = Router.haversineGreatCircleDistance(
+          lat, lng, segments[k].lat, segments[k].lng,
+        );
 
         if (d < closestDistance) {
           closestDistance = d;
@@ -625,38 +675,40 @@ export default class Hike extends BaseModel {
     return [closestIndex, closestDistance];
   }
 
-  private findNearestWaypoint(point: any) {
+  private findNearestWaypoint(this: Hike, point: Point) {
     let closestDistance: number | null = null;
     let waypointIndex: number | null = null;
     let closestAnchorIndex: number | null = null;
 
-    for (let i = 0; i < this.routePoints.length - 1; i++) {
+    for (let i = 0; i < this.routePoints.length - 1; i += 1) {
       const anchor = this.routePoints[i];
+
+      if (!anchor.trail) {
+        throw (new Error(`trail not loaded for anchor ${anchor.id}`));
+      }
 
       if (anchor.type !== null) {
         waypointIndex = i;
       }
 
-      if (anchor.trail !== null) {
-        const [s, distance] = Hike.nearestSegmentFind(point.lat, point.lng, anchor.trail);
+      const [s, distance] = Hike.nearestSegmentFind(point.lat, point.lng, anchor.trail);
 
-        if (s > -1 && (closestDistance === null || distance < closestDistance)) {
-          closestDistance = distance;
-          closestAnchorIndex = waypointIndex;
-        }
+      if (s > -1 && (closestDistance === null || distance < closestDistance)) {
+        closestDistance = distance;
+        closestAnchorIndex = waypointIndex;
       }
     }
 
     return closestAnchorIndex;
   }
 
-  public async addWaypoint(this: Hike, point: any): Promise<(RoutePoint | null)[][]> {
+  public async addWaypoint(this: Hike, point: Point): Promise<(RoutePoint | null)[]> {
     if (this.routePoints.length === 0) {
-      return await this.prepareUpdates(await this.setStart(point));
+      return this.prepareUpdates(await this.setStart(point));
     }
 
     if (this.routePoints.length === 1) {
-      return await this.prepareUpdates(await this.setEnd(point));
+      return this.prepareUpdates(await this.setEnd(point));
     }
 
     // Determine if the point is on the route already
@@ -666,23 +718,24 @@ export default class Hike extends BaseModel {
     let bestNextAnchorKey: number | null = null;
 
     if (trailInfo !== null) {
-      this.routePoints.some((_, index) => {
-        if (index < this.routePoints.length - 1) {
-          if (Hike.edgeFractionBetweenAnchors(
-            trailInfo.line_id,
-            trailInfo.fraction,
-            this.routePoints[index],
-            this.routePoints[index + 1],
-          )) {
-            bestPrevAnchorKey = index;
-            bestNextAnchorKey = index + 1;
+      this.routePoints
+        .some((_, index) => {
+          if (index < this.routePoints.length - 1) {
+            if (Hike.edgeFractionBetweenAnchors(
+              trailInfo.line_id,
+              trailInfo.fraction,
+              this.routePoints[index],
+              this.routePoints[index + 1],
+            )) {
+              bestPrevAnchorKey = index;
+              bestNextAnchorKey = index + 1;
 
-            return true;
+              return true;
+            }
           }
-        }
 
-        return false;
-      });
+          return false;
+        });
     }
 
     if (bestPrevAnchorKey !== null && bestNextAnchorKey !== null) {
@@ -703,7 +756,7 @@ export default class Hike extends BaseModel {
       this.routePoints.splice(bestPrevAnchorKey + 1, 0, routePoint);
       await this.related('routePoints').save(routePoint);
 
-      return await this.prepareUpdates([[bestPrevAnchorKey, bestNextAnchorKey + 1]]);
+      return this.prepareUpdates([bestPrevAnchorKey, bestNextAnchorKey + 1]);
     }
 
     let prevWaypointIndex = this.findNearestWaypoint(point);
@@ -732,7 +785,7 @@ export default class Hike extends BaseModel {
 
     // Increment the next waypoint index because the insertion of the waypoint
     // into the collection
-    nextWaypointIndex++;
+    nextWaypointIndex += 1;
 
     const prevWaypointId = this.routePoints[prevWaypointIndex].id;
     const nextWaypointId = this.routePoints[nextWaypointIndex].id;
@@ -742,10 +795,13 @@ export default class Hike extends BaseModel {
     prevWaypointIndex = this.routePoints.findIndex((p) => p.id === prevWaypointId);
     nextWaypointIndex = this.routePoints.findIndex((p) => p.id === nextWaypointId);
 
-    return await this.prepareUpdates([[prevWaypointIndex, nextWaypointIndex]]);
+    return this.prepareUpdates([prevWaypointIndex, nextWaypointIndex]);
   }
 
-  public assignDistances (startAnchorIndex: number = 0, endAnchorIndex: number = this.routePoints.length - 1) {
+  public assignDistances(
+    startAnchorIndex = 0,
+    endAnchorIndex: number = this.routePoints.length - 1,
+  ) : void {
     if (this.routePoints === null) {
       throw (new Error('Hike.routePoints is null'));
     }

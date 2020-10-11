@@ -1,5 +1,4 @@
 module.exports = {
-  parser: '@typescript-eslint/parser',
   env: {
     browser: true,
     es6: true,
@@ -8,8 +7,6 @@ module.exports = {
   extends: [
     'airbnb',
     'plugin:react/recommended',
-    'plugin:@typescript-eslint/eslint-recommended',
-    'plugin:@typescript-eslint/recommended',
   ],
   globals: {
     Atomics: 'readonly',
@@ -21,12 +18,9 @@ module.exports = {
     },
     ecmaVersion: 2018,
     sourceType: 'module',
-    project: './tsconfig.json',
   },
   plugins: [
     'react',
-    '@typescript-eslint',
-    'import',
   ],
   rules: {
     "indent": ["error", 2],
@@ -43,5 +37,28 @@ module.exports = {
     'import/resolver': {
       typescript: {}
     }
-  }
+  },
+  overrides: [{
+    files: ["**/*.ts", "**/*.tsx"],
+    extends: [
+      'airbnb',
+      'plugin:react/recommended',
+      'plugin:@typescript-eslint/eslint-recommended',
+      'plugin:@typescript-eslint/recommended',
+    ],
+    parser: "@typescript-eslint/parser",
+    parserOptions: {
+      ecmaFeatures: {
+        jsx: true,
+      },
+      ecmaVersion: 2018,
+      sourceType: 'module',
+      project: './tsconfig.json',
+    },
+    plugins: [
+      'react',
+      '@typescript-eslint',
+      'import',
+    ]
+  }]
 };

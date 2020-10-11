@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../react-leaflet"
+		},
+		{
+			"path": "../pathFinder"
+		}
+	]
+}

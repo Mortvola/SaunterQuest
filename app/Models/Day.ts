@@ -35,17 +35,25 @@ export default class Day extends BaseModel {
   private startMeters = 0;
 
   // in minutes
-  @column({ serializeAs: 'startTime'})
+  @column({ serializeAs: 'startTime' })
   private startTime: number | null = null;
 
   // in minutes from midnight
-  @column({ serializeAs: 'endTime'})
+  @column({ serializeAs: 'endTime' })
   public endTime: number | null = null;
 
   @beforeSave()
   public static async truncateFloats(day: Day) {
     if (day.endTime !== null) {
       day.endTime = Math.trunc(day.endTime);
+    }
+
+    if (day.gain !== null) {
+      day.gain = Math.trunc(day.gain);
+    }
+
+    if (day.loss !== null) {
+      day.loss = Math.trunc(day.loss);
     }
   }
 

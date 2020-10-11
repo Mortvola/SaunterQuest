@@ -1,27 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import Chart from 'react-google-charts';
 
 const ElevationChart = ({
-  route,
+  elevations,
 }) => {
-  const [elevationData, setElevationData] = useState([]);
-
-  useEffect(() => {
-    if (route) {
-      const elevations = route.getElevations();
-
-      if (elevations.data.length > 0) {
-        setElevationData({
-          ...elevations,
-          data: [
-            [{ label: 'Distance', type: 'number' }, { label: 'Elevation', type: 'number' }],
-            ...elevations.data,
-          ],
-        });
-      }
-    }
-  }, [route]);
+  const elevationData = [
+    [{ label: 'Distance', type: 'number' }, { label: 'Elevation', type: 'number' }],
+    ...(elevations || []),
+  ];
 
   return (
     <div className="ele-grid-item">
@@ -29,7 +16,7 @@ const ElevationChart = ({
         chartType="LineChart"
         width="100%"
         height="100%"
-        data={elevationData.data}
+        data={elevationData}
         options={{
           legend: { position: 'none' },
           focusTarget: 'datum',
@@ -46,11 +33,11 @@ const ElevationChart = ({
 };
 
 ElevationChart.propTypes = {
-  route: PropTypes.shape(),
+  elevations: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.number)),
 };
 
 ElevationChart.defaultProps = {
-  route: null,
+  elevations: null,
 };
 
 export default ElevationChart;
