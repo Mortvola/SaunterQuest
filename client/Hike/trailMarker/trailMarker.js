@@ -26,10 +26,15 @@ class TrailMarker {
   }
 
   createIcon(label) {
+    let html = `<img src="${this.iconUrl}">`;
+    if (label) {
+      html = `<div class="trail-marker-label">${label || ''}</div>${html}`;
+    }
+
     return L.divIcon(
       {
         className: 'trail-marker',
-        html: `<div class="trail-marker-label">${label || ''}</div><img src="${this.iconUrl}">`,
+        html,
         iconAnchor: L.point(16, 32),
         popupAnchor: L.point(0, -32),
         tooltipAnchor: L.point(0, -32),

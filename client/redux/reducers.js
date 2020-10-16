@@ -124,6 +124,7 @@ function selections(
 }
 
 const wayPointUrl = 'https://maps.google.com/mapfiles/ms/micons/lightblue.png';
+const dayMarkerUrl = 'moon_pin.png';
 
 function getBounds(route) {
   return route.reduce((accum, anc) => {
@@ -274,22 +275,18 @@ function map(
   }
 
   case RECEIVE_SCHEDULE:
-    if (state.map) {
-      return {
-        ...state,
-        dayMarkers: action.schedule.map((d, index) => {
-          const marker = new EndOfDayMarker(
-            state.map, 'moon_pin.png',
-          );
-
-          marker.setDay(index, d);
-
-          return marker;
-        }),
-      };
-    }
-
-    return state;
+    return {
+      ...state,
+      dayMarkers: action.schedule.map((d, index) => ({
+        id: d.id,
+        day: index,
+        lat: d.lat,
+        lng: d.lng,
+        marker: new TrailMarker(
+          dayMarkerUrl,
+        ),
+      })),
+    };
 
   default:
     return state;

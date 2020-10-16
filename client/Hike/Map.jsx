@@ -7,12 +7,14 @@ import {
 } from 'react-leaflet';
 import Route from './Route';
 import { addStartWaypoint, addWaypoint, addEndWaypoint } from '../redux/actions';
+import DayMarker from './DayMarker';
 
 const Map = ({
   tileServerUrl,
   hikeId,
   route,
   bounds,
+  dayMarkers,
   dispatch,
 }) => {
   const terrainLayer = useRef(null);
@@ -59,6 +61,13 @@ const Map = ({
         ref={detailLayer}
       />
       <Route hikeId={hikeId} route={route} bounds={bounds} dispatch={dispatch} />
+      {
+        dayMarkers
+          ? dayMarkers.map((d) => (
+            <DayMarker key={d.id} day={d} />
+          ))
+          : null
+      }
     </>
   );
 };
@@ -68,12 +77,14 @@ Map.propTypes = {
   hikeId: PropTypes.number.isRequired,
   route: PropTypes.arrayOf(PropTypes.shape()),
   bounds: PropTypes.shape(),
+  dayMarkers: PropTypes.arrayOf(PropTypes.shape()),
   dispatch: PropTypes.func.isRequired,
 };
 
 Map.defaultProps = {
   route: null,
   bounds: null,
+  dayMarkers: null,
 };
 
 const MyMapContainer = ({
@@ -81,6 +92,7 @@ const MyMapContainer = ({
   hikeId,
   route,
   bounds,
+  dayMarkers,
   dispatch,
 }) => (
   <MapContainer
@@ -94,6 +106,7 @@ const MyMapContainer = ({
       hikeId={hikeId}
       route={route}
       bounds={bounds}
+      dayMarkers={dayMarkers}
       dispatch={dispatch}
     />
   </MapContainer>
@@ -104,12 +117,14 @@ MyMapContainer.propTypes = {
   hikeId: PropTypes.number.isRequired,
   route: PropTypes.arrayOf(PropTypes.shape()),
   bounds: PropTypes.shape(),
+  dayMarkers: PropTypes.arrayOf(PropTypes.shape()),
   dispatch: PropTypes.func.isRequired,
 };
 
 MyMapContainer.defaultProps = {
   route: null,
   bounds: null,
+  dayMarkers: null,
 };
 
 export default MyMapContainer;
