@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon';
-import { BaseModel, column } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, column, beforeSave } from '@ioc:Adonis/Lucid/Orm'
 
 export default class HikerProfile extends BaseModel {
   public static table = 'hiker_profile';
@@ -17,23 +17,45 @@ export default class HikerProfile extends BaseModel {
   public hikeId: number;
 
   @column({ serializeAs: 'startDay' })
-  public startDay: number;
+  public startDay: number | null;
 
   @column({ serializeAs: 'endDay' })
-  public endDay: number;
+  public endDay: number | null;
 
   @column({ serializeAs: 'speedFactor' })
-  public speedFactor: number;
+  public speedFactor: number | null;
 
   @column({ serializeAs: 'startTime' })
-  public startTime: number;
+  public startTime: number | null;
 
   @column({ serializeAs: 'endTime' })
-  public endTime: number;
+  public endTime: number | null;
 
   @column({ serializeAs: 'breakDuration' })
-  public breakDuration: number;
+  public breakDuration: number | null;
 
   @column({ serializeAs: 'endDayExtension' })
-  public endDayExtension: number;
+  public endDayExtension: number | null;
+
+  @beforeSave()
+  public static async translateToNull(profile: HikerProfile): Promise<void> {
+    profile.convertStringToNull('startDay');
+    profile.convertStringToNull('endDay');
+    profile.convertStringToNull('speedFactor');
+    profile.convertStringToNull('startTime');
+    profile.convertStringToNull('endTime');
+    profile.convertStringToNull('breakDuration');
+    profile.convertStringToNull('endDayExtension');
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private convertStringToNull(key: string): void {
+    if (this.$dirty[key] !== undefined) {
+      this[key] = (
+        Number.isNaN(this[key]) || typeof this[key] !== 'number'
+          ? null
+          : this[key]
+      );
+    }
+  }
 }

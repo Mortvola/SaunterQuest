@@ -50,4 +50,11 @@ export default class HikerProfilesController {
 
     response.send(hikerProfile.serialize());
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async deleteProfile({ params }: HttpContextContract) : Promise<void> {
+    const hikerProfile = await HikerProfile.findOrFail(params.profileId);
+
+    hikerProfile.delete();
+  }
 }
