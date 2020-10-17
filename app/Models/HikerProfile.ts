@@ -16,21 +16,24 @@ export default class HikerProfile extends BaseModel {
   @column({ serializeAs: null })
   public hikeId: number;
 
-  @column()
+  @column({ serializeAs: 'startDay' })
   public startDay: number;
 
-  @column()
+  @column({ serializeAs: 'endDay' })
   public endDay: number;
 
-  @column()
+  @column({ serializeAs: 'speedFactor' })
   public speedFactor: number;
 
-  @column()
+  @column({ serializeAs: 'startTime' })
   public startTime: number;
 
-  @column()
+  @column({ serializeAs: 'endTime' })
   public endTime: number;
 
-  @column()
+  @column({ serializeAs: 'breakDuration' })
   public breakDuration: number;
+
+  @column({ serializeAs: 'endDayExtension' })
+  public endDayExtension: number;
 }

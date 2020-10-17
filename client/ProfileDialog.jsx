@@ -46,29 +46,39 @@ const ProfileDialog = ({
             <h4 id="modalTitle" className="modal-title">Profile</h4>
           </Modal.Header>
           <Modal.Body>
-            <label>Pace Factor (%):</label>
-            <Field type="number" className="form-control" name="paceFactor" />
-            <br />
+            <div className="two-column">
+              <label>
+                Pace Factor (%):
+                <Field type="number" className="form-control" name="paceFactor" />
+              </label>
+              <br />
 
-            <label>Start Time:</label>
-            <Field type="time" className="form-control" name="startTime" />
-            <br />
+              <label>
+                Daily Start Time:
+                <Field type="time" className="form-control" name="startTime" />
+              </label>
 
-            <label>End Time:</label>
-            <Field type="time" className="form-control" name="endTime" />
-            <br />
+              <label>
+                Daily End Time:
+                <Field type="time" className="form-control" name="endTime" />
+              </label>
 
-            <label>Break Duration (minutes):</label>
-            <Field type="number" className="form-control" name="breakDuration" />
-            <br />
+              <label>
+                Daily Break Duration (minutes):
+                <Field type="number" className="form-control" name="breakDuration" />
+              </label>
+              <br />
 
-            <label>End of Day Extension (minutes)</label>
-            <Field type="number" className="form-control" name="endDayExtension" />
-            <br />
+              <label>
+                End of Day Extension (minutes)
+                <Field type="number" className="form-control" name="endDayExtension" />
+              </label>
 
-            <label>End of Hike Extension (minutes)</label>
-            <Field type="number" className="form-control" name="endHikeDayExtension" />
-            <br />
+              <label>
+                End of Hike Extension (minutes)
+                <Field type="number" className="form-control" name="endHikeDayExtension" />
+              </label>
+            </div>
           </Modal.Body>
           <Modal.Footer>
             <button type="button" className="btn" onClick={onHide}>Cancel</button>

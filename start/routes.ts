@@ -45,6 +45,8 @@ Route.delete('/hike/:hikeId/route/waypoint/:waypointId', 'RouteController.delete
 
 Route.put('/hike/:hikeId/route/waypoint/:waypointId/position', 'RouteController.updateWaypointPosition');
 
-Route.get('/hike/:hikeId/hikerProfile', 'HikerProfilesController.get');
+Route.get('/hike/:hikeId/hiker-profile', 'HikerProfilesController.get');
+Route.post('/hike/:hikeId/hiker-profile', 'HikerProfilesController.addProfile');
+Route.put('/hike/:hikeId/hiker-profile/:profileId', 'HikerProfilesController.updateProfile');
 
 Route.get('/hike/:hikeId/schedule', 'SchedulesController.get');

@@ -31,7 +31,7 @@ const HikerProfileDialog = ({
   };
 
   const handleSubmit = async (vals) => {
-    let url = `/hike/${hikeId}/hikerProfile`;
+    let url = `/hike/${hikeId}/hiker-profile`;
     let method = 'POST';
     const { id, ...v2 } = vals;
     if (id !== undefined && id !== null) {
@@ -96,37 +96,44 @@ const HikerProfileDialog = ({
             <h4 id="modalTitle" className="modal-title">Profile</h4>
           </Modal.Header>
           <Modal.Body>
-            <label>Start Day:</label>
-            <Field type="number" className="form-control" name="startDay" />
-            <br />
+            <div className="two-column">
+              <label>
+                Start Day:
+                <Field type="number" className="form-control" name="startDay" />
+              </label>
 
-            <label>End Day:</label>
-            <Field type="number" className="form-control" name="endDay" />
-            <br />
+              <label>
+                End Day:
+                <Field type="number" className="form-control" name="endDay" />
+              </label>
 
-            <label>Pace Factor (%):</label>
-            <Field type="number" className="form-control" name="speedFactor" />
-            <br />
+              <label>
+                Pace Factor (%):
+                <Field type="number" className="form-control" name="speedFactor" />
+              </label>
+              <br />
 
-            <label>Start Time:</label>
-            <Field type="time" className="form-control" name="startTime" />
-            <br />
+              <label>
+                Daily Start Time:
+                <Field type="time" className="form-control" name="startTime" />
+              </label>
 
-            <label>End Time:</label>
-            <Field type="time" className="form-control" name="endTime" />
-            <br />
+              <label>
+                Daily End Time:
+                <Field type="time" className="form-control" name="endTime" />
+              </label>
 
-            <label>Break Duration (minutes):</label>
-            <Field type="number" className="form-control" name="breakDuration" />
-            <br />
+              <label>
+                Daily Break Duration (minutes):
+                <Field type="number" className="form-control" name="breakDuration" />
+              </label>
+              <br />
 
-            <label>End of Day Extension (minutes)</label>
-            <Field type="number" className="form-control" name="endDayExtension" />
-            <br />
-
-            <label>End of Hike Extension (minutes)</label>
-            <Field type="number" className="form-control" name="endHikeDayExtension" />
-            <br />
+              <label>
+                End of Day Extension (minutes)
+                <Field type="number" className="form-control" name="endDayExtension" />
+              </label>
+            </div>
           </Modal.Body>
           <Modal.Footer>
             <button type="button" className="btn" onClick={onHide}>Cancel</button>

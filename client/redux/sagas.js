@@ -232,7 +232,7 @@ function* postEndWaypoint(action) {
 }
 
 function* fetchHikerProfiles(action) {
-  const profiles = yield fetch(`/hike/${action.hikeId}/hikerProfile`)
+  const profiles = yield fetch(`/hike/${action.hikeId}/hiker-profile`)
     .then(async (response) => {
       if (response.ok) {
         return response.json();
@@ -245,7 +245,7 @@ function* fetchHikerProfiles(action) {
 }
 
 function* requestHikerProfileDeletion(action) {
-  const deleted = yield fetch(`/hike/${action.hikeId}/hikerProfile/${action.id}`, {
+  const deleted = yield fetch(`/hike/${action.hikeId}/hiker-profile/${action.id}`, {
     method: 'DELETE',
     headers: {
       'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),

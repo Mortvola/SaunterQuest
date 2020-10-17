@@ -232,3 +232,56 @@ div.hike-card-header
     color: lightgray;
     margin-left: 0.5rem;
 }
+
+.two-column {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-gap: 1rem;
+}
+
+.hiker-profile {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    grid-gap: 0.1rem;
+    padding: 0 1rem 1rem 1rem;
+}
+
+.hiker-profile div {
+    text-align: right;
+}
+
+.hiker-profile-header {
+    display: flex;
+    justify-content: end;
+}
+
+.icon-button {
+	padding: .25rem .25rem;
+	display: inline-grid;
+	align-items: center;
+}
+
+.icon-button i {
+	color: rgba(0,0,0,0.4);
+	font-size: smaller;
+}
+
+.icon-button.invert i {
+	color: rgba(255,255,255,0.6);
+	font-size: smaller;
+}
+
+.icon-button:hover i {
+    color: black;
+    cursor: pointer;
+}
+
+.icon-button:hover {
+	background-color: lightgray;
+    cursor: pointer;
+}
+
+.icon-button.i {
+	font-size:smaller;
+	color: inherit;
+}

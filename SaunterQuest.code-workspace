@@ -8,6 +8,9 @@
 		},
 		{
 			"path": "../pathFinder"
+		},
+		{
+			"path": "../tileServer"
 		}
 	]
 }
