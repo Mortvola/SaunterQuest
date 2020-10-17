@@ -56,7 +56,7 @@ export default class AuthController {
     return `${user.password}-${user.createdAt.toMillis()}`;
   }
 
-  static generateToken(user: User) : any {
+  static generateToken(user: User) : unknown {
     const expiresIn = parseInt(Env.get('PASSWORD_RESET_TOKEN_EXPIRATION') as string, 10) * 60;
     return jwt.sign({ id: user.id }, AuthController.generateSecret(user), { expiresIn });
   }
@@ -85,18 +85,20 @@ export default class AuthController {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  public async resetPassword({ params, view }: HttpContextContract) : Promise<unknown> {
+  public async resetPassword({ params, view }: HttpContextContract) : Promise<(string | void)> {
     const user = await User.find(params.id);
 
     if (user) {
       const payload = jwt.verify(params.token, AuthController.generateSecret(user));
 
-      if (payload.id === params.id) {
+      if (payload.id === parseInt(params.id, 10)) {
         return view.render('reset-password', { user, token: params.token });
       }
 
-      Logger.error(`Invalid payload in token for user ${user.username}`);
+      Logger.error(`Invalid payload "${payload.id}" in token for user ${user.username}`);
     }
+
+    return undefined;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -104,7 +106,7 @@ export default class AuthController {
     request,
     response,
     view,
-  }: HttpContextContract) : Promise<(unknown | void)> {
+  }: HttpContextContract) : Promise<(string | void)> {
     const email = request.input('email');
     const password = request.input('password');
     const passwordConfirmation = request.input('passwordConfirmation');
@@ -137,5 +139,7 @@ export default class AuthController {
     await user.save();
 
     response.redirect('/');
+
+    return undefined;
   }
 }
