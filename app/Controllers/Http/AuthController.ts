@@ -47,6 +47,11 @@ export default class AuthController {
     response.send(JSON.stringify('/'));
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  public async logout({ auth }: HttpContextContract) : Promise<void> {
+    auth.logout();
+  }
+
   static generateSecret(user: User) : string {
     return `${user.password}-${user.createdAt.toMillis()}`;
   }

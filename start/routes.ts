@@ -24,6 +24,7 @@ Route.get('/', 'HomeController.index');
 
 Route.post('register', 'AuthController.register');
 Route.post('/login', 'AuthController.login');
+Route.post('/logout', 'AuthController.logout');
 
 Route.get('/user/profile', 'UsersController.getProfile');
 Route.put('/user/profile', 'UsersController.putProfile');
