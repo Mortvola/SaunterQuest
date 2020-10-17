@@ -17,6 +17,7 @@ import {
   RECEIVE_ANCHOR_UPDATE,
   RECEIVE_ANCHOR,
   SHOW_LOCATION_POPUP,
+  REQUEST_HIKE,
 } from './actionTypes';
 import { VIEW_HIKES } from '../menuEvents';
 import TrailMarker from '../Hike/trailMarker/trailMarker';
@@ -232,6 +233,14 @@ function map(
   );
 
   switch (action.type) {
+  case REQUEST_HIKE:
+    return {
+      map: null,
+      route: null,
+      dayMarkers: null,
+      locationPopup: null,
+    };
+
   case SET_MAP:
     return {
       ...state,
@@ -305,8 +314,12 @@ function schedule(
   action,
 ) {
   switch (action.type) {
+  case REQUEST_HIKE:
+    return [];
+
   case RECEIVE_SCHEDULE:
     return action.schedule;
+
   default:
     return state;
   }
@@ -317,6 +330,9 @@ function hikerProfiles(
   action,
 ) {
   switch (action.type) {
+  case REQUEST_HIKE:
+    return [];
+
   case RECEIVE_HIKER_PROFILES:
     return action.profiles;
 

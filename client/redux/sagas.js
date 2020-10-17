@@ -308,56 +308,20 @@ function* deleteWaypoint(action) {
   }
 }
 
-function* watchHikesRequests() {
-  yield takeEvery(REQUEST_HIKES, fetchHikes);
-}
-
-function* watchHikeRequests() {
-  yield takeEvery(REQUEST_HIKE, fetchHike);
-}
-
-function* watchHikeDeleteionRequest() {
-  yield takeEvery(REQUEST_HIKE_DELETION, requestHikeDeletion);
-}
-
-function* watchRouteUpdated() {
-  yield takeEvery(ROUTE_UPDATED, requestSchedule);
-}
-
-function* watchAddWaypoint() {
-  yield takeEvery(ADD_WAYPOINT, postWaypoint);
-}
-
-function* watchAddStartWaypoint() {
-  yield takeEvery(ADD_START_WAYPOINT, postStartWaypoint);
-}
-
-function* watchAddEndWaypoint() {
-  yield takeEvery(ADD_END_WAYPOINT, postEndWaypoint);
-}
-
-function* watchHikerProfilesRequest() {
-  yield takeEvery(REQUEST_HIKER_PROFILES, fetchHikerProfiles);
-}
-
-function* watchHikerProfileDeletionRequest() {
-  yield takeEvery(REQUEST_HIKER_PROFILE_DELETION, requestHikerProfileDeletion);
-}
-
 export default function* rootSaga() {
   yield all([
-    watchHikesRequests(),
-    watchHikeRequests(),
+    yield takeEvery(REQUEST_HIKES, fetchHikes),
+    yield takeEvery(REQUEST_HIKE, fetchHike),
     yield takeEvery(REQUEST_HIKE_DETAILS, fetchHikeDetails),
-    watchHikeDeleteionRequest(),
+    yield takeEvery(REQUEST_HIKE_DELETION, requestHikeDeletion),
     yield takeEvery(REQUEST_ROUTE, fetchRoute),
-    watchRouteUpdated(),
-    watchAddWaypoint(),
-    watchAddStartWaypoint(),
-    watchAddEndWaypoint(),
+    yield takeEvery(ROUTE_UPDATED, requestSchedule),
+    yield takeEvery(ADD_WAYPOINT, postWaypoint),
+    yield takeEvery(ADD_START_WAYPOINT, postStartWaypoint),
+    yield takeEvery(ADD_END_WAYPOINT, postEndWaypoint),
     yield takeEvery(MOVE_WAYPOINT, moveWaypoint),
     yield takeEvery(DELETE_WAYPOINT, deleteWaypoint),
-    watchHikerProfilesRequest(),
-    watchHikerProfileDeletionRequest(),
+    yield takeEvery(REQUEST_HIKER_PROFILES, fetchHikerProfiles),
+    yield takeEvery(REQUEST_HIKER_PROFILE_DELETION, requestHikerProfileDeletion),
   ]);
 }
