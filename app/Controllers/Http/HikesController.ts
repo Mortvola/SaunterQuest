@@ -28,7 +28,7 @@ export default class HikesController {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  public async getDetails ({ auth, params, response }: HttpContextContract) : Promise<void> {
+  public async getDetails({ auth, params, response }: HttpContextContract) : Promise<void> {
     if (auth.user) {
       const hike = await Hike.findByOrFail('id', params.hikeId);
 
@@ -38,6 +38,24 @@ export default class HikesController {
           duration: await hike.getDuration(),
           distance: await hike.getDistance(),
         }));
+      }
+    }
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async update({
+    auth,
+    params,
+    request,
+  }: HttpContextContract) : Promise<void> {
+    if (auth.user) {
+      const hike = await Hike.findByOrFail('id', params.hikeId);
+
+      if (hike) {
+        const update = request.post();
+
+        hike.name = update.name;
+        hike.save();
       }
     }
   }
