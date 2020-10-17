@@ -5,16 +5,10 @@ import 'regenerator-runtime/runtime';
 import Login from './login/Login';
 import Register from './login/Register';
 
-const Welcome = ({
-    authed,
-}) => {
+const Welcome = () => {
     const [showLogin, setShowLogin] = useState(false);
     const [showRegister, setShowRegister] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
-
-    const handleHomeClick = () => {
-        window.location.replace('/home');
-    };
 
     const handleLoginClick = () => {
         setShowLogin(true);
@@ -48,17 +42,8 @@ const Welcome = ({
     return (
         <div className={className}>
             <div className="top-right links" style={{ backgroundColor: 'rgba(0, 0, 0, 0.65)' }}>
-                {
-                    authed ? (
-                        <div className="welcome-button" onClick={handleHomeClick}>Home</div>
-                    )
-                        : (
-                            <>
-                                <div className="welcome-button" onClick={handleLoginClick}>Login</div>
-                                <div className="welcome-button" onClick={handleRegisterClick}>Register</div>
-                            </>
-                        )
-                }
+                <div className="welcome-button" onClick={handleLoginClick}>Login</div>
+                <div className="welcome-button" onClick={handleRegisterClick}>Register</div>
             </div>
             <div className="content">
                 <div className="titles">
@@ -87,11 +72,9 @@ const Welcome = ({
 };
 
 Welcome.propTypes = {
-    authed: PropTypes.bool.isRequired,
 };
 
-const data = document.querySelector('.app').getAttribute('data');
 ReactDOM.render(
-    <Welcome authed={data !== '0'} />,
+    <Welcome />,
     document.querySelector('.app'),
 );

@@ -11,8 +11,10 @@ function submitForm(event, form, url, success, fail) {
     })
         .then(async (response) => {
             if (response.ok) {
-                const json = await response.json();
-                success(json);
+                if (response.headers.get('Content-Type') === 'application/json') {
+                    const json = await response.json();
+                    success(json);
+                }
             }
             else if (fail) {
                 if (response.status === 422) {
