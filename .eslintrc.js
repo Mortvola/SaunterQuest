@@ -23,10 +23,7 @@ module.exports = {
     'react',
   ],
   rules: {
-    "indent": ["error", 2],
     "brace-style": ["error", "stroustrup"],
-    "react/jsx-indent-props": ["error", 2],
-    "react/jsx-indent": ["error", 2],
     "react/jsx-props-no-spreading": ["off"],
     "jsx-a11y/click-events-have-key-events": ["off"],
     "jsx-a11y/no-static-element-interactions": ["off"],
@@ -59,6 +56,10 @@ module.exports = {
       'react',
       '@typescript-eslint',
       'import',
-    ]
+    ],
+    rules: {
+      "brace-style": ["error", "stroustrup"],
+      "no-param-reassign": ["error", { "props": false }],
+    }
   }]
 };
