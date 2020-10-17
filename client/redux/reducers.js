@@ -16,9 +16,9 @@ import {
   RECEIVE_ANCHOR_UPDATES,
   RECEIVE_ANCHOR_UPDATE,
   RECEIVE_ANCHOR,
+  SHOW_LOCATION_POPUP,
 } from './actionTypes';
 import { VIEW_HIKES } from '../menuEvents';
-import EndOfDayMarker from '../Hike/trailMarker/EndOfDayMarker';
 import TrailMarker from '../Hike/trailMarker/trailMarker';
 import { metersToMiles, metersToFeet } from '../utilities';
 
@@ -191,6 +191,7 @@ function map(
     map: null,
     route: null,
     dayMarkers: null,
+    locationPopup: null,
   },
   action,
 ) {
@@ -277,15 +278,21 @@ function map(
   case RECEIVE_SCHEDULE:
     return {
       ...state,
-      dayMarkers: action.schedule.map((d, index) => ({
+      dayMarkers: action.schedule.filter((d, index) => index > 0).map((d, index) => ({
         id: d.id,
-        day: index,
+        day: index + 1,
         lat: d.lat,
         lng: d.lng,
         marker: new TrailMarker(
           dayMarkerUrl,
         ),
       })),
+    };
+
+  case SHOW_LOCATION_POPUP:
+    return {
+      ...state,
+      locationPopup: action.latlng || null,
     };
 
   default:

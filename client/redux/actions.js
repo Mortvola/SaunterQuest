@@ -17,6 +17,7 @@ import {
   ADD_START_WAYPOINT,
   ADD_END_WAYPOINT,
   MOVE_WAYPOINT,
+  DELETE_WAYPOINT,
   RECEIVE_ANCHOR_UPDATES,
   REQUEST_HIKER_PROFILES,
   RECEIVE_HIKER_PROFILES,
@@ -24,6 +25,7 @@ import {
   UPDATE_HIKER_PROFILE,
   REQUEST_HIKER_PROFILE_DELETION,
   DELETE_HIKER_PROFILE,
+  SHOW_LOCATION_POPUP,
 } from './actionTypes';
 
 const requestHike = (id) => ({
@@ -122,6 +124,12 @@ const moveWaypoint = (hikeId, waypoint, point) => ({
   point,
 });
 
+const deleteWaypoint = (hikeId, id) => ({
+  type: DELETE_WAYPOINT,
+  hikeId,
+  id,
+});
+
 const receiveWaypointUpdates = (updates) => ({
   type: RECEIVE_ANCHOR_UPDATES,
   updates,
@@ -158,6 +166,11 @@ const addHikerProfile = (profile) => ({
   profile,
 });
 
+const showLocationPopup = (latlng) => ({
+  type: SHOW_LOCATION_POPUP,
+  latlng,
+});
+
 export {
   setView,
   requestHikes,
@@ -177,6 +190,7 @@ export {
   addStartWaypoint,
   addEndWaypoint,
   moveWaypoint,
+  deleteWaypoint,
   receiveWaypointUpdates,
   requestHikerProfiles,
   receiveHikerProfiles,
@@ -184,4 +198,5 @@ export {
   updateHikerProfile,
   requestHikerProfileDeletion,
   deleteHikerProfile,
+  showLocationPopup,
 };

@@ -74,4 +74,18 @@ export default class RouteController {
     response.header('content-type', 'application/json');
     response.send(JSON.stringify(updates));
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async deleteWaypoint({ params, response }: HttpContextContract): Promise<void> {
+    const updates = await Database.transaction(async (trx) => {
+      const hike = await Hike.findOrFail(parseInt(params.hikeId, 10));
+      hike.useTransaction(trx);
+      await hike.preload('routePoints');
+
+      return hike.deleteWaypoint(parseInt(params.waypointId, 10));
+    });
+
+    response.header('content-type', 'application/json');
+    response.send(JSON.stringify(updates));
+  }
 }

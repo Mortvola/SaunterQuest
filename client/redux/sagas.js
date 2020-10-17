@@ -14,6 +14,7 @@ import {
   MOVE_WAYPOINT,
   REQUEST_HIKER_PROFILES,
   REQUEST_HIKER_PROFILE_DELETION,
+  DELETE_WAYPOINT,
 } from './actionTypes';
 import {
   VIEW_HIKE,
@@ -152,11 +153,10 @@ function* fetchRoute(action) {
 function* postWaypoint(action) {
   const updates = yield fetch(`/hike/${action.hikeId}/route/waypoint`, {
     method: 'POST',
-    headers:
-        {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-          'Content-type': 'application/json',
-        },
+    headers: {
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+      'Content-type': 'application/json',
+    },
     body: JSON.stringify({ lat: action.position.lat, lng: action.position.lng }),
   })
     .then(async (response) => {
@@ -180,11 +180,10 @@ function* postWaypoint(action) {
 function* postStartWaypoint(action) {
   const updates = yield fetch(`/hike/${action.hikeId}/route/startPoint`, {
     method: 'POST',
-    headers:
-        {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-          'Content-type': 'application/json',
-        },
+    headers: {
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+      'Content-type': 'application/json',
+    },
     body: JSON.stringify({ lat: action.position.lat, lng: action.position.lng }),
   })
     .then(async (response) => {
@@ -248,10 +247,9 @@ function* fetchHikerProfiles(action) {
 function* requestHikerProfileDeletion(action) {
   const deleted = yield fetch(`/hike/${action.hikeId}/hikerProfile/${action.id}`, {
     method: 'DELETE',
-    headers:
-        {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-        },
+    headers: {
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+    },
   })
     .then(async (response) => {
       if (response.ok) {
@@ -271,12 +269,31 @@ function* requestHikerProfileDeletion(action) {
 function* moveWaypoint(action) {
   const updates = yield fetch(`/hike/${action.hikeId}/route/waypoint/${action.waypoint.id}/position`, {
     method: 'PUT',
-    headers:
-          {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Content-type': 'application/json',
-          },
+    headers: {
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+      'Content-type': 'application/json',
+    },
     body: JSON.stringify({ ...action.point }),
+  })
+    .then((response) => {
+      if (response.ok) {
+        return response.json();
+      }
+
+      return null;
+    });
+
+  if (updates) {
+    yield put(receiveWaypointUpdates(updates));
+  }
+}
+
+function* deleteWaypoint(action) {
+  const updates = yield fetch(`/hike/${action.hikeId}/route/waypoint/${action.id}`, {
+    method: 'DELETE',
+    headers: {
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+    },
   })
     .then((response) => {
       if (response.ok) {
@@ -339,6 +356,7 @@ export default function* rootSaga() {
     watchAddStartWaypoint(),
     watchAddEndWaypoint(),
     yield takeEvery(MOVE_WAYPOINT, moveWaypoint),
+    yield takeEvery(DELETE_WAYPOINT, deleteWaypoint),
     watchHikerProfilesRequest(),
     watchHikerProfileDeletionRequest(),
   ]);

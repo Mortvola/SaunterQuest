@@ -210,7 +210,7 @@ export default class Hike extends BaseModel {
     this: Hike,
     waypointId: number,
     point: Point,
-  ) : Promise<(RoutePoint)[]> {
+  ) : Promise<RoutePoint[]> {
     let waypointIndex = this.routePoints.findIndex((p: RoutePoint) => p.id === waypointId);
 
     if (waypointIndex === -1) {
@@ -814,5 +814,84 @@ export default class Hike extends BaseModel {
 
       this.routePoints[a].distance = distance;
     }
+  }
+
+  private findPrevAnchorIndex(startIndex: number): number {
+    if (this.routePoints.length >= 2) {
+      for (let i = startIndex - 1; i >= 0; i -= 1) {
+        if (this.routePoints[i].type !== null) {
+          return i;
+        }
+      }
+    }
+
+    return -1;
+  }
+
+  private findNextAnchorIndex(startIndex: number): number {
+    if (this.routePoints.length >= 2) {
+      for (let i = startIndex + 1; i < this.routePoints.length; i += 1) {
+        if (this.routePoints[i].type !== null) {
+          return i;
+        }
+      }
+    }
+
+    return -1;
+  }
+
+  public deleteWaypoint(waypointId: number): Promise<RoutePoint[]> {
+    const waypointIndex = this.routePoints.findIndex((p: RoutePoint) => p.id === waypointId);
+
+    if (waypointIndex === -1) {
+      throw (new Error(`Index for waypoint not found ${waypointId}`));
+    }
+
+    let prevAnchorIndex = this.findPrevAnchorIndex(waypointIndex);
+    let nextAnchorIndex = this.findNextAnchorIndex(waypointIndex);
+
+    // Delete the anchor
+    this.routePoints[waypointIndex].delete();
+    this.routePoints.splice(waypointIndex, 1);
+
+    if (prevAnchorIndex === -1) {
+      if (nextAnchorIndex === -1) {
+        return this.prepareUpdates([-1, -1]);
+      }
+
+      nextAnchorIndex -= 1;
+
+      // Delete any "soft" anchors before the next anchor.
+      for (let i = 0; i < nextAnchorIndex; i += 1) {
+        this.routePoints[i].delete();
+      }
+
+      this.routePoints.splice(0, nextAnchorIndex);
+
+      return this.prepareUpdates([-1, 0]);
+    }
+
+    if (nextAnchorIndex === -1) {
+      // Delete any "soft" anchors after this anchor.
+      for (let i = prevAnchorIndex + 1; i < this.routePoints.length; i += 1) {
+        this.routePoints[i].delete();
+      }
+
+      this.routePoints.splice(prevAnchorIndex + 1);
+
+      return this.prepareUpdates([prevAnchorIndex, -1]);
+    }
+
+    nextAnchorIndex -= 1;
+
+    const prevAnchorId = this.routePoints[prevAnchorIndex].id;
+    const nextAnchorId = this.routePoints[nextAnchorIndex].id;
+
+    this.findRouteBetweenWaypoints([prevAnchorIndex, nextAnchorIndex]);
+
+    prevAnchorIndex = this.routePoints.findIndex((p: RoutePoint) => p.id === prevAnchorId);
+    nextAnchorIndex = this.routePoints.findIndex((p: RoutePoint) => p.id === nextAnchorId);
+
+    return this.prepareUpdates([prevAnchorIndex, nextAnchorIndex]);
   }
 }

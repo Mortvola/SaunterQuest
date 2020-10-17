@@ -11,6 +11,7 @@ const mapStateToProps = (state) => ({
   route: state.map.route,
   bounds: state.map.bounds,
   dayMarkers: state.map.dayMarkers,
+  locationPopup: state.map.locationPopup,
   elevations: state.map.elevations,
 });
 
@@ -21,6 +22,7 @@ const Hike = ({
   elevations,
   tileServerUrl,
   dayMarkers,
+  locationPopup,
   extendedMenu,
   dispatch,
 }) => {
@@ -42,6 +44,7 @@ const Hike = ({
           route={route}
           bounds={bounds}
           dayMarkers={dayMarkers}
+          locationPopup={locationPopup}
           dispatch={dispatch}
         />
         <ElevationChart elevations={elevations} />
@@ -58,6 +61,7 @@ Hike.propTypes = {
   route: PropTypes.arrayOf(PropTypes.shape()),
   bounds: PropTypes.shape(),
   dayMarkers: PropTypes.arrayOf(PropTypes.shape()),
+  locationPopup: PropTypes.shape(),
   elevations: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.number)),
   tileServerUrl: PropTypes.string.isRequired,
   extendedMenu: PropTypes.bool,
@@ -69,6 +73,7 @@ Hike.defaultProps = {
   route: null,
   bounds: null,
   dayMarkers: null,
+  locationPopup: null,
   elevations: null,
   extendedMenu: false,
 };

@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Marker } from 'react-leaflet';
-import { moveWaypoint } from '../redux/actions';
+import { moveWaypoint, deleteWaypoint } from '../redux/actions';
 
 const Waypoint = ({
   hikeId,
@@ -13,6 +13,10 @@ const Waypoint = ({
     dispatch(moveWaypoint(hikeId, waypoint, markerRef.current.getLatLng()));
   };
 
+  const handleDelete = () => {
+    dispatch(deleteWaypoint(hikeId, waypoint.id));
+  };
+
   return (
     <Marker
       ref={markerRef}
@@ -22,6 +26,15 @@ const Waypoint = ({
       eventHandlers={{
         dragend: handleDragEnd,
       }}
+      contextmenu="true"
+      contextmenuItems={[{
+        text: 'Delete',
+        index: 0,
+        callback: handleDelete,
+      }, {
+        separator: true,
+        index: 1,
+      }]}
     />
   );
 };

@@ -4,10 +4,15 @@ import {
   MapContainer,
   TileLayer,
   useMapEvents,
+  useMap,
+  Popup,
 } from 'react-leaflet';
 import Route from './Route';
-import { addStartWaypoint, addWaypoint, addEndWaypoint } from '../redux/actions';
+import {
+  addStartWaypoint, addWaypoint, addEndWaypoint, showLocationPopup,
+} from '../redux/actions';
 import DayMarker from './DayMarker';
+import { useGotoLocationDialog } from './GotoLocationDialog';
 
 const Map = ({
   tileServerUrl,
@@ -15,10 +20,13 @@ const Map = ({
   route,
   bounds,
   dayMarkers,
+  locationPopup,
   dispatch,
 }) => {
+  const map = useMap();
   const terrainLayer = useRef(null);
   const detailLayer = useRef(null);
+  const [GotoLocationDialog, showGotoLocationDialog] = useGotoLocationDialog();
 
   const openContextMenu = (event) => {
     const mapMenuItems = [
@@ -26,7 +34,7 @@ const Map = ({
       { text: 'Insert Waypoint', callback: ({ latlng }) => dispatch(addWaypoint(hikeId, latlng)) },
       { text: 'Append Waypoint', callback: ({ latlng }) => dispatch(addEndWaypoint(hikeId, latlng)) },
       { separator: true },
-      { text: 'Go to Location...', callback: null }, // gotoLocation },
+      { text: 'Go to Location...', callback: showGotoLocationDialog },
     ];
 
     event.target.contextmenu.removeAllItems();
@@ -46,6 +54,10 @@ const Map = ({
     contextmenu: openContextMenu,
     click: closeContextMenu,
   });
+
+  const handleLocationPopupClose = () => {
+    dispatch(showLocationPopup(null));
+  };
 
   return (
     <>
@@ -68,6 +80,16 @@ const Map = ({
           ))
           : null
       }
+      <GotoLocationDialog map={map} dispatch={dispatch} />
+      {
+        locationPopup
+          ? (
+            <Popup onClose={handleLocationPopupClose} position={locationPopup}>
+              { `${locationPopup.lat}, ${locationPopup.lng}`}
+            </Popup>
+          )
+          : null
+      }
     </>
   );
 };
@@ -79,12 +101,14 @@ Map.propTypes = {
   bounds: PropTypes.shape(),
   dayMarkers: PropTypes.arrayOf(PropTypes.shape()),
   dispatch: PropTypes.func.isRequired,
+  locationPopup: PropTypes.shape(),
 };
 
 Map.defaultProps = {
   route: null,
   bounds: null,
   dayMarkers: null,
+  locationPopup: null,
 };
 
 const MyMapContainer = ({
@@ -93,6 +117,7 @@ const MyMapContainer = ({
   route,
   bounds,
   dayMarkers,
+  locationPopup,
   dispatch,
 }) => (
   <MapContainer
@@ -107,6 +132,7 @@ const MyMapContainer = ({
       route={route}
       bounds={bounds}
       dayMarkers={dayMarkers}
+      locationPopup={locationPopup}
       dispatch={dispatch}
     />
   </MapContainer>
@@ -118,6 +144,7 @@ MyMapContainer.propTypes = {
   route: PropTypes.arrayOf(PropTypes.shape()),
   bounds: PropTypes.shape(),
   dayMarkers: PropTypes.arrayOf(PropTypes.shape()),
+  locationPopup: PropTypes.shape(),
   dispatch: PropTypes.func.isRequired,
 };
 
@@ -125,6 +152,7 @@ MyMapContainer.defaultProps = {
   route: null,
   bounds: null,
   dayMarkers: null,
+  locationPopup: null,
 };
 
 export default MyMapContainer;

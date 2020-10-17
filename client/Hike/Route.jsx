@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Polyline, useMap } from 'react-leaflet';
 import Waypoint from './Waypoint';
@@ -49,21 +49,23 @@ const Route = ({
   dispatch,
 }) => {
   const map = useMap();
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    if (bounds) {
+    if (bounds && !initialized) {
       try {
         map.fitBounds(bounds);
         const z = map.getZoom();
         if (z > 13) {
           map.setZoom(13);
         }
+        setInitialized(true);
       }
       catch (error) {
         console.log(error);
       }
     }
-  });
+  }, [bounds, initialized]);
 
   if (route) {
     return (

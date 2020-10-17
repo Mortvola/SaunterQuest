@@ -5,11 +5,7 @@ import { Marker, Popup } from 'react-leaflet';
 const DayMarker = ({
   day,
 }) => {
-  let text = `End of day ${day.day}`;
-
-  if (day.day === 0) {
-    text = 'Start of day 1';
-  }
+  const text = `End of day ${day.day}`;
 
   return (
     <Marker
