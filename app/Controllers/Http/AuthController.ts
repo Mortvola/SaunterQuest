@@ -80,7 +80,7 @@ export default class AuthController {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  public async resetPassword({ params, view }: HttpContextContract) : Promise<any> {
+  public async resetPassword({ params, view }: HttpContextContract) : Promise<unknown> {
     const user = await User.find(params.id);
 
     if (user) {
@@ -95,7 +95,11 @@ export default class AuthController {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  public async updatePassword({ request, response, view }: HttpContextContract) : Promise<any> {
+  public async updatePassword({
+    request,
+    response,
+    view,
+  }: HttpContextContract) : Promise<(unknown | void)> {
     const email = request.input('email');
     const password = request.input('password');
     const passwordConfirmation = request.input('passwordConfirmation');

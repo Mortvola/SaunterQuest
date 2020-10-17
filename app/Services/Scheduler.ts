@@ -191,7 +191,7 @@ class Scheduler {
     // reach the end then delete today and
     // add today's elapsed time to the previous day.
     // TODO: This does't take into account any change in hiker profiles
-    const dayExtension = this.user.endHikeDayExtension();
+    const dayExtension = this.user.endHikeDayExtension;
 
     if (
       dayExtension !== undefined

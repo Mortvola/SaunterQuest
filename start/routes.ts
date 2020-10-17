@@ -25,6 +25,9 @@ Route.get('/', 'HomeController.index');
 Route.post('register', 'AuthController.register');
 Route.post('/login', 'AuthController.login');
 
+Route.get('/user/profile', 'UsersController.getProfile');
+Route.put('/user/profile', 'UsersController.putProfile');
+
 Route.post('/password/email', 'AuthController.forgotPassword');
 Route.get('/password/reset/:id/:token', 'AuthController.resetPassword');
 Route.post('/password/update', 'AuthController.updatePassword').as('updatePassword');

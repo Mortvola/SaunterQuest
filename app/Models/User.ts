@@ -33,29 +33,31 @@ export default class User extends BaseModel {
   @column()
   public admin: boolean;
 
-  @column()
+  @column({ serializeAs: 'paceFactor' })
   public paceFactor: number;
 
-  @column()
+  @column({ serializeAs: 'startTime' })
   public startTime: number;
 
-  @column()
+  @column({ serializeAs: 'endTime' })
   public endTime: number;
 
-  @column()
+  @column({ serializeAs: 'breakDuration' })
   public breakDuration: number;
+
+  @column({ serializeAs: 'endDayExtension' })
+  public endDayExtension: number;
+
+  @column({ serializeAs: 'endHikeDayExtension' })
+  public endHikeDayExtension: number;
 
   @beforeSave()
   public static async hashPassword (user: User) {
     if (user.$dirty.password) {
-      user.password = await Hash.make(user.password)
+      user.password = await Hash.make(user.password);
     }
   }
 
   @hasMany(() => Hike)
   public hikes: HasMany<typeof Hike>
-
-  public endHikeDayExtension() {
-    return 0;
-  }
 }
