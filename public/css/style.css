@@ -161,6 +161,14 @@ div.hike-card-header
 .controls-grid-item .tab-content {
     height: 100%;
     background-color: #fbfbfb;
+    overflow-y: auto;
+    width: 100%;
+    height: 100%;
+}
+
+.tab-content > div {
+    height: 100%;
+    overflow-y: auto;
 }
 
 .hike-grid {
@@ -284,4 +292,14 @@ div.hike-card-header
 .icon-button.i {
 	font-size:smaller;
 	color: inherit;
+}
+
+.profiles {
+    display: grid;
+    height: 100%;
+    grid-template-rows: max-content minmax(0, 1fr);
+}
+
+.profile-list {
+    overflow-y: auto;
 }

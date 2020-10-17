@@ -26,8 +26,12 @@ const HikerProfiles = ({
   }, [profiles]);
 
   return (
-    <div>
+    <div className="profiles">
       <div>
+        Add Profile
+        <IconButton icon="plus" onClick={showHikerProfileDialog} />
+      </div>
+      <div className="profile-list">
         {
           profiles
             ? profiles.map((p) => (
@@ -40,7 +44,6 @@ const HikerProfiles = ({
             ))
             : null
         }
-        <IconButton icon="plus" onClick={showHikerProfileDialog} />
       </div>
       <HikerProfilDialog hikeId={hikeId} />
     </div>
