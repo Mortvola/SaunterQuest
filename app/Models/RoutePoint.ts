@@ -71,12 +71,12 @@ export default class RoutePoint extends BaseModel {
 
     let startFraction = this.nextFraction;
     let localEndFraction = endFraction;
-    let wayColumn = 'way';
+    let wayColumn = 'way2';
 
     if (startFraction > endFraction) {
       startFraction = 1 - startFraction;
       localEndFraction = 1 - endFraction;
-      wayColumn = 'ST_Reverse(way)';
+      wayColumn = 'ST_Reverse(way2)';
     }
 
     const line = await Database
@@ -84,7 +84,7 @@ export default class RoutePoint extends BaseModel {
       .select(Database.raw(
         `ST_AsGeoJSON(ST_Transform(ST_LineSubstring (${wayColumn}, ${startFraction}, ${localEndFraction}), 4326)) AS linestring`,
       ))
-      .from('planet_osm_line')
+      .from('planet_osm_route')
       .where('line_id', this.nextLineId)
       .first();
 
@@ -105,7 +105,7 @@ export default class RoutePoint extends BaseModel {
             lat: c[1],
             lng: c[0],
             dist: distance,
-            ele: (await RoutePoint.getElevation(c[1], c[0]) || 0),
+            ele: c[2],
           } as Point;
         }));
 
@@ -113,7 +113,7 @@ export default class RoutePoint extends BaseModel {
     }
   }
 
-  private static async getElevation(lat: number, lng: number) : Promise<number | null> {
+  public static async getElevation(lat: number, lng: number) : Promise<number | null> {
     const elevation = await fetch(`${Env.get('PATHFINDER_URL')}/elevation/point?lat=${lat}&lng=${lng}`)
       .then((response) => {
         if (response.ok) {

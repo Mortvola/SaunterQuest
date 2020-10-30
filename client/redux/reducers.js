@@ -31,20 +31,20 @@ const hike = (
   action,
 ) => {
   switch (action.type) {
-  case RECEIVE_HIKE_DETAILS: {
-    if (action.details) {
-      return {
-        ...state,
-        duration: action.details.duration,
-        distance: action.details.distance,
-      };
+    case RECEIVE_HIKE_DETAILS: {
+      if (action.details) {
+        return {
+          ...state,
+          duration: action.details.duration,
+          distance: action.details.distance,
+        };
+      }
+
+      return state;
     }
 
-    return state;
-  }
-
-  default:
-    return state;
+    default:
+      return state;
   }
 };
 
@@ -56,50 +56,50 @@ const hikes = (
   action,
 ) => {
   switch (action.type) {
-  case REQUESTING_HIKES:
-    return { ...state, requesting: action.requesting };
+    case REQUESTING_HIKES:
+      return { ...state, requesting: action.requesting };
 
-  case RECEIVE_HIKES:
-    return {
-      ...state,
-      requesting: false,
-      hikes: action.hikes.map((h) => (
-        { ...hike(undefined, action), ...h }
-      )),
-    };
-
-  case DELETE_HIKE: {
-    const index = state.hikes.findIndex((h) => h.id === action.id);
-
-    if (index !== -1) {
+    case RECEIVE_HIKES:
       return {
         ...state,
-        hikes: [
-          ...state.hikes.slice(0, index),
-          ...state.hikes.slice(index + 1),
-        ],
+        requesting: false,
+        hikes: action.hikes.map((h) => (
+          { ...hike(undefined, action), ...h }
+        )),
       };
+
+    case DELETE_HIKE: {
+      const index = state.hikes.findIndex((h) => h.id === action.id);
+
+      if (index !== -1) {
+        return {
+          ...state,
+          hikes: [
+            ...state.hikes.slice(0, index),
+            ...state.hikes.slice(index + 1),
+          ],
+        };
+      }
+
+      return state;
     }
 
-    return state;
-  }
+    default: {
+      const index = state.hikes.findIndex((h) => h.id === action.id);
 
-  default: {
-    const index = state.hikes.findIndex((h) => h.id === action.id);
+      if (index !== -1) {
+        return {
+          ...state,
+          hikes: [
+            ...state.hikes.slice(0, index),
+            hike(state.hikes[index], action),
+            ...state.hikes.slice(index + 1),
+          ],
+        };
+      }
 
-    if (index !== -1) {
-      return {
-        ...state,
-        hikes: [
-          ...state.hikes.slice(0, index),
-          hike(state.hikes[index], action),
-          ...state.hikes.slice(index + 1),
-        ],
-      };
+      return state;
     }
-
-    return state;
-  }
   }
 };
 
@@ -111,16 +111,16 @@ function selections(
   action,
 ) {
   switch (action.type) {
-  case SET_VIEW: {
-    return {
-      ...state,
-      view: action.view,
-      params: action.params,
-    };
-  }
+    case SET_VIEW: {
+      return {
+        ...state,
+        view: action.view,
+        params: action.params,
+      };
+    }
 
-  default:
-    return state;
+    default:
+      return state;
   }
 }
 
@@ -166,24 +166,24 @@ function anchor(
   action,
 ) {
   switch (action.type) {
-  case RECEIVE_ANCHOR:
-    return {
-      ...action.anchor,
-      marker: new TrailMarker(
-        wayPointUrl,
-        action.anchor.type === 'waypoint' ? getWaypointLabel() : undefined,
-      ),
-    };
+    case RECEIVE_ANCHOR:
+      return {
+        ...action.anchor,
+        marker: new TrailMarker(
+          wayPointUrl,
+          action.anchor.type === 'waypoint' ? getWaypointLabel() : undefined,
+        ),
+      };
 
-  case RECEIVE_ANCHOR_UPDATE: {
-    return {
-      ...state,
-      ...action.anchor,
-    };
-  }
+    case RECEIVE_ANCHOR_UPDATE: {
+      return {
+        ...state,
+        ...action.anchor,
+      };
+    }
 
-  default:
-    return state;
+    default:
+      return state;
   }
 }
 
@@ -233,79 +233,79 @@ function map(
   );
 
   switch (action.type) {
-  case REQUEST_HIKE:
-    return {
-      map: null,
-      route: null,
-      dayMarkers: null,
-      locationPopup: null,
-    };
+    case REQUEST_HIKE:
+      return {
+        map: null,
+        route: null,
+        dayMarkers: null,
+        locationPopup: null,
+      };
 
-  case SET_MAP:
-    return {
-      ...state,
-      map: action.map,
-    };
+    case SET_MAP:
+      return {
+        ...state,
+        map: action.map,
+      };
 
-  case RECEIVE_ROUTE: {
-    resetWaypointLabel();
-    const newRoute = action.route.map((a) => (
-      anchor(undefined, { type: RECEIVE_ANCHOR, anchor: a })
-    ));
-
-    return {
-      ...state,
-      route: newRoute,
-      elevations: getElevations(newRoute),
-      bounds: getBounds(action.route),
-    };
-  }
-
-  case RECEIVE_ANCHOR_UPDATES: {
-    const firstIndex = state.route.findIndex((a) => a.id === action.updates[0].id);
-    const lastIndex = state.route.findIndex(
-      (a) => a.id === action.updates[action.updates.length - 1].id,
-    );
-
-    if (firstIndex !== -1) {
-      const newRoute = [
-        ...state.route.slice(0, firstIndex),
-        ...processUpdates(action.updates, state.route.slice(firstIndex, lastIndex + 1)),
-        ...state.route.slice(lastIndex + 1),
-      ];
+    case RECEIVE_ROUTE: {
+      resetWaypointLabel();
+      const newRoute = action.route.map((a) => (
+        anchor(undefined, { type: RECEIVE_ANCHOR, anchor: a })
+      ));
 
       return {
         ...state,
         route: newRoute,
         elevations: getElevations(newRoute),
+        bounds: getBounds(action.route),
       };
     }
 
-    return state;
-  }
+    case RECEIVE_ANCHOR_UPDATES: {
+      const firstIndex = state.route.findIndex((a) => a.id === action.updates[0].id);
+      const lastIndex = state.route.findIndex(
+        (a) => a.id === action.updates[action.updates.length - 1].id,
+      );
 
-  case RECEIVE_SCHEDULE:
-    return {
-      ...state,
-      dayMarkers: action.schedule.filter((d, index) => index > 0).map((d, index) => ({
-        id: d.id,
-        day: index + 1,
-        lat: d.lat,
-        lng: d.lng,
-        marker: new TrailMarker(
-          dayMarkerUrl,
-        ),
-      })),
-    };
+      if (firstIndex !== -1) {
+        const newRoute = [
+          ...state.route.slice(0, firstIndex),
+          ...processUpdates(action.updates, state.route.slice(firstIndex, lastIndex + 1)),
+          ...state.route.slice(lastIndex + 1),
+        ];
 
-  case SHOW_LOCATION_POPUP:
-    return {
-      ...state,
-      locationPopup: action.latlng || null,
-    };
+        return {
+          ...state,
+          route: newRoute,
+          elevations: getElevations(newRoute),
+        };
+      }
 
-  default:
-    return state;
+      return state;
+    }
+
+    case RECEIVE_SCHEDULE:
+      return {
+        ...state,
+        dayMarkers: action.schedule.filter((d, index) => index > 0).map((d, index) => ({
+          id: d.id,
+          day: index + 1,
+          lat: d.lat,
+          lng: d.lng,
+          marker: new TrailMarker(
+            dayMarkerUrl,
+          ),
+        })),
+      };
+
+    case SHOW_LOCATION_POPUP:
+      return {
+        ...state,
+        locationPopup: action.latlng || null,
+      };
+
+    default:
+      return state;
   }
 }
 
@@ -314,14 +314,14 @@ function schedule(
   action,
 ) {
   switch (action.type) {
-  case REQUEST_HIKE:
-    return [];
+    case REQUEST_HIKE:
+      return [];
 
-  case RECEIVE_SCHEDULE:
-    return action.schedule;
+    case RECEIVE_SCHEDULE:
+      return action.schedule;
 
-  default:
-    return state;
+    default:
+      return state;
   }
 }
 
@@ -330,47 +330,47 @@ function hikerProfiles(
   action,
 ) {
   switch (action.type) {
-  case REQUEST_HIKE:
-    return [];
+    case REQUEST_HIKE:
+      return [];
 
-  case RECEIVE_HIKER_PROFILES:
-    return action.profiles;
+    case RECEIVE_HIKER_PROFILES:
+      return action.profiles;
 
-  case ADD_HIKER_PROFILE:
-    return [
-      ...state,
-      action.profile,
-    ];
-
-  case UPDATE_HIKER_PROFILE: {
-    const index = state.findIndex((p) => p.id === action.profile.id);
-
-    if (index !== -1) {
+    case ADD_HIKER_PROFILE:
       return [
-        ...state.slice(0, index),
+        ...state,
         action.profile,
-        ...state.slice(index + 1),
       ];
+
+    case UPDATE_HIKER_PROFILE: {
+      const index = state.findIndex((p) => p.id === action.profile.id);
+
+      if (index !== -1) {
+        return [
+          ...state.slice(0, index),
+          action.profile,
+          ...state.slice(index + 1),
+        ];
+      }
+
+      return state;
     }
 
-    return state;
-  }
+    case DELETE_HIKER_PROFILE: {
+      const index = state.findIndex((p) => p.id === action.id);
 
-  case DELETE_HIKER_PROFILE: {
-    const index = state.findIndex((p) => p.id === action.id);
+      if (index !== -1) {
+        return [
+          ...state.slice(0, index),
+          ...state.slice(index + 1),
+        ];
+      }
 
-    if (index !== -1) {
-      return [
-        ...state.slice(0, index),
-        ...state.slice(index + 1),
-      ];
+      return state;
     }
 
-    return state;
-  }
-
-  default:
-    return state;
+    default:
+      return state;
   }
 }
 
