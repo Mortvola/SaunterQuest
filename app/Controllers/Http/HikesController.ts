@@ -59,4 +59,18 @@ export default class HikesController {
       }
     }
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async delete({
+    auth,
+    params,
+  }: HttpContextContract) : Promise<void> {
+    if (auth.user) {
+      const hike = await Hike.findByOrFail('id', params.hikeId);
+
+      if (hike) {
+        hike.delete();
+      }
+    }
+  }
 }

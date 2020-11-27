@@ -36,6 +36,7 @@ Route.post('/password/update', 'AuthController.updatePassword').as('updatePasswo
 Route.get('/hikes', 'HikesController.get');
 Route.post('/hike', 'HikesController.addHike');
 Route.put('/hike/:hikeId', 'HikesController.update');
+Route.delete('/hike/:hikeId', 'HikesController.delete');
 Route.get('/hike/:hikeId/details', 'HikesController.getDetails');
 Route.get('/hike/:hikeId/route', 'RouteController.get');
 Route.post('/hike/:hikeId/route/start-point', 'RouteController.addStartPoint');

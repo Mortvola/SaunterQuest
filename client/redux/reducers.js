@@ -1,10 +1,6 @@
 import { combineReducers } from 'redux';
 import L from 'leaflet';
 import {
-  REQUESTING_HIKES,
-  RECEIVE_HIKES,
-  RECEIVE_HIKE_DETAILS,
-  DELETE_HIKE,
   SET_VIEW,
   SET_MAP,
   RECEIVE_SCHEDULE,
@@ -22,86 +18,11 @@ import {
 import { VIEW_HIKES } from '../menuEvents';
 import TrailMarker from '../Hike/trailMarker/trailMarker';
 import { metersToMiles, metersToFeet } from '../utilities';
-
-const hike = (
-  state = {
-    duration: null,
-    distance: null,
-  },
-  action,
-) => {
-  switch (action.type) {
-    case RECEIVE_HIKE_DETAILS: {
-      if (action.details) {
-        return {
-          ...state,
-          duration: action.details.duration,
-          distance: action.details.distance,
-        };
-      }
-
-      return state;
-    }
-
-    default:
-      return state;
-  }
-};
+import HikeManager from './HikeManager';
 
 const hikes = (
-  state = {
-    requesting: false,
-    hikes: [],
-  },
-  action,
-) => {
-  switch (action.type) {
-    case REQUESTING_HIKES:
-      return { ...state, requesting: action.requesting };
-
-    case RECEIVE_HIKES:
-      return {
-        ...state,
-        requesting: false,
-        hikes: action.hikes.map((h) => (
-          { ...hike(undefined, action), ...h }
-        )),
-      };
-
-    case DELETE_HIKE: {
-      const index = state.hikes.findIndex((h) => h.id === action.id);
-
-      if (index !== -1) {
-        return {
-          ...state,
-          hikes: [
-            ...state.hikes.slice(0, index),
-            ...state.hikes.slice(index + 1),
-          ],
-        };
-      }
-
-      return state;
-    }
-
-    default: {
-      const index = state.hikes.findIndex((h) => h.id === action.id);
-
-      if (index !== -1) {
-        return {
-          ...state,
-          hikes: [
-            ...state.hikes.slice(0, index),
-            hike(state.hikes[index], action),
-            ...state.hikes.slice(index + 1),
-          ],
-        };
-      }
-
-      return state;
-    }
-  }
-};
+  state = new HikeManager(),
+) => state;
 
 function selections(
   state = {

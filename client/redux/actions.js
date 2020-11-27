@@ -1,12 +1,5 @@
 import {
-  REQUEST_HIKES,
-  REQUESTING_HIKES,
-  RECEIVE_HIKES,
-  REQUEST_HIKE_DELETION,
-  DELETE_HIKE,
   REQUEST_HIKE,
-  REQUEST_HIKE_DETAILS,
-  RECEIVE_HIKE_DETAILS,
   SET_VIEW,
   SET_MAP,
   RECEIVE_SCHEDULE,
@@ -33,45 +26,10 @@ const requestHike = (id) => ({
   id,
 });
 
-const requestHikeDetails = (id) => ({
-  type: REQUEST_HIKE_DETAILS,
-  id,
-});
-
-const receiveHikeDetails = (id, details) => ({
-  type: RECEIVE_HIKE_DETAILS,
-  id,
-  details,
-});
-
 const setView = (view, params) => ({
   type: SET_VIEW,
   view,
   params,
-});
-
-const requestingHikes = (requesting) => ({
-  type: REQUESTING_HIKES,
-  requesting,
-});
-
-const receiveHikes = (hikes) => ({
-  type: RECEIVE_HIKES,
-  hikes,
-});
-
-const requestHikes = () => ({
-  type: REQUEST_HIKES,
-});
-
-const deleteHike = (id) => ({
-  type: DELETE_HIKE,
-  id,
-});
-
-const requestHikeDeletion = (id) => ({
-  type: REQUEST_HIKE_DELETION,
-  id,
 });
 
 const requestRoute = (hikeId) => ({
@@ -173,14 +131,7 @@ const showLocationPopup = (latlng) => ({
 
 export {
   setView,
-  requestHikes,
-  requestingHikes,
-  receiveHikes,
-  requestHikeDeletion,
-  deleteHike,
   requestHike,
-  requestHikeDetails,
-  receiveHikeDetails,
   setMap,
   receiveSchedule,
   requestRoute,

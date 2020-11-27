@@ -1,23 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { Spinner, Button } from 'react-bootstrap';
+import { observer } from 'mobx-react-lite';
 import { metersToMilesRounded } from '../utilities';
 import EditableText from './EditableText';
 import { useDeleteConfirmation } from '../DeleteConfirmation';
-import { requestHike, requestHikeDetails } from '../redux/actions';
+import { requestHike } from '../redux/actions';
 
 const Hike = ({
   hike,
   onDelete,
   dispatch,
 }) => {
-  const [initialized, setInitialized] = useState(false);
-
-  if (!initialized) {
-    setInitialized(true);
-    dispatch(requestHikeDetails(hike.id));
-  }
-
   const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
     'Are you sure you want to delete this hike?',
     () => {
@@ -42,7 +36,7 @@ const Hike = ({
         <div>
           Distance:
           {
-            hike.distance === null
+            hike.requesting
               ? <Spinner animation="border" size="sm" role="status" className="hike-detail-spinner" />
               : <span className="hike-detail">{`${metersToMilesRounded(hike.distance)} miles`}</span>
           }
@@ -50,7 +44,7 @@ const Hike = ({
         <div>
           Duration:
           {
-            hike.duration === null
+            hike.requesting
               ? <Spinner animation="border" size="sm" role="status" className="hike-detail-spinner" />
               : <span className="hike-detail">{`${hike.duration} days`}</span>
           }
@@ -82,4 +76,4 @@ Hike.propTypes = {
   dispatch: PropTypes.func.isRequired,
 };
 
-export default Hike;
+export default observer(Hike);

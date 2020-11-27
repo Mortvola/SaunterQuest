@@ -1,28 +1,20 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import { observer } from 'mobx-react-lite';
 import HikeDialog from './HikeDialog';
 import Hike from './Hike';
 import PleaseWait from './PleaseWait';
-import { requestHikes, requestHikeDeletion } from '../redux/actions';
 
 const mapStateToProps = (state) => ({
-  hikes: state.hikes.hikes,
-  requesting: state.hikes.requesting,
+  hikes: state.hikes,
 });
 
 const Hikes = ({
   hikes,
-  requesting,
   dispatch,
 }) => {
-  const [initialized, setInitialized] = useState(false);
   const [showHikeDialog, setShowHikeDialog] = useState(false);
-
-  if (!initialized) {
-    setInitialized(true);
-    dispatch(requestHikes());
-  }
 
   const handleClick = () => {
     setShowHikeDialog(true);
@@ -33,7 +25,7 @@ const Hikes = ({
   };
 
   const handleDelete = (id) => {
-    dispatch(requestHikeDeletion(id));
+    hikes.deleteHike(id);
   };
 
   return (
@@ -48,7 +40,7 @@ const Hikes = ({
           </h4>
           <div className="hikes">
             {
-              hikes.map((h) => (
+              hikes.hikes.map((h) => (
                 <Hike
                   key={h.id}
                   hike={h}
@@ -58,7 +50,7 @@ const Hikes = ({
               ))
             }
           </div>
-          <PleaseWait show={requesting} />
+          <PleaseWait show={hikes.requesting} />
         </div>
       </div>
       <HikeDialog show={showHikeDialog} onHide={handleHide} dispatch={dispatch} />
@@ -67,14 +59,13 @@ const Hikes = ({
 };
 
 Hikes.propTypes = {
-  hikes: PropTypes.arrayOf(PropTypes.shape()),
-  requesting: PropTypes.bool.isRequired,
+  hikes: PropTypes.shape(),
   dispatch: PropTypes.func,
 };
 
 Hikes.defaultProps = {
-  hikes: [],
+  hikes: null,
   dispatch: null,
 };
 
-export default connect(mapStateToProps)(Hikes);
+export default connect(mapStateToProps)(observer(Hikes));

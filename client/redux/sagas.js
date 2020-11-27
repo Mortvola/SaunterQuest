@@ -2,10 +2,7 @@ import {
   takeEvery, put, all, select,
 } from 'redux-saga/effects';
 import {
-  REQUEST_HIKES,
   REQUEST_HIKE,
-  REQUEST_HIKE_DETAILS,
-  REQUEST_HIKE_DELETION,
   REQUEST_ROUTE,
   ROUTE_UPDATED,
   ADD_WAYPOINT,
@@ -20,64 +17,11 @@ import {
   VIEW_HIKE,
 } from '../menuEvents';
 import {
-  requestingHikes, receiveHikes, requestRoute, receiveRoute, receiveSchedule,
+  requestRoute, receiveRoute, receiveSchedule,
   routeUpdated,
   receiveHikerProfiles, deleteHikerProfile, setView,
-  deleteHike, receiveHikeDetails, receiveWaypointUpdates,
+  receiveWaypointUpdates,
 } from './actions';
-
-function* fetchHikes() {
-  yield put(requestingHikes(true));
-
-  const hikes = yield fetch('/hikes')
-    .then(async (response) => {
-      if (response.ok) {
-        const json = await response.json();
-        if (Array.isArray(json)) {
-          json.sort((a, b) => {
-            const nameA = a.name.toUpperCase(); // ignore upper and lowercase
-            const nameB = b.name.toUpperCase(); // ignore upper and lowercase
-
-            if (nameA < nameB) {
-              return -1;
-            }
-
-            if (nameA > nameB) {
-              return 1;
-            }
-
-            // names must be equal
-            return 0;
-          });
-
-          return json;
-        }
-      }
-
-      return null;
-    });
-
-  if (hikes) {
-    yield put(receiveHikes(hikes));
-  }
-
-  // todo: handle error case
-
-  yield put(requestingHikes(false));
-}
-
-function* fetchHikeDetails(action) {
-  const details = yield fetch(`/hike/${action.id}/details`)
-    .then((response) => {
-      if (response.ok) {
-        return response.json();
-      }
-
-      return null;
-    });
-
-  yield put(receiveHikeDetails(action.id, details));
-}
 
 function* fetchHike(action) {
   try {
@@ -86,28 +30,6 @@ function* fetchHike(action) {
   catch (error) {
     console.log(error);
   }
-}
-
-function* requestHikeDeletion(action) {
-  const deleted = fetch(`hike/${action.id}`, {
-    method: 'DELETE',
-    headers: {
-      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-    },
-  })
-    .then((response) => {
-      if (response.ok) {
-        return true;
-      }
-
-      return false;
-    });
-
-  if (deleted) {
-    yield put(deleteHike(action.id));
-  }
-
-  // todo: handle error case
 }
 
 function* requestSchedule(action) {
@@ -310,10 +232,7 @@ function* deleteWaypoint(action) {
 
 export default function* rootSaga() {
   yield all([
-    yield takeEvery(REQUEST_HIKES, fetchHikes),
     yield takeEvery(REQUEST_HIKE, fetchHike),
-    yield takeEvery(REQUEST_HIKE_DETAILS, fetchHikeDetails),
-    yield takeEvery(REQUEST_HIKE_DELETION, requestHikeDeletion),
     yield takeEvery(REQUEST_ROUTE, fetchRoute),
     yield takeEvery(ROUTE_UPDATED, requestSchedule),
     yield takeEvery(ADD_WAYPOINT, postWaypoint),

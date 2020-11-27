@@ -33,6 +33,8 @@
     "leaflet": "^1.7.1",
     "leaflet-contextmenu": "^1.4.0",
     "luxon": "^1.25.0",
+    "mobx": "^6.0.4",
+    "mobx-react-lite": "^3.1.6",
     "node-fetch": "^2.6.1",
     "pg": "^8.4.2",
     "phc-argon2": "^1.0.11",
