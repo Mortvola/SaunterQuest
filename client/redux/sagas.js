@@ -9,8 +9,6 @@ import {
   ADD_START_WAYPOINT,
   ADD_END_WAYPOINT,
   MOVE_WAYPOINT,
-  REQUEST_HIKER_PROFILES,
-  REQUEST_HIKER_PROFILE_DELETION,
   DELETE_WAYPOINT,
 } from './actionTypes';
 import {
@@ -19,7 +17,7 @@ import {
 import {
   requestRoute, receiveRoute, receiveSchedule,
   routeUpdated,
-  receiveHikerProfiles, deleteHikerProfile, setView,
+  setView,
   receiveWaypointUpdates,
 } from './actions';
 
@@ -153,41 +151,6 @@ function* postEndWaypoint(action) {
   }
 }
 
-function* fetchHikerProfiles(action) {
-  const profiles = yield fetch(`/hike/${action.hikeId}/hiker-profile`)
-    .then(async (response) => {
-      if (response.ok) {
-        return response.json();
-      }
-
-      return null;
-    });
-
-  yield put(receiveHikerProfiles(profiles));
-}
-
-function* requestHikerProfileDeletion(action) {
-  const deleted = yield fetch(`/hike/${action.hikeId}/hiker-profile/${action.id}`, {
-    method: 'DELETE',
-    headers: {
-      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-    },
-  })
-    .then(async (response) => {
-      if (response.ok) {
-        return true;
-      }
-
-      return false;
-    });
-
-  if (deleted) {
-    yield put(deleteHikerProfile(action.id));
-  }
-
-  // todo: handle the error case.
-}
-
 function* moveWaypoint(action) {
   const updates = yield fetch(`/hike/${action.hikeId}/route/waypoint/${action.waypoint.id}/position`, {
     method: 'PUT',
@@ -240,7 +203,5 @@ export default function* rootSaga() {
     yield takeEvery(ADD_END_WAYPOINT, postEndWaypoint),
     yield takeEvery(MOVE_WAYPOINT, moveWaypoint),
     yield takeEvery(DELETE_WAYPOINT, deleteWaypoint),
-    yield takeEvery(REQUEST_HIKER_PROFILES, fetchHikerProfiles),
-    yield takeEvery(REQUEST_HIKER_PROFILE_DELETION, requestHikerProfileDeletion),
   ]);
 }

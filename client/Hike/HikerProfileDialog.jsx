@@ -5,10 +5,10 @@ import { Modal } from 'react-bootstrap';
 import { Formik, Form, Field } from 'formik';
 import useModal from '../Modal';
 import { toTimeFloat, toTimeString } from '../utilities';
-import { addHikerProfile, updateHikerProfile } from '../redux/actions';
+import HikerProfile from '../redux/HikerProfile';
 
 const HikerProfileDialog = ({
-  hikeId,
+  hike,
   profile,
   show,
   onHide,
@@ -31,7 +31,7 @@ const HikerProfileDialog = ({
   };
 
   const handleSubmit = async (vals) => {
-    let url = `/hike/${hikeId}/hiker-profile`;
+    let url = `/hike/${hike.id}/hiker-profile`;
     let method = 'POST';
     const { id, ...v2 } = vals;
     if (id !== undefined && id !== null) {
@@ -54,16 +54,21 @@ const HikerProfileDialog = ({
         endDay: decrementValue(v2.endDay),
       }),
     })
-      .then(async (response) => {
+      .then((response) => {
         if (response.ok) {
-          if (method === 'POST') {
-            dispatch(addHikerProfile(await response.json()));
-          }
-          else {
-            dispatch(updateHikerProfile(await response.json()));
-          }
-          onHide();
+          return response.json();
         }
+
+        throw new Error('invalid response');
+      })
+      .then((response) => {
+        if (method === 'POST') {
+          hike.addHikerProfile(new HikerProfile(response));
+        }
+        else {
+          profile.setProfile(response);
+        }
+        onHide();
       });
   };
 
@@ -146,7 +151,7 @@ const HikerProfileDialog = ({
 };
 
 HikerProfileDialog.propTypes = {
-  hikeId: PropTypes.number.isRequired,
+  hike: PropTypes.shape().isRequired,
   profile: PropTypes.shape(),
   show: PropTypes.bool.isRequired,
   onHide: PropTypes.func.isRequired,

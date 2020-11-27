@@ -1,22 +1,21 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Card } from 'react-bootstrap';
-import { requestHikerProfileDeletion } from '../redux/actions';
+import { observer } from 'mobx-react-lite';
 import { nvl, formatTime } from '../utilities';
 import { useDeleteConfirmation } from '../DeleteConfirmation';
 import { useHikerProfileDialog } from './HikerProfileDialog';
 import IconButton from '../IconButton';
 
 const HikerProfile = ({
-  hikeId,
+  hike,
   profile,
-  dispatch,
 }) => {
   const [HikerProfilDialog, showHikerProfileDialog] = useHikerProfileDialog();
   const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
     'Are you sure you want to delete this profile?',
     () => {
-      dispatch(requestHikerProfileDeletion(hikeId, profile.id));
+      hike.deleteHikerProfile(profile.id);
     },
   );
 
@@ -58,16 +57,15 @@ const HikerProfile = ({
         <div>End of Day Extension</div>
         <div>{nvl(profile.endDayExtension, '')}</div>
       </div>
-      <HikerProfilDialog hikeId={hikeId} profile={profile} />
+      <HikerProfilDialog hike={hike} profile={profile} />
       <DeleteConfirmation />
     </Card>
   );
 };
 
 HikerProfile.propTypes = {
-  hikeId: PropTypes.number.isRequired,
+  hike: PropTypes.shape().isRequired,
   profile: PropTypes.shape().isRequired,
-  dispatch: PropTypes.func.isRequired,
 };
 
-export default HikerProfile;
+export default observer(HikerProfile);

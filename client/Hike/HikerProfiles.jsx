@@ -1,19 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { requestHikerProfiles } from '../redux/actions';
+import { observer } from 'mobx-react-lite';
 import { useHikerProfileDialog } from './HikerProfileDialog';
 import HikerProfile from './HikerProfile';
 import IconButton from '../IconButton';
 
-const mapStateToProps = (state) => ({
-  profiles: state.hikerProfiles,
-});
-
 const HikerProfiles = ({
-  hikeId,
-  profiles,
-  dispatch,
+  hike,
 }) => {
   const [initialized, setInitialized] = useState(false);
   const [HikerProfilDialog, showHikerProfileDialog] = useHikerProfileDialog();
@@ -21,9 +14,9 @@ const HikerProfiles = ({
   useEffect(() => {
     if (!initialized) {
       setInitialized(true);
-      dispatch(requestHikerProfiles(hikeId));
+      hike.requestHikerProfiles();
     }
-  }, [profiles]);
+  }, [hike]);
 
   return (
     <div className="profiles">
@@ -33,31 +26,24 @@ const HikerProfiles = ({
       </div>
       <div className="profile-list">
         {
-          profiles
-            ? profiles.map((p) => (
+          hike.hikerProfiles.length
+            ? hike.hikerProfiles.map((p) => (
               <HikerProfile
                 key={p.id}
-                hikeId={hikeId}
+                hike={hike}
                 profile={p}
-                dispatch={dispatch}
               />
             ))
             : null
         }
       </div>
-      <HikerProfilDialog hikeId={hikeId} />
+      <HikerProfilDialog hike={hike} />
     </div>
   );
 };
 
 HikerProfiles.propTypes = {
-  hikeId: PropTypes.number.isRequired,
-  profiles: PropTypes.arrayOf(PropTypes.shape()),
-  dispatch: PropTypes.func.isRequired,
+  hike: PropTypes.shape().isRequired,
 };
 
-HikerProfiles.defaultProps = {
-  profiles: [],
-};
-
-export default connect(mapStateToProps)(HikerProfiles);
+export default observer(HikerProfiles);

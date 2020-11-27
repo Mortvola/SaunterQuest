@@ -7,7 +7,7 @@ import Controls from './Controls';
 import { requestRoute } from '../redux/actions';
 
 const mapStateToProps = (state) => ({
-  hikeId: state.selections.params.hikeId,
+  hike: state.hikes.getHike(state.selections.params.hikeId),
   route: state.map.route,
   bounds: state.map.bounds,
   dayMarkers: state.map.dayMarkers,
@@ -16,14 +16,13 @@ const mapStateToProps = (state) => ({
 });
 
 const Hike = ({
-  hikeId,
+  hike,
   route,
   bounds,
   elevations,
   tileServerUrl,
   dayMarkers,
   locationPopup,
-  extendedMenu,
   dispatch,
 }) => {
   const [initialized, setInitialized] = useState(false);
@@ -31,16 +30,16 @@ const Hike = ({
   useEffect(() => {
     if (!initialized) {
       setInitialized(true);
-      dispatch(requestRoute(hikeId));
+      dispatch(requestRoute(hike.id));
     }
   });
 
-  if (hikeId) {
+  if (hike) {
     return (
       <div className="hike-grid">
         <Map
           tileServerUrl={tileServerUrl}
-          hikeId={hikeId}
+          hikeId={hike.id}
           route={route}
           bounds={bounds}
           dayMarkers={dayMarkers}
@@ -48,7 +47,7 @@ const Hike = ({
           dispatch={dispatch}
         />
         <ElevationChart elevations={elevations} />
-        <Controls hikeId={hikeId} />
+        <Controls hike={hike} />
       </div>
     );
   }
@@ -57,25 +56,23 @@ const Hike = ({
 };
 
 Hike.propTypes = {
-  hikeId: PropTypes.number,
+  hike: PropTypes.shape(),
   route: PropTypes.arrayOf(PropTypes.shape()),
   bounds: PropTypes.shape(),
   dayMarkers: PropTypes.arrayOf(PropTypes.shape()),
   locationPopup: PropTypes.shape(),
   elevations: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.number)),
   tileServerUrl: PropTypes.string.isRequired,
-  extendedMenu: PropTypes.bool,
   dispatch: PropTypes.func.isRequired,
 };
 
 Hike.defaultProps = {
-  hikeId: null,
+  hike: null,
   route: null,
   bounds: null,
   dayMarkers: null,
   locationPopup: null,
   elevations: null,
-  extendedMenu: false,
 };
 
 export default connect(mapStateToProps)(Hike);

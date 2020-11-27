@@ -25,15 +25,15 @@ const App = ({
 }) => {
   const renderView = () => {
     switch (view) {
-    case VIEW_HIKES:
-      return <Hikes />;
+      case VIEW_HIKES:
+        return <Hikes />;
 
-    case VIEW_HIKE:
-      return <Hike tileServerUrl={tileServerUrl} extendedMenu={extendedMenu} />;
+      case VIEW_HIKE:
+        return <Hike tileServerUrl={tileServerUrl} extendedMenu={extendedMenu} />;
 
-    case VIEW_GEAR:
-    default:
-      return <div />;
+      case VIEW_GEAR:
+      default:
+        return <div />;
     }
   };
 

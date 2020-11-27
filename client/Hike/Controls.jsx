@@ -6,10 +6,10 @@ import Schedule from './Schedule';
 import HikerProfiles from './HikerProfiles';
 
 const Controls = ({
-  hikeId,
+  hike,
 }) => {
   const handleResupplyClick = () => {
-    loadResupply(hikeId);
+    loadResupply(hike.id);
   };
 
   return (
@@ -29,7 +29,7 @@ const Controls = ({
           <Schedule />
         </div>
         <div id="hikerProfiles" className="tab-pane fade">
-          <HikerProfiles hikeId={hikeId} />
+          <HikerProfiles hike={hike} />
         </div>
         <div id="equipment" className="tab-pane fade">
           <table className="table table-condensed">
@@ -111,7 +111,7 @@ const Controls = ({
 };
 
 Controls.propTypes = {
-  hikeId: PropTypes.number.isRequired,
+  hike: PropTypes.shape().isRequired,
 };
 
 export default Controls;

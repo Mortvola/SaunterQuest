@@ -59,6 +59,10 @@ class HikeManager {
     this.hikes.concat(hike);
   }
 
+  getHike(id) {
+    return this.hikes.find((h) => h.id === id);
+  }
+
   async deleteHike(id) {
     const deleted = await fetch(`hike/${id}`, {
       method: 'DELETE',
