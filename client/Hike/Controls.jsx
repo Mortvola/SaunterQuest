@@ -26,7 +26,7 @@ const Controls = ({
       </ul>
       <div className="tab-content">
         <div id="schedule" className="tab-pane fade show active">
-          <Schedule />
+          <Schedule hike={hike} />
         </div>
         <div id="hikerProfiles" className="tab-pane fade">
           <HikerProfiles hike={hike} />

@@ -136,7 +136,7 @@ class Route {
     $('#pleaseWait').show();
 
     $.ajax({
-      url: `${this.hikeId}/route/startPoint`,
+      url: `${this.hikeId}/route/start-point`,
       headers:
             {
               'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),

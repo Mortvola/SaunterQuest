@@ -1,13 +1,15 @@
-import React, { useRef } from 'react';
+import React, { useRef, useContext } from 'react';
 import PropTypes from 'prop-types';
 import { Modal, Button } from 'react-bootstrap';
-import { requestHike } from '../redux/actions';
+import MobxStore from '../redux/store';
+import Hike from '../redux/Hike';
+import { VIEW_HIKE } from '../menuEvents';
 
 const HikeDialog = ({
   show,
   onHide,
-  dispatch,
 }) => {
+  const { uiState, hikeManager } = useContext(MobxStore);
   const formRef = useRef(null);
 
   const insertHike = () => {
@@ -21,11 +23,18 @@ const HikeDialog = ({
       },
       body: formData,
     })
-      .then(async (response) => {
+      .then((response) => {
         if (response.ok) {
-          const json = await response.json();
-          dispatch(requestHike(json.id));
+          return response.json();
         }
+
+        throw new Error('invalid response');
+      })
+      .then((response) => {
+        const hike = new Hike(response);
+        hikeManager.addHike(hike);
+        uiState.hike = hike;
+        uiState.setView(VIEW_HIKE);
       });
   };
 
@@ -52,7 +61,6 @@ const HikeDialog = ({
 HikeDialog.propTypes = {
   show: PropTypes.bool.isRequired,
   onHide: PropTypes.func.isRequired,
-  dispatch: PropTypes.func.isRequired,
 };
 
 export default HikeDialog;

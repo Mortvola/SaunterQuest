@@ -1,37 +1,30 @@
-import React from 'react';
-import { connect } from 'react-redux';
-import PropTypes from 'prop-types';
+import React, { useContext } from 'react';
+import { observer } from 'mobx-react-lite';
 import { positionMapToBounds } from './mapUtils';
 import {
   metersToFeet, gramsToPoundsAndOunces, metersToMilesRounded, formatTime,
 } from '../utilities';
+import MobxStore from '../redux/store';
 // import { getRoute } from './tempstore';
 // import EndOfDayMarker from './trailMarker/EndOfDayMarker';
 
-const mapStateToProps = (state) => ({
-  map: state.map.map,
-  schedule: state.schedule,
-});
-
-const Schedule = ({
-  map,
-  schedule,
-}) => {
+const Schedule = () => {
+  const { uiState: { hike } } = useContext(MobxStore);
   const positionMapToDay = (d) => {
     //
     // Position the map so that the two endpoints (today's and tomorrow's) are visible.
     // todo: take into account the area the whole path uses. Some paths go out of window
     // even though the two endpoints are within the window.
     //
-    if (schedule) {
-      if (d < schedule.length - 1) {
-        positionMapToBounds(map, schedule[d].point, schedule[d + 1].point);
+    if (hike.schedule) {
+      if (d < hike.schedule.length - 1) {
+        positionMapToBounds(hike.map, hike.schedule[d].point, hike.schedule[d + 1].point);
       }
       else {
         positionMapToBounds(
-          map, schedule[d].point, {
-            lat: schedule[d].endLat,
-            lng: schedule[d].endLng,
+          hike.map, hike.schedule[d].point, {
+            lat: hike.schedule[d].endLat,
+            lng: hike.schedule[d].endLng,
           },
         );
       }
@@ -63,8 +56,8 @@ const Schedule = ({
   return (
     <>
       {
-        schedule
-          ? schedule.map((day, index) => renderDay(day, index))
+        hike.schedule
+          ? hike.schedule.map((day, index) => renderDay(day, index))
           : null
       }
     </>
@@ -114,14 +107,4 @@ const Schedule = ({
   // };
 };
 
-Schedule.propTypes = {
-  map: PropTypes.shape(),
-  schedule: PropTypes.arrayOf(PropTypes.shape()),
-};
-
-Schedule.defaultProps = {
-  map: null,
-  schedule: [],
-};
-
-export default connect(mapStateToProps)(Schedule);
+export default observer(Schedule);

@@ -1,5 +1,4 @@
-import React from 'react';
-import { connect } from 'react-redux';
+import React, {useContext } from 'react';
 import PropTypes from 'prop-types';
 import {
   Navbar,
@@ -7,7 +6,6 @@ import {
   Nav,
   NavDropdown,
 } from 'react-bootstrap';
-import { setView } from './redux/actions';
 import {
   VIEW_HIKES,
   VIEW_GEAR,
@@ -18,11 +16,12 @@ import {
 } from './menuEvents';
 import { useProfileDialog } from './ProfileDialog';
 import { useAccountDialog } from './AccountDialog';
+import MobxStore from './redux/store';
 
 const Menubar = ({
   username,
-  dispatch,
 }) => {
+  const { uiState } = useContext(MobxStore);
   const [ProfileDialog, showProfileDialog] = useProfileDialog();
   const [AccountDialog, showAccountDialog] = useAccountDialog();
 
@@ -42,19 +41,19 @@ const Menubar = ({
 
   const handleSelect = (eventKey) => {
     switch (eventKey) {
-    case MENU_EVENT_KEY_ACCOUNT:
-      showAccountDialog();
-      break;
-    case MENU_EVENT_KEY_PROFILE:
-      showProfileDialog();
-      break;
+      case MENU_EVENT_KEY_ACCOUNT:
+        showAccountDialog();
+        break;
+      case MENU_EVENT_KEY_PROFILE:
+        showProfileDialog();
+        break;
 
-    case MENU_EVENT_KEY_LOGOUT:
-      logout();
-      break;
+      case MENU_EVENT_KEY_LOGOUT:
+        logout();
+        break;
 
-    default:
-      dispatch(setView(eventKey));
+      default:
+        uiState.setView(eventKey);
     }
   };
 
@@ -86,7 +85,6 @@ const Menubar = ({
 
 Menubar.propTypes = {
   username: PropTypes.string.isRequired,
-  dispatch: PropTypes.func.isRequired,
 };
 
-export default connect()(Menubar);
+export default Menubar;

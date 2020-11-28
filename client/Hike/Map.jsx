@@ -7,32 +7,28 @@ import {
   useMap,
   Popup,
 } from 'react-leaflet';
+import { observer } from 'mobx-react-lite';
 import Route from './Route';
-import {
-  addStartWaypoint, addWaypoint, addEndWaypoint, showLocationPopup,
-} from '../redux/actions';
 import DayMarker from './DayMarker';
 import { useGotoLocationDialog } from './GotoLocationDialog';
 
-const Map = ({
+const Map = observer(({
   tileServerUrl,
-  hikeId,
-  route,
-  bounds,
+  hike,
+  map,
   dayMarkers,
   locationPopup,
-  dispatch,
 }) => {
-  const map = useMap();
+  const leafletMap = useMap();
   const terrainLayer = useRef(null);
   const detailLayer = useRef(null);
   const [GotoLocationDialog, showGotoLocationDialog] = useGotoLocationDialog();
 
   const openContextMenu = (event) => {
     const mapMenuItems = [
-      { text: 'Prepend Waypoint', callback: ({ latlng }) => dispatch(addStartWaypoint(hikeId, latlng)) },
-      { text: 'Insert Waypoint', callback: ({ latlng }) => dispatch(addWaypoint(hikeId, latlng)) },
-      { text: 'Append Waypoint', callback: ({ latlng }) => dispatch(addEndWaypoint(hikeId, latlng)) },
+      { text: 'Prepend Waypoint', callback: ({ latlng }) => hike.route.addStartWaypoint(latlng) },
+      { text: 'Insert Waypoint', callback: ({ latlng }) => hike.route.addWaypoint(latlng) },
+      { text: 'Append Waypoint', callback: ({ latlng }) => hike.route.addEndWaypoint(latlng) },
       { separator: true },
       { text: 'Go to Location...', callback: showGotoLocationDialog },
     ];
@@ -56,7 +52,7 @@ const Map = ({
   });
 
   const handleLocationPopupClose = () => {
-    dispatch(showLocationPopup(null));
+    map.showLocationPopup(null);
   };
 
   return (
@@ -72,7 +68,7 @@ const Map = ({
         zIndex="2"
         ref={detailLayer}
       />
-      <Route hikeId={hikeId} route={route} bounds={bounds} dispatch={dispatch} />
+      <Route route={hike.route} />
       {
         dayMarkers
           ? dayMarkers.map((d) => (
@@ -80,7 +76,7 @@ const Map = ({
           ))
           : null
       }
-      <GotoLocationDialog map={map} dispatch={dispatch} />
+      <GotoLocationDialog leafletMap={leafletMap} hike={hike} />
       {
         locationPopup
           ? (
@@ -92,33 +88,28 @@ const Map = ({
       }
     </>
   );
-};
+});
 
 Map.propTypes = {
   tileServerUrl: PropTypes.string.isRequired,
-  hikeId: PropTypes.number.isRequired,
-  route: PropTypes.arrayOf(PropTypes.shape()),
-  bounds: PropTypes.shape(),
+  hike: PropTypes.shape().isRequired,
+  map: PropTypes.shape(),
   dayMarkers: PropTypes.arrayOf(PropTypes.shape()),
-  dispatch: PropTypes.func.isRequired,
   locationPopup: PropTypes.shape(),
 };
 
 Map.defaultProps = {
-  route: null,
-  bounds: null,
+  map: null,
   dayMarkers: null,
   locationPopup: null,
 };
 
 const MyMapContainer = ({
   tileServerUrl,
-  hikeId,
-  route,
-  bounds,
+  hike,
+  map,
   dayMarkers,
   locationPopup,
-  dispatch,
 }) => (
   <MapContainer
     minZoom="4"
@@ -128,29 +119,24 @@ const MyMapContainer = ({
   >
     <Map
       tileServerUrl={tileServerUrl}
-      hikeId={hikeId}
-      route={route}
-      bounds={bounds}
+      hike={hike}
+      map={map}
       dayMarkers={dayMarkers}
       locationPopup={locationPopup}
-      dispatch={dispatch}
     />
   </MapContainer>
 );
 
 MyMapContainer.propTypes = {
   tileServerUrl: PropTypes.string.isRequired,
-  hikeId: PropTypes.number.isRequired,
-  route: PropTypes.arrayOf(PropTypes.shape()),
-  bounds: PropTypes.shape(),
+  hike: PropTypes.shape().isRequired,
+  map: PropTypes.shape(),
   dayMarkers: PropTypes.arrayOf(PropTypes.shape()),
   locationPopup: PropTypes.shape(),
-  dispatch: PropTypes.func.isRequired,
 };
 
 MyMapContainer.defaultProps = {
-  route: null,
-  bounds: null,
+  map: null,
   dayMarkers: null,
   locationPopup: null,
 };

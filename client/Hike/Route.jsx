@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Polyline, useMap } from 'react-leaflet';
+import { observer } from 'mobx-react-lite';
 import Waypoint from './Waypoint';
 
-const AnchorAndTrail = ({
-  hikeId,
+const AnchorAndTrail = observer(({
+  route,
   anchor,
-  dispatch,
 }) => {
   const routeStrokeWeight = 6;
 
@@ -14,7 +14,7 @@ const AnchorAndTrail = ({
     <>
       {
         anchor.type !== null && anchor.type !== undefined
-          ? <Waypoint hikeId={hikeId} waypoint={anchor} dispatch={dispatch} />
+          ? <Waypoint route={route} waypoint={anchor} />
           : null
       }
       {
@@ -34,30 +34,30 @@ const AnchorAndTrail = ({
       }
     </>
   );
-};
+});
 
 AnchorAndTrail.propTypes = {
-  hikeId: PropTypes.number.isRequired,
+  route: PropTypes.shape(),
   anchor: PropTypes.shape().isRequired,
-  dispatch: PropTypes.func.isRequired,
 };
 
 const Route = ({
-  hikeId,
   route,
-  bounds,
-  dispatch,
 }) => {
-  const map = useMap();
+  const leafletMap = useMap();
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    if (bounds && !initialized) {
+    if (route.bounds
+      && route.bounds[0] !== undefined
+      && route.bounds[1] !== undefined
+      && !initialized
+    ) {
       try {
-        map.fitBounds(bounds);
-        const z = map.getZoom();
+        leafletMap.fitBounds(route.bounds);
+        const z = leafletMap.getZoom();
         if (z > 13) {
-          map.setZoom(13);
+          leafletMap.setZoom(13);
         }
         setInitialized(true);
       }
@@ -65,18 +65,17 @@ const Route = ({
         console.log(error);
       }
     }
-  }, [bounds, initialized]);
+  }, [route.bounds, initialized]);
 
-  if (route) {
+  if (route.route) {
     return (
       <>
         {
-          route.map((a) => (
+          route.route.map((a) => (
             <AnchorAndTrail
               key={a.id}
-              hikeId={hikeId}
+              route={route}
               anchor={a}
-              dispatch={dispatch}
             />
           ))
         }
@@ -88,15 +87,7 @@ const Route = ({
 };
 
 Route.propTypes = {
-  hikeId: PropTypes.number.isRequired,
-  route: PropTypes.arrayOf(PropTypes.shape()),
-  bounds: PropTypes.shape(),
-  dispatch: PropTypes.func.isRequired,
+  route: PropTypes.shape().isRequired,
 };
 
-Route.defaultProps = {
-  route: null,
-  bounds: null,
-};
-
-export default Route;
+export default observer(Route);

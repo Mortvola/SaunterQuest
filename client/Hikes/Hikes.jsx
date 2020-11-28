@@ -1,19 +1,12 @@
-import React, { useState } from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import React, { useState, useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 import HikeDialog from './HikeDialog';
 import Hike from './Hike';
 import PleaseWait from './PleaseWait';
+import MobxStore from '../redux/store';
 
-const mapStateToProps = (state) => ({
-  hikes: state.hikes,
-});
-
-const Hikes = ({
-  hikes,
-  dispatch,
-}) => {
+const Hikes = () => {
+  const { hikeManager } = useContext(MobxStore);
   const [showHikeDialog, setShowHikeDialog] = useState(false);
 
   const handleClick = () => {
@@ -25,7 +18,7 @@ const Hikes = ({
   };
 
   const handleDelete = (id) => {
-    hikes.deleteHike(id);
+    hikeManager.deleteHike(id);
   };
 
   return (
@@ -40,32 +33,21 @@ const Hikes = ({
           </h4>
           <div className="hikes">
             {
-              hikes.hikes.map((h) => (
+              hikeManager.hikes.map((h) => (
                 <Hike
                   key={h.id}
                   hike={h}
                   onDelete={handleDelete}
-                  dispatch={dispatch}
                 />
               ))
             }
           </div>
-          <PleaseWait show={hikes.requesting} />
+          <PleaseWait show={hikeManager.requesting} />
         </div>
       </div>
-      <HikeDialog show={showHikeDialog} onHide={handleHide} dispatch={dispatch} />
+      <HikeDialog show={showHikeDialog} onHide={handleHide} />
     </>
   );
 };
 
-Hikes.propTypes = {
-  hikes: PropTypes.shape(),
-  dispatch: PropTypes.func,
-};
-
-Hikes.defaultProps = {
-  hikes: null,
-  dispatch: null,
-};
-
-export default connect(mapStateToProps)(observer(Hikes));
+export default observer(Hikes);

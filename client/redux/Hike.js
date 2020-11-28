@@ -1,5 +1,10 @@
 import { makeAutoObservable } from 'mobx';
 import HikerProfile from './HikerProfile';
+import Map from './Map';
+import TrailMarker from '../Hike/trailMarker/trailMarker';
+import Route from './Route';
+
+const dayMarkerUrl = 'moon_pin.png';
 
 class Hike {
   constructor(props) {
@@ -8,6 +13,10 @@ class Hike {
     this.distance = null;
     this.requesting = false;
     this.hikerProfiles = [];
+    this.schedule = [];
+    this.route = new Route(this);
+    this.map = null;
+    this.dayMarkers = [];
 
     makeAutoObservable(this);
 
@@ -49,6 +58,10 @@ class Hike {
     this.setHikerProfiles(profiles.map((p) => new HikerProfile(p)));
   }
 
+  load() {
+    this.map = new Map(this);
+  }
+
   setHikerProfiles(profiles) {
     this.hikerProfiles = profiles;
   }
@@ -86,6 +99,28 @@ class Hike {
     // todo: handle the error case.
   }
 
+  async requestSchedule() {
+    try {
+      const schedule = await fetch(`/hike/${this.id}/schedule`)
+        .then(async (response) => {
+          if (response.ok) {
+            return response.json();
+          }
+
+          return null;
+        });
+
+      this.setSchedule(schedule);
+    }
+    catch (error) {
+      console.log(error);
+    }
+  }
+
+  setSchedule(schedule) {
+    this.schedule = schedule;
+  }
+
   setRequesting(requseting) {
     this.requesting = requseting;
   }
@@ -96,6 +131,18 @@ class Hike {
 
   setDistance(distance) {
     this.distance = distance;
+  }
+
+  updateSchedule(schedule) {
+    this.dayMarkers = schedule.filter((d, index) => index > 0).map((d, index) => ({
+      id: d.id,
+      day: index + 1,
+      lat: d.lat,
+      lng: d.lng,
+      marker: new TrailMarker(
+        dayMarkerUrl,
+      ),
+    }));
   }
 }
 

@@ -1,5 +1,4 @@
 import React from 'react';
-import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Modal } from 'react-bootstrap';
 import { Formik, Form, Field } from 'formik';
@@ -12,7 +11,6 @@ const HikerProfileDialog = ({
   profile,
   show,
   onHide,
-  dispatch,
 }) => {
   const incrementValue = (value) => {
     if (value !== '' && value !== undefined && value !== null) {
@@ -155,7 +153,6 @@ HikerProfileDialog.propTypes = {
   profile: PropTypes.shape(),
   show: PropTypes.bool.isRequired,
   onHide: PropTypes.func.isRequired,
-  dispatch: PropTypes.func.isRequired,
 };
 
 HikerProfileDialog.defaultProps = {
@@ -172,7 +169,7 @@ HikerProfileDialog.defaultProps = {
 };
 
 const useHikerProfileDialog = () => {
-  const [DialogModal, showDialogModal] = useModal(connect()(HikerProfileDialog));
+  const [DialogModal, showDialogModal] = useModal(HikerProfileDialog);
 
   return [
     DialogModal,

@@ -407,7 +407,7 @@ export default class Hike extends BaseModel {
     return path;
   }
 
-  private async findRouteBetweenWaypoints(this: Hike, anchorIndexes: number[]) {
+  private async findRouteBetweenWaypoints(this: Hike, anchorIndexes: number[]): Promise<void> {
     const anchors = anchorIndexes.map((a) => this.routePoints[a]);
 
     const newAnchorsArray = await Hike.findPath(anchors);
@@ -641,11 +641,17 @@ export default class Hike extends BaseModel {
     this.routePoints.push(routePoint);
     await this.related('routePoints').save(routePoint);
 
+    const prevAnchorId = this.routePoints[this.routePoints.length - 2].id;
+    const waypointId = this.routePoints[this.routePoints.length - 1].id;
+
     await this.findRouteBetweenWaypoints(
       [this.routePoints.length - 2, this.routePoints.length - 1],
     );
 
-    return this.prepareUpdates([this.routePoints.length - 2, this.routePoints.length - 1]);
+    const prevWaypointIndex = this.routePoints.findIndex((p: RoutePoint) => p.id === prevAnchorId);
+    const waypointIndex = this.routePoints.findIndex((p: RoutePoint) => p.id === waypointId);
+
+    return this.prepareUpdates([prevWaypointIndex, waypointIndex]);
   }
 
   private static nearestSegmentFind(lat: number, lng: number, segments: Point[]) {

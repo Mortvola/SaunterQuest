@@ -1,53 +1,45 @@
-import React, { useState, useEffect } from 'react';
-import { connect } from 'react-redux';
+import React, { useState, useEffect, useContext } from 'react';
 import PropTypes from 'prop-types';
+import { getObserverTree } from 'mobx';
+import { observer } from 'mobx-react-lite';
 import ElevationChart from './ElevationChart';
 import Map from './Map';
 import Controls from './Controls';
-import { requestRoute } from '../redux/actions';
-
-const mapStateToProps = (state) => ({
-  hike: state.hikes.getHike(state.selections.params.hikeId),
-  route: state.map.route,
-  bounds: state.map.bounds,
-  dayMarkers: state.map.dayMarkers,
-  locationPopup: state.map.locationPopup,
-  elevations: state.map.elevations,
-});
+import MobxStore from '../redux/store';
 
 const Hike = ({
-  hike,
-  route,
-  bounds,
-  elevations,
   tileServerUrl,
-  dayMarkers,
-  locationPopup,
-  dispatch,
 }) => {
+  const { uiState } = useContext(MobxStore);
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     if (!initialized) {
       setInitialized(true);
-      dispatch(requestRoute(hike.id));
+      uiState.hike.route.requestRoute();
     }
-  });
 
-  if (hike) {
+    const tree = getObserverTree(uiState.hike, 'map');
+    console.log(JSON.stringify(tree));
+  }, []);
+
+  let locationPopup = null;
+  if (uiState.hike.map) {
+    locationPopup = uiState.hike.map.locationPopup;
+  }
+
+  if (uiState.hike) {
     return (
       <div className="hike-grid">
         <Map
           tileServerUrl={tileServerUrl}
-          hikeId={hike.id}
-          route={route}
-          bounds={bounds}
-          dayMarkers={dayMarkers}
+          hike={uiState.hike}
+          map={uiState.hike.map}
+          dayMarkers={uiState.hike.dayMarkers}
           locationPopup={locationPopup}
-          dispatch={dispatch}
         />
-        <ElevationChart elevations={elevations} />
-        <Controls hike={hike} />
+        <ElevationChart elevations={uiState.hike.elevations} />
+        <Controls hike={uiState.hike} />
       </div>
     );
   }
@@ -56,23 +48,7 @@ const Hike = ({
 };
 
 Hike.propTypes = {
-  hike: PropTypes.shape(),
-  route: PropTypes.arrayOf(PropTypes.shape()),
-  bounds: PropTypes.shape(),
-  dayMarkers: PropTypes.arrayOf(PropTypes.shape()),
-  locationPopup: PropTypes.shape(),
-  elevations: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.number)),
   tileServerUrl: PropTypes.string.isRequired,
-  dispatch: PropTypes.func.isRequired,
 };
 
-Hike.defaultProps = {
-  hike: null,
-  route: null,
-  bounds: null,
-  dayMarkers: null,
-  locationPopup: null,
-  elevations: null,
-};
-
-export default connect(mapStateToProps)(Hike);
+export default observer(Hike);

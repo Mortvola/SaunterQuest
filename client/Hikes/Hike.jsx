@@ -1,23 +1,30 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
 import { Spinner, Button } from 'react-bootstrap';
 import { observer } from 'mobx-react-lite';
 import { metersToMilesRounded } from '../utilities';
 import EditableText from './EditableText';
 import { useDeleteConfirmation } from '../DeleteConfirmation';
-import { requestHike } from '../redux/actions';
+import { VIEW_HIKE } from '../menuEvents';
+import MobxStore from '../redux/store';
 
 const Hike = ({
   hike,
   onDelete,
-  dispatch,
 }) => {
+  const { uiState } = useContext(MobxStore);
   const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
     'Are you sure you want to delete this hike?',
     () => {
       onDelete(hike.id);
     },
   );
+
+  const handleOpen = () => {
+    uiState.setView(VIEW_HIKE);
+    uiState.setHike(hike);
+    hike.load();
+  };
 
   return (
     <div
@@ -56,11 +63,7 @@ const Hike = ({
           >
             Delete
           </Button>
-          <Button
-            onClick={() => {
-              dispatch(requestHike(hike.id));
-            }}
-          >
+          <Button onClick={handleOpen}>
             Open
           </Button>
         </div>
@@ -73,7 +76,6 @@ const Hike = ({
 Hike.propTypes = {
   hike: PropTypes.shape().isRequired,
   onDelete: PropTypes.func.isRequired,
-  dispatch: PropTypes.func.isRequired,
 };
 
 export default observer(Hike);

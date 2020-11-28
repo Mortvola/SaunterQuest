@@ -39,7 +39,7 @@ Route.put('/hike/:hikeId', 'HikesController.update');
 Route.delete('/hike/:hikeId', 'HikesController.delete');
 Route.get('/hike/:hikeId/details', 'HikesController.getDetails');
 Route.get('/hike/:hikeId/route', 'RouteController.get');
-Route.post('/hike/:hikeId/route/start-point', 'RouteController.addStartPoint');
+Route.post('/hike/:hikeId/route/start-point', 'RouteController.addWaypoint');
 Route.post('/hike/:hikeId/route/end-point', 'RouteController.addEndPoint');
 Route.post('/hike/:hikeId/route/waypoint', 'RouteController.addWaypoint');
 Route.delete('/hike/:hikeId/route/waypoint/:waypointId', 'RouteController.deleteWaypoint');

@@ -3,17 +3,16 @@ import PropTypes from 'prop-types';
 import { Modal, Button } from 'react-bootstrap';
 import { Formik, Form, Field } from 'formik';
 import useModal from '../Modal';
-import { showLocationPopup } from '../redux/actions';
 
 const GotoLocationDialog = ({
   show,
   onHide,
-  map,
-  dispatch,
+  leafletMap,
+  hike,
 }) => {
   const handleGoClick = async (vals) => {
-    map.panTo(vals);
-    dispatch(showLocationPopup({ lat: parseFloat(vals.lat), lng: parseFloat(vals.lng) }));
+    leafletMap.panTo(vals);
+    hike.map.showLocationPopup({ lat: parseFloat(vals.lat), lng: parseFloat(vals.lng) });
     onHide();
   };
 
@@ -54,8 +53,8 @@ const GotoLocationDialog = ({
 GotoLocationDialog.propTypes = {
   show: PropTypes.bool.isRequired,
   onHide: PropTypes.func.isRequired,
-  map: PropTypes.shape().isRequired,
-  dispatch: PropTypes.func.isRequired,
+  leafletMap: PropTypes.shape().isRequired,
+  hike: PropTypes.shape().isRequired,
 };
 
 const useGotoLocationDialog = () => (

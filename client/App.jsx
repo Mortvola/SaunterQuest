@@ -1,28 +1,26 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import ReactDOM from 'react-dom';
-import { Provider, connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import 'regenerator-runtime/runtime';
 import 'leaflet-contextmenu';
 import Leaflet from 'leaflet';
-import store from './redux/store';
+import { observer } from 'mobx-react-lite';
+import { trace } from 'mobx';
 import Hikes from './Hikes/Hikes';
 import Menubar from './Menubar';
 import { VIEW_HIKES, VIEW_HIKE, VIEW_GEAR } from './menuEvents';
 import Hike from './Hike/Hike';
+import MobxStore, { mobxStore } from './redux/store';
 
 Leaflet.Icon.Default.imagePath = '//cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.4/images/';
-
-const mapStateToProps = (state) => ({
-  view: state.selections.view,
-});
 
 const App = ({
   username,
   tileServerUrl,
   extendedMenu,
-  view,
 }) => {
+  const { uiState: { view } } = useContext(MobxStore);
+
   const renderView = () => {
     switch (view) {
       case VIEW_HIKES:
@@ -49,20 +47,19 @@ App.propTypes = {
   username: PropTypes.string.isRequired,
   tileServerUrl: PropTypes.string.isRequired,
   extendedMenu: PropTypes.bool,
-  view: PropTypes.string.isRequired,
 };
 
 App.defaultProps = {
   extendedMenu: false,
 };
 
-const ConnectedApp = connect(mapStateToProps)(App);
+const ConnectedApp = observer(App);
 let initialProps = document.querySelector('.app').getAttribute('data-props');
 initialProps = JSON.parse(initialProps);
 
 ReactDOM.render(
-  <Provider store={store}>
+  <MobxStore.Provider value={mobxStore} >
     <ConnectedApp {...initialProps} />
-  </Provider>,
+  </MobxStore.Provider>,
   document.querySelector('.app'),
 );

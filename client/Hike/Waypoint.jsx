@@ -1,20 +1,19 @@
 import React, { useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Marker } from 'react-leaflet';
-import { moveWaypoint, deleteWaypoint } from '../redux/actions';
+import { observer } from 'mobx-react-lite';
 
 const Waypoint = ({
-  hikeId,
+  route,
   waypoint,
-  dispatch,
 }) => {
   const markerRef = useRef(null);
   const handleDragEnd = () => {
-    dispatch(moveWaypoint(hikeId, waypoint, markerRef.current.getLatLng()));
+    route.moveWaypoint(waypoint.id, markerRef.current.getLatLng());
   };
 
   const handleDelete = () => {
-    dispatch(deleteWaypoint(hikeId, waypoint.id));
+    route.deleteWaypoint(waypoint.id);
   };
 
   return (
@@ -40,9 +39,8 @@ const Waypoint = ({
 };
 
 Waypoint.propTypes = {
-  hikeId: PropTypes.number.isRequired,
+  route: PropTypes.shape().isRequired,
   waypoint: PropTypes.shape().isRequired,
-  dispatch: PropTypes.func.isRequired,
 };
 
-export default Waypoint;
+export default observer(Waypoint);
