@@ -55,8 +55,32 @@ class HikeManager {
     ));
   }
 
-  addHike(hike) {
-    this.hikes.concat(hike);
+  async addHike(hike) {
+    return fetch('hike', {
+      method: 'POST',
+      headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        Accept: 'application/json',
+      },
+      body: hike,
+    })
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        }
+
+        throw new Error('invalid response');
+      })
+      .then((response) => {
+        const newHike = new Hike(response);
+
+        this.setHikes([
+          ...this.hikes,
+          newHike,
+        ]);
+
+        return newHike;
+      });
   }
 
   getHike(id) {
@@ -82,7 +106,10 @@ class HikeManager {
       const index = this.hikes.findIndex((h) => h.id === id);
 
       if (index !== -1) {
-        this.hikes.splice(index, 1);
+        this.setHikes([
+          ...this.hikes.slice(0, index),
+          ...this.hikes.slice(index + 1),
+        ]);
       }
     }
 

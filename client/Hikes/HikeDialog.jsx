@@ -12,30 +12,12 @@ const HikeDialog = ({
   const { uiState, hikeManager } = useContext(MobxStore);
   const formRef = useRef(null);
 
-  const insertHike = () => {
+  const insertHike = async () => {
     const formData = new FormData(formRef.current);
 
-    fetch('hike', {
-      method: 'POST',
-      headers: {
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-        Accept: 'application/json',
-      },
-      body: formData,
-    })
-      .then((response) => {
-        if (response.ok) {
-          return response.json();
-        }
-
-        throw new Error('invalid response');
-      })
-      .then((response) => {
-        const hike = new Hike(response);
-        hikeManager.addHike(hike);
-        uiState.hike = hike;
-        uiState.setView(VIEW_HIKE);
-      });
+    const hike = await hikeManager.addHike(formData);
+    uiState.hike = hike;
+    uiState.setView(VIEW_HIKE);
   };
 
   return (

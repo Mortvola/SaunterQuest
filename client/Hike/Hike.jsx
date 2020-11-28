@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
 import PropTypes from 'prop-types';
-import { getObserverTree } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import ElevationChart from './ElevationChart';
 import Map from './Map';
@@ -18,9 +17,6 @@ const Hike = ({
       setInitialized(true);
       uiState.hike.route.requestRoute();
     }
-
-    const tree = getObserverTree(uiState.hike, 'map');
-    console.log(JSON.stringify(tree));
   }, []);
 
   let locationPopup = null;

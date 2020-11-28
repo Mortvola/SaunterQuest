@@ -21,7 +21,12 @@ export default class SchedulesController {
         await hike.updateSchedule(auth.user);
       }
 
-      response.send(JSON.stringify(hike.schedule.days));
+      if (hike.schedule) {
+        response.send(JSON.stringify(hike.schedule.days));
+      }
+      else {
+        response.ok([]);
+      }
     }
   }
 }

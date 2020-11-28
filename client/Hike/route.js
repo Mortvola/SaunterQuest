@@ -638,7 +638,7 @@ class Route {
             value = parseInt(this.value, 10);
           }
 
-          if (isNaN(value)) {
+          if (Number.isNaN(value)) {
             value = null;
           }
         }
@@ -1061,7 +1061,7 @@ class Route {
       let elevationMax = elevationMin;
 
       for (let r = s; r < e; r += 1) {
-        if (!isNaN(this.actualRoute[r].ele) && this.actualRoute[r].ele !== null) {
+        if (!Number.isNaN(this.actualRoute[r].ele) && this.actualRoute[r].ele !== null) {
           elevations.data.push([
             metersToMiles(this.actualRoute[r].dist),
             metersToFeet(this.actualRoute[r].ele),

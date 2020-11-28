@@ -67,11 +67,11 @@ const Route = ({
     }
   }, [route.bounds, initialized]);
 
-  if (route.route) {
+  if (route.anchors) {
     return (
       <>
         {
-          route.route.map((a) => (
+          route.anchors.map((a) => (
             <AnchorAndTrail
               key={a.id}
               route={route}

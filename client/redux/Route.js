@@ -6,7 +6,7 @@ import { metersToMiles, metersToFeet } from '../utilities';
 class Route {
   constructor(hike) {
     this.hike = hike;
-    this.route = [];
+    this.anchors = [];
     this.elevations = null;
     this.bounds = null;
 
@@ -157,13 +157,13 @@ class Route {
   }
 
   receiveWaypointUpdates(updates) {
-    if (this.route.length === 0) {
+    if (this.anchors.length === 0) {
       this.setRoute(Route.processUpdates(updates, []));
       this.setElevations(this.computeElevations());
     }
     else {
-      const firstIndex = this.route.findIndex((a) => a.id === updates[0].id);
-      let lastIndex = this.route.findIndex(
+      const firstIndex = this.anchors.findIndex((a) => a.id === updates[0].id);
+      let lastIndex = this.anchors.findIndex(
         (a) => a.id === updates[updates.length - 1].id,
       );
 
@@ -172,9 +172,9 @@ class Route {
           lastIndex = firstIndex;
         }
         const newRoute = [
-          ...this.route.slice(0, firstIndex),
-          ...Route.processUpdates(updates, this.route.slice(firstIndex, lastIndex + 1)),
-          ...this.route.slice(lastIndex + 1),
+          ...this.anchors.slice(0, firstIndex),
+          ...Route.processUpdates(updates, this.anchors.slice(firstIndex, lastIndex + 1)),
+          ...this.anchors.slice(lastIndex + 1),
         ];
 
         this.setRoute(newRoute);
@@ -184,23 +184,32 @@ class Route {
   }
 
   setRoute(route) {
-    this.route = route;
+    this.anchors = route;
   }
 
   setBounds(bounds) {
-    this.bounds = [bounds.getSouthWest(), bounds.getNorthEast()];
+    if (bounds) {
+      this.bounds = [bounds.getSouthWest(), bounds.getNorthEast()];
+    }
+    else {
+      this.bounds = null;
+    }
   }
 
   computeBounds() {
-    return this.route.reduce((accum, anc) => {
-      if (anc.trail) {
-        return accum.extend(anc.trail.reduce((a, point) => (
-          a.extend(point)
-        ), L.latLngBounds(anc)));
-      }
+    if (this.anchors.length > 0) {
+      return this.anchors.reduce((accum, anc) => {
+        if (anc.trail) {
+          return accum.extend(anc.trail.reduce((a, point) => (
+            a.extend(point)
+          ), L.latLngBounds(anc)));
+        }
 
-      return accum;
-    }, L.latLngBounds(this.route[0]));
+        return accum;
+      }, L.latLngBounds(this.anchors[0]));
+    }
+
+    return null;
   }
 
   setElevations(elevations) {
@@ -211,7 +220,7 @@ class Route {
     let distance = 0;
 
     return (
-      this.route
+      this.anchors
         .filter((a) => a.trail)
         .flatMap((a) => {
           const elevations = a.trail

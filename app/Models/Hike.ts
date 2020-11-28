@@ -58,23 +58,25 @@ export default class Hike extends BaseModel {
   }
 
   public async updateSchedule(this: Hike, user: User) : Promise<void> {
-    const scheduler = new Scheduler();
+    if (this.routePoints && this.routePoints.length > 0) {
+      const scheduler = new Scheduler();
 
-    scheduler.createSchedule(this.routePoints, user, this.hikerProfiles);
+      scheduler.createSchedule(this.routePoints, user, this.hikerProfiles);
 
-    if (isNaN(scheduler.days[0].loss)) {
-      throw (new Error('loss is NaN'));
+      if (Number.isNaN(scheduler.days[0].loss)) {
+        throw (new Error('loss is NaN'));
+      }
+
+      await this.related('schedule').updateOrCreate({}, {});
+      await this.preload('schedule');
+
+      if (Number.isNaN(scheduler.days[0].loss)) {
+        throw (new Error('loss is NaN'));
+      }
+
+      await this.schedule.related('days').saveMany(scheduler.days);
+      await this.schedule.preload('days');
     }
-
-    await this.related('schedule').updateOrCreate({}, {});
-    await this.preload('schedule');
-
-    if (isNaN(scheduler.days[0].loss)) {
-      throw (new Error('loss is NaN'));
-    }
-
-    await this.schedule.related('days').saveMany(scheduler.days);
-    await this.schedule.preload('days');
   }
 
   private async loadAnchorTrail(
