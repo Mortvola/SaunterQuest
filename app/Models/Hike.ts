@@ -848,7 +848,7 @@ export default class Hike extends BaseModel {
     return -1;
   }
 
-  public deleteWaypoint(waypointId: number): Promise<RoutePoint[]> {
+  public async deleteWaypoint(waypointId: number): Promise<RoutePoint[]> {
     const waypointIndex = this.routePoints.findIndex((p: RoutePoint) => p.id === waypointId);
 
     if (waypointIndex === -1) {
@@ -895,7 +895,7 @@ export default class Hike extends BaseModel {
     const prevAnchorId = this.routePoints[prevAnchorIndex].id;
     const nextAnchorId = this.routePoints[nextAnchorIndex].id;
 
-    this.findRouteBetweenWaypoints([prevAnchorIndex, nextAnchorIndex]);
+    await this.findRouteBetweenWaypoints([prevAnchorIndex, nextAnchorIndex]);
 
     prevAnchorIndex = this.routePoints.findIndex((p: RoutePoint) => p.id === prevAnchorId);
     nextAnchorIndex = this.routePoints.findIndex((p: RoutePoint) => p.id === nextAnchorId);

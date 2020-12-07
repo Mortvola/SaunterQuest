@@ -57,7 +57,7 @@ let initialProps = document.querySelector('.app').getAttribute('data-props');
 initialProps = JSON.parse(initialProps);
 
 ReactDOM.render(
-  <MobxStore.Provider value={store} >
+  <MobxStore.Provider value={store}>
     <ConnectedApp {...initialProps} />
   </MobxStore.Provider>,
   document.querySelector('.app'),

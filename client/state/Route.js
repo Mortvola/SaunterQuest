@@ -7,7 +7,7 @@ class Route {
   constructor(hike) {
     this.hike = hike;
     this.anchors = [];
-    this.elevations = null;
+    this.elevations = [];
     this.bounds = null;
 
     makeAutoObservable(this);
@@ -72,6 +72,32 @@ class Route {
 
   async addEndWaypoint(position) {
     const updates = await fetch(`/hike/${this.hike.id}/route/end-point`, {
+      method: 'POST',
+      headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        'Content-type': 'application/json',
+      },
+      body: JSON.stringify({ lat: position.lat, lng: position.lng }),
+    })
+      .then(async (response) => {
+        if (response.ok) {
+          return response.json();
+        }
+
+        return null;
+      });
+
+    if (updates === null) {
+      this.requestRoute();
+    }
+    else {
+      this.receiveWaypointUpdates(updates);
+      this.hike.requestSchedule();
+    }
+  }
+
+  async addWaypoint(position) {
+    const updates = await fetch(`/hike/${this.hike.id}/route/waypoint`, {
       method: 'POST',
       headers: {
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
