@@ -6,7 +6,7 @@ import { metersToMilesRounded } from '../utilities';
 import EditableText from './EditableText';
 import { useDeleteConfirmation } from '../DeleteConfirmation';
 import { VIEW_HIKE } from '../menuEvents';
-import MobxStore from '../redux/store';
+import MobxStore from '../state/store';
 
 const Hike = ({
   hike,

@@ -5,12 +5,11 @@ import 'regenerator-runtime/runtime';
 import 'leaflet-contextmenu';
 import Leaflet from 'leaflet';
 import { observer } from 'mobx-react-lite';
-import { trace } from 'mobx';
 import Hikes from './Hikes/Hikes';
 import Menubar from './Menubar';
 import { VIEW_HIKES, VIEW_HIKE, VIEW_GEAR } from './menuEvents';
 import Hike from './Hike/Hike';
-import MobxStore, { mobxStore } from './redux/store';
+import MobxStore, { store } from './state/store';
 
 Leaflet.Icon.Default.imagePath = '//cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.4/images/';
 
@@ -58,7 +57,7 @@ let initialProps = document.querySelector('.app').getAttribute('data-props');
 initialProps = JSON.parse(initialProps);
 
 ReactDOM.render(
-  <MobxStore.Provider value={mobxStore} >
+  <MobxStore.Provider value={store} >
     <ConnectedApp {...initialProps} />
   </MobxStore.Provider>,
   document.querySelector('.app'),

@@ -4,7 +4,7 @@ import { Modal } from 'react-bootstrap';
 import { Formik, Form, Field } from 'formik';
 import useModal from '../Modal';
 import { toTimeFloat, toTimeString } from '../utilities';
-import HikerProfile from '../redux/HikerProfile';
+import HikerProfile from '../state/HikerProfile';
 
 const HikerProfileDialog = ({
   hike,

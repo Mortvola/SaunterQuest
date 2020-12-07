@@ -57,7 +57,7 @@ export default class Hike extends BaseModel {
     return 0;
   }
 
-  public async updateSchedule(this: Hike, user: User) : Promise<void> {
+  public async updateSchedule(this: Hike, user: User): Promise<void> {
     if (this.routePoints && this.routePoints.length > 0) {
       const scheduler = new Scheduler();
 
@@ -81,7 +81,7 @@ export default class Hike extends BaseModel {
 
   private async loadAnchorTrail(
     anchorIndex: number,
-  ) : Promise<void> {
+  ): Promise<void> {
     if (anchorIndex >= this.routePoints.length - 1) {
       throw (new Error(`Index beyond end of routePoints: ${anchorIndex}, ${this.routePoints.length}`));
     }
@@ -100,7 +100,7 @@ export default class Hike extends BaseModel {
     return routePoint.loadTrail(n.prevFraction);
   }
 
-  public async getAnchor(anchorIndex: number, includeTrail = true) : Promise<RoutePoint> {
+  public async getAnchor(anchorIndex: number, includeTrail = true): Promise<RoutePoint> {
     const routePoint = this.routePoints[anchorIndex];
 
     if (includeTrail && anchorIndex < this.routePoints.length - 1) {
@@ -155,7 +155,7 @@ export default class Hike extends BaseModel {
     return this.routePoints.slice(startAnchorIndex, endAnchorIndex + 1);
   }
 
-  public async getFullRoute(this: Hike) : Promise<RoutePoint[]> {
+  public async getFullRoute(this: Hike): Promise<RoutePoint[]> {
     await this.preload('routePoints', (query) => query.orderBy('sort_order'));
 
     return Promise.all(this.routePoints
@@ -212,7 +212,7 @@ export default class Hike extends BaseModel {
     this: Hike,
     waypointId: number,
     point: Point,
-  ) : Promise<RoutePoint[]> {
+  ): Promise<RoutePoint[]> {
     let waypointIndex = this.routePoints.findIndex((p: RoutePoint) => p.id === waypointId);
 
     if (waypointIndex === -1) {
@@ -472,8 +472,8 @@ export default class Hike extends BaseModel {
         index === 0
         && ((this.routePoints[index].prevFraction !== null
           && this.routePoints[index].prevFraction !== undefined)
-        || (this.routePoints[index].prevLineId !== null
-          && this.routePoints[index].prevLineId !== undefined))
+          || (this.routePoints[index].prevLineId !== null
+            && this.routePoints[index].prevLineId !== undefined))
       ) {
         throw (new Error('First point has non-null prev values: '
           + `${JSON.stringify(this.routePoints[index])}, `
@@ -809,7 +809,7 @@ export default class Hike extends BaseModel {
   public assignDistances(
     startAnchorIndex = 0,
     endAnchorIndex: number = this.routePoints.length - 1,
-  ) : void {
+  ): void {
     if (this.routePoints === null) {
       throw (new Error('Hike.routePoints is null'));
     }

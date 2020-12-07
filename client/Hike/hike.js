@@ -3,8 +3,8 @@ import Trails from './trails';
 import { retrieveResupplyLocations, addResupplyLocation } from './resupplyPlan';
 import { getRoute } from './tempstore';
 import { showAddPointOfInterest, retrievePointsOfInterest } from './pointOfInterest';
-import store from '../redux/store';
-import { addWaypoint, addStartWaypoint, addEndWaypoint } from '../redux/actions';
+import store from '../state/store';
+import { addWaypoint, addStartWaypoint, addEndWaypoint } from '../state/actions';
 
 let trails;
 

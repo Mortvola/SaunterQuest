@@ -1,8 +1,8 @@
 import React, { useRef, useContext } from 'react';
 import PropTypes from 'prop-types';
 import { Modal, Button } from 'react-bootstrap';
-import MobxStore from '../redux/store';
-import Hike from '../redux/Hike';
+import MobxStore from '../state/store';
+import Hike from '../state/Hike';
 import { VIEW_HIKE } from '../menuEvents';
 
 const HikeDialog = ({

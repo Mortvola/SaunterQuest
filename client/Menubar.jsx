@@ -16,7 +16,7 @@ import {
 } from './menuEvents';
 import { useProfileDialog } from './ProfileDialog';
 import { useAccountDialog } from './AccountDialog';
-import MobxStore from './redux/store';
+import MobxStore from './state/store';
 
 const Menubar = ({
   username,

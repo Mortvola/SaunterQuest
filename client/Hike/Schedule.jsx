@@ -4,7 +4,7 @@ import { positionMapToBounds } from './mapUtils';
 import {
   metersToFeet, gramsToPoundsAndOunces, metersToMilesRounded, formatTime,
 } from '../utilities';
-import MobxStore from '../redux/store';
+import MobxStore from '../state/store';
 // import { getRoute } from './tempstore';
 // import EndOfDayMarker from './trailMarker/EndOfDayMarker';
 

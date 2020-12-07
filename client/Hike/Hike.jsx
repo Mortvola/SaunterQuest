@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import ElevationChart from './ElevationChart';
 import Map from './Map';
 import Controls from './Controls';
-import MobxStore from '../redux/store';
+import MobxStore from '../state/store';
 
 const Hike = ({
   tileServerUrl,

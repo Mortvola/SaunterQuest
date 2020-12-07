@@ -3,7 +3,7 @@ import { observer } from 'mobx-react-lite';
 import HikeDialog from './HikeDialog';
 import Hike from './Hike';
 import PleaseWait from './PleaseWait';
-import MobxStore from '../redux/store';
+import MobxStore from '../state/store';
 
 const Hikes = () => {
   const { hikeManager } = useContext(MobxStore);
