@@ -44,7 +44,9 @@ const databaseConfig: DatabaseConfig & { orm: Partial<OrmConfig> } = {
         database: Env.get('DB_NAME', 'lucid') as string,
       },
       healthCheck: false,
+      debug: false,
     },
+
   },
 
   /*

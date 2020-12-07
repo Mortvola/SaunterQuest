@@ -74,6 +74,9 @@ export default class Hike extends BaseModel {
         throw (new Error('loss is NaN'));
       }
 
+      this.schedule.update = false;
+
+      await this.schedule.related('days').query().delete();
       await this.schedule.related('days').saveMany(scheduler.days);
       await this.schedule.preload('days');
     }

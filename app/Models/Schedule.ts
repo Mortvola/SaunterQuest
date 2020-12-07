@@ -18,6 +18,9 @@ export default class Schedule extends BaseModel {
   @column({ serializeAs: null })
   public hikeId: number;
 
+  @column({ serializeAs: null })
+  public update: boolean;
+
   @hasMany(() => Day)
   public days: HasMany<typeof Day>;
 }

@@ -1,6 +1,7 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Database from '@ioc:Adonis/Lucid/Database';
 import Hike from 'App/Models/Hike';
+import Schedule from 'App/Models/Schedule';
 import Point from 'App/Types/Point';
 
 export default class RouteController {
@@ -68,7 +69,16 @@ export default class RouteController {
       hike.useTransaction(trx);
       await hike.preload('routePoints');
 
-      return hike.updateWaypointPosition(parseInt(params.waypointId, 10), point);
+      const result = hike.updateWaypointPosition(parseInt(params.waypointId, 10), point);
+
+      await hike.preload('schedule');
+
+      if (hike.schedule) {
+        hike.schedule.update = true;
+        hike.related('schedule').save(hike.schedule);
+      }
+
+      return result;
     });
 
     response.header('content-type', 'application/json');

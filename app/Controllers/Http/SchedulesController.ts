@@ -12,6 +12,7 @@ export default class SchedulesController {
 
       if (
         hike.schedule === null || hike.schedule === undefined
+        || hike.schedule.update
         || hike.schedule.days === null || hike.schedule.days === undefined
         || hike.schedule.days.length === 0
       ) {
