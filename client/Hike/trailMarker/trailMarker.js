@@ -1,11 +1,12 @@
 import L from 'leaflet';
-import { metersToMilesRounded, metersToFeet } from '../../utilities';
+import { makeAutoObservable } from 'mobx';
 
 class TrailMarker {
   constructor(iconUrl, label) {
     this.iconUrl = iconUrl;
 
     this.icon = this.createIcon(label);
+    this.marker = null;
 
     // this.marker = new L.Marker([],
     //   {
@@ -23,6 +24,8 @@ class TrailMarker {
     //     return message;
     //   },
     // );
+
+    makeAutoObservable(this);
   }
 
   createIcon(label) {

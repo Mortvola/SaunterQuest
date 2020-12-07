@@ -19,7 +19,7 @@ const Waypoint = ({
   return (
     <Marker
       ref={markerRef}
-      position={waypoint}
+      position={{ lat: waypoint.lat, lng: waypoint.lng }}
       icon={waypoint.marker.icon}
       draggable
       eventHandlers={{

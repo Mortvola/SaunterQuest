@@ -25,7 +25,7 @@ class Route {
         });
 
       if (route) {
-        this.receieveRoute(route);
+        this.receiveRoute(route);
         this.hike.requestSchedule();
       }
     }
@@ -35,7 +35,7 @@ class Route {
     // todo: handle error case
   }
 
-  receieveRoute(route) {
+  receiveRoute(route) {
     resetWaypointLabel();
     const newRoute = route.map((a) => new Anchor(a));
 
@@ -172,10 +172,8 @@ class Route {
       const a = anchors.find((a2) => a2.id === u.id);
 
       if (a) {
-        return {
-          ...a,
-          ...u,
-        };
+        a.update(u);
+        return a;
       }
 
       return new Anchor(u);
@@ -202,6 +200,11 @@ class Route {
           ...Route.processUpdates(updates, this.anchors.slice(firstIndex, lastIndex + 1)),
           ...this.anchors.slice(lastIndex + 1),
         ];
+
+        resetWaypointLabel();
+        newRoute.forEach((a) => {
+          a.setLabel();
+        });
 
         this.setRoute(newRoute);
         this.setElevations(this.computeElevations());

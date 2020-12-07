@@ -28,10 +28,13 @@ const getWaypointLabel = () => {
 class Anchor {
   constructor(props) {
     this.marker = null;
+    this.trail = null;
+    this.lat = null;
+    this.lng = null;
 
     makeAutoObservable(this);
 
-    this.setAnchor(props);
+    this.update(props);
 
     this.marker = new TrailMarker(
       wayPointUrl,
@@ -39,7 +42,11 @@ class Anchor {
     );
   }
 
-  setAnchor(props) {
+  setLabel() {
+    this.marker.setLabel(this.type === 'waypoint' ? getWaypointLabel() : undefined);
+  }
+
+  update(props) {
     if (props) {
       Object.keys(props).forEach((key) => {
         this[key] = props[key];
