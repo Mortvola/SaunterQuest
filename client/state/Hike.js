@@ -111,6 +111,7 @@ class Hike {
         });
 
       this.setSchedule(schedule);
+      this.setDayMarkers(schedule);
     }
     catch (error) {
       console.log(error);
@@ -133,7 +134,7 @@ class Hike {
     this.distance = distance;
   }
 
-  updateSchedule(schedule) {
+  setDayMarkers(schedule) {
     this.dayMarkers = schedule.filter((d, index) => index > 0).map((d, index) => ({
       id: d.id,
       day: index + 1,
