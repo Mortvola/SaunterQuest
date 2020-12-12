@@ -15,8 +15,8 @@ const TerrainDialog = ({
     if (latLng) {
       fetch(`http://localhost:8090/elevation/area?lat=${latLng.lat}&lng=${latLng.lng}&dim=80`, {
         headers: {
-          'access-control-allow-origins': '*'
-        }
+          'access-control-allow-origins': '*',
+        },
       })
         .then((response) => {
           if (response.ok) {

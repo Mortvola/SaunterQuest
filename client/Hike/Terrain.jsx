@@ -186,16 +186,26 @@ const Terrain = ({
     const positions = [];
     const xyDelta = 2.0 / (points.points.length - 1);
 
-    const distance = haversineGreatCircleDistance(
+    const latDistance = haversineGreatCircleDistance(
       points.ne.lat, points.sw.lng, points.sw.lat, points.sw.lng,
     );
-    const zScale = 2.0 / distance;
+    const lngDistance = haversineGreatCircleDistance(
+      points.sw.lat, points.ne.lng, points.sw.lat, points.sw.lng,
+    );
+    let zScale = 2.0 / latDistance;
+    let latScale2 = 1.0;
+    let lngScale2 = lngDistance / latDistance;
+    if (lngDistance > latDistance) {
+      zScale = 2.0 / lngDistance;
+      latScale2 = latDistance / lngDistance;
+      lngScale2 = 1.0;
+    }
 
     const normalizeEle = (v) => ((v - min - delta) * zScale);
 
     const normalizeLatLng = (lng, lat) => ([
-      ((lng - points.sw.lng) / (points.ne.lng - points.sw.lng)) * 2 - 1,
-      ((lat - points.sw.lat) / (points.ne.lat - points.sw.lat)) * 2 - 1,
+      (((lng - points.sw.lng) / (points.ne.lng - points.sw.lng)) * 2 - 1) * lngScale2,
+      (((lat - points.sw.lat) / (points.ne.lat - points.sw.lat)) * 2 - 1) * latScale2,
     ]);
 
     const numPointsX = points.points[0].length;
@@ -204,8 +214,8 @@ const Terrain = ({
     let x = -1.0;
     let y = 1.0;
     for (let i = 0; i < numPointsX; i += 1) {
-      positions.push(x);
-      positions.push(y);
+      positions.push(x * lngScale2);
+      positions.push(y * latScale2);
       positions.push(normalizeEle(points.points[0][i]));
 
       x += xyDelta;
@@ -215,19 +225,19 @@ const Terrain = ({
       x = -1.0;
       y -= xyDelta;
 
-      positions.push(x);
-      positions.push(y);
+      positions.push(x * lngScale2);
+      positions.push(y * latScale2);
       positions.push(normalizeEle(points.points[j][0]));
 
       for (let i = 1; i < numPointsX; i += 1) {
         x += xyDelta;
 
-        positions.push(x - xyDelta / 2);
-        positions.push(y + xyDelta / 2);
+        positions.push((x - xyDelta / 2) * lngScale2);
+        positions.push((y + xyDelta / 2) * latScale2);
         positions.push(normalizeEle(points.centers[j - 1][i - 1]));
 
-        positions.push(x);
-        positions.push(y);
+        positions.push(x * lngScale2);
+        positions.push(y * latScale2);
         positions.push(normalizeEle(points.points[j][i]));
       }
     }
