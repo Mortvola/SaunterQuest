@@ -29,6 +29,7 @@
     "caniuse-lite": "^1.0.30001154",
     "eslint-plugin-react-hooks": "^4.2.0",
     "formik": "^2.2.1",
+    "gl-matrix": "^3.3.0",
     "jsonwebtoken": "^8.5.1",
     "leaflet": "^1.7.1",
     "leaflet-contextmenu": "^1.4.0",

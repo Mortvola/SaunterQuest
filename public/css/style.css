@@ -303,3 +303,7 @@ div.hike-card-header
 .profile-list {
     overflow-y: auto;
 }
+
+.terrain-content {
+  width: max-content;
+}

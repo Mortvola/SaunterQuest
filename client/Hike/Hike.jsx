@@ -2,9 +2,9 @@ import React, { useState, useEffect, useContext } from 'react';
 import PropTypes from 'prop-types';
 import { observer } from 'mobx-react-lite';
 import ElevationChart from './ElevationChart';
-import Map from './Map';
 import Controls from './Controls';
 import MobxStore from '../state/store';
+import MapContainer from './MapContainer';
 
 const Hike = ({
   tileServerUrl,
@@ -27,7 +27,7 @@ const Hike = ({
   if (uiState.hike) {
     return (
       <div className="hike-grid">
-        <Map
+        <MapContainer
           tileServerUrl={tileServerUrl}
           hike={uiState.hike}
           map={uiState.hike.map}

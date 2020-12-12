@@ -264,6 +264,40 @@ class Route {
         })
     );
   }
+
+  static metersPerHourGet(dh, dx) {
+    // This formula was defined by Tobler
+    // On flat ground the formula works out to about 5 km/h.
+    return 6 * 2.71828 ** (-3.5 * Math.abs(dh / dx + 0.05)) * 1000;
+  }
+
+  findSteepestPoint() {
+    let slowestRate = null;
+    let steepestPoint = null;
+
+    this.anchors.forEach((a) => {
+      if (a.trail) {
+        let prevPoint = null;
+        a.trail.forEach((t, index) => {
+          if (index > 0) {
+            const metersPerHour = Route.metersPerHourGet(
+              t.ele - prevPoint.ele, t.dist - prevPoint.dist,
+            );
+
+            if (slowestRate === null || metersPerHour < slowestRate) {
+              slowestRate = metersPerHour;
+              steepestPoint = prevPoint;
+            }
+          }
+
+          prevPoint = t;
+        });
+      }
+    });
+
+    console.log(`rate: ${slowestRate}`);
+    return steepestPoint;
+  }
 }
 
 export default Route;
