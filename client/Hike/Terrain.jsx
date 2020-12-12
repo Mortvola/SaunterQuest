@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { vec3, mat4 } from 'gl-matrix';
+import Quaternion from 'quaternion';
 
 let gl = null;
 let programInfo = null;
@@ -8,6 +9,8 @@ let lineProgramInfo = null;
 let buffers = null;
 let xRotation = Math.PI * 2;
 let yRotation = 0;
+let rotation = mat4.create();
+let accumQ = null;
 
 const Terrain = ({
   points,
@@ -511,14 +514,17 @@ const Terrain = ({
     mat4.translate(modelViewMatrix, // destination matrix
       modelViewMatrix, // matrix to translate
       [0.0, 0.0, -3.0]); // amount to translate
-    mat4.rotate(modelViewMatrix, // destination matrix
-      modelViewMatrix, // matrix to rotate
-      xRotation, // amount to rotate in radians
-      [1, 0, 0]); // axis to rotate around (X)
-    mat4.rotate(modelViewMatrix, // destination matrix
-      modelViewMatrix, // matrix to rotate
-      yRotation, // amount to rotate in radians
-      [0, 1, 0]); // axis to rotate around (Y)
+    // mat4.rotate(modelViewMatrix, // destination matrix
+    //   modelViewMatrix, // matrix to rotate
+    //   xRotation, // amount to rotate in radians
+    //   [1, 0, 0]); // axis to rotate around (X)
+    // mat4.rotate(modelViewMatrix, // destination matrix
+    //   modelViewMatrix, // matrix to rotate
+    //   yRotation, // amount to rotate in radians
+    //   [0, 1, 0]); // axis to rotate around (Y)
+    const invert = mat4.create();
+    mat4.invert(invert, rotation);
+    mat4.multiply(modelViewMatrix, modelViewMatrix, invert);
 
     const normalMatrix = mat4.create();
     mat4.invert(normalMatrix, modelViewMatrix);
@@ -703,10 +709,22 @@ const Terrain = ({
 
   const handleMouseMove = (event) => {
     if (mouseRef.current) {
-      yRotation += ((event.clientX - mouseRef.current.x)
+      yRotation = ((event.clientX - mouseRef.current.x)
         / canvasRef.current.clientWidth) * Math.PI;
-      xRotation += ((event.clientY - mouseRef.current.y)
+      xRotation = ((event.clientY - mouseRef.current.y)
         / canvasRef.current.clientHeight) * Math.PI;
+
+      const q = Quaternion.fromEuler(0, -xRotation, -yRotation, 'XYZ');
+
+      if (accumQ) {
+        accumQ = accumQ.mul(q);
+      }
+      else {
+        accumQ = q;
+      }
+
+      rotation = accumQ.conjugate().toMatrix4();
+
       drawScene();
       mouseRef.current = { x: event.clientX, y: event.clientY };
       event.stopPropagation();

@@ -43,6 +43,7 @@
     "popper": "^1.0.1",
     "prop-types": "^15.7.2",
     "proxy-addr": "^2.0.6",
+    "quaternion": "^1.1.0",
     "react": "^17.0.1",
     "react-bootstrap": "^1.4.0",
     "react-dom": "^17.0.1",
