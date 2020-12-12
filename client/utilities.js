@@ -94,6 +94,34 @@ function toTimeFloat(time) {
   return parseInt(time.substring(0, 2), 10) + parseInt(time.substring(3), 10) / 60.0;
 }
 
+function degToRad(degrees) {
+  return degrees * (Math.PI / 180);
+}
+
+function haversineGreatCircleDistance(
+  latitudeFrom,
+  longitudeFrom,
+  latitudeTo,
+  longitudeTo,
+  earthRadius = 6378137,
+) {
+  // convert from degrees to radians
+  const latFrom = degToRad(latitudeFrom);
+  const lonFrom = degToRad(longitudeFrom);
+  const latTo = degToRad(latitudeTo);
+  const lonTo = degToRad(longitudeTo);
+
+  const latDelta = latTo - latFrom;
+  const lonDelta = lonTo - lonFrom;
+
+  const a = (Math.sin(latDelta / 2) ** 2)
+    + Math.cos(latFrom) * Math.cos(latTo) * (Math.sin(lonDelta / 2) ** 2);
+
+  const angle = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return angle * earthRadius;
+}
+
 export {
   objectifyForm,
   metersToMilesRounded,
@@ -104,4 +132,5 @@ export {
   gramsToPoundsAndOunces,
   formatTime,
   nvl,
+  haversineGreatCircleDistance,
 };

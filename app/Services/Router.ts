@@ -6,14 +6,14 @@ class Router {
   public static degToRad(degrees: number) {
     return degrees * (Math.PI / 180);
   }
-  
+
   public static haversineGreatCircleDistance(
     latitudeFrom: number,
     longitudeFrom: number,
     latitudeTo: number,
     longitudeTo: number,
     earthRadius = 6378137,
-  ) {
+  ): number {
     // convert from degrees to radians
     const latFrom = Router.degToRad(latitudeFrom);
     const lonFrom = Router.degToRad(longitudeFrom);

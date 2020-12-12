@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { vec3, mat4 } from 'gl-matrix';
 import Quaternion from 'quaternion';
+import { haversineGreatCircleDistance } from '../utilities';
 
 let gl = null;
 let programInfo = null;
@@ -180,14 +181,22 @@ const Terrain = ({
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
     const { min, max } = getMinMaxElevation();
+    const delta = max - min;
 
     const positions = [];
     const xyDelta = 2.0 / (points.points.length - 1);
 
-    const delta = max - min;
-    const normalizeEle = (v) => (
-      ((v - min) / delta) * 2 - 1
+    const distance = haversineGreatCircleDistance(
+      points.ne.lat, points.sw.lng, points.sw.lat, points.sw.lng,
     );
+    const zScale = 2.0 / distance;
+
+    const normalizeEle = (v) => ((v - min - delta) * zScale);
+
+    const normalizeLatLng = (lng, lat) => ([
+      ((lng - points.sw.lng) / (points.ne.lng - points.sw.lng)) * 2 - 1,
+      ((lat - points.sw.lat) / (points.ne.lat - points.sw.lat)) * 2 - 1,
+    ]);
 
     const numPointsX = points.points[0].length;
     const numPointsY = points.points.length;
@@ -399,11 +408,6 @@ const Terrain = ({
     const lineBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, lineBuffer);
 
-    const normalizeLatLng = (lng, lat) => ([
-      ((lng - points.sw.lng) / (points.ne.lng - points.sw.lng)) * 2 - 1,
-      ((lat - points.sw.lat) / (points.ne.lat - points.sw.lat)) * 2 - 1,
-    ]);
-
     const lines = [];
 
     // lines.push(
@@ -513,18 +517,15 @@ const Terrain = ({
 
     mat4.translate(modelViewMatrix, // destination matrix
       modelViewMatrix, // matrix to translate
-      [0.0, 0.0, -3.0]); // amount to translate
-    // mat4.rotate(modelViewMatrix, // destination matrix
-    //   modelViewMatrix, // matrix to rotate
-    //   xRotation, // amount to rotate in radians
-    //   [1, 0, 0]); // axis to rotate around (X)
-    // mat4.rotate(modelViewMatrix, // destination matrix
-    //   modelViewMatrix, // matrix to rotate
-    //   yRotation, // amount to rotate in radians
-    //   [0, 1, 0]); // axis to rotate around (Y)
+      [0.0, 0.0, -2.5]); // amount to translate
+
     const invert = mat4.create();
     mat4.invert(invert, rotation);
     mat4.multiply(modelViewMatrix, modelViewMatrix, invert);
+
+    // mat4.translate(modelViewMatrix, // destination matrix
+    //   modelViewMatrix, // matrix to translate
+    //   [0.0, 0.0, -0.5]); // amount to translate
 
     const normalMatrix = mat4.create();
     mat4.invert(normalMatrix, modelViewMatrix);
