@@ -32,6 +32,7 @@ Route.put('/user/profile', 'UsersController.putProfile');
 Route.post('/password/email', 'AuthController.forgotPassword');
 Route.get('/password/reset/:id/:token', 'AuthController.resetPassword');
 Route.post('/password/update', 'AuthController.updatePassword').as('updatePassword');
+Route.post('/password/change', 'AuthController.changePassword');
 
 Route.get('/hikes', 'HikesController.get');
 Route.post('/hike', 'HikesController.addHike');

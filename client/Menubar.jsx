@@ -13,9 +13,11 @@ import {
   MENU_EVENT_KEY_ACCOUNT,
   MENU_EVENT_KEY_PROFILE,
   MENU_EVENT_KEY_LOGOUT,
+  MENU_EVENT_KEY_CHANGE_PASSWORD,
 } from './menuEvents';
 import { useProfileDialog } from './ProfileDialog';
 import { useAccountDialog } from './AccountDialog';
+import { useChangePasswordDialog } from './ChangePasswordDialog';
 import MobxStore from './state/store';
 
 const Menubar = ({
@@ -24,6 +26,7 @@ const Menubar = ({
   const { uiState } = useContext(MobxStore);
   const [ProfileDialog, showProfileDialog] = useProfileDialog();
   const [AccountDialog, showAccountDialog] = useAccountDialog();
+  const [ChangePasswordDialog, showChangePasswordDialog] = useChangePasswordDialog();
 
   const logout = () => {
     fetch('/logout', {
@@ -44,6 +47,11 @@ const Menubar = ({
       case MENU_EVENT_KEY_ACCOUNT:
         showAccountDialog();
         break;
+
+      case MENU_EVENT_KEY_CHANGE_PASSWORD:
+        showChangePasswordDialog();
+        break;
+
       case MENU_EVENT_KEY_PROFILE:
         showProfileDialog();
         break;
@@ -71,6 +79,7 @@ const Menubar = ({
           <Nav className="ml-auto">
             <NavDropdown className="dropdown menubar-item" title={username}>
               <Nav.Link eventKey={MENU_EVENT_KEY_ACCOUNT}>Account</Nav.Link>
+              <Nav.Link eventKey={MENU_EVENT_KEY_CHANGE_PASSWORD}>Change Password</Nav.Link>
               <Nav.Link eventKey={MENU_EVENT_KEY_PROFILE}>Profile</Nav.Link>
               <Nav.Link eventKey={MENU_EVENT_KEY_LOGOUT}>Logout</Nav.Link>
             </NavDropdown>
@@ -78,6 +87,7 @@ const Menubar = ({
         </div>
       </Container>
       <AccountDialog />
+      <ChangePasswordDialog />
       <ProfileDialog />
     </Navbar>
   );

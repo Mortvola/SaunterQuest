@@ -89,7 +89,9 @@ export default class AuthController {
     const user = await User.find(params.id);
 
     if (user) {
-      const payload = jwt.verify(params.token, AuthController.generateSecret(user));
+      const payload = jwt.verify(
+        params.token, AuthController.generateSecret(user),
+      ) as Record<string, unknown>;
 
       if (payload.id === parseInt(params.id, 10)) {
         return view.render('reset-password', { user, token: params.token });
@@ -122,10 +124,10 @@ export default class AuthController {
       return view.render('reset-password', { user, token, errorMessage: 'The passwords do not match.' });
     }
 
-    let payload = { id: null };
+    let payload: Record<string, unknown> = { id: null };
 
     try {
-      payload = jwt.verify(token, AuthController.generateSecret(user));
+      payload = jwt.verify(token, AuthController.generateSecret(user)) as Record<string, unknown>;
     }
     catch (error) {
       Logger.error(error);
@@ -139,6 +141,43 @@ export default class AuthController {
     await user.save();
 
     response.redirect('/');
+
+    return undefined;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async changePassword({
+    auth,
+    request,
+    response,
+  }: HttpContextContract) : Promise<(string | void)> {
+    const currentPassword = request.input('currentPassword');
+    const password = request.input('password');
+    const passwordConfirmation = request.input('passwordConfirmation');
+    let { user } = auth;
+
+    response.header('content-type', 'application/json');
+
+    if (!user) {
+      response.unauthorized({ errors: { currentPassword: 'User is unauthorized' } });
+      return undefined;
+    }
+
+    try {
+      user = await auth.verifyCredentials(user.username, currentPassword);
+    }
+    catch {
+      response.notAcceptable(JSON.stringify({ errors: { currentPassword: 'Password is not valid' } }));
+      return undefined;
+    }
+
+    if (!password || password !== passwordConfirmation) {
+      response.notAcceptable(JSON.stringify({ errors: { passwordConfirmation: 'New password and confirmation do not match' } }));
+      return undefined;
+    }
+
+    user.password = password;
+    await user.save();
 
     return undefined;
   }
