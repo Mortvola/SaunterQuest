@@ -11,11 +11,10 @@ const AccountDialog = ({
   const handleSubmit = async (vals) => {
     fetch('/user/account', {
       method: 'PUT',
-      headers:
-            {
-              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-              'Content-Type': 'application/json',
-            },
+      headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({ ...vals }),
     })
       .then((response) => {

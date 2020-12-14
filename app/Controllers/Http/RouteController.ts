@@ -1,7 +1,6 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Database from '@ioc:Adonis/Lucid/Database';
 import Hike from 'App/Models/Hike';
-import Schedule from 'App/Models/Schedule';
 import Point from 'App/Types/Point';
 
 export default class RouteController {
