@@ -49,12 +49,26 @@ export default class Hike extends BaseModel {
   @hasOne(() => Schedule)
   public schedule: HasOne<typeof Schedule>;
 
-  public async getDuration(): Promise<number> {
+  public async getDuration(this: Hike): Promise<number> {
+    await this.preload('schedule');
+
+    if (this.schedule) {
+      const result = await this.schedule.related('days').query().count('*');
+
+      return result[0].count;
+    }
+
     return 0;
   }
 
   public async getDistance(): Promise<number> {
-    return 0;
+    const route = await this.getFullRoute();
+
+    const distance = route.reduce((sum: number, routePoint: RoutePoint) => (
+      sum + routePoint.trailLength
+    ), 0);
+
+    return distance;
   }
 
   public async updateSchedule(this: Hike, user: User): Promise<void> {
@@ -323,6 +337,10 @@ export default class Hike extends BaseModel {
   }
 
   private static transferRoutePointInfo(src: any) {
+    if (!src) {
+      throw (new Error('Source route point is null or undefined'));
+    }
+
     let info = {
       lat: src.point.lat,
       lng: src.point.lng,

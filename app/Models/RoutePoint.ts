@@ -56,8 +56,8 @@ export default class RoutePoint extends BaseModel {
   @computed()
   public trailLength = 0;
 
-  @computed()
-  public distance = 0;
+  // @computed()
+  // public distance = 0;
 
   @beforeFetch()
   public static sortRoutePoints(query: ModelQueryBuilderContract<typeof RoutePoint>) : void {
@@ -79,37 +79,39 @@ export default class RoutePoint extends BaseModel {
       wayColumn = 'ST_Reverse(way2)';
     }
 
-    const line = await Database
-      .query()
-      .select(Database.raw(
-        `ST_AsGeoJSON(ST_Transform(ST_LineSubstring (${wayColumn}, ${startFraction}, ${localEndFraction}), 4326)) AS linestring`,
-      ))
-      .from('planet_osm_route')
-      .where('line_id', this.nextLineId)
-      .first();
+    if (startFraction !== localEndFraction) {
+      const line = await Database
+        .query()
+        .select(Database.raw(
+          `ST_AsGeoJSON(ST_Transform(ST_LineSubstring (${wayColumn}, ${startFraction}, ${localEndFraction}), 4326)) AS linestring`,
+        ))
+        .from('planet_osm_route')
+        .where('line_id', this.nextLineId)
+        .first();
 
-    if (line) {
-      const { coordinates } = JSON.parse(line.linestring);
+      if (line) {
+        const { coordinates } = JSON.parse(line.linestring);
 
-      let distance = 0;
-      this.trail = await Promise.all(coordinates
-        .map(async (c: Array<number>, index: number) => {
-          if (index > 0) {
-            distance += Router.haversineGreatCircleDistance(
-              coordinates[index - 1][1], coordinates[index - 1][0],
-              c[1], c[0],
-            );
-          }
+        let distance = 0;
+        this.trail = await Promise.all(coordinates
+          .map(async (c: Array<number>, index: number) => {
+            if (index > 0) {
+              distance += Router.haversineGreatCircleDistance(
+                coordinates[index - 1][1], coordinates[index - 1][0],
+                c[1], c[0],
+              );
+            }
 
-          return {
-            lat: c[1],
-            lng: c[0],
-            dist: distance,
-            ele: c[2],
-          } as Point;
-        }));
+            return {
+              lat: c[1],
+              lng: c[0],
+              dist: distance,
+              ele: c[2],
+            } as Point;
+          }));
 
-      this.trailLength = distance;
+        this.trailLength = distance;
+      }
     }
   }
 

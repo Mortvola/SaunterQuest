@@ -1,7 +1,8 @@
 import { DateTime } from 'luxon';
-import { BaseModel, beforeSave, column, computed } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, beforeSave, belongsTo, BelongsTo, column, computed } from '@ioc:Adonis/Lucid/Orm'
 import Point from 'App/Types/Point';
 import HikerProfile from 'App/Models/HikerProfile';
+import Schedule from './Schedule';
 
 export default class Day extends BaseModel {
   @column({ isPrimary: true })
@@ -15,6 +16,9 @@ export default class Day extends BaseModel {
 
   @column({ serializeAs: null })
   public scheduleId: number;
+
+  @belongsTo(() => Schedule)
+  public hike: BelongsTo<typeof Schedule>;
 
   @column()
   public gain = 0;
