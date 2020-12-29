@@ -12,6 +12,7 @@ import Route from './Route';
 import DayMarker from './DayMarker';
 import { useGotoLocationDialog } from './GotoLocationDialog';
 import { useTerrainDialog } from './TerrainDialog';
+import Graticule from './Graticule';
 
 const Map = ({
   tileServerUrl,
@@ -87,6 +88,9 @@ const Map = ({
           zIndex="2"
           ref={detailLayer}
         />
+        <LayersControl.Overlay checked name="Graticule">
+          <Graticule />
+        </LayersControl.Overlay>
       </LayersControl>
       <Route route={hike.route} />
       {
