@@ -5,6 +5,7 @@ import {
   useMapEvents,
   useMap,
   Popup,
+  LayersControl,
 } from 'react-leaflet';
 import { observer } from 'mobx-react-lite';
 import Route from './Route';
@@ -72,17 +73,21 @@ const Map = ({
 
   return (
     <>
-      <TileLayer
-        url={`${tileServerUrl}/tile/terrain/{z}/{x}/{y}`}
-        zIndex="1"
-        ref={terrainLayer}
-      />
-      <TileLayer
-        attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-        url={`${tileServerUrl}/tile/detail/{z}/{x}/{y}`}
-        zIndex="2"
-        ref={detailLayer}
-      />
+      <LayersControl position="topleft">
+        <LayersControl.Overlay checked name="Terrain">
+          <TileLayer
+            url={`${tileServerUrl}/tile/terrain/{z}/{x}/{y}`}
+            zIndex="1"
+            ref={terrainLayer}
+          />
+        </LayersControl.Overlay>
+        <TileLayer
+          attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+          url={`${tileServerUrl}/tile/detail/{z}/{x}/{y}`}
+          zIndex="2"
+          ref={detailLayer}
+        />
+      </LayersControl>
       <Route route={hike.route} />
       {
         dayMarkers
