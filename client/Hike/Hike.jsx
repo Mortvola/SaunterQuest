@@ -34,7 +34,7 @@ const Hike = ({
           dayMarkers={uiState.hike.dayMarkers}
           locationPopup={locationPopup}
         />
-        <ElevationChart elevations={uiState.hike.route.elevations} />
+        <ElevationChart elevations={uiState.hike.route.elevations} days={uiState.hike.dayMarkers} />
         <Controls hike={uiState.hike} />
       </div>
     );

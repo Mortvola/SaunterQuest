@@ -1,5 +1,6 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Hike from 'App/Models/Hike';
+import RoutePoint from 'App/Models/RoutePoint';
 
 export default class SchedulesController {
   // eslint-disable-next-line class-methods-use-this
@@ -23,6 +24,16 @@ export default class SchedulesController {
       }
 
       if (hike.schedule) {
+        for (let i = 0; i < hike.schedule.days.length; i += 1) {
+          const elevation = await RoutePoint.getElevation(
+            hike.schedule.days[i].lat, hike.schedule.days[i].lng,
+          );
+
+          if (elevation) {
+            hike.schedule.days[i].ele = elevation;
+          }
+        }
+
         response.send(JSON.stringify(hike.schedule.days));
       }
       else {

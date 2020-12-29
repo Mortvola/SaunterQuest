@@ -1,5 +1,7 @@
 import { DateTime } from 'luxon';
-import { BaseModel, beforeSave, belongsTo, BelongsTo, column, computed } from '@ioc:Adonis/Lucid/Orm'
+import {
+  BaseModel, beforeSave, belongsTo, BelongsTo, column, computed,
+} from '@ioc:Adonis/Lucid/Orm';
 import Point from 'App/Types/Point';
 import HikerProfile from 'App/Models/HikerProfile';
 import Schedule from './Schedule';
@@ -38,6 +40,9 @@ export default class Day extends BaseModel {
   @computed()
   private startMeters = 0;
 
+  @computed()
+  public ele = 0;
+
   // in minutes
   @column({ serializeAs: 'startTime' })
   private startTime: number | null = null;
@@ -67,11 +72,14 @@ export default class Day extends BaseModel {
 
   public camp: any;
 
-  private elapsedTime: number = 0;
+  private elapsedTime = 0;
 
   public endLat: number;
+
   public endLng: number;
+
   public endEle: number;
+
   public endMeters: number;
 
   public initialize(
@@ -104,14 +112,14 @@ export default class Day extends BaseModel {
 
     this.lat = point.lat;
     this.lng = point.lng;
-    
+
     this.camp = camp;
 
     this.gain = 0;
     this.loss = 0;
   }
 
-  public metersAdd (meters: number) {
+  public metersAdd(meters: number) {
     this.meters += meters;
   }
 
@@ -119,32 +127,40 @@ export default class Day extends BaseModel {
     return this.startMeters + this.meters;
   }
 
-  public currentTimeGet () {
-    return this.startTime! + this.elapsedTime;
+  public currentTimeGet() {
+    if (this.startTime === null) {
+      throw new Error('startTime is null');
+    }
+
+    return this.startTime + this.elapsedTime;
   }
 
   public elapsedTimeGet() {
-      return this.elapsedTime;
+    return this.elapsedTime;
   }
 
-  public timeAdd (minutes: number) {
-      this.elapsedTime += minutes;
+  public timeAdd(minutes: number) {
+    this.elapsedTime += minutes;
   }
 
-  public end () {
-    this.endTime = this.startTime! + this.elapsedTime;
+  public end() {
+    if (this.startTime === null) {
+      throw new Error('startTime is null');
+    }
+
+    this.endTime = this.startTime + this.elapsedTime;
   }
 
-  public updateGainLoss (eleDelta: number) {
-    if (isNaN(eleDelta) || eleDelta === null || eleDelta === undefined) {
+  public updateGainLoss(eleDelta: number) {
+    if (Number.isNaN(eleDelta) || eleDelta === null || eleDelta === undefined) {
       throw (new Error('bad elevation delta'));
     }
 
     if (eleDelta > 0) {
-        this.gain += eleDelta;
+      this.gain += eleDelta;
     }
     else {
-        this.loss += -eleDelta;
+      this.loss += -eleDelta;
     }
   }
 }

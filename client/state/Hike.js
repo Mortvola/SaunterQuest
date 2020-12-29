@@ -3,6 +3,7 @@ import HikerProfile from './HikerProfile';
 import Map from './Map';
 import TrailMarker from '../Hike/trailMarker/trailMarker';
 import Route from './Route';
+import { metersToFeet, metersToMiles } from '../utilities';
 
 const dayMarkerUrl = 'moon_pin.png';
 
@@ -135,15 +136,24 @@ class Hike {
   }
 
   setDayMarkers(schedule) {
-    this.dayMarkers = schedule.filter((d, index) => index > 0).map((d, index) => ({
-      id: d.id,
-      day: index + 1,
-      lat: d.lat,
-      lng: d.lng,
-      marker: new TrailMarker(
-        dayMarkerUrl,
-      ),
-    }));
+    let miles = metersToMiles(schedule[0].meters);
+    this.dayMarkers = schedule.filter((d, index) => index > 0).map((d, index) => {
+      const day = {
+        id: d.id,
+        day: index + 1,
+        lat: d.lat,
+        lng: d.lng,
+        miles,
+        ele: metersToFeet(d.ele),
+        marker: new TrailMarker(
+          dayMarkerUrl,
+        ),
+      };
+
+      miles += metersToMiles(d.meters);
+
+      return day;
+    });
   }
 }
 

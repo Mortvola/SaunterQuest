@@ -147,6 +147,7 @@ div.hike-card-header
 .ele-grid-item {
     grid-area: ele;
     background-color: #fbfbfb;
+    position: relative;
 }
 
 .controls-grid-item {
