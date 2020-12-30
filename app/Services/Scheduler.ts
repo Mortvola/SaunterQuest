@@ -197,7 +197,8 @@ class Scheduler {
       dayExtension !== undefined
       && dayExtension !== null
       && elapsedTime <= dayExtension
-      && (day.camp === undefined || day.camp === null)
+      && (day.camp === undefined || day.camp === null
+      && this.currentDay > 0)
     ) {
       this.currentDayDelete();
       day = this.currentDayGet();
