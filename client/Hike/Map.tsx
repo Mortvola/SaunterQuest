@@ -20,7 +20,7 @@ type Props = {
   tileServerUrl: string;
   hike: Hike,
   // eslint-disable-next-line react/require-default-props
-  locationPopup?: LatLng,
+  locationPopup?: LatLng | null,
 };
 
 const Map = ({

@@ -1,13 +1,20 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import React, { ReactElement } from 'react';
+// import PropTypes from 'prop-types';
 import { Polyline } from 'react-leaflet';
 import { observer } from 'mobx-react-lite';
 import Waypoint from './Waypoint';
+import Route from '../state/Route';
+import Anchor from '../state/Anchor';
 
-const AnchorAndTrail = observer(({
+type Props = {
+  route: Route;
+  anchor: Anchor;
+};
+
+const AnchorAndTrail = ({
   route,
   anchor,
-}) => {
+}: Props): ReactElement => {
   const routeStrokeWeight = 6;
 
   return (
@@ -26,7 +33,6 @@ const AnchorAndTrail = observer(({
                 color: '#0000FF',
                 opacity: 1.0,
                 weight: routeStrokeWeight,
-                zIndex: 20,
               }}
             />
           )
@@ -34,11 +40,11 @@ const AnchorAndTrail = observer(({
       }
     </>
   );
-});
-
-AnchorAndTrail.propTypes = {
-  route: PropTypes.shape(),
-  anchor: PropTypes.shape().isRequired,
 };
 
-export default AnchorAndTrail;
+// AnchorAndTrail.propTypes = {
+//   route: PropTypes.shape(),
+//   anchor: PropTypes.shape().isRequired,
+// };
+
+export default observer(AnchorAndTrail);

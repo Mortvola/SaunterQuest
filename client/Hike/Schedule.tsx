@@ -6,7 +6,6 @@ import {
 } from '../utilities';
 import MobxStore from '../state/store';
 import { Day } from '../state/Types';
-// import { getRoute } from './tempstore';
 // import EndOfDayMarker from './trailMarker/EndOfDayMarker';
 
 const Schedule = () => {
