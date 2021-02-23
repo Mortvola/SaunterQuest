@@ -414,7 +414,7 @@ export default class Hike extends BaseModel {
 
     const encodedPoints = encodeURIComponent(JSON.stringify(points));
 
-    const path = await fetch(`${Env.get('PATHFINDER_URL')}/map/route?p=${encodedPoints}`)
+    const path = await fetch(`${Env.get('PATHFINDER_URL')}/map/find-route?p=${encodedPoints}`)
       .then((response: any) => {
         if (response.ok) {
           return response.json();

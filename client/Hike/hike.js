@@ -230,7 +230,7 @@ function showNearestGraph(event) {
             .appendTo(popup);
 
           $('<div></div>')
-            .text(`Backward Cost: ${e.backward_cost}`)
+            .text(`Backward Cost: ${e.reverse_cost}`)
             .appendTo(popup);
 
           polyLine.bindPopup(popup[0]);
