@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Modal } from 'react-bootstrap';
 import { Formik, Form, Field } from 'formik';
-import useModal from './Modal';
+import useModal from './useModal';
 
 const AccountDialog = ({
   show,

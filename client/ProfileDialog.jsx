@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Formik, Form, Field } from 'formik';
 import { Modal } from 'react-bootstrap';
-import useModal from './Modal';
+import useModal from './useModal';
 import { toTimeFloat, toTimeString } from './utilities';
 
 const ProfileDialog = ({

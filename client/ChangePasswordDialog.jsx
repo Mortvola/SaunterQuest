@@ -4,7 +4,7 @@ import { Modal } from 'react-bootstrap';
 import {
   Formik, Form, Field, ErrorMessage,
 } from 'formik';
-import useModal from './Modal';
+import useModal from './useModal';
 
 const Error = ({
   name,
