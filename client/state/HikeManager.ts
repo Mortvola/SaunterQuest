@@ -1,6 +1,6 @@
 import { makeAutoObservable } from 'mobx';
 import Hike from './Hike';
-import { httpDelete, postJSON } from './Transports';
+import { httpDelete, postFormData, postJSON } from './Transports';
 
 class HikeManager {
   hikes: Array<Hike> = [];
@@ -54,8 +54,8 @@ class HikeManager {
     ));
   }
 
-  async addHike(hike: Hike): Promise<Hike> {
-    const response = await postJSON('hike', hike);
+  async addHike(name: string): Promise<Hike> {
+    const response = await postJSON('hike', { name });
 
     if (response.ok) {
       const body = await response.json();

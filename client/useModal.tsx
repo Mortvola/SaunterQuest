@@ -11,6 +11,16 @@ export interface ModalProps {
   onConfirm: OnConfirm,
 }
 
+function useModal(
+  Dialog: React.FC<ModalProps>,
+  onSave?: OnSave,
+): [() => ReactElement | null, ShowCallback];
+
+function useModal<T>(
+  Dialog: React.FC<T & ModalProps>,
+  onSave?: OnSave,
+): [(props: T) => ReactElement | null, ShowCallback];
+
 function useModal<T>(
   Dialog: React.FC<T & ModalProps>,
   onSave?: OnSave,

@@ -1,21 +1,31 @@
-import React, { useRef, useContext } from 'react';
-import PropTypes from 'prop-types';
+/* eslint-disable jsx-a11y/label-has-associated-control */
+import React, { useRef, useContext, ReactElement } from 'react';
+// import PropTypes from 'prop-types';
 import { Modal, Button } from 'react-bootstrap';
 import MobxStore from '../state/store';
-import Hike from '../state/Hike';
 import { VIEW_HIKE } from '../menuEvents';
+import useModal, { ModalProps } from '../useModal';
 
 const HikeDialog = ({
   show,
   onHide,
-}) => {
+}: ModalProps): ReactElement => {
   const { uiState, hikeManager } = useContext(MobxStore);
-  const formRef = useRef(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const insertHike = async () => {
-    const formData = new FormData(formRef.current);
+    if (formRef.current === null) {
+      throw new Error('ref not set');
+    }
 
-    const hike = await hikeManager.addHike(formData);
+    const formData = new FormData(formRef.current);
+    const name = formData.get('name');
+    if (typeof name !== 'string') {
+      throw new Error('name is not valid');
+    }
+
+    const hike = await hikeManager.addHike(name);
+
     uiState.hike = hike;
     uiState.setView(VIEW_HIKE);
   };
@@ -40,9 +50,14 @@ const HikeDialog = ({
   );
 };
 
-HikeDialog.propTypes = {
-  show: PropTypes.bool.isRequired,
-  onHide: PropTypes.func.isRequired,
-};
+// HikeDialog.propTypes = {
+//   show: PropTypes.bool.isRequired,
+//   onHide: PropTypes.func.isRequired,
+// };
+
+export const useHikeDialog = (): [
+  () => (ReactElement | null),
+  () => void,
+] => useModal(HikeDialog);
 
 export default HikeDialog;

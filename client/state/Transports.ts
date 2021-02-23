@@ -19,6 +19,14 @@ const jsonHeaders = () => {
   return headers;
 };
 
+const formDataHeaders = () => {
+  const headers = defaultHeaders();
+
+  headers.append('Content-Type', 'multi-part/form-data');
+
+  return headers;
+};
+
 export const getBody = async (response: Response): Promise<unknown> => {
   const contentType = response.headers.get('Content-Type');
   if (contentType && /^application\/json/.test(contentType)) {
@@ -63,5 +71,13 @@ export const httpPost = (url: string): Promise<Response> => (
   fetch(url, {
     method: 'POST',
     headers: defaultHeaders(),
+  })
+);
+
+export const postFormData = (url: string, formData: FormData): Promise<Response> => (
+  fetch(url, {
+    method: 'POST',
+    headers: formDataHeaders(),
+    body: formData,
   })
 );
