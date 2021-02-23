@@ -4,7 +4,7 @@ import { retrieveTrailConditions } from './trailCondition';
 import { getRoute } from './tempstore';
 import StartOfTrailMarker from './trailMarker/StartOfTrailMarker';
 import EndOfTrailMarker from './trailMarker/EndOfTrailMarker';
-import TrailMarker from './trailMarker/trailMarker';
+import TrailMarker from '../state/TrailMarker';
 import {
   metersToFeet, metersToMiles, metersToMilesRounded, formatTime,
 } from '../utilities';

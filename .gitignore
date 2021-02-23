@@ -5,7 +5,8 @@
 /public/storage
 /storage/*.key
 /blog/
-build
+build/
+client-build/
 coverage
 .vscode
 .DS_STORE

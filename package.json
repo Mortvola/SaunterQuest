@@ -6,7 +6,7 @@
     "build": "node ace build",
     "start": "node ace serve --watch",
     "dev-welcome-build": "browserify -t [ babelify --presets [ @babel/preset-react @babel/env ] ] client/Welcome.jsx --extension=.jsx > public/welcome.js",
-    "dev-app-build": "browserify -t [ babelify --presets [ @babel/preset-react @babel/env ] ] client/App.jsx --extension=.jsx > public/app.js",
+    "dev-app-build": "tsc -p client && browserify -t [ babelify --presets [ @babel/env ] ] client-build/App.js > public/app.js",
     "welcome-build": "NODE_ENV=production browserify -t [ babelify --presets [ @babel/preset-react @babel/env ] ]  -t dotenvify client/Welcome.jsx --extension=.jsx | terser --compress --mangle > public/welcome.js",
     "app-build": "NODE_ENV=production browserify -t [ babelify --presets [ @babel/preset-react @babel/env ] ]  -t dotenvify client/App.jsx --extension=.jsx | terser --compress --mangle > public/app.js",
     "lint": "eslint ."
@@ -63,6 +63,7 @@
     "@adonisjs/assembler": "^3.0.7",
     "@babel/core": "^7.12.3",
     "@babel/preset-env": "^7.12.1",
+    "@types/leaflet": "^1.5.23",
     "@typescript-eslint/eslint-plugin": "^4.6.0",
     "@typescript-eslint/parser": "^4.6.0",
     "adonis-preset-ts": "^1.0.4",

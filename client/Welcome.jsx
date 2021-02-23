@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
-import PropTypes from 'prop-types';
 import 'regenerator-runtime/runtime';
 import Login from './login/Login';
 import Register from './login/Register';

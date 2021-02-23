@@ -1,13 +1,13 @@
 import { makeAutoObservable } from 'mobx';
 
 class Map {
-  constructor() {
-    this.locationPopup = null;
+  locationPopup: LatLng | null = null;
 
+  constructor() {
     makeAutoObservable(this);
   }
 
-  showLocationPopup(latlng) {
+  showLocationPopup(latlng: LatLng): void {
     this.locationPopup = latlng || null;
   }
 }

@@ -1,4 +1,4 @@
-import TrailMarker from './trailMarker';
+import TrailMarker from '../../state/TrailMarker';
 
 class EndOfTrailMarker extends TrailMarker {
 }

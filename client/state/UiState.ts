@@ -2,18 +2,19 @@ import { makeAutoObservable } from 'mobx';
 import { VIEW_HIKES } from '../menuEvents';
 
 class UiState {
-  constructor() {
-    this.view = VIEW_HIKES;
-    this.hike = null;
+  view: string = VIEW_HIKES;
 
+  hike: unknown = null;
+
+  constructor() {
     makeAutoObservable(this);
   }
 
-  setView(view) {
+  setView(view: string): void {
     this.view = view;
   }
 
-  setHike(hike) {
+  setHike(hike: unknown): void {
     this.hike = hike;
   }
 }

@@ -2,9 +2,19 @@ import L from 'leaflet';
 import { makeAutoObservable } from 'mobx';
 
 class TrailMarker {
-  constructor(iconUrl, label) {
-    this.iconUrl = iconUrl;
+  icon: L.DivIcon;
 
+  iconUrl: string;
+
+  marker: unknown;
+
+  label: string | undefined;
+
+  infoMessageCallback: unknown;
+
+  constructor(iconUrl: string, label?: string) {
+    this.iconUrl = iconUrl;
+    this.label = label;
     this.icon = this.createIcon(label);
     this.marker = null;
 
@@ -28,7 +38,7 @@ class TrailMarker {
     makeAutoObservable(this);
   }
 
-  createIcon(label) {
+  createIcon(label?: string): L.DivIcon {
     let html = `<img src="${this.iconUrl}">`;
     if (label) {
       html = `<div class="trail-marker-label">${label || ''}</div>${html}`;
@@ -96,22 +106,23 @@ class TrailMarker {
   //   this.removeListener();
   // }
 
-  infoMessage() {
+  infoMessage(): string | undefined {
     return this.getCommonInfoDivs();
   }
 
-  setInfoMessageCallback(callback) {
+  setInfoMessageCallback(callback: unknown): void {
     this.infoMessageCallback = callback;
   }
 
-  // getCommonInfoDivs() {
-  //   const position = this.marker.getLatLng();
+  getCommonInfoDivs(): string | undefined {
+    return this.label;
+    // const position = this.marker.getLatLng();
 
-  //   return `<div>Mile: ${metersToMilesRounded(this.meters)
-  //   }</div><div>Elevation: ${metersToFeet(this.ele)}\'</div>`
-  //           + `<div>Lat: ${position.lat}</div>`
-  //           + `<div>Lng: ${position.lng}</div>`;
-  // }
+    // return `<div>Mile: ${metersToMilesRounded(this.meters)
+    // }</div><div>Elevation: ${metersToFeet(this.ele)}\'</div>`
+    //         + `<div>Lat: ${position.lat}</div>`
+    //         + `<div>Lng: ${position.lng}</div>`;
+  }
 
   // setContextMenu(contextMenu) {
   //   this.marker.bindContextMenu({ contextmenu: true, contextmenuItems: contextMenu });
@@ -130,7 +141,7 @@ class TrailMarker {
   //   );
   // }
 
-  setLabel(label) {
+  setLabel(label: string | undefined): void {
     this.icon = this.createIcon(label);
 
     // this.marker.setIcon(this.icon);
@@ -138,7 +149,7 @@ class TrailMarker {
     this.label = label;
   }
 
-  getLabel() {
+  getLabel(): string | undefined {
     return this.label;
   }
 }

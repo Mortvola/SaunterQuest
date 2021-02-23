@@ -1,5 +1,5 @@
 import { makeAutoObservable } from 'mobx';
-import TrailMarker from '../Hike/trailMarker/trailMarker';
+import TrailMarker from './TrailMarker';
 
 const wayPointUrl = 'https://maps.google.com/mapfiles/ms/micons/lightblue.png';
 
@@ -26,15 +26,26 @@ const getWaypointLabel = () => {
 };
 
 class Anchor {
-  constructor(props) {
-    this.marker = null;
-    this.trail = null;
-    this.lat = null;
-    this.lng = null;
+  id: number;
+
+  type: string;
+
+  marker: TrailMarker;
+
+  trail: Array<TrailPoint>;
+
+  trailLength: number;
+
+  latLng: LatLng;
+
+  constructor(props: AnchorProps) {
+    this.id = props.id;
+    this.type = props.type;
+    this.trail = props.trail;
+    this.trailLength = props.trailLength;
+    this.latLng = { lat: props.lat, lng: props.lng };
 
     makeAutoObservable(this);
-
-    this.update(props);
 
     this.marker = new TrailMarker(
       wayPointUrl,
@@ -42,16 +53,15 @@ class Anchor {
     );
   }
 
-  setLabel() {
-    this.marker.setLabel(this.type === 'waypoint' ? getWaypointLabel() : undefined);
+  update(props: AnchorProps): void {
+    this.type = props.type;
+    this.trail = props.trail;
+    this.trailLength = props.trailLength;
+    this.latLng = { lat: props.lat, lng: props.lng };
   }
 
-  update(props) {
-    if (props) {
-      Object.keys(props).forEach((key) => {
-        this[key] = props[key];
-      });
-    }
+  setLabel(): void {
+    this.marker.setLabel(this.type === 'waypoint' ? getWaypointLabel() : undefined);
   }
 }
 

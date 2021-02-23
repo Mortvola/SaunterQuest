@@ -1,4 +1,4 @@
-import TrailMarker from './trailMarker';
+import TrailMarker from '../../state/TrailMarker';
 
 class StartOfTrailMarker extends TrailMarker {
     infoMessage() {
