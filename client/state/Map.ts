@@ -1,4 +1,5 @@
 import { makeAutoObservable } from 'mobx';
+import { LatLng } from './Types';
 
 class Map {
   locationPopup: LatLng | null = null;
@@ -7,8 +8,8 @@ class Map {
     makeAutoObservable(this);
   }
 
-  showLocationPopup(latlng: LatLng): void {
-    this.locationPopup = latlng || null;
+  showLocationPopup(latlng: LatLng | null): void {
+    this.locationPopup = latlng;
   }
 }
 

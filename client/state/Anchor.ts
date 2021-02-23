@@ -1,11 +1,12 @@
 import { makeAutoObservable } from 'mobx';
 import TrailMarker from './TrailMarker';
+import { AnchorProps, LatLng, TrailPoint } from './Types';
 
 const wayPointUrl = 'https://maps.google.com/mapfiles/ms/micons/lightblue.png';
 
 let waypointLabel = 'A';
 
-const resetWaypointLabel = () => {
+const resetWaypointLabel = (): void => {
   waypointLabel = 'A';
 };
 

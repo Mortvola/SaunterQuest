@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, ReactElement } from 'react';
 import PropTypes from 'prop-types';
 import {
   TileLayer,
@@ -13,35 +13,42 @@ import DayMarker from './DayMarker';
 import { useGotoLocationDialog } from './GotoLocationDialog';
 import { useTerrainDialog } from './TerrainDialog';
 import Graticule from './Graticule';
+import Hike from '../state/Hike';
+import { LatLng } from '../state/Types';
+
+type Props = {
+  tileServerUrl: string;
+  hike: Hike,
+  // eslint-disable-next-line react/require-default-props
+  locationPopup?: LatLng,
+};
 
 const Map = ({
   tileServerUrl,
   hike,
-  map,
-  dayMarkers,
   locationPopup,
-}) => {
+}: Props): ReactElement => {
   const leafletMap = useMap();
   const terrainLayer = useRef(null);
   const detailLayer = useRef(null);
   const [GotoLocationDialog, showGotoLocationDialog] = useGotoLocationDialog();
   const [TerrainDialog, showTerrainDialog] = useTerrainDialog();
-  const [latLng, setLatLng] = useState(null);
+  const [latLng, setLatLng] = useState<LatLng | null>(null);
 
   const findSteepestPoint = () => {
     const steepestPoint = hike.route.findSteepestPoint();
     console.log(JSON.stringify(steepestPoint));
   };
 
-  const openContextMenu = (event) => {
+  const openContextMenu = (event: L.LeafletMouseEvent) => {
     const mapMenuItems = [
-      { text: 'Prepend Waypoint', callback: ({ latlng }) => hike.route.addStartWaypoint(latlng) },
-      { text: 'Insert Waypoint', callback: ({ latlng }) => hike.route.addWaypoint(latlng) },
-      { text: 'Append Waypoint', callback: ({ latlng }) => hike.route.addEndWaypoint(latlng) },
+      { text: 'Prepend Waypoint', callback: ({ latlng }: L.LeafletMouseEvent) => hike.route.addStartWaypoint(latlng) },
+      { text: 'Insert Waypoint', callback: ({ latlng }: L.LeafletMouseEvent) => hike.route.addWaypoint(latlng) },
+      { text: 'Append Waypoint', callback: ({ latlng }: L.LeafletMouseEvent) => hike.route.addEndWaypoint(latlng) },
       { separator: true },
       {
         text: 'Show Location in 3D',
-        callback: (e) => {
+        callback: (e: L.LeafletMouseEvent) => {
           setLatLng(e.latlng);
           showTerrainDialog();
         },
@@ -59,7 +66,7 @@ const Map = ({
     event.target.contextmenu.showAt(event.latlng);
   };
 
-  const closeContextMenu = (event) => {
+  const closeContextMenu = (event: L.LeafletMouseEvent) => {
     event.target.contextmenu.hide();
   };
 
@@ -69,7 +76,11 @@ const Map = ({
   });
 
   const handleLocationPopupClose = () => {
-    map.showLocationPopup(null);
+    if (hike.map === null) {
+      throw new Error('map in hike is null');
+    }
+
+    hike.map.showLocationPopup(null);
   };
 
   return (
@@ -78,14 +89,14 @@ const Map = ({
         <LayersControl.Overlay checked name="Terrain">
           <TileLayer
             url={`${tileServerUrl}/tile/terrain/{z}/{x}/{y}`}
-            zIndex="1"
+            zIndex={1}
             ref={terrainLayer}
           />
         </LayersControl.Overlay>
         <TileLayer
           attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
           url={`${tileServerUrl}/tile/detail/{z}/{x}/{y}`}
-          zIndex="2"
+          zIndex={2}
           ref={detailLayer}
         />
         <LayersControl.Overlay checked name="Graticule">
@@ -94,8 +105,8 @@ const Map = ({
       </LayersControl>
       <Route route={hike.route} />
       {
-        dayMarkers
-          ? dayMarkers.map((d) => (
+        hike.schedule
+          ? hike.schedule.map((d) => (
             <DayMarker key={d.id} day={d} />
           ))
           : null
@@ -115,18 +126,18 @@ const Map = ({
   );
 };
 
-Map.propTypes = {
-  tileServerUrl: PropTypes.string.isRequired,
-  hike: PropTypes.shape().isRequired,
-  map: PropTypes.shape(),
-  dayMarkers: PropTypes.arrayOf(PropTypes.shape()),
-  locationPopup: PropTypes.shape(),
-};
+// Map.propTypes = {
+//   tileServerUrl: PropTypes.string.isRequired,
+//   hike: PropTypes.shape().isRequired,
+//   map: PropTypes.shape(),
+//   dayMarkers: PropTypes.arrayOf(PropTypes.shape()),
+//   locationPopup: PropTypes.shape(),
+// };
 
-Map.defaultProps = {
-  map: null,
-  dayMarkers: null,
-  locationPopup: null,
-};
+// Map.defaultProps = {
+//   map: null,
+//   dayMarkers: null,
+//   locationPopup: null,
+// };
 
 export default observer(Map);

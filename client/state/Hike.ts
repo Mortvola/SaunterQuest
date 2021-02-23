@@ -3,25 +3,22 @@ import HikerProfile from './HikerProfile';
 import Map from './Map';
 import TrailMarker from './TrailMarker';
 import Route from './Route';
-import { metersToFeet, metersToMiles } from '../utilities';
+import { metersToMiles } from '../utilities';
 import { httpDelete } from './Transports';
+import {
+  BaseHikeProps, Day, DayProps, HikeInterface,
+} from './Types';
 
 interface ProfileProps {
   id: number;
 }
 
-interface Days {
-  id: number;
-  meters: number;
-  lat: number;
-  lng: number;
-  ele: number;
-}
-
 const dayMarkerUrl = 'moon_pin.png';
 
 class Hike implements HikeInterface {
-  id: number | null = null;
+  id: number | null;
+
+  name: string;
 
   duration: number | null = null;
 
@@ -31,28 +28,18 @@ class Hike implements HikeInterface {
 
   hikerProfiles: Array<HikerProfile> = [];
 
-  schedule: Array<Days> = [];
+  schedule: Array<Day> = [];
 
   route = new Route(this);
 
-  map: unknown = null;
+  map: Map | null = null;
 
-  dayMarkers: Array<unknown> = [];
-
-  constructor(props: HikeProps) {
+  constructor(props: BaseHikeProps) {
     makeAutoObservable(this);
 
     this.id = props.id;
 
-    this.duration = props.duration;
-
-    this.distance = props.distance;
-
-    // if (props) {
-    //   Object.keys(props).forEach((key) => {
-    //     this[key] = props[key];
-    //   });
-    // }
+    this.name = props.name;
 
     this.requestDetails();
   }
@@ -117,10 +104,32 @@ class Hike implements HikeInterface {
       const response = await fetch(`/hike/${this.id}/schedule`);
 
       if (response.ok) {
-        const schedule = await response.json();
+        const schedule: Array<DayProps> = await response.json();
 
-        this.setSchedule(schedule);
-        this.setDayMarkers(schedule);
+        let miles = metersToMiles(schedule[0].meters);
+
+        this.schedule = schedule.map((d, index) => {
+          const day: Day = {
+            id: d.id,
+            day: index,
+            miles,
+            latLng: { lat: d.lat, lng: d.lng },
+            endLatLng: { lat: d.endLat, lng: d.endLng },
+            ele: d.ele,
+            startMeters: d.startTime,
+            meters: d.meters,
+            startTime: d.startTime,
+            endTime: d.endTime,
+            gain: d.gain,
+            loss: d.loss,
+            accumWeight: 0,
+            marker: new TrailMarker(dayMarkerUrl),
+          };
+
+          miles += metersToMiles(d.meters);
+
+          return day;
+        });
       }
     }
     catch (error) {
@@ -128,7 +137,7 @@ class Hike implements HikeInterface {
     }
   }
 
-  setSchedule(schedule: Array<Days>): void {
+  setSchedule(schedule: Array<Day>): void {
     this.schedule = schedule;
   }
 
@@ -142,27 +151,6 @@ class Hike implements HikeInterface {
 
   setDistance(distance: number): void {
     this.distance = distance;
-  }
-
-  setDayMarkers(schedule: Array<Days>): void {
-    let miles = metersToMiles(schedule[0].meters);
-    this.dayMarkers = schedule.filter((d, index) => index > 0).map((d, index) => {
-      const day = {
-        id: d.id,
-        day: index + 1,
-        lat: d.lat,
-        lng: d.lng,
-        miles,
-        ele: metersToFeet(d.ele),
-        marker: new TrailMarker(
-          dayMarkerUrl,
-        ),
-      };
-
-      miles += metersToMiles(d.meters);
-
-      return day;
-    });
   }
 }
 

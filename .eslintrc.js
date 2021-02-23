@@ -24,6 +24,7 @@ module.exports = {
     'react',
   ],
   rules: {
+    "react/jsx-props-no-spreading": ["off"],
     "brace-style": ["error", "stroustrup"],
     "react/jsx-props-no-spreading": ["off"],
     "jsx-a11y/click-events-have-key-events": ["off"],
@@ -69,8 +70,14 @@ module.exports = {
       'import',
     ],
     rules: {
+      "no-shadow": "off",
+      "@typescript-eslint/no-shadow": ["error"],
+      "no-use-before-define": "off",
+      "@typescript-eslint/no-use-before-define": ["error"],
+      "react/jsx-props-no-spreading": ["off"],
       "brace-style": ["error", "stroustrup"],
       "no-param-reassign": ["error", { "props": false }],
+      "react/jsx-filename-extension": [1, { "extensions": [".tsx", ".jsx"] }],
       'import/extensions': [
         "error",
         "ignorePackages",

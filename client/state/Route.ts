@@ -3,6 +3,9 @@ import L, { LatLngBounds } from 'leaflet';
 import Anchor, { resetWaypointLabel } from './Anchor';
 import { metersToMiles, metersToFeet } from '../utilities';
 import { httpDelete, postJSON, putJSON } from './Transports';
+import {
+  AnchorProps, HikeInterface, LatLng, TrailPoint,
+} from './Types';
 
 class Route {
   hike: HikeInterface;
@@ -48,10 +51,8 @@ class Route {
   }
 
   async addStartWaypoint(position: LatLng): Promise<void> {
-    const response = await postJSON(`/hike/${this.hike.id}/route/start-point`, {
-      lat: position.lat,
-      lng: position.lng,
-    });
+    const response = await postJSON(`/hike/${this.hike.id}/route/start-point`,
+      position);
 
     if (response.ok) {
       const updates = await response.json();
@@ -67,10 +68,8 @@ class Route {
   }
 
   async addEndWaypoint(position: LatLng): Promise<void> {
-    const response = await postJSON(`/hike/${this.hike.id}/route/end-point`, {
-      lat: position.lat,
-      lng: position.lng,
-    });
+    const response = await postJSON(`/hike/${this.hike.id}/route/end-point`,
+      position);
 
     if (response.ok) {
       const updates = await response.json();
@@ -86,10 +85,8 @@ class Route {
   }
 
   async addWaypoint(position: LatLng): Promise<void> {
-    const response = await postJSON(`/hike/${this.hike.id}/route/waypoint`, {
-      lat: position.lat,
-      lng: position.lng,
-    });
+    const response = await postJSON(`/hike/${this.hike.id}/route/waypoint`,
+      position);
 
     if (response.ok) {
       const updates = await response.json();

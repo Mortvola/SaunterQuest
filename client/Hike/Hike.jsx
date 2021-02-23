@@ -30,8 +30,6 @@ const Hike = ({
         <MapContainer
           tileServerUrl={tileServerUrl}
           hike={uiState.hike}
-          map={uiState.hike.map}
-          dayMarkers={uiState.hike.dayMarkers}
           locationPopup={locationPopup}
         />
         <ElevationChart elevations={uiState.hike.route.elevations} days={uiState.hike.dayMarkers} />

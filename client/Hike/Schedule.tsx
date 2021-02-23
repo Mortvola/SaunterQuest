@@ -5,12 +5,17 @@ import {
   metersToFeet, gramsToPoundsAndOunces, metersToMilesRounded, formatTime,
 } from '../utilities';
 import MobxStore from '../state/store';
+import { Day } from '../state/Types';
 // import { getRoute } from './tempstore';
 // import EndOfDayMarker from './trailMarker/EndOfDayMarker';
 
 const Schedule = () => {
   const { uiState: { hike } } = useContext(MobxStore);
-  const positionMapToDay = (d) => {
+  const positionMapToDay = (d: number) => {
+    if (hike === null) {
+      throw new Error('hike is null');
+    }
+
     //
     // Position the map so that the two endpoints (today's and tomorrow's) are visible.
     // todo: take into account the area the whole path uses. Some paths go out of window
@@ -18,25 +23,29 @@ const Schedule = () => {
     //
     if (hike.schedule) {
       if (d < hike.schedule.length - 1) {
-        positionMapToBounds(hike.map, hike.schedule[d].point, hike.schedule[d + 1].point);
+        positionMapToBounds(hike.map, hike.schedule[d].latLng, hike.schedule[d + 1].latLng);
       }
       else {
         positionMapToBounds(
-          hike.map, hike.schedule[d].point, {
-            lat: hike.schedule[d].endLat,
-            lng: hike.schedule[d].endLng,
-          },
+          hike.map, hike.schedule[d].latLng, hike.schedule[d].endLatLng,
         );
       }
     }
   };
 
-  const renderDay = (day, dayNumber) => {
+  const renderDay = (day: Day, dayNumber: number) => {
     const miles = metersToMilesRounded(day.startMeters + day.meters);
 
     return (
       <div key={dayNumber} className="day-card">
-        <div className="card-header" style={{ padding: '5px 5px 5px 5px' }} onClick={() => positionMapToDay(dayNumber)}>
+        <div
+          className="card-header"
+          style={{ padding: '5px 5px 5px 5px' }}
+          onClick={() => positionMapToDay(dayNumber)}
+          role="button"
+          onKeyPress={() => positionMapToDay(dayNumber)}
+          tabIndex={0}
+        >
           <div className="day-card-header">
             <div>{`Day ${dayNumber + 1}`}</div>
             <div />
@@ -56,7 +65,7 @@ const Schedule = () => {
   return (
     <>
       {
-        hike.schedule
+        hike && hike.schedule
           ? hike.schedule.map((day, index) => renderDay(day, index))
           : null
       }

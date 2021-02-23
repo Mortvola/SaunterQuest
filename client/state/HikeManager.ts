@@ -21,9 +21,8 @@ class HikeManager {
     if (response.ok) {
       const hikes = await response.json();
 
-      const json = await response.json();
-      if (Array.isArray(json)) {
-        json.sort((a, b) => {
+      if (Array.isArray(hikes)) {
+        hikes.sort((a, b) => {
           const nameA = a.name.toUpperCase(); // ignore upper and lowercase
           const nameB = b.name.toUpperCase(); // ignore upper and lowercase
 
@@ -49,7 +48,7 @@ class HikeManager {
     this.requesting = requesting;
   }
 
-  setHikes(hikes: Array<HikeProps>): void {
+  setHikes(hikes: Array<Hike>): void {
     this.hikes = hikes.map((h) => (
       new Hike(h)
     ));

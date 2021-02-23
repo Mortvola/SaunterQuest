@@ -6,8 +6,6 @@ import Map from './Map';
 const MyMapContainer = ({
   tileServerUrl,
   hike,
-  map,
-  dayMarkers,
   locationPopup,
 }) => (
   <MapContainer
@@ -19,8 +17,6 @@ const MyMapContainer = ({
     <Map
       tileServerUrl={tileServerUrl}
       hike={hike}
-      map={map}
-      dayMarkers={dayMarkers}
       locationPopup={locationPopup}
     />
   </MapContainer>
@@ -29,14 +25,10 @@ const MyMapContainer = ({
 MyMapContainer.propTypes = {
   tileServerUrl: PropTypes.string.isRequired,
   hike: PropTypes.shape().isRequired,
-  map: PropTypes.shape(),
-  dayMarkers: PropTypes.arrayOf(PropTypes.shape()),
   locationPopup: PropTypes.shape(),
 };
 
 MyMapContainer.defaultProps = {
-  map: null,
-  dayMarkers: null,
   locationPopup: null,
 };
 
