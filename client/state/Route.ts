@@ -1,4 +1,4 @@
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, runInAction } from 'mobx';
 import L, { LatLngBounds } from 'leaflet';
 import Anchor, { resetWaypointLabel } from './Anchor';
 import { metersToMiles, metersToFeet } from '../utilities';
@@ -29,10 +29,12 @@ class Route {
       if (response.ok) {
         const route = await response.json();
 
-        if (route) {
-          this.receiveRoute(route);
-          this.hike.requestSchedule();
-        }
+        runInAction(() => {
+          if (route) {
+            this.receiveRoute(route);
+            this.hike.requestSchedule();
+          }
+        });
       }
     }
     catch (error) {
@@ -57,13 +59,15 @@ class Route {
     if (response.ok) {
       const updates = await response.json();
 
-      if (updates === null) {
-        this.requestRoute();
-      }
-      else {
-        this.receiveWaypointUpdates(updates);
-        this.hike.requestSchedule();
-      }
+      runInAction(() => {
+        if (updates === null) {
+          this.requestRoute();
+        }
+        else {
+          this.receiveWaypointUpdates(updates);
+          this.hike.requestSchedule();
+        }
+      });
     }
   }
 
@@ -74,13 +78,15 @@ class Route {
     if (response.ok) {
       const updates = await response.json();
 
-      if (updates === null) {
-        this.requestRoute();
-      }
-      else {
-        this.receiveWaypointUpdates(updates);
-        this.hike.requestSchedule();
-      }
+      runInAction(() => {
+        if (updates === null) {
+          this.requestRoute();
+        }
+        else {
+          this.receiveWaypointUpdates(updates);
+          this.hike.requestSchedule();
+        }
+      });
     }
   }
 
@@ -91,13 +97,15 @@ class Route {
     if (response.ok) {
       const updates = await response.json();
 
-      if (updates === null) {
-        this.requestRoute();
-      }
-      else {
-        this.receiveWaypointUpdates(updates);
-        this.hike.requestSchedule();
-      }
+      runInAction(() => {
+        if (updates === null) {
+          this.requestRoute();
+        }
+        else {
+          this.receiveWaypointUpdates(updates);
+          this.hike.requestSchedule();
+        }
+      });
     }
   }
 
@@ -108,10 +116,12 @@ class Route {
     if (response.ok) {
       const updates = await response.json();
 
-      if (updates) {
-        this.receiveWaypointUpdates(updates);
-        this.hike.requestSchedule();
-      }
+      runInAction(() => {
+        if (updates) {
+          this.receiveWaypointUpdates(updates);
+          this.hike.requestSchedule();
+        }
+      });
     }
   }
 
@@ -121,10 +131,12 @@ class Route {
     if (response.ok) {
       const updates = await response.json();
 
-      if (updates) {
-        this.receiveWaypointUpdates(updates);
-        this.hike.requestSchedule();
-      }
+      runInAction(() => {
+        if (updates) {
+          this.receiveWaypointUpdates(updates);
+          this.hike.requestSchedule();
+        }
+      });
     }
   }
 

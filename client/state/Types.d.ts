@@ -61,7 +61,7 @@ export interface Day {
   day: number;
   latLng: LatLng;
   endLatLng: LatLng;
-  miles: number;
+  startMile: number;
   ele: number;
   startMeters: number;
   meters: number;

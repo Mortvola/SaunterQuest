@@ -106,8 +106,10 @@ const Map = ({
       <Route route={hike.route} />
       {
         hike.schedule
-          ? hike.schedule.map((d) => (
-            <DayMarker key={d.id} day={d} />
+          ? hike.schedule.map((d, index) => (
+            index > 0
+              ? <DayMarker key={d.id} day={d} />
+              : null
           ))
           : null
       }

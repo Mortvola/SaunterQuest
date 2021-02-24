@@ -1,4 +1,4 @@
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, runInAction } from 'mobx';
 import HikerProfile from './HikerProfile';
 import Map from './Map';
 import TrailMarker from './TrailMarker';
@@ -51,9 +51,11 @@ class Hike implements HikeInterface {
     if (response.ok) {
       const details = await response.json();
 
-      this.setDuration(details.duration);
-      this.setDistance(details.distance);
-      this.setRequesting(false);
+      runInAction(() => {
+        this.setDuration(details.duration);
+        this.setDistance(details.distance);
+        this.setRequesting(false);
+      });
     }
   }
 
@@ -62,7 +64,10 @@ class Hike implements HikeInterface {
 
     if (response.ok) {
       const profiles: Array<ProfileProps> = await response.json();
-      this.setHikerProfiles(profiles.map((p) => new HikerProfile(p)));
+
+      runInAction(() => {
+        this.setHikerProfiles(profiles.map((p) => new HikerProfile(p)));
+      });
     }
   }
 
@@ -84,16 +89,18 @@ class Hike implements HikeInterface {
     if (response.ok) {
       const deleted = await response.json();
 
-      if (deleted) {
-        const index = this.hikerProfiles.findIndex((p) => p.id === id);
+      runInAction(() => {
+        if (deleted) {
+          const index = this.hikerProfiles.findIndex((p) => p.id === id);
 
-        if (index !== -1) {
-          this.setHikerProfiles([
-            ...this.hikerProfiles.slice(0, index),
-            ...this.hikerProfiles.slice(index + 1),
-          ]);
+          if (index !== -1) {
+            this.setHikerProfiles([
+              ...this.hikerProfiles.slice(0, index),
+              ...this.hikerProfiles.slice(index + 1),
+            ]);
+          }
         }
-      }
+      });
     }
 
     // todo: handle the error case.
@@ -106,29 +113,31 @@ class Hike implements HikeInterface {
       if (response.ok) {
         const schedule: Array<DayProps> = await response.json();
 
-        let miles = metersToMiles(schedule[0].meters);
+        runInAction(() => {
+          let miles = 0;
 
-        this.schedule = schedule.map((d, index) => {
-          const day: Day = {
-            id: d.id,
-            day: index,
-            miles,
-            latLng: { lat: d.lat, lng: d.lng },
-            endLatLng: { lat: d.endLat, lng: d.endLng },
-            ele: d.ele,
-            startMeters: d.startTime,
-            meters: d.meters,
-            startTime: d.startTime,
-            endTime: d.endTime,
-            gain: d.gain,
-            loss: d.loss,
-            accumWeight: 0,
-            marker: new TrailMarker(dayMarkerUrl),
-          };
+          this.schedule = schedule.map((d, index) => {
+            const day: Day = {
+              id: d.id,
+              day: index,
+              startMile: miles,
+              latLng: { lat: d.lat, lng: d.lng },
+              endLatLng: { lat: d.endLat, lng: d.endLng },
+              ele: d.ele,
+              startMeters: d.startTime,
+              meters: d.meters,
+              startTime: d.startTime,
+              endTime: d.endTime,
+              gain: d.gain,
+              loss: d.loss,
+              accumWeight: 0,
+              marker: new TrailMarker(dayMarkerUrl),
+            };
 
-          miles += metersToMiles(d.meters);
+            miles += metersToMiles(d.meters);
 
-          return day;
+            return day;
+          });
         });
       }
     }
