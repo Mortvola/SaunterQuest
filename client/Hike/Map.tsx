@@ -2,7 +2,6 @@ import React, { useState, useRef, ReactElement, useEffect, } from 'react';
 import PropTypes from 'prop-types';
 import {
   TileLayer,
-  useMapEvents,
   useMap,
   Popup,
   LayersControl,
@@ -15,6 +14,7 @@ import { useTerrainDialog } from './TerrainDialog';
 import Graticule from './Graticule';
 import Hike from '../state/Hike';
 import { LatLng } from '../state/Types';
+import ContextMenu from '../../Utilities/ContextMenu';
 
 type Props = {
   tileServerUrl: string;
@@ -46,7 +46,7 @@ const Map = ({
     console.log(JSON.stringify(steepestPoint));
   };
 
-  const openContextMenu = (event: L.LeafletMouseEvent) => {
+  const makeContextMenu = (event: L.LeafletMouseEvent) => {
     const mapMenuItems = [
       { text: 'Prepend Waypoint', callback: ({ latlng }: L.LeafletMouseEvent) => hike.route.addStartWaypoint(latlng) },
       { text: 'Insert Waypoint', callback: ({ latlng }: L.LeafletMouseEvent) => hike.route.addWaypoint(latlng) },
@@ -62,24 +62,7 @@ const Map = ({
       { text: 'Go to Location...', callback: showGotoLocationDialog },
       { text: 'Find Steepest Point', callback: findSteepestPoint },
     ];
-
-    event.target.contextmenu.removeAllItems();
-
-    mapMenuItems.forEach((i) => {
-      event.target.contextmenu.addItem(i);
-    });
-
-    event.target.contextmenu.showAt(event.latlng);
   };
-
-  const closeContextMenu = (event: L.LeafletMouseEvent) => {
-    event.target.contextmenu.hide();
-  };
-
-  useMapEvents({
-    contextmenu: openContextMenu,
-    click: closeContextMenu,
-  });
 
   const handleLocationPopupClose = () => {
     if (hike.map === null) {
@@ -90,7 +73,7 @@ const Map = ({
   };
 
   return (
-    <>
+    <ContextMenu items={makeContextMenu}>
       <LayersControl position="topleft">
         <LayersControl.Overlay checked name="Terrain">
           <TileLayer
@@ -130,7 +113,7 @@ const Map = ({
           : null
       }
       <TerrainDialog latLng={latLng} />
-    </>
+    </ContextMenu>
   );
 };
 
