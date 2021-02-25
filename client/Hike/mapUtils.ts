@@ -1,5 +1,14 @@
-function positionMapToBounds(map, p1, p2) {
-  const bounds = {};
+import { LatLng } from '../state/Types';
+
+function positionMapToBounds(map: L.Map, p1: LatLng, p2: LatLng): void {
+  type Bounds = {
+    east?: number,
+    west?: number,
+    north?: number,
+    south?: number,
+  };
+
+  const bounds: Bounds = {};
 
   if (p1.lng < p2.lng) {
     bounds.east = p2.lng;
@@ -22,4 +31,4 @@ function positionMapToBounds(map, p1, p2) {
   map.fitBounds([[bounds.south, bounds.west], [bounds.north, bounds.east]]);
 }
 
-export { positionMapToBounds };
+export default positionMapToBounds;

@@ -1,4 +1,4 @@
-import React, { useState, useRef, ReactElement } from 'react';
+import React, { useState, useRef, ReactElement, useEffect, } from 'react';
 import PropTypes from 'prop-types';
 import {
   TileLayer,
@@ -34,6 +34,12 @@ const Map = ({
   const [GotoLocationDialog, showGotoLocationDialog] = useGotoLocationDialog();
   const [TerrainDialog, showTerrainDialog] = useTerrainDialog();
   const [latLng, setLatLng] = useState<LatLng | null>(null);
+
+  useEffect(() => {
+    if (hike.map) {
+      hike.map.setLeafletMap(leafletMap);
+    }
+  }, []);
 
   const findSteepestPoint = () => {
     const steepestPoint = hike.route.findSteepestPoint();

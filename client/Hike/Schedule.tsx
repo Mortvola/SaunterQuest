@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { observer } from 'mobx-react-lite';
-import { positionMapToBounds } from './mapUtils';
+import positionMapToBounds from './mapUtils';
 import {
   metersToFeet, gramsToPoundsAndOunces, metersToMilesRounded, formatTime,
 } from '../utilities';
@@ -20,14 +20,21 @@ const Schedule = () => {
     // todo: take into account the area the whole path uses. Some paths go out of window
     // even though the two endpoints are within the window.
     //
-    if (hike.schedule) {
-      if (d < hike.schedule.length - 1) {
-        positionMapToBounds(hike.map, hike.schedule[d].latLng, hike.schedule[d + 1].latLng);
-      }
-      else {
-        positionMapToBounds(
-          hike.map, hike.schedule[d].latLng, hike.schedule[d].endLatLng,
-        );
+    if (hike.schedule && hike.map) {
+      const leafletMap = hike.map.getLeafLetMap();
+      if (leafletMap) {
+        if (d < hike.schedule.length - 1) {
+          positionMapToBounds(
+            leafletMap, hike.schedule[d].latLng, hike.schedule[d + 1].latLng,
+          );
+        }
+        else {
+          positionMapToBounds(
+            leafletMap,
+            hike.schedule[d].latLng,
+            hike.route.anchors[hike.route.anchors.length - 1].latLng,
+          );
+        }
       }
     }
   };
