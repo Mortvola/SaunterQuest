@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { toJS } from 'mobx';
 import { useMap } from 'react-leaflet';
 import { observer } from 'mobx-react-lite';
 import AnchorAndTrail from './AnchorAndTrail';

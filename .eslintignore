@@ -1,6 +1,7 @@
 node_modules
 public
 build
+client-build
 .eslintrc.js
 ./node_modules
 vendor

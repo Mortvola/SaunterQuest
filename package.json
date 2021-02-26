@@ -6,7 +6,7 @@
     "build": "node ace build",
     "start": "node ace serve --watch",
     "dev-welcome-build": "browserify -t [ babelify --presets [ @babel/preset-react @babel/env ] ] client/Welcome.jsx --extension=.jsx > public/welcome.js",
-    "dev-app-build": "tsc -p client && browserify -t [ babelify --presets [ @babel/env ] ] client-build/App.js > public/app.js",
+    "dev-app-build": "tsc -p tsconfig.client.json && browserify -t [ babelify --presets [ @babel/env ] ] client-build/client/App.js > public/app.js",
     "welcome-build": "NODE_ENV=production browserify -t [ babelify --presets [ @babel/preset-react @babel/env ] ]  -t dotenvify client/Welcome.jsx --extension=.jsx | terser --compress --mangle > public/welcome.js",
     "app-build": "NODE_ENV=production browserify -t [ babelify --presets [ @babel/preset-react @babel/env ] ]  -t dotenvify client/App.jsx --extension=.jsx | terser --compress --mangle > public/app.js",
     "lint": "eslint ."

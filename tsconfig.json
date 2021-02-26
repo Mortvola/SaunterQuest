@@ -4,10 +4,14 @@
     ],
     "exclude": [
         "node_modules",
-        "build"
+        "build",
+        "client-build",
+        "Utilities",
+        "client",
     ],
     "extends": "./node_modules/adonis-preset-ts/tsconfig",
     "compilerOptions": {
+        "jsx": "react",
         "outDir": "build",
         "rootDir": "./",
         "sourceMap": true,

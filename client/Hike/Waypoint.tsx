@@ -1,9 +1,11 @@
 import React, { ReactElement, useRef } from 'react';
 // import PropTypes from 'prop-types';
+import { LeafletEventHandlerFnMap } from 'leaflet';
 import { Marker } from 'react-leaflet';
 import { observer } from 'mobx-react-lite';
 import Route from '../state/Route';
 import Anchor from '../state/Anchor';
+import useContextMenu from '../../Utilities/ContextMenu';
 
 type Props = {
   route: Route;
@@ -23,20 +25,34 @@ const Waypoint = ({
     }
   };
 
-  const handleDelete = () => {
-    route.deleteWaypoint(waypoint.id);
+  const removeWaypoint = ({ latlng }: L.LeafletMouseEvent) => {
+    console.log('remove waypoint');
   };
 
+  const makeContextMenu = (event: L.LeafletMouseEvent) => {
+    const menuItems = [
+      { label: 'Remove Waypoint', callback: removeWaypoint },
+    ];
+
+    return menuItems;
+  };
+
+  const [ContextMenu, showContextMenu] = useContextMenu('marker', makeContextMenu, 'main');
+
   return (
-    <Marker
-      ref={markerRef}
-      position={waypoint.latLng}
-      icon={waypoint.marker.icon}
-      draggable
-      eventHandlers={{
-        dragend: handleDragEnd,
-      }}
-    />
+    <>
+      <ContextMenu />
+      <Marker
+        ref={markerRef}
+        position={waypoint.latLng}
+        icon={waypoint.marker.icon}
+        draggable
+        eventHandlers={{
+          dragend: handleDragEnd,
+          contextmenu: showContextMenu,
+        }}
+      />
+    </>
   );
 };
 

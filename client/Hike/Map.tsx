@@ -1,10 +1,13 @@
-import React, { useState, useRef, ReactElement, useEffect, } from 'react';
+import React, {
+  useState, useRef, ReactElement, useEffect, useCallback,
+} from 'react';
 import PropTypes from 'prop-types';
 import {
   TileLayer,
   useMap,
   Popup,
   LayersControl,
+  useMapEvents,
 } from 'react-leaflet';
 import { observer } from 'mobx-react-lite';
 import Route from './Route';
@@ -14,7 +17,7 @@ import { useTerrainDialog } from './TerrainDialog';
 import Graticule from './Graticule';
 import Hike from '../state/Hike';
 import { LatLng } from '../state/Types';
-import ContextMenu from '../../Utilities/ContextMenu';
+import useContextMenu, { MenuItemTypes } from '../../Utilities/ContextMenu';
 
 type Props = {
   tileServerUrl: string;
@@ -39,30 +42,34 @@ const Map = ({
     if (hike.map) {
       hike.map.setLeafletMap(leafletMap);
     }
-  }, []);
+  }, [hike.map, leafletMap]);
 
-  const findSteepestPoint = () => {
-    const steepestPoint = hike.route.findSteepestPoint();
-    console.log(JSON.stringify(steepestPoint));
-  };
+  const makeContextMenu = useCallback((event: L.LeafletMouseEvent) => {
+    const findSteepestPoint = () => {
+      const steepestPoint = hike.route.findSteepestPoint();
+      console.log(JSON.stringify(steepestPoint));
+    };
 
-  const makeContextMenu = (event: L.LeafletMouseEvent) => {
-    const mapMenuItems = [
-      { text: 'Prepend Waypoint', callback: ({ latlng }: L.LeafletMouseEvent) => hike.route.addStartWaypoint(latlng) },
-      { text: 'Insert Waypoint', callback: ({ latlng }: L.LeafletMouseEvent) => hike.route.addWaypoint(latlng) },
-      { text: 'Append Waypoint', callback: ({ latlng }: L.LeafletMouseEvent) => hike.route.addEndWaypoint(latlng) },
-      { separator: true },
+    const mapMenuItems: Array<MenuItemTypes> = [
+      { label: 'Prepend Waypoint', callback: ({ latlng }: L.LeafletMouseEvent) => hike.route.addStartWaypoint(latlng) },
+      { label: 'Insert Waypoint', callback: ({ latlng }: L.LeafletMouseEvent) => hike.route.addWaypoint(latlng) },
+      { label: 'Append Waypoint', callback: ({ latlng }: L.LeafletMouseEvent) => hike.route.addEndWaypoint(latlng) },
+      { type: 'separator' },
       {
-        text: 'Show Location in 3D',
+        label: 'Show Location in 3D',
         callback: (e: L.LeafletMouseEvent) => {
           setLatLng(e.latlng);
           showTerrainDialog();
         },
       },
-      { text: 'Go to Location...', callback: showGotoLocationDialog },
-      { text: 'Find Steepest Point', callback: findSteepestPoint },
+      { label: 'Go to Location...', callback: showGotoLocationDialog },
+      { label: 'Find Steepest Point', callback: findSteepestPoint },
     ];
-  };
+
+    return mapMenuItems;
+  }, [hike.route, showGotoLocationDialog, showTerrainDialog]);
+
+  const [ContextMenu, showContextMenu] = useContextMenu('main', makeContextMenu);
 
   const handleLocationPopupClose = () => {
     if (hike.map === null) {
@@ -72,9 +79,14 @@ const Map = ({
     hike.map.showLocationPopup(null);
   };
 
+  useMapEvents({
+    contextmenu: showContextMenu,
+  });
+
   return (
-    <ContextMenu items={makeContextMenu}>
+    <>
       <LayersControl position="topleft">
+        <ContextMenu />
         <LayersControl.Overlay checked name="Terrain">
           <TileLayer
             url={`${tileServerUrl}/tile/terrain/{z}/{x}/{y}`}
@@ -113,7 +125,7 @@ const Map = ({
           : null
       }
       <TerrainDialog latLng={latLng} />
-    </ContextMenu>
+    </>
   );
 };
 
