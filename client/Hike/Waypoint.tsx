@@ -24,11 +24,11 @@ const Waypoint = ({
     }
   };
 
-  const removeWaypoint = ({ latlng }: L.LeafletMouseEvent) => {
-    console.log('remove waypoint');
+  const removeWaypoint = () => {
+    route.deleteWaypoint(waypoint.id);
   };
 
-  const makeContextMenu = (event: L.LeafletMouseEvent) => {
+  const makeContextMenu = () => {
     const menuItems = [
       { label: 'Remove Waypoint', callback: removeWaypoint },
     ];
