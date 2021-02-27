@@ -439,7 +439,7 @@ export default class Hike extends BaseModel {
 
     if (newAnchorsArray) {
       for (let a = 0; a < anchors.length - 1; a += 1) {
-        const newAnchors = newAnchorsArray[a];
+        const newAnchors = newAnchorsArray.anchors[a];
 
         const anchorIndex1 = this.routePoints.findIndex(
           (p: RoutePoint) => p.id === anchors[a].id,

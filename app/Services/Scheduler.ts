@@ -55,12 +55,19 @@ class Scheduler {
       throw (new Error('User is null'));
     }
 
-    const activeHikerProfile: ActiveHikerProfile = {
-      speedFactor: this.user.hikerProfile.speedFactor ?? 50,
-      startTime: (this.user.hikerProfile.startTime ?? 8) * 60,
-      endTime: (this.user.hikerProfile.endTime ?? 18) * 60,
-      breakDuration: this.user.hikerProfile.breakDuration ?? 60,
-    };
+    const activeHikerProfile: ActiveHikerProfile = this.user.hikerProfile
+      ? {
+        speedFactor: this.user.hikerProfile.speedFactor ?? 50,
+        startTime: (this.user.hikerProfile.startTime ?? 8) * 60,
+        endTime: (this.user.hikerProfile.endTime ?? 18) * 60,
+        breakDuration: this.user.hikerProfile.breakDuration ?? 60,
+      }
+      : {
+        speedFactor: 50,
+        startTime: 8 * 60,
+        endTime: 18 * 60,
+        breakDuration: 60,
+      };
 
     // const hikerProfile = {
     //   speedFactor: this.user.paceFactor,
