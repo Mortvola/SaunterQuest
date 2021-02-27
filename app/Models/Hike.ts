@@ -6,7 +6,9 @@ import {
   hasMany, HasMany,
   hasOne, HasOne,
   belongsTo, BelongsTo,
+// eslint-disable-next-line import/no-unresolved
 } from '@ioc:Adonis/Lucid/Orm';
+// eslint-disable-next-line import/no-unresolved
 import Env from '@ioc:Adonis/Core/Env';
 import fetch from 'node-fetch';
 import RoutePoint from 'App/Models/RoutePoint';

@@ -1,7 +1,11 @@
 import TrailMarker from './TrailMarker';
 
+export interface HikeManagerInterface {
+  hikes: Array<HikeInterface>;
+}
+
 export interface HikeInterface {
-  id: number | null = null;
+  id: number | null;
   requestSchedule(): Promise<void>;
 }
 
@@ -11,9 +15,9 @@ export interface BaseHikeProps {
 }
 
 export interface DetailHikeProps extends BaseHikeProps {
-  duration: number | null = null;
+  duration: number | null;
 
-  distance: number | null = null;
+  distance: number | null;
 }
 
 export interface LatLng {
@@ -24,7 +28,6 @@ export interface LatLng {
 export interface TrailPoint extends LatLng {
   dist: number;
   ele: number;
-  latLng: LatLng;
 }
 
 export interface AnchorProps {

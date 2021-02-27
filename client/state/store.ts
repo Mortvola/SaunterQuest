@@ -2,12 +2,14 @@ import { createContext } from 'react';
 import HikeManager from './HikeManager';
 import UiState from './UiState';
 
-const store = {
-  uiState: new UiState(),
-  hikeManager: new HikeManager(),
-};
+class Store {
+  uiState = new UiState();
 
+  hikeManager = new HikeManager(this);
+}
+
+const store = new Store();
 const MobxStore = createContext(store);
 
 export default MobxStore;
-export { store };
+export { Store, store };

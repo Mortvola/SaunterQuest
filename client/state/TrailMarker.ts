@@ -1,5 +1,6 @@
 import L from 'leaflet';
 import { makeAutoObservable } from 'mobx';
+import { createIcon } from '../Hike/mapUtils';
 
 class TrailMarker {
   icon: L.DivIcon;
@@ -39,20 +40,7 @@ class TrailMarker {
   }
 
   createIcon(label?: string): L.DivIcon {
-    let html = `<img src="${this.iconUrl}">`;
-    if (label) {
-      html = `<div class="trail-marker-label">${label || ''}</div>${html}`;
-    }
-
-    return L.divIcon(
-      {
-        className: 'trail-marker',
-        html,
-        iconAnchor: L.point(16, 32),
-        popupAnchor: L.point(0, -32),
-        tooltipAnchor: L.point(0, -32),
-      },
-    );
+    return createIcon(this.iconUrl, label);
   }
 
   // addListener() {

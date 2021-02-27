@@ -3,10 +3,11 @@ import React, {
 } from 'react';
 import PropTypes from 'prop-types';
 import { observer } from 'mobx-react-lite';
-import ElevationChart from './ElevationChart';
+import ElevationChart from './Elevation/ElevationChart';
 import Controls from './Controls';
 import MobxStore from '../state/store';
 import MapContainer from './MapContainer';
+import EditableText from '../Hikes/EditableText';
 
 type Props = {
   tileServerUrl: string;
@@ -33,13 +34,20 @@ const Hike = ({
   if (uiState.hike) {
     return (
       <div className="hike-grid">
+        <Controls hike={uiState.hike} />
+        <div className="name-grid-item">
+          <EditableText
+            defaultValue={uiState.hike.name}
+            url={`hike/${uiState.hike.id}`}
+            prop="name"
+          />
+        </div>
         <MapContainer
           tileServerUrl={tileServerUrl}
           hike={uiState.hike}
           locationPopup={locationPopup}
         />
-        <ElevationChart elevations={uiState.hike.route.elevations} days={uiState.hike.schedule} />
-        <Controls hike={uiState.hike} />
+        <ElevationChart hike={uiState.hike} />
       </div>
     );
   }

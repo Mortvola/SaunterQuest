@@ -1,9 +1,10 @@
 import fetch from 'node-fetch';
+// eslint-disable-next-line import/no-unresolved
 import Env from '@ioc:Adonis/Core/Env';
 import Point from 'App/Types/Point';
 
 class Router {
-  public static degToRad(degrees: number) {
+  public static degToRad(degrees: number): number {
     return degrees * (Math.PI / 180);
   }
 
@@ -31,21 +32,20 @@ class Router {
     return angle * earthRadius;
   }
 
-  public static async getTrailFromPoint(point: Point) : Promise<any> {
-    const trailInfo = await fetch(`${Env.get('PATHFINDER_URL')}/map/trail-from-point/${point.lat}/${point.lng}`)
-      .then((response: any) => {
-        if (response.ok) {
-          return response.json();
-        }
+  public static async getTrailFromPoint(point: Point) : Promise<unknown> {
+    const response = await fetch(`${Env.get('PATHFINDER_URL')}/map/trail-from-point/${point.lat}/${point.lng}`);
 
-        throw (new Error(`Fetch from pathFinder failed: ${response.statusText}`));
-      });
+    if (response.ok) {
+      const trailInfo = await response.json();
 
-    if (trailInfo === null) {
-      throw (new Error(`Trail information could not be determined from point: ${JSON.stringify(point)}`));
+      if (trailInfo === null) {
+        throw (new Error(`Trail information could not be determined from point: ${JSON.stringify(point)}`));
+      }
+
+      return trailInfo;
     }
 
-    return trailInfo;
+    throw (new Error(`Fetch from pathFinder failed: ${response.statusText}`));
   }
 }
 

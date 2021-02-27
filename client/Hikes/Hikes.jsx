@@ -1,16 +1,22 @@
 import React, { useContext } from 'react';
 import { observer } from 'mobx-react-lite';
-import { useHikeDialog } from './HikeDialog';
 import Hike from './Hike';
 import PleaseWait from './PleaseWait';
 import MobxStore from '../state/store';
+import { VIEW_HIKE } from '../menuEvents';
 
 const Hikes = () => {
-  const { hikeManager } = useContext(MobxStore);
-  const [HikeDialog, showHikeDialog] = useHikeDialog();
+  const { uiState, hikeManager } = useContext(MobxStore);
 
   const handleDelete = (id) => {
     hikeManager.deleteHike(id);
+  };
+
+  const handleAddHike = async () => {
+    const hike = await hikeManager.addHike();
+
+    uiState.hike = hike;
+    uiState.setView(VIEW_HIKE);
   };
 
   return (
@@ -19,7 +25,7 @@ const Hikes = () => {
         <div className="col-md-12" style={{ overflowY: 'scroll', height: '100%' }}>
           <h4>
             Hikes
-            <button type="button" className="btn btn-sm" onClick={showHikeDialog}>
+            <button type="button" className="btn btn-sm" onClick={handleAddHike}>
               <i className="fas fa-plus" />
             </button>
           </h4>
@@ -37,7 +43,6 @@ const Hikes = () => {
           <PleaseWait show={hikeManager.requesting} />
         </div>
       </div>
-      <HikeDialog />
     </>
   );
 };

@@ -1,9 +1,11 @@
 import { DateTime } from 'luxon';
 import {
   BaseModel, beforeSave, belongsTo, BelongsTo, column, computed,
+// eslint-disable-next-line import/no-unresolved
 } from '@ioc:Adonis/Lucid/Orm';
 import Point from 'App/Types/Point';
-import HikerProfile from 'App/Models/HikerProfile';
+import { ActiveHikerProfile } from 'App/Services/ActiveHikerProfile';
+import { Camp } from 'App/Services/Camp';
 import Schedule from './Schedule';
 
 export default class Day extends BaseModel {
@@ -52,7 +54,7 @@ export default class Day extends BaseModel {
   public endTime: number | null = null;
 
   @beforeSave()
-  public static async truncateFloats(day: Day) {
+  public static async truncateFloats(day: Day): Promise<void> {
     if (day.endTime !== null) {
       day.endTime = Math.trunc(day.endTime);
     }
@@ -70,7 +72,7 @@ export default class Day extends BaseModel {
 
   private notes: string;
 
-  public camp: any;
+  public camp: Camp;
 
   private elapsedTime = 0;
 
@@ -83,10 +85,10 @@ export default class Day extends BaseModel {
   public endMeters: number;
 
   public initialize(
-    hikerProfile: HikerProfile,
+    hikerProfile: ActiveHikerProfile,
     point: Point,
     startMeters: number,
-    camp: any | null = null,
+    camp: Camp | null = null,
     startTime: number | null = null,
   ) : void {
     this.startMeters = startMeters;
@@ -113,21 +115,23 @@ export default class Day extends BaseModel {
     this.lat = point.lat;
     this.lng = point.lng;
 
-    this.camp = camp;
+    if (camp) {
+      this.camp = camp;
+    }
 
     this.gain = 0;
     this.loss = 0;
   }
 
-  public metersAdd(meters: number) {
+  public metersAdd(meters: number): void {
     this.meters += meters;
   }
 
-  public totalMetersGet() : number {
+  public totalMetersGet(): number {
     return this.startMeters + this.meters;
   }
 
-  public currentTimeGet() {
+  public currentTimeGet(): number {
     if (this.startTime === null) {
       throw new Error('startTime is null');
     }
@@ -135,15 +139,15 @@ export default class Day extends BaseModel {
     return this.startTime + this.elapsedTime;
   }
 
-  public elapsedTimeGet() {
+  public elapsedTimeGet(): number {
     return this.elapsedTime;
   }
 
-  public timeAdd(minutes: number) {
+  public timeAdd(minutes: number): void {
     this.elapsedTime += minutes;
   }
 
-  public end() {
+  public end(): void {
     if (this.startTime === null) {
       throw new Error('startTime is null');
     }
@@ -151,7 +155,7 @@ export default class Day extends BaseModel {
     this.endTime = this.startTime + this.elapsedTime;
   }
 
-  public updateGainLoss(eleDelta: number) {
+  public updateGainLoss(eleDelta: number): void {
     if (Number.isNaN(eleDelta) || eleDelta === null || eleDelta === undefined) {
       throw (new Error('bad elevation delta'));
     }

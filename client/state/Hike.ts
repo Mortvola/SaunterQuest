@@ -6,8 +6,9 @@ import Route from './Route';
 import { metersToMiles } from '../utilities';
 import { httpDelete } from './Transports';
 import {
-  BaseHikeProps, Day, DayProps, HikeInterface,
+  BaseHikeProps, Day, DayProps, HikeInterface, LatLng,
 } from './Types';
+import { createIcon } from '../Hike/mapUtils';
 
 interface ProfileProps {
   id: number;
@@ -33,6 +34,10 @@ class Hike implements HikeInterface {
   route = new Route(this);
 
   map: Map | null = null;
+
+  elevationMarkerIcon = createIcon('https://maps.google.com/mapfiles/ms/micons/red.png');
+
+  elevationMarkerPos: LatLng | null = null;
 
   constructor(props: BaseHikeProps) {
     makeAutoObservable(this);
@@ -160,6 +165,12 @@ class Hike implements HikeInterface {
 
   setDistance(distance: number): void {
     this.distance = distance;
+  }
+
+  setElevationMarker(latLng: LatLng | null): void {
+    runInAction(() => {
+      this.elevationMarkerPos = latLng;
+    });
   }
 }
 

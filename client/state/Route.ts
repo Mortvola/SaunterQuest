@@ -12,7 +12,7 @@ class Route {
 
   anchors: Array<Anchor> = [];
 
-  elevations: Array<Array<number>> = [];
+  elevations: Array<[number, number, number, number]> = [];
 
   bounds: unknown = null;
 
@@ -221,11 +221,11 @@ class Route {
     throw new Error('cannot compute bounds from empty array');
   }
 
-  setElevations(elevations: Array<Array<number>>): void {
+  setElevations(elevations: Array<[number, number, number, number]>): void {
     this.elevations = elevations;
   }
 
-  computeElevations(): Array<Array<number>> {
+  computeElevations(): Array<[number, number, number, number]> {
     let distance = 0;
 
     return (
@@ -233,9 +233,11 @@ class Route {
         .filter((a) => a.trail)
         .flatMap((a) => {
           const elevations = a.trail
-            .map((p: TrailPoint) => ([
+            .map((p: TrailPoint): [number, number, number, number] => ([
               metersToMiles(distance + p.dist),
               metersToFeet(p.ele !== undefined ? p.ele : 0),
+              p.lat,
+              p.lng,
             ]));
 
           distance += a.trailLength;

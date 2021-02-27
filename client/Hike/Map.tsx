@@ -8,6 +8,7 @@ import {
   Popup,
   LayersControl,
   useMapEvents,
+  Marker,
 } from 'react-leaflet';
 import { observer } from 'mobx-react-lite';
 import Route from './Route';
@@ -112,6 +113,16 @@ const Map = ({
               ? <DayMarker key={d.id} day={d} />
               : null
           ))
+          : null
+      }
+      {
+        hike.elevationMarkerPos
+          ? (
+            <Marker
+              position={hike.elevationMarkerPos}
+              icon={hike.elevationMarkerIcon}
+            />
+          )
           : null
       }
       <GotoLocationDialog leafletMap={leafletMap} hike={hike} />

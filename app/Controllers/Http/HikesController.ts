@@ -1,4 +1,5 @@
-import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+// eslint-disable-next-line import/no-unresolved
+import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import Hike from 'App/Models/Hike';
 
 export default class HikesController {
@@ -12,13 +13,14 @@ export default class HikesController {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  public async addHike({ auth, request, response }: HttpContextContract) : Promise<void> {
+  public async addHike({ auth, response }: HttpContextContract) : Promise<void> {
     if (auth.user) {
-      const name = request.input('name');
+      auth.user.hikeCounter = (auth.user.hikeCounter ?? 0) + 1;
+      auth.user.save();
 
       const hike = await Hike.create({
         userId: auth.user.id,
-        name,
+        name: `Hike #${auth.user.hikeCounter}`,
       });
 
       hike.save();

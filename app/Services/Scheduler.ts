@@ -4,19 +4,27 @@ import Day from 'App/Models/Day';
 import HikerProfile from 'App/Models/HikerProfile';
 import Point from 'App/Types/Point';
 import RouteIterator from 'App/Types/RouteIterator';
+import TrailCondition from 'App/Models/TrailCondition';
+import { ActiveHikerProfile } from './ActiveHikerProfile';
+import { Camp } from './Camp';
+
+type TimeConstraint = {
+  type: 'camp' | 'startTime' | 'delay';
+  time: number;
+}
 
 class Scheduler {
   currentDay = -1;
 
-  activeHikerProfile: any = null;
+  activeHikerProfile: ActiveHikerProfile | null = null;
 
   days: Day[] = [];
 
   user: User | null = null;
 
-  trailConditions: any = null;
+  trailConditions: Array<TrailCondition> | null = null;
 
-  hikerProfiles: any = null;
+  hikerProfiles: Array<HikerProfile> | null = null;
 
   public createSchedule(routePoints: RoutePoint[], user: User, profiles: HikerProfile[]) : void {
     this.hikerProfiles = profiles;
@@ -27,7 +35,7 @@ class Scheduler {
     }
   }
 
-  private dayStart(point: Point, camp: any | null = null, startTime: number | null = null) {
+  private dayStart(point: Point, camp: Camp | null = null, startTime: number | null = null) {
     this.nextDay();
 
     this.activeHikerProfile = this.activeHikerProfileGet();
@@ -42,44 +50,51 @@ class Scheduler {
     this.currentDay += 1;
   }
 
-  private activeHikerProfileGet() {
+  private activeHikerProfileGet(): ActiveHikerProfile {
     if (this.user === null) {
       throw (new Error('User is null'));
     }
 
-    const hikerProfile = {
-      speedFactor: this.user.paceFactor,
-      startTime: this.user.startTime * 60,
-      endTime: this.user.endTime * 60,
-      breakDuration: this.user.breakDuration,
+    const activeHikerProfile: ActiveHikerProfile = {
+      speedFactor: this.user.hikerProfile.speedFactor ?? 50,
+      startTime: (this.user.hikerProfile.startTime ?? 8) * 60,
+      endTime: (this.user.hikerProfile.endTime ?? 18) * 60,
+      breakDuration: this.user.hikerProfile.breakDuration ?? 60,
     };
 
-    if (this.hikerProfiles !== undefined) {
+    // const hikerProfile = {
+    //   speedFactor: this.user.paceFactor,
+    //   startTime: this.user.startTime * 60,
+    //   endTime: this.user.endTime * 60,
+    //   breakDuration: this.user.breakDuration,
+    // };
+
+    if (this.hikerProfiles) {
       this.hikerProfiles.forEach((profile) => {
         if (
-          (profile.startDay === undefined || this.currentDay >= profile.startDay)
-          && (!profile.endDay === undefined || this.currentDay <= profile.endDay)
+          (!profile.startDay || this.currentDay >= profile.startDay)
+          && (!profile.endDay || this.currentDay <= profile.endDay)
         ) {
-          if (profile.speedFactor !== undefined) {
-            hikerProfile.speedFactor = profile.speedFactor;
+          if (profile.speedFactor !== null) {
+            activeHikerProfile.speedFactor = profile.speedFactor;
           }
 
-          if (profile.startTime !== undefined) {
-            hikerProfile.startTime = profile.startTime * 60;
+          if (profile.startTime !== null) {
+            activeHikerProfile.startTime = profile.startTime * 60;
           }
 
-          if (profile.endTime !== undefined) {
-            hikerProfile.endTime = profile.endTime * 60;
+          if (profile.endTime !== null) {
+            activeHikerProfile.endTime = profile.endTime * 60;
           }
 
-          if (profile.breakDuration !== undefined) {
-            hikerProfile.breakDuration = profile.breakDuration;
+          if (profile.breakDuration !== null) {
+            activeHikerProfile.breakDuration = profile.breakDuration;
           }
         }
       });
     }
 
-    return hikerProfile;
+    return activeHikerProfile;
   }
 
   private currentDayGet() {
@@ -240,31 +255,31 @@ class Scheduler {
   }
 
   private activeTrailConditionsGet(segmentIndex, segmentPercentage) {
-    let speedFactor = 1.0;
-    let type = 2; // 'other'
+    const speedFactor = 1.0;
+    const type = 2; // 'other'
 
     if (this.trailConditions !== null && this.trailConditions !== undefined) {
       this.trailConditions.forEach((tc) => {
-        if ((tc.startSegment.segment < segmentIndex
-          || (tc.startSegment.segment === segmentIndex
-            && tc.startSegment.percentage <= segmentPercentage))
-            && (tc.endSegment.segment > segmentIndex
-            || (tc.endSegment.segment === segmentIndex
-              && tc.endSegment.percentage > segmentPercentage))) {
-          // echo "Active trail condition: start segment: ",
-          // tc.startSegment->segment, ", end segment: ",
-          // tc.endSegment->segment, "\n";
-          speedFactor *= tc.speedFactor / 100.0;
+        // if ((tc.startSegment.segment < segmentIndex
+        //   || (tc.startSegment.segment === segmentIndex
+        //     && tc.startSegment.percentage <= segmentPercentage))
+        //     && (tc.endSegment.segment > segmentIndex
+        //     || (tc.endSegment.segment === segmentIndex
+        //       && tc.endSegment.percentage > segmentPercentage))) {
+        //   // echo "Active trail condition: start segment: ",
+        //   // tc.startSegment->segment, ", end segment: ",
+        //   // tc.endSegment->segment, "\n";
+        //   speedFactor *= tc.speedFactor / 100.0;
 
-          // If the type of the trail condition is a lower number (more
-          // signficant) then
-          // change to it instead of the current type.
-          // Current defined types are: 0=no camping, 1=no stealth camping, 2=
-          // other
-          if (tc.type < type) {
-            type = tc.type;
-          }
-        }
+        //   // If the type of the trail condition is a lower number (more
+        //   // signficant) then
+        //   // change to it instead of the current type.
+        //   // Current defined types are: 0=no camping, 1=no stealth camping, 2=
+        //   // other
+        //   if (tc.type < type) {
+        //     type = tc.type;
+        //   }
+        // }
       });
     }
 
@@ -476,14 +491,14 @@ class Scheduler {
     // }
   }
 
-  private applyTimeConstraints(point1: Point, timeConstraints: any) {
+  private applyTimeConstraints(point1: Point, timeConstraints: Array<TimeConstraint>) {
     if (timeConstraints !== null && timeConstraints !== undefined && timeConstraints.length > 0) {
-      const camps = timeConstraints.where('type', 'camp').get();
+      const camps = timeConstraints.filter((tc) => tc.type === 'camp');
 
-      camps.some((camp: any) => {
+      camps.some((camp: TimeConstraint) => {
         if (camp.time !== 0) {
-          let startTime = null;
-          const startTimes = timeConstraints().where('type', 'startTime').get();
+          let startTime: number | null = null;
+          const startTimes = timeConstraints.filter((tc) => tc.type === 'startTime');
 
           if (startTimes && startTimes.length > 0) {
             startTime = startTimes[0].time;
@@ -495,7 +510,7 @@ class Scheduler {
             lng: point1.lng,
             ele: point1.ele,
             dist: 0,
-          }, camp.waypoint, startTime);
+          }, { time: camp.time, waypoint: undefined }, startTime);
 
           return true;
         }
@@ -503,9 +518,9 @@ class Scheduler {
         return false;
       });
 
-      const delays = timeConstraints.where('type', 'delay').get();
+      const delays = timeConstraints.filter((tc) => tc.type === 'delay');
 
-      delays.forEach((delay: any) => {
+      delays.forEach((delay: TimeConstraint) => {
         if (delay.time !== null) {
           this.currentDayGet().timeAdd(delay.time);
         }
@@ -518,7 +533,7 @@ class Scheduler {
     point2: Point,
     initialSegmentMeters: number,
     initialEle: number,
-    timeConstraints: any | null,
+    timeConstraints: Array<TimeConstraint> | null,
   ): [boolean, number] {
     let segmentMeters = initialSegmentMeters;
     let lastEle = initialEle;
@@ -527,6 +542,18 @@ class Scheduler {
       Scheduler.elevationChange(point1, point2),
       Scheduler.segmentLength(point1, point2),
     ) / 60.0;
+
+    if (this.activeHikerProfile === null) {
+      throw new Error('active hiker profile is null');
+    }
+
+    if (this.activeHikerProfile.speedFactor === null) {
+      throw new Error('active hiker profile speed factor is null');
+    }
+
+    if (this.activeHikerProfile.breakDuration === null) {
+      throw new Error('active hiker profile speed factor is null');
+    }
 
     // todo: do we need to call this per segment or should the results just be
     // global and only call this
@@ -541,7 +568,9 @@ class Scheduler {
     let metersToEndOfSegment = Scheduler.segmentLength(point1, point2) - segmentMeters;
     let minutesToEndOfSegment = metersToEndOfSegment / currentMetersPerMinute;
 
-    this.applyTimeConstraints(point1, timeConstraints);
+    if (timeConstraints !== null) {
+      this.applyTimeConstraints(point1, timeConstraints);
+    }
 
     for (;;) {
       let currentTime = this.currentDayGet().currentTimeGet();

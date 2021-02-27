@@ -1,6 +1,7 @@
+import L from 'leaflet';
 import { LatLng } from '../state/Types';
 
-function positionMapToBounds(map: L.Map, p1: LatLng, p2: LatLng): void {
+export function positionMapToBounds(map: L.Map, p1: LatLng, p2: LatLng): void {
   type Bounds = {
     east?: number,
     west?: number,
@@ -31,4 +32,19 @@ function positionMapToBounds(map: L.Map, p1: LatLng, p2: LatLng): void {
   map.fitBounds([[bounds.south, bounds.west], [bounds.north, bounds.east]]);
 }
 
-export default positionMapToBounds;
+export function createIcon(iconUrl: string, label?: string): L.DivIcon {
+  let html = `<img src="${iconUrl}">`;
+  if (label) {
+    html = `<div class="trail-marker-label">${label || ''}</div>${html}`;
+  }
+
+  return L.divIcon(
+    {
+      className: 'trail-marker',
+      html,
+      iconAnchor: L.point(16, 32),
+      popupAnchor: L.point(0, -32),
+      tooltipAnchor: L.point(0, -32),
+    },
+  );
+}

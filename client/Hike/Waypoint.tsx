@@ -1,6 +1,5 @@
 import React, { ReactElement, useRef } from 'react';
 // import PropTypes from 'prop-types';
-import { LeafletEventHandlerFnMap } from 'leaflet';
 import { Marker } from 'react-leaflet';
 import { observer } from 'mobx-react-lite';
 import Route from '../state/Route';

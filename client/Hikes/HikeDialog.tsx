@@ -28,6 +28,8 @@ const HikeDialog = ({
 
     uiState.hike = hike;
     uiState.setView(VIEW_HIKE);
+
+    onHide();
   };
 
   return (

@@ -1,14 +1,20 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import Hike from './Hike';
-import { httpDelete, postFormData, postJSON } from './Transports';
+import { httpDelete, postJSON } from './Transports';
+import { HikeManagerInterface } from './Types';
+import { Store } from './store';
 
-class HikeManager {
+class HikeManager implements HikeManagerInterface {
   hikes: Array<Hike> = [];
 
   requesting = false;
 
-  constructor() {
+  store: Store;
+
+  constructor(store: Store) {
     makeAutoObservable(this);
+
+    this.store = store;
 
     this.requestHikes();
   }
@@ -62,16 +68,19 @@ class HikeManager {
     if (response.ok) {
       const body = await response.json();
 
+      const newHike = new Hike(body);
+
       runInAction(() => {
-        const newHike = new Hike(body);
-
-        this.setHikes([
-          ...this.hikes,
-          newHike,
-        ]);
-
-        return newHike;
+        const index = this.hikes.findIndex((h) => h.name.localeCompare(newHike.name) > 0);
+        if (index === -1) {
+          this.hikes.concat(newHike);
+        }
+        else {
+          this.hikes.splice(index, 0, newHike);
+        }
       });
+
+      return newHike;
     }
 
     throw new Error('invalid response');

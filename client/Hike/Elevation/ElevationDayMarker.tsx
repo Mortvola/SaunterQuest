@@ -1,7 +1,7 @@
 import React, { ReactElement } from 'react';
 import PropTypes from 'prop-types';
-import { Day } from '../state/Types';
-import { metersToFeet } from '../utilities';
+import { Day } from '../../state/Types';
+import { metersToFeet } from '../../utilities';
 
 type Props = {
   day: Day;
