@@ -1,10 +1,10 @@
 import { useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { createLayerComponent } from '@react-leaflet/core';
+import { createLayerComponent, LeafletContextInterface } from '@react-leaflet/core';
 
-const createGraticuleLayer = (props, context) => {
-  const map = useMap();
-  let canvas = null;
+const createGraticuleLayer = (props: unknown, context: LeafletContextInterface) => {
+  const { map } = context; // useMap();
+  let canvas: HTMLCanvasElement | null = null;
 
   const renderGrid = () => {
     if (canvas) {
@@ -77,10 +77,10 @@ const createGraticuleLayer = (props, context) => {
   };
 
   const Layer = L.Layer.extend({
-    onAdd: (m) => {
+    onAdd: (m: L.Map) => {
       const canAnimate = true; // props.leaflet.map.options.zoomAnimation && L.Browser.any3d;
       const zoomClass = `leaflet-zoom-${canAnimate ? 'animated' : 'hide'}`;
-      canvas = L.DomUtil.create('canvas', zoomClass);
+      canvas = L.DomUtil.create('canvas', zoomClass) as HTMLCanvasElement;
 
       canvas.width = m.getSize().x;
       canvas.height = m.getSize().y;
@@ -93,7 +93,7 @@ const createGraticuleLayer = (props, context) => {
       return m.getPanes().overlayPane.appendChild(canvas);
     },
 
-    onRemove: (m) => {
+    onRemove: (m: L.Map) => {
       if (canvas) {
         const ctx = canvas.getContext('2d');
 
