@@ -45,6 +45,8 @@ html, body {
 {
     display: flex;
     flex-wrap: wrap;
+    align-items: flex-start;
+    align-content: baseline;
     overflow: auto;
     padding-left: 14px;
     padding-right: 14px;
