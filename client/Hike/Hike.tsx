@@ -1,5 +1,5 @@
 import React, {
-  useState, useEffect, useContext, ReactElement,
+  useEffect, useContext, ReactElement,
 } from 'react';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
@@ -30,7 +30,13 @@ const Hike = ({
         }
       }
     });
-  }, [history.location.pathname, uiState, uiState.hike]);
+
+    return (() => {
+      runInAction(() => {
+        uiState.hike = null;
+      });
+    });
+  }, [history.location.pathname, uiState]);
 
   let locationPopup = null;
   if (uiState.hike && uiState.hike.map) {
