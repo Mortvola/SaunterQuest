@@ -1,5 +1,5 @@
 import { makeAutoObservable, runInAction } from 'mobx';
-import L, { LatLngBounds } from 'leaflet';
+import L from 'leaflet';
 import Anchor, { resetWaypointLabel } from './Markers/Anchor';
 import { metersToMiles, metersToFeet } from '../utilities';
 import { httpDelete, postJSON, putJSON } from './Transports';
@@ -14,7 +14,7 @@ class Route implements RouteInterface {
 
   elevations: Array<[number, number, number, number]> = [];
 
-  bounds: unknown = null;
+  bounds: [L.LatLngTuple, L.LatLngTuple] | null = null;
 
   constructor(hike: HikeInterface) {
     this.hike = hike;
@@ -51,7 +51,7 @@ class Route implements RouteInterface {
 
               this.anchors = newRoute;
               this.setElevations(this.computeElevations());
-              this.setBounds(this.computeBounds());
+              this.bounds = this.computeBounds();
 
               this.hike.requestSchedule();
             }
@@ -215,20 +215,11 @@ class Route implements RouteInterface {
     }
   }
 
-  setBounds(bounds: LatLngBounds): void {
-    if (bounds) {
-      this.bounds = [bounds.getSouthWest(), bounds.getNorthEast()];
-    }
-    else {
-      this.bounds = null;
-    }
-  }
-
-  computeBounds(): LatLngBounds {
+  computeBounds(): [L.LatLngTuple, L.LatLngTuple] {
     if (this.anchors.length > 0) {
-      return this.anchors.reduce((accum, anc) => {
+      const result = this.anchors.reduce((accum, anc) => {
         if (anc.trail) {
-          return accum.extend(anc.trail.reduce((a: LatLngBounds, point: TrailPoint) => (
+          return accum.extend(anc.trail.reduce((a: L.LatLngBounds, point: TrailPoint) => (
             a.extend(point)
           ), L.latLngBounds([
             anc.latLng,
@@ -241,6 +232,8 @@ class Route implements RouteInterface {
         this.anchors[0].latLng,
         this.anchors[0].latLng,
       ]));
+
+      return [[result.getSouth(), result.getWest()], [result.getNorth(), result.getEast()]];
     }
 
     throw new Error('cannot compute bounds from empty array');
@@ -256,7 +249,7 @@ class Route implements RouteInterface {
     return (
       this.anchors
         .filter((a) => a.trail)
-        .flatMap((a) => {
+        .flatMap((a: Anchor) => {
           const elevations = a.trail
             .map((p: TrailPoint): [number, number, number, number] => ([
               metersToMiles(distance + p.dist),
