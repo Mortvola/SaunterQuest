@@ -74,7 +74,7 @@ export default class Hike extends BaseModel {
   }
 
   public async updateSchedule(this: Hike, user: User): Promise<void> {
-    if (this.routePoints && this.routePoints.length > 0) {
+    if (this.routePoints && this.routePoints.length > 1) {
       const scheduler = new Scheduler();
 
       scheduler.createSchedule(this.routePoints, user, this.hikerProfiles);
@@ -572,9 +572,11 @@ export default class Hike extends BaseModel {
     if (anchor === undefined) {
       const routePoint = new RoutePoint();
 
+      const trailInfo = await Router.getTrailFromPoint(point);
+
       routePoint.type = 'waypoint';
-      routePoint.lat = point.lat;
-      routePoint.lng = point.lng;
+      routePoint.lat = trailInfo.point.lat;
+      routePoint.lng = trailInfo.point.lng;
 
       routePoint.sortOrder = await this.getSortOrder(-1, 0);
 

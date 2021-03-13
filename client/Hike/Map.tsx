@@ -8,7 +8,7 @@ import {
   Popup,
   LayersControl,
   useMapEvents,
-  Marker,
+  Marker as LeafletMarker,
 } from 'react-leaflet';
 import { observer } from 'mobx-react-lite';
 import Route from './Route';
@@ -19,11 +19,11 @@ import Graticule from './Graticule';
 import Hike from '../state/Hike';
 import { LatLng } from '../state/Types';
 import useContextMenu, { MenuItemTypes } from '../../Utilities/ContextMenu';
+import Marker from './Marker';
 
 type Props = {
   tileServerUrl: string;
   hike: Hike,
-  // eslint-disable-next-line react/require-default-props
   locationPopup?: LatLng | null,
 };
 
@@ -51,11 +51,33 @@ const Map = ({
       console.log(JSON.stringify(steepestPoint));
     };
 
-    const mapMenuItems: Array<MenuItemTypes> = [
-      { label: 'Prepend Waypoint', callback: ({ latlng }: L.LeafletMouseEvent) => hike.route.addStartWaypoint(latlng) },
-      { label: 'Insert Waypoint', callback: ({ latlng }: L.LeafletMouseEvent) => hike.route.addWaypoint(latlng) },
-      { label: 'Append Waypoint', callback: ({ latlng }: L.LeafletMouseEvent) => hike.route.addEndWaypoint(latlng) },
+    const mapMenuItems: Array<MenuItemTypes> = [];
+
+    if (hike.route.anchors.length === 0) {
+      mapMenuItems.push({
+        label: 'Add Waypoint', callback: ({ latlng }: L.LeafletMouseEvent) => hike.route.addStartWaypoint(latlng),
+      });
+    }
+    else if (hike.route.anchors.length === 1) {
+      mapMenuItems.splice(
+        mapMenuItems.length, 0,
+        { label: 'Prepend Waypoint', callback: ({ latlng }: L.LeafletMouseEvent) => hike.route.addStartWaypoint(latlng) },
+        { label: 'Append Waypoint', callback: ({ latlng }: L.LeafletMouseEvent) => hike.route.addEndWaypoint(latlng) },
+      );
+    }
+    else {
+      mapMenuItems.splice(
+        mapMenuItems.length, 0,
+        { label: 'Prepend Waypoint', callback: ({ latlng }: L.LeafletMouseEvent) => hike.route.addStartWaypoint(latlng) },
+        { label: 'Insert Waypoint', callback: ({ latlng }: L.LeafletMouseEvent) => hike.route.addWaypoint(latlng) },
+        { label: 'Append Waypoint', callback: ({ latlng }: L.LeafletMouseEvent) => hike.route.addEndWaypoint(latlng) },
+      );
+    }
+
+    mapMenuItems.splice(
+      mapMenuItems.length, 0,
       { type: 'separator' },
+      { label: 'Add Camp', callback: ({ latlng }: L.LeafletMouseEvent) => hike.addCamp(latlng) },
       {
         label: 'Show Location in 3D',
         callback: (e: L.LeafletMouseEvent) => {
@@ -65,10 +87,10 @@ const Map = ({
       },
       { label: 'Go to Location...', callback: showGotoLocationDialog },
       { label: 'Find Steepest Point', callback: findSteepestPoint },
-    ];
+    );
 
     return mapMenuItems;
-  }, [hike.route, showGotoLocationDialog, showTerrainDialog]);
+  }, [hike, showGotoLocationDialog, showTerrainDialog]);
 
   const [ContextMenu, showContextMenu] = useContextMenu('main', makeContextMenu);
 
@@ -107,18 +129,14 @@ const Map = ({
       </LayersControl>
       <Route route={hike.route} />
       {
-        hike.schedule
-          ? hike.schedule.map((d, index) => (
-            index > 0
-              ? <DayMarker key={d.id} day={d} />
-              : null
-          ))
-          : null
+        hike.map.markers.map((m) => (
+          <Marker key={`${m.latLng.lat},${m.latLng.lng}`} marker={m} />
+        ))
       }
       {
         hike.elevationMarkerPos
           ? (
-            <Marker
+            <LeafletMarker
               position={hike.elevationMarkerPos}
               icon={hike.elevationMarkerIcon}
             />
@@ -140,18 +158,8 @@ const Map = ({
   );
 };
 
-// Map.propTypes = {
-//   tileServerUrl: PropTypes.string.isRequired,
-//   hike: PropTypes.shape().isRequired,
-//   map: PropTypes.shape(),
-//   dayMarkers: PropTypes.arrayOf(PropTypes.shape()),
-//   locationPopup: PropTypes.shape(),
-// };
-
-// Map.defaultProps = {
-//   map: null,
-//   dayMarkers: null,
-//   locationPopup: null,
-// };
+Map.defaultProps = {
+  locationPopup: null,
+};
 
 export default observer(Map);

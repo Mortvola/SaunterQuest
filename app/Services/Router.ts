@@ -3,6 +3,13 @@ import fetch from 'node-fetch';
 import Env from '@ioc:Adonis/Core/Env';
 import Point from 'App/Types/Point';
 
+export type TrailInfo = {
+  point: {
+    lat: number;
+    lng: number;
+  }
+}
+
 class Router {
   public static degToRad(degrees: number): number {
     return degrees * (Math.PI / 180);
@@ -32,7 +39,7 @@ class Router {
     return angle * earthRadius;
   }
 
-  public static async getTrailFromPoint(point: Point) : Promise<unknown> {
+  public static async getTrailFromPoint(point: Point) : Promise<TrailInfo> {
     const response = await fetch(`${Env.get('PATHFINDER_URL')}/map/trail-from-point/${point.lat}/${point.lng}`);
 
     if (response.ok) {

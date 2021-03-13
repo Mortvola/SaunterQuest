@@ -1,4 +1,4 @@
-function nvl(value, replacement) {
+function nvl(value: unknown, replacement: unknown): unknown {
   if (value == null) {
     return replacement;
   }
@@ -6,33 +6,49 @@ function nvl(value, replacement) {
   return value;
 }
 
-function objectifyForm(formArray) {
-  const returnObject = {};
+function objectifyForm(formArray: Record<string, {name: string, value: string}>): unknown {
+  const returnObject: Record<string, string> = {};
 
-  formArray.forEach((i) => {
+  Object.keys(formArray).forEach((i) => {
     returnObject[formArray[i].name] = formArray[i].value;
   });
 
   return returnObject;
 }
 
-function metersToMilesRounded(meters) {
-  return Math.round((parseFloat(meters) / 1609.34) * 10) / 10;
+function metersToMilesRounded(meters: number | string | null): number {
+  if (meters !== null) {
+    if (typeof meters === 'string') {
+      return Math.round((parseFloat(meters) / 1609.34) * 10) / 10;
+    }
+
+    return Math.round((meters / 1609.34) * 10) / 10;
+  }
+
+  return 0;
 }
 
-function metersToMiles(meters) {
-  return parseFloat(meters) / 1609.34;
+function metersToMiles(meters: number | string): number {
+  if (typeof meters === 'string') {
+    return parseFloat(meters) / 1609.34;
+  }
+
+  return meters / 1609.34;
 }
 
-function metersToFeet(meters) {
-  return Math.round(parseFloat(meters) * 3.281);
+function metersToFeet(meters: number | string): number {
+  if (typeof meters === 'string') {
+    return Math.round(parseFloat(meters) * 3.281);
+  }
+
+  return Math.round(meters * 3.281);
 }
 
-function gramsToOunces(grams) {
+function gramsToOunces(grams: number): number {
   return grams * 0.035274;
 }
 
-function gramsToPoundsAndOunces(grams) {
+function gramsToPoundsAndOunces(grams: number): string {
   let ounces = gramsToOunces(grams);
   const pounds = Math.floor(ounces / 16.0);
   ounces = Math.round(ounces % 16.0);
@@ -42,7 +58,7 @@ function gramsToPoundsAndOunces(grams) {
 
 // Format time
 // Parameter t is in minutes from midnight
-function formatTime(t) {
+function formatTime(t: number): string {
   const h = Math.floor(t / 60.0);
   const m = Math.floor((t % 60));
 
@@ -52,7 +68,7 @@ function formatTime(t) {
     formattedTime = `0${h}`;
   }
   else {
-    formattedTime = h;
+    formattedTime = h.toString();
   }
 
   if (m < 10) {
@@ -66,22 +82,22 @@ function formatTime(t) {
 }
 
 // Parameter t is a string in the form of HH:MM.
-function unformatTime(t) {
+function unformatTime(t: string): number {
   const time = t.split(':');
 
   return parseInt(time[0], 10) * 60 + parseInt(time[1], 10);
 }
 
-function toTimeString(time) {
+function toTimeString(time: number | undefined): string | null {
   if (time !== undefined) {
-    let hour = Math.floor(time);
-    if (hour < 10) {
+    let hour = Math.floor(time).toString();
+    if (time < 10) {
       hour = `0${hour}`;
     }
 
-    let minutes = Math.floor((time - Math.floor(time)) * 60);
+    const minutes = Math.floor((time - Math.floor(time)) * 60);
     if (minutes < 10) {
-      minutes = `0${minutes}`;
+      return `${hour}:0${minutes}`;
     }
 
     return `${hour}:${minutes}`;
@@ -90,21 +106,21 @@ function toTimeString(time) {
   return null;
 }
 
-function toTimeFloat(time) {
+function toTimeFloat(time: string): number {
   return parseInt(time.substring(0, 2), 10) + parseInt(time.substring(3), 10) / 60.0;
 }
 
-function degToRad(degrees) {
+function degToRad(degrees: number): number {
   return degrees * (Math.PI / 180);
 }
 
 function haversineGreatCircleDistance(
-  latitudeFrom,
-  longitudeFrom,
-  latitudeTo,
-  longitudeTo,
+  latitudeFrom: number,
+  longitudeFrom: number,
+  latitudeTo: number,
+  longitudeTo: number,
   earthRadius = 6378137,
-) {
+): number {
   // convert from degrees to radians
   const latFrom = degToRad(latitudeFrom);
   const lonFrom = degToRad(longitudeFrom);
@@ -122,6 +138,10 @@ function haversineGreatCircleDistance(
   return angle * earthRadius;
 }
 
+function sleep(ms: number): Promise<number> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export {
   objectifyForm,
   metersToMilesRounded,
@@ -133,4 +153,5 @@ export {
   formatTime,
   nvl,
   haversineGreatCircleDistance,
+  sleep,
 };

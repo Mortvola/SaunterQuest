@@ -1,13 +1,13 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import L, { LatLngBounds } from 'leaflet';
-import Anchor, { resetWaypointLabel } from './Anchor';
+import Anchor, { resetWaypointLabel } from './Markers/Anchor';
 import { metersToMiles, metersToFeet } from '../utilities';
 import { httpDelete, postJSON, putJSON } from './Transports';
 import {
-  AnchorProps, HikeInterface, LatLng, TrailPoint,
+  AnchorProps, HikeInterface, LatLng, RouteInterface, TrailPoint,
 } from './Types';
 
-class Route {
+class Route implements RouteInterface {
   hike: HikeInterface;
 
   anchors: Array<Anchor> = [];
@@ -31,8 +31,30 @@ class Route {
 
         runInAction(() => {
           if (route) {
-            this.receiveRoute(route);
-            this.hike.requestSchedule();
+            const { map } = this.hike;
+
+            if (map === null) {
+              throw new Error('map is null');
+            }
+
+            resetWaypointLabel();
+            if (route.length > 0) {
+              const newRoute = route.map((a: AnchorProps) => {
+                const anchor = new Anchor(a, this);
+
+                if (a.type === 'waypoint') {
+                  map.addMarker(anchor);
+                }
+
+                return anchor;
+              });
+
+              this.anchors = newRoute;
+              this.setElevations(this.computeElevations());
+              this.setBounds(this.computeBounds());
+
+              this.hike.requestSchedule();
+            }
           }
         });
       }
@@ -41,15 +63,6 @@ class Route {
       console.log(error);
     }
     // todo: handle error case
-  }
-
-  receiveRoute(route: Array<AnchorProps>): void {
-    resetWaypointLabel();
-    const newRoute = route.map((a) => new Anchor(a));
-
-    this.setRoute(newRoute);
-    this.setElevations(this.computeElevations());
-    this.setBounds(this.computeBounds());
   }
 
   async addStartWaypoint(position: LatLng): Promise<void> {
@@ -90,7 +103,7 @@ class Route {
     }
   }
 
-  async addWaypoint(position: LatLng): Promise<void> {
+  addWaypoint = async (position: LatLng): Promise<void> => {
     const response = await postJSON(`/hike/${this.hike.id}/route/waypoint`,
       position);
 
@@ -109,12 +122,18 @@ class Route {
     }
   }
 
-  async moveWaypoint(id: number, point: unknown): Promise<void> {
+  moveWaypoint = async (id: number, point: LatLng): Promise<LatLng> => {
     const response = await putJSON(`/hike/${this.hike.id}/route/waypoint/${id}/position`,
       point);
 
     if (response.ok) {
-      const updates = await response.json();
+      const updates: Array<AnchorProps> = await response.json();
+
+      const waypoint = updates.find((a) => a.id === id);
+
+      if (!waypoint) {
+        throw new Error('waypoint not found');
+      }
 
       runInAction(() => {
         if (updates) {
@@ -122,7 +141,11 @@ class Route {
           this.hike.requestSchedule();
         }
       });
+
+      return { lat: waypoint.lat, lng: waypoint.lng };
     }
+
+    return Promise.reject();
   }
 
   async deleteWaypoint(id: number): Promise<void> {
@@ -140,8 +163,8 @@ class Route {
     }
   }
 
-  static processUpdates(updates: Array<AnchorProps>, anchors: Array<Anchor>): Array<Anchor> {
-    return updates.map((u) => {
+  processUpdates = (updates: Array<AnchorProps>, anchors: Array<Anchor>): Array<Anchor> => (
+    updates.map((u) => {
       // Is this update for an existing anchor?
       const a = anchors.find((a2) => a2.id === u.id);
 
@@ -150,13 +173,19 @@ class Route {
         return a;
       }
 
-      return new Anchor(u);
-    });
-  }
+      const anchor = new Anchor(u, this);
+
+      if (u.type === 'waypoint') {
+        this.hike.map.addMarker(anchor);
+      }
+
+      return anchor;
+    })
+  )
 
   receiveWaypointUpdates(updates: Array<AnchorProps>): void {
     if (this.anchors.length === 0) {
-      this.setRoute(Route.processUpdates(updates, []));
+      this.anchors = this.processUpdates(updates, []);
       this.setElevations(this.computeElevations());
     }
     else {
@@ -171,7 +200,7 @@ class Route {
         }
         const newRoute = [
           ...this.anchors.slice(0, firstIndex),
-          ...Route.processUpdates(updates, this.anchors.slice(firstIndex, lastIndex + 1)),
+          ...this.processUpdates(updates, this.anchors.slice(firstIndex, lastIndex + 1)),
           ...this.anchors.slice(lastIndex + 1),
         ];
 
@@ -180,14 +209,10 @@ class Route {
           a.setLabel();
         });
 
-        this.setRoute(newRoute);
+        this.anchors = newRoute;
         this.setElevations(this.computeElevations());
       }
     }
-  }
-
-  setRoute(route: Array<Anchor>): void {
-    this.anchors = route;
   }
 
   setBounds(bounds: LatLngBounds): void {

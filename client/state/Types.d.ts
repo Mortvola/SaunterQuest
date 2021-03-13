@@ -1,16 +1,43 @@
 import TrailMarker from './TrailMarker';
 
 export interface HikeManagerInterface {
-  hikes: Array<HikeInterface>;
+  hikes: Array<HikeItemInterface>;
+}
+
+export interface HikeItemInterface {
+  id: number;
+  name: string;
 }
 
 export interface HikeInterface {
-  id: number | null;
+  id: number;
+  map: MapInterface;
+
   requestSchedule(): Promise<void>;
 }
 
+export interface MapInterface {
+  markers: Array<MapMarkerInterface>;
+
+  addMarker(marker: MarkerInterface): void;
+}
+
+export interface MapMarkerInterface {
+  latLng: LatLng;
+  move(latLng: LatLng): void;
+}
+
+export type MarkerTypes = 'waypoint' | 'campsite' | 'day';
+
+export interface MarkerInterface {
+  type: MarkerTypes;
+  latLng: LatLng;
+  mapMarker: MapMarkerInterface | null;
+  move(latLng: LatLng): Promise<LatLng>;
+}
+
 export interface BaseHikeProps {
-  id: number | null;
+  id: number;
   name: string;
 }
 
@@ -36,7 +63,7 @@ export interface AnchorProps {
   marker: unknown;
   trail: Array<TrailPoint>;
   trailLength: number;
-  latLng: LatLng;
+  // latLng: LatLng;
   lat: number;
   lng: number;
 }
@@ -64,7 +91,6 @@ export interface Day {
   day: number;
   latLng: LatLng;
   endLatLng: LatLng;
-  startMile: number;
   ele: number;
   startMeters: number;
   meters: number;
@@ -74,4 +100,8 @@ export interface Day {
   loss: number;
   accumWeight: number;
   marker: TrailMarker,
+}
+
+export interface RouteInterface {
+  moveWaypoint: (id: number, point: LatLng) => Promise<LatLng>;
 }

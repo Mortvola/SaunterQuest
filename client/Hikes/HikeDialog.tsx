@@ -24,9 +24,9 @@ const HikeDialog = ({
       throw new Error('name is not valid');
     }
 
-    const hike = await hikeManager.addHike(name);
+    // const hike = await hikeManager.addHike(name);
 
-    uiState.hike = hike;
+    // uiState.hike = hike;
     uiState.setView(VIEW_HIKE);
 
     onHide();

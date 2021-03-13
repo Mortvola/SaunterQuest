@@ -5,6 +5,8 @@ import { observer } from 'mobx-react-lite';
 import Route from '../state/Route';
 import Anchor from '../state/Anchor';
 import useContextMenu from '../../Utilities/ContextMenu';
+import { useWaypointDialog } from './WaypointDialog';
+import { createIcon } from './mapUtils';
 
 type Props = {
   route: Route;
@@ -16,6 +18,7 @@ const Waypoint = ({
   waypoint,
 }: Props): ReactElement => {
   const markerRef = useRef<L.Marker>(null);
+  const [WaypointDialog, showWaypointDialog] = useWaypointDialog();
 
   const handleDragEnd = () => {
     const marker = markerRef.current;
@@ -30,6 +33,7 @@ const Waypoint = ({
 
   const makeContextMenu = () => {
     const menuItems = [
+      { label: 'Modify...', callback: showWaypointDialog },
       { label: 'Remove Waypoint', callback: removeWaypoint },
     ];
 
@@ -38,19 +42,25 @@ const Waypoint = ({
 
   const [ContextMenu, showContextMenu] = useContextMenu('marker', makeContextMenu, 'main');
 
+  const icons = ['compass.svg'];
+  if (waypoint.campsite) {
+    icons.push('campsite.svg');
+  }
+
   return (
     <>
       <ContextMenu />
       <Marker
         ref={markerRef}
         position={waypoint.latLng}
-        icon={waypoint.marker.icon}
+        icon={createIcon(icons)}
         draggable
         eventHandlers={{
           dragend: handleDragEnd,
           contextmenu: showContextMenu,
         }}
       />
+      <WaypointDialog waypoint={waypoint} />
     </>
   );
 };

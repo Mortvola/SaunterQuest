@@ -1,13 +1,30 @@
 import { makeAutoObservable } from 'mobx';
-import { LatLng } from './Types';
+import MapMarker from './MapMarker';
+import { LatLng, MapInterface, MarkerInterface } from './Types';
 
-class Map {
+class Map implements MapInterface {
   locationPopup: LatLng | null = null;
+
+  markers: Array<MapMarker> = [];
 
   private leafletMap: L.Map | null = null;
 
   constructor() {
     makeAutoObservable(this);
+  }
+
+  addMarker(marker: MarkerInterface): void {
+    let mapMmarker = this.markers.find((m) => (
+      m.latLng.lat === marker.latLng.lat
+      && m.latLng.lng === marker.latLng.lng
+    ));
+
+    if (!mapMmarker) {
+      mapMmarker = new MapMarker(marker.latLng);
+      this.markers.push(mapMmarker);
+    }
+
+    mapMmarker.addMarker(marker);
   }
 
   showLocationPopup(latlng: LatLng | null): void {

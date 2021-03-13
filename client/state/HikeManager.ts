@@ -1,11 +1,11 @@
 import { makeAutoObservable, runInAction } from 'mobx';
-import Hike from './Hike';
-import { httpDelete, postJSON } from './Transports';
+import HikeItem from './HikeItem';
+import { httpDelete, httpPost } from './Transports';
 import { HikeManagerInterface } from './Types';
 import { Store } from './store';
 
 class HikeManager implements HikeManagerInterface {
-  hikes: Array<Hike> = [];
+  hikes: Array<HikeItem> = [];
 
   requesting = false;
 
@@ -56,19 +56,19 @@ class HikeManager implements HikeManagerInterface {
     this.requesting = requesting;
   }
 
-  setHikes(hikes: Array<Hike>): void {
+  setHikes(hikes: Array<HikeItem>): void {
     this.hikes = hikes.map((h) => (
-      new Hike(h)
+      new HikeItem(h)
     ));
   }
 
-  async addHike(name: string): Promise<Hike> {
-    const response = await postJSON('hike', { name });
+  async addHike(): Promise<HikeItem> {
+    const response = await httpPost('hike');
 
     if (response.ok) {
       const body = await response.json();
 
-      const newHike = new Hike(body);
+      const newHike = new HikeItem(body);
 
       runInAction(() => {
         const index = this.hikes.findIndex((h) => h.name.localeCompare(newHike.name) > 0);
@@ -86,7 +86,7 @@ class HikeManager implements HikeManagerInterface {
     throw new Error('invalid response');
   }
 
-  getHike(id: number): Hike {
+  getHike(id: number): HikeItem {
     const hike = this.hikes.find((h) => h.id === id);
 
     if (hike) {

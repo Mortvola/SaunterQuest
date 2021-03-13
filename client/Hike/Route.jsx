@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useMap } from 'react-leaflet';
 import { observer } from 'mobx-react-lite';
-import AnchorAndTrail from './AnchorAndTrail';
+import Trail from './Trail';
 
 const Route = ({
   route,
@@ -28,17 +28,16 @@ const Route = ({
         console.log(error);
       }
     }
-  }, [route.bounds, initialized]);
+  }, [route.bounds, initialized, leafletMap]);
 
   if (route.anchors) {
     return (
       <>
         {
           route.anchors.map((a) => (
-            <AnchorAndTrail
+            <Trail
               key={a.id}
-              route={route}
-              anchor={a}
+              trail={a.trail}
             />
           ))
         }

@@ -1,23 +1,25 @@
 import { makeAutoObservable, runInAction } from 'mobx';
+import L from 'leaflet';
 import HikerProfile from './HikerProfile';
 import Map from './Map';
 import TrailMarker from './TrailMarker';
 import Route from './Route';
-import { metersToMiles } from '../utilities';
 import { httpDelete } from './Transports';
 import {
-  BaseHikeProps, Day, DayProps, HikeInterface, LatLng,
+  Day, DayProps, HikeInterface, HikeItemInterface, LatLng,
 } from './Types';
 import { createIcon } from '../Hike/mapUtils';
+import CampsiteMarker from './Markers/CampsiteMarker';
+import DayMarker from './Markers/DayMarker';
 
 interface ProfileProps {
   id: number;
 }
 
-const dayMarkerUrl = 'moon_pin.png';
+const dayMarkerUrl = 'moon.svg';
 
 class Hike implements HikeInterface {
-  id: number | null;
+  id: number;
 
   name: string;
 
@@ -33,35 +35,20 @@ class Hike implements HikeInterface {
 
   route = new Route(this);
 
-  map: Map | null = null;
+  camps: Array<CampsiteMarker> = [];
+
+  map = new Map();
 
   elevationMarkerIcon = createIcon('https://maps.google.com/mapfiles/ms/micons/red.png');
 
   elevationMarkerPos: LatLng | null = null;
 
-  constructor(props: BaseHikeProps) {
+  constructor(hikeItem: HikeItemInterface) {
     makeAutoObservable(this);
 
-    this.id = props.id;
+    this.id = hikeItem.id;
 
-    this.name = props.name;
-
-    this.requestDetails();
-  }
-
-  async requestDetails(): Promise<void> {
-    this.setRequesting(true);
-    const response = await fetch(`/hike/${this.id}/details`);
-
-    if (response.ok) {
-      const details = await response.json();
-
-      runInAction(() => {
-        this.setDuration(details.duration);
-        this.setDistance(details.distance);
-        this.setRequesting(false);
-      });
-    }
+    this.name = hikeItem.name;
   }
 
   async requestHikerProfiles(): Promise<void> {
@@ -74,10 +61,6 @@ class Hike implements HikeInterface {
         this.setHikerProfiles(profiles.map((p) => new HikerProfile(p)));
       });
     }
-  }
-
-  load(): void {
-    this.map = new Map();
   }
 
   setHikerProfiles(profiles: Array<HikerProfile>): void {
@@ -119,17 +102,16 @@ class Hike implements HikeInterface {
         const schedule: Array<DayProps> = await response.json();
 
         runInAction(() => {
-          let miles = 0;
+          let meters = 0;
 
           this.schedule = schedule.map((d, index) => {
             const day: Day = {
               id: d.id,
               day: index,
-              startMile: miles,
               latLng: { lat: d.lat, lng: d.lng },
               endLatLng: { lat: d.endLat, lng: d.endLng },
               ele: d.ele,
-              startMeters: d.startTime,
+              startMeters: meters,
               meters: d.meters,
               startTime: d.startTime,
               endTime: d.endTime,
@@ -139,7 +121,11 @@ class Hike implements HikeInterface {
               marker: new TrailMarker(dayMarkerUrl),
             };
 
-            miles += metersToMiles(d.meters);
+            if (index > 0) {
+              this.map.addMarker(new DayMarker({ lat: d.lat, lng: d.lng }));
+            }
+
+            meters += d.meters;
 
             return day;
           });
@@ -155,22 +141,16 @@ class Hike implements HikeInterface {
     this.schedule = schedule;
   }
 
-  setRequesting(requesting: boolean): void {
-    this.requesting = requesting;
-  }
-
-  setDuration(duration: number): void {
-    this.duration = duration;
-  }
-
-  setDistance(distance: number): void {
-    this.distance = distance;
-  }
-
   setElevationMarker(latLng: LatLng | null): void {
     runInAction(() => {
       this.elevationMarkerPos = latLng;
     });
+  }
+
+  addCamp(latLng: LatLng): void {
+    const campsite = new CampsiteMarker(latLng);
+    this.camps.push(campsite);
+    this.map.addMarker(campsite);
   }
 }
 

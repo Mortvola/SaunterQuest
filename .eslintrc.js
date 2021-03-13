@@ -22,6 +22,7 @@ module.exports = {
   },
   plugins: [
     'react',
+    'react-hooks',
   ],
   rules: {
     "react/jsx-props-no-spreading": ["off"],

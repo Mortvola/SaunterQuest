@@ -1,5 +1,4 @@
 import React, { useContext } from 'react';
-import PropTypes from 'prop-types';
 import { Spinner, Button } from 'react-bootstrap';
 import { observer } from 'mobx-react-lite';
 import { metersToMilesRounded } from '../utilities';
@@ -7,11 +6,18 @@ import EditableText from './EditableText';
 import { useDeleteConfirmation } from '../DeleteConfirmation';
 import { VIEW_HIKE } from '../menuEvents';
 import MobxStore from '../state/store';
+import HikeItem from '../state/HikeItem';
+import HikeData from '../state/Hike';
+
+type PropsType = {
+  hike: HikeItem;
+  onDelete: (id: number) => void;
+}
 
 const Hike = ({
   hike,
   onDelete,
-}) => {
+}: PropsType) => {
   const { uiState } = useContext(MobxStore);
   const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
     'Are you sure you want to delete this hike?',
@@ -22,8 +28,7 @@ const Hike = ({
 
   const handleOpen = () => {
     uiState.setView(VIEW_HIKE);
-    uiState.setHike(hike);
-    hike.load();
+    uiState.setHike(new HikeData(hike));
   };
 
   return (
@@ -71,11 +76,6 @@ const Hike = ({
       <DeleteConfirmation />
     </div>
   );
-};
-
-Hike.propTypes = {
-  hike: PropTypes.shape().isRequired,
-  onDelete: PropTypes.func.isRequired,
 };
 
 export default observer(Hike);

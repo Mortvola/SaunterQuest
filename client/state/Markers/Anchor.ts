@@ -1,8 +1,11 @@
-import { makeAutoObservable } from 'mobx';
-import TrailMarker from './TrailMarker';
-import { AnchorProps, LatLng, TrailPoint } from './Types';
+import { makeObservable, observable } from 'mobx';
+import TrailMarker from '../TrailMarker';
+import {
+  AnchorProps, LatLng, MarkerInterface, RouteInterface, TrailPoint,
+} from '../Types';
+import Marker from './Marker';
 
-const wayPointUrl = 'https://maps.google.com/mapfiles/ms/micons/lightblue.png';
+const wayPointUrl = 'compass.svg';
 
 let waypointLabel = 'A';
 
@@ -26,10 +29,8 @@ const getWaypointLabel = () => {
   return label;
 };
 
-class Anchor {
+class Anchor extends Marker implements MarkerInterface {
   id: number;
-
-  type: string;
 
   marker: TrailMarker;
 
@@ -37,32 +38,40 @@ class Anchor {
 
   trailLength: number;
 
-  latLng: LatLng;
+  route: RouteInterface;
 
-  constructor(props: AnchorProps) {
+  constructor(props: AnchorProps, route: RouteInterface) {
+    super('waypoint', { lat: props.lat, lng: props.lng });
+
     this.id = props.id;
-    this.type = props.type;
     this.trail = props.trail;
     this.trailLength = props.trailLength;
-    this.latLng = { lat: props.lat, lng: props.lng };
 
-    makeAutoObservable(this);
+    this.route = route;
+
+    makeObservable(this, {
+      trail: observable,
+      trailLength: observable,
+    });
 
     this.marker = new TrailMarker(
       wayPointUrl,
-      this.type === 'waypoint' ? getWaypointLabel() : undefined,
+      getWaypointLabel(),
     );
   }
 
+  move = async (latLng: LatLng): Promise<LatLng> => (
+    this.route.moveWaypoint(this.id, latLng)
+  )
+
   update(props: AnchorProps): void {
-    this.type = props.type;
     this.trail = props.trail;
     this.trailLength = props.trailLength;
     this.latLng = { lat: props.lat, lng: props.lng };
   }
 
   setLabel(): void {
-    this.marker.setLabel(this.type === 'waypoint' ? getWaypointLabel() : undefined);
+    this.marker.setLabel(getWaypointLabel());
   }
 }
 
