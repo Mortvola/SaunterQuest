@@ -1,13 +1,13 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import 'regenerator-runtime/runtime';
 import 'leaflet-contextmenu';
 import Leaflet from 'leaflet';
 import { observer } from 'mobx-react-lite';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import Hikes from './Hikes/Hikes';
 import Menubar from './Menubar';
-import { VIEW_HIKES, VIEW_HIKE, VIEW_GEAR } from './menuEvents';
 import Hike from './Hike/Hike';
 import MobxStore, { store } from './state/store';
 
@@ -17,30 +17,25 @@ const App = ({
   username,
   tileServerUrl,
   extendedMenu,
-}) => {
-  const { uiState: { view } } = useContext(MobxStore);
-
-  const renderView = () => {
-    switch (view) {
-      case VIEW_HIKES:
-        return <Hikes />;
-
-      case VIEW_HIKE:
-        return <Hike tileServerUrl={tileServerUrl} extendedMenu={extendedMenu} />;
-
-      case VIEW_GEAR:
-      default:
-        return <div />;
-    }
-  };
-
-  return (
-    <>
-      <Menubar username={username} />
-      {renderView()}
-    </>
-  );
-};
+}) => (
+  <>
+    <Menubar username={username} />
+    <Switch>
+      <Route path="/hike">
+        <Hike tileServerUrl={tileServerUrl} extendedMenu={extendedMenu} />
+      </Route>
+      <Route path="/gear">
+        <div />
+      </Route>
+      <Route path="/food">
+        <div />
+      </Route>
+      <Route path="/">
+        <Hikes />
+      </Route>
+    </Switch>
+  </>
+);
 
 App.propTypes = {
   username: PropTypes.string.isRequired,
@@ -58,7 +53,9 @@ initialProps = JSON.parse(initialProps);
 
 ReactDOM.render(
   <MobxStore.Provider value={store}>
-    <ConnectedApp {...initialProps} />
+    <Router>
+      <ConnectedApp {...initialProps} />
+    </Router>
   </MobxStore.Provider>,
   document.querySelector('.app'),
 );

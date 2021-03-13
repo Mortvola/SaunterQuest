@@ -44,11 +44,11 @@ const Marker = ({
   const icons = marker.types().map((type) => {
     switch (type) {
       case 'waypoint':
-        return 'compass.svg';
+        return '/compass.svg';
       case 'campsite':
-        return 'campsite.svg';
+        return '/campsite.svg';
       case 'day':
-        return 'moon.svg';
+        return '/moon.svg';
       default:
         return '';
     }

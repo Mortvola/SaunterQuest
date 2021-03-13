@@ -1,5 +1,4 @@
 import React, { ReactElement } from 'react';
-import PropTypes from 'prop-types';
 import ElevationDayMarker from './ElevationDayMarker';
 import { Day } from '../../state/Types';
 
@@ -28,15 +27,5 @@ const ElevationDayMarkers = ({
 
   return null;
 };
-
-// ElevationDayMarkers.propTypes = {
-//   days: PropTypes.arrayOf(PropTypes.shape()),
-//   chart: PropTypes.shape(),
-// };
-
-// ElevationDayMarkers.defaultProps = {
-//   days: null,
-//   chart: null,
-// };
 
 export default ElevationDayMarkers;

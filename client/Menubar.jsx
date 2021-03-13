@@ -1,19 +1,12 @@
-import React, {useContext } from 'react';
+import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
 import {
-  Navbar,
-  Container,
-  Nav,
-  NavDropdown,
+  Navbar, Container, Nav, NavDropdown,
 } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 import {
-  VIEW_HIKES,
-  VIEW_GEAR,
-  VIEW_FOOD,
-  MENU_EVENT_KEY_ACCOUNT,
-  MENU_EVENT_KEY_PROFILE,
-  MENU_EVENT_KEY_LOGOUT,
-  MENU_EVENT_KEY_CHANGE_PASSWORD,
+  MENU_EVENT_KEY_ACCOUNT, MENU_EVENT_KEY_PROFILE,
+  MENU_EVENT_KEY_LOGOUT, MENU_EVENT_KEY_CHANGE_PASSWORD,
 } from './menuEvents';
 import { useProfileDialog } from './ProfileDialog';
 import { useAccountDialog } from './AccountDialog';
@@ -72,9 +65,9 @@ const Menubar = ({
 
         <div className="collapse navbar-collapse">
           <Nav className="mr-auto">
-            <Nav.Link eventKey={VIEW_HIKES}>Hikes</Nav.Link>
-            <Nav.Link eventKey={VIEW_FOOD}>Food</Nav.Link>
-            <Nav.Link eventKey={VIEW_GEAR}>Gear</Nav.Link>
+            <Nav.Link as={Link} to="/">Hikes</Nav.Link>
+            <Nav.Link as={Link} to="/food">Food</Nav.Link>
+            <Nav.Link as={Link} to="/gear">Gear</Nav.Link>
           </Nav>
           <Nav className="ml-auto">
             <NavDropdown className="dropdown menubar-item" title={username}>

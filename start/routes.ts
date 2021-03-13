@@ -21,6 +21,9 @@
 import Route from '@ioc:Adonis/Core/Route';
 
 Route.get('/', 'HomeController.index');
+Route.get('/gear', 'HomeController.index');
+Route.get('/food', 'HomeController.index');
+Route.get('/hike/:id', 'HomeController.index');
 
 Route.post('register', 'AuthController.register');
 Route.post('/login', 'AuthController.login');

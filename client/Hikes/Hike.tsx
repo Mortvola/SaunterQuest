@@ -1,10 +1,10 @@
 import React, { useContext } from 'react';
 import { Spinner, Button } from 'react-bootstrap';
 import { observer } from 'mobx-react-lite';
+import { useHistory } from 'react-router-dom';
 import { metersToMilesRounded } from '../utilities';
 import EditableText from './EditableText';
 import { useDeleteConfirmation } from '../DeleteConfirmation';
-import { VIEW_HIKE } from '../menuEvents';
 import MobxStore from '../state/store';
 import HikeItem from '../state/HikeItem';
 import HikeData from '../state/Hike';
@@ -19,6 +19,7 @@ const Hike = ({
   onDelete,
 }: PropsType) => {
   const { uiState } = useContext(MobxStore);
+  const history = useHistory();
   const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
     'Are you sure you want to delete this hike?',
     () => {
@@ -27,8 +28,7 @@ const Hike = ({
   );
 
   const handleOpen = () => {
-    uiState.setView(VIEW_HIKE);
-    uiState.setHike(new HikeData(hike));
+    history.push(`/hike/${hike.id}`);
   };
 
   return (

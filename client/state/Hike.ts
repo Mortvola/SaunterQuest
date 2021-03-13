@@ -16,7 +16,7 @@ interface ProfileProps {
   id: number;
 }
 
-const dayMarkerUrl = 'moon.svg';
+const dayMarkerUrl = '/moon.svg';
 
 class Hike implements HikeInterface {
   id: number;
@@ -49,6 +49,8 @@ class Hike implements HikeInterface {
     this.id = hikeItem.id;
 
     this.name = hikeItem.name;
+
+    this.route.requestRoute();
   }
 
   async requestHikerProfiles(): Promise<void> {

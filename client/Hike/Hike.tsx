@@ -1,13 +1,15 @@
 import React, {
   useState, useEffect, useContext, ReactElement,
 } from 'react';
-import PropTypes from 'prop-types';
+import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
+import { matchPath, useHistory } from 'react-router-dom';
 import ElevationChart from './Elevation/ElevationChart';
 import Controls from './Controls';
 import MobxStore from '../state/store';
 import MapContainer from './MapContainer';
 import EditableText from '../Hikes/EditableText';
+import HikeData from '../state/Hike';
 
 type Props = {
   tileServerUrl: string;
@@ -17,14 +19,18 @@ const Hike = ({
   tileServerUrl,
 }: Props): ReactElement | null => {
   const { uiState } = useContext(MobxStore);
-  const [initialized, setInitialized] = useState(false);
+  const history = useHistory();
 
   useEffect(() => {
-    if (uiState.hike && !initialized) {
-      setInitialized(true);
-      uiState.hike.route.requestRoute();
-    }
-  }, [initialized, uiState.hike]);
+    runInAction(() => {
+      if (uiState.hike === null) {
+        const match = matchPath<{ id: string }>(history.location.pathname, { path: '/hike/:id', exact: true });
+        if (match) {
+          uiState.hike = new HikeData({ id: parseInt(match.params.id, 10), name: 'test' });
+        }
+      }
+    });
+  }, [history.location.pathname, uiState, uiState.hike]);
 
   let locationPopup = null;
   if (uiState.hike && uiState.hike.map) {
@@ -53,10 +59,6 @@ const Hike = ({
   }
 
   return null;
-};
-
-Hike.propTypes = {
-  tileServerUrl: PropTypes.string.isRequired,
 };
 
 export default observer(Hike);

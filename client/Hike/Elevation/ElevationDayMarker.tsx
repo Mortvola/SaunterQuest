@@ -16,7 +16,7 @@ const ElevationDayMarker = ({
   const y = cli.getYLocation(metersToFeet(day.ele)) - 32;
 
   return (
-    <img src="moon_pin.png" alt="" style={{ top: `${y}px`, left: `${x}px`, position: 'absolute' }} />
+    <img src="/moon_pin.png" alt="" style={{ top: `${y}px`, left: `${x}px`, position: 'absolute' }} />
   );
 };
 
