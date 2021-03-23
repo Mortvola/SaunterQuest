@@ -1,13 +1,13 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { observer } from 'mobx-react-lite';
 import Configuration from './Configuration';
 import IconButton from '../IconButton';
+import { useStores } from '../state/store';
 
-const Configurations = ({
-  configurations,
-}) => {
+const Configurations = () => {
+  const { gear } = useStores();
   const handleClick = () => {
+    gear.addGearConfiguration();
   };
 
   return (
@@ -18,7 +18,7 @@ const Configurations = ({
       </div>
       <div className="gear-kits" id="gear-kits">
         {
-          configurations.map((config) => (
+          gear.configurations.map((config) => (
             <Configuration
               key={config.id}
               configuration={config}
@@ -28,14 +28,6 @@ const Configurations = ({
       </div>
     </div>
   );
-};
-
-Configurations.propTypes = {
-  configurations: PropTypes.arrayOf(PropTypes.shape()),
-};
-
-Configurations.defaultProps = {
-  configurations: [],
 };
 
 export default observer(Configurations);

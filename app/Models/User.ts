@@ -62,6 +62,9 @@ export default class User extends BaseModel {
   @column()
   public hikeCounter: number;
 
+  @column()
+  public gearConfigCounter: number;
+
   @hasOne(() => HikerProfile)
   public hikerProfile: HasOne<typeof HikerProfile>;
 

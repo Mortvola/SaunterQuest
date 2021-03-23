@@ -47,8 +47,8 @@ export default class GearConfigurationsController {
         `),
         )
         .from('gear_configurations as gc')
-        .join('gear_configuration_items as gci', 'gci.gear_configuration_id', 'gc.id')
-        .join('gear_items as gi', 'gi.id', 'gci.gear_item_id')
+        .leftJoin('gear_configuration_items as gci', 'gci.gear_configuration_id', 'gc.id')
+        .leftJoin('gear_items as gi', 'gi.id', 'gci.gear_item_id')
         .where('gc.user_id', auth.user.id)
         .groupBy('gc.id', 'gc.name');
 
@@ -121,6 +121,34 @@ export default class GearConfigurationsController {
       config.save();
 
       response.send(config);
+    }
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async add({
+    auth, response,
+  }: HttpContextContract): Promise<void> {
+    if (auth.user) {
+      auth.user.gearConfigCounter = (auth.user.gearConfigCounter ?? 0) + 1;
+      auth.user.save();
+
+      const config = await GearConfiguration.create({
+        name: `Configuration #${auth.user.gearConfigCounter}`,
+        userId: auth.user.id,
+      });
+
+      response.send(config);
+    }
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async delete({
+    auth, params,
+  }: HttpContextContract): Promise<void> {
+    if (auth.user) {
+      const config = await GearConfiguration.findOrFail(params.configId);
+
+      config.delete();
     }
   }
 }

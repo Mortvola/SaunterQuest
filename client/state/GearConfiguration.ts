@@ -146,6 +146,10 @@ class GearConfiguration {
       });
     }
   }
+
+  delete = (): void => {
+    this.store.gear.deleteConfiguration(this);
+  }
 }
 
 export default GearConfiguration;

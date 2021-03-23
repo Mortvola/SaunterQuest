@@ -2,7 +2,9 @@ import { makeAutoObservable, runInAction, toJS } from 'mobx';
 import GearConfiguration from './GearConfiguration';
 import GearItem from './GearItem';
 import { Store } from './store';
-import { httpDelete, postJSON, putJSON } from './Transports';
+import {
+  httpDelete, httpPost, postJSON, putJSON,
+} from './Transports';
 import { GearConfigProps, GearItemProps } from './Types';
 
 class Gear {
@@ -29,6 +31,28 @@ class Gear {
       runInAction(() => {
         this.configurations = body.map((config) => new GearConfiguration(config, this.store));
       });
+    }
+  }
+
+  addGearConfiguration = async (): Promise<void> => {
+    const response = await httpPost('/gear/configuration');
+
+    if (response.ok) {
+      const body: GearConfigProps = await response.json();
+
+      this.configurations.push(new GearConfiguration(body, this.store));
+    }
+  }
+
+  deleteConfiguration = async (configuration: GearConfiguration): Promise<void> => {
+    const response = await httpDelete(`/gear/configuration/${configuration.id}`);
+
+    if (response.ok) {
+      const index = this.configurations.findIndex((cfg) => cfg.id === configuration.id);
+
+      if (index !== -1) {
+        this.configurations.splice(index, 1);
+      }
     }
   }
 

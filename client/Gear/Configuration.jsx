@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import { observer } from 'mobx-react-lite';
 import { runInAction } from 'mobx';
 import { Field, Form, Formik } from 'formik';
-import EditableText from '../Hikes/EditableText';
 import IconButton from '../IconButton';
 import { useDeleteConfirmation } from '../DeleteConfirmation';
 import { useStores } from '../state/store';
@@ -19,17 +18,7 @@ const Configuration = ({
   const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
     'Are you sure you want to delete this configuration?',
     () => {
-      fetch(`/gear/configuration/${configuration.id}`, {
-        method: 'DELETE',
-        headers: {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-        },
-      })
-        .then((response) => {
-          if (response.ok) {
-            // $(this).parents('.card').remove();
-          }
-        });
+      configuration.delete();
     },
   );
 
@@ -64,7 +53,7 @@ const Configuration = ({
     >
       <Form>
         <div className={className} onClick={handleClick}>
-          <div className="gear-config-group">
+          <div className="gear-config-group" style={{ gridArea: 'title', marginBottom: '1rem' }}>
             <label className="gear-config-label">Name</label>
             <Field
               type="text"

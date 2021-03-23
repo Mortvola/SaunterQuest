@@ -32,9 +32,7 @@ const Gear = ({
   return (
     <>
       <div className={className}>
-        <Configurations
-          configurations={gear.configurations}
-        />
+        <Configurations />
         <ConfigurationItems />
         <Inventory
           items={gear.inventory}
