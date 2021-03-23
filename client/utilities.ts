@@ -51,9 +51,9 @@ function gramsToOunces(grams: number): number {
 function gramsToPoundsAndOunces(grams: number): string {
   let ounces = gramsToOunces(grams);
   const pounds = Math.floor(ounces / 16.0);
-  ounces = Math.round(ounces % 16.0);
+  ounces = Math.round((ounces % 16.0) * 10) / 10.0;
 
-  return `${pounds.toString()} lb ${ounces} oz`;
+  return `${pounds.toString()} lb ${ounces.toFixed(1)} oz`;
 }
 
 // Format time

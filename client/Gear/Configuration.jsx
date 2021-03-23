@@ -1,202 +1,159 @@
-import React, { useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import { observer } from 'mobx-react-lite';
+import { runInAction } from 'mobx';
 import EditableText from '../Hikes/EditableText';
-import { computeItemWeight } from './ConfigurationItem';
-import { selectGearConfiguration } from '../redux/actions';
 import IconButton from '../IconButton';
 import { useDeleteConfirmation } from '../DeleteConfirmation';
+import { useStores } from '../state/store';
+import { gramsToPoundsAndOunces } from '../utilities';
 
 const Configuration = ({
-    configuration,
-    selected,
-    dispatch,
+  configuration,
 }) => {
-    const [totalPackWeight, setTotalPackWeight] = useState(null);
-    const [totalWornWeight, setTotalWornWeight] = useState(null);
-    const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
-        'Are you sure you want to delete this configuration?',
-        () => {
-            fetch(`/gear/configuration/${configuration.id}`, {
-                method: 'DELETE',
-                headers:
-                    {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    },
-            })
-                .then((response) => {
-                    if (response.ok) {
-                        $(this).parents('.card').remove();
-                    }
-                });
+  const { uiState } = useStores();
+  // const [totalPackWeight, setTotalPackWeight] = useState(configuration.packWeight);
+  // const [totalWornWeight, setTotalWornWeight] = useState(configuration.wornWeight);
+  const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
+    'Are you sure you want to delete this configuration?',
+    () => {
+      fetch(`/gear/configuration/${configuration.id}`, {
+        method: 'DELETE',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
         },
-    );
+      })
+        .then((response) => {
+          if (response.ok) {
+            // $(this).parents('.card').remove();
+          }
+        });
+    },
+  );
 
-    const handleClick = () => {
-        if (selected) {
-            dispatch(selectGearConfiguration(null));
-        }
-        else {
-            dispatch(selectGearConfiguration(configuration.id));
-        }
-    };
+  const handleClick = () => {
+    runInAction(() => {
+      if (uiState.selectedGearConfiguration === configuration) {
+        uiState.selectedGearConfiguration = null;
+      }
+      else {
+        uiState.selectedGearConfiguration = configuration;
+      }
+    });
+  };
 
-    if (totalPackWeight === null) {
-        if (configuration.gear_configuration_items
-            && configuration.gear_configuration_items.length > 0) {
-            setTotalPackWeight(
-                configuration.gear_configuration_items.reduce(
-                    (accumulator, item) => {
-                        if (!item.gear_item.worn) {
-                            return accumulator + computeItemWeight(item);
-                        }
+  let className = 'gear-configuration bpp-shadow';
+  if (uiState.selectedGearConfiguration === configuration) {
+    className += ' selected';
+  }
 
-                        return accumulator;
-                    },
-                    0,
-                ),
-            );
-        }
-        else {
-            setTotalPackWeight(0);
-        }
-    }
+  const weight = configuration.weight();
 
-    if (totalWornWeight === null) {
-        if (configuration.gear_configuration_items
-            && configuration.gear_configuration_items.length > 0) {
-            setTotalWornWeight(
-                configuration.gear_configuration_items.reduce(
-                    (accumulator, item) => {
-                        if (item.gear_item.worn) {
-                            return accumulator + computeItemWeight(item);
-                        }
-
-                        return accumulator;
-                    },
-                    0,
-                ),
-            );
-        }
-        else {
-            setTotalWornWeight(0);
-        }
-    }
-
-    return (
-        <div className={`gear-configuration bpp-shadow ${selected ? 'selected' : null}`} onClick={handleClick}>
-            <EditableText
-                className="config-title"
-                url={`/gear/configuration/${configuration.id}`}
-                prop="name"
-                style={{ display: 'inline-block', gridArea: 'title' }}
-                defaultValue={configuration.name}
-            />
-            <IconButton className="gear-configuration-delete" icon="trash-alt" onClick={handleDeleteClick} />
-            <div className="config-weight pack">
-                <div>Pack Weight:</div>
-                <div>
-                    {
-                        totalPackWeight
-                            ? totalPackWeight.toLocaleString(
-                                undefined,
-                                {
-                                    maximumFractionDigits: 4,
-                                    minimumFractionDigits: 4,
-                                },
-                            )
-                            : 0
-                    }
-                </div>
-            </div>
-            <div className="config-weight worn">
-                <div>Worn Weight:</div>
-                <div>
-                    {
-                        totalWornWeight
-                            ? totalWornWeight.toLocaleString(
-                                undefined,
-                                {
-                                    maximumFractionDigits: 4,
-                                    minimumFractionDigits: 4,
-                                },
-                            )
-                            : 0
-                    }
-                </div>
-            </div>
-            <DeleteConfirmation />
+  return (
+    <div className={className} onClick={handleClick}>
+      <EditableText
+        className="config-title"
+        url={`/gear/configuration/${configuration.id}`}
+        prop="name"
+        style={{ display: 'inline-block', gridArea: 'title' }}
+        defaultValue={configuration.name}
+      />
+      <IconButton className="gear-configuration-delete" icon="trash-alt" onClick={handleDeleteClick} />
+      <div className="config-weight pack">
+        <div>Pack Weight:</div>
+        <div>
+          {
+            gramsToPoundsAndOunces(weight.packWeight)
+          }
         </div>
-    );
+      </div>
+      <div className="config-weight worn">
+        <div>Worn Weight:</div>
+        <div>
+          {
+            gramsToPoundsAndOunces(weight.wornWeight)
+          }
+        </div>
+      </div>
+      <div className="config-weight consumable">
+        <div>Consumable Weight:</div>
+        <div>
+          {
+            gramsToPoundsAndOunces(weight.consumableWeight)
+          }
+        </div>
+      </div>
+      <DeleteConfirmation />
+    </div>
+  );
 
-    // if (configuration.gear_configuration_items
-    //     && configuration.gear_configuration_items.length > 0) {
-    //     configuration.gear_configuration_items.forEach((configItem) => {
-    //         let gearItemId;
+  // if (configuration.gear_configuration_items
+  //     && configuration.gear_configuration_items.length > 0) {
+  //     configuration.gear_configuration_items.forEach((configItem) => {
+  //         let gearItemId;
 
-    //         if (configItem.gear_item) {
-    //             gearItemId = configItem.gear_item.id;
-    //         }
+  //         if (configItem.gear_item) {
+  //             gearItemId = configItem.gear_item.id;
+  //         }
 
-    //         const row = newGearConfigItemRow(configuration.id, configItem.id, gearItemId);
+  //         const row = newGearConfigItemRow(configuration.id, configItem.id, gearItemId);
 
-    //         setNamedValues(row, configItem);
+  //         setNamedValues(row, configItem);
 
-    //         if (configItem.gear_item) {
-    //             setNamedValues(row, configItem.gear_item);
+  //         if (configItem.gear_item) {
+  //             setNamedValues(row, configItem.gear_item);
 
-    //             row.find('.uofm-text').text(configItem.gear_item.unitOfMeasure);
-    //         }
+  //             row.find('.uofm-text').text(configItem.gear_item.unitOfMeasure);
+  //         }
 
-    //         const weight = row.computeWeight();
+  //         const weight = row.computeWeight();
 
-    //         if (configItem.worn) {
-    //             totalWornWeight += weight;
-    //         }
-    //         else {
-    //             totalPackWeight += weight;
-    //         }
+  //         if (configItem.worn) {
+  //             totalWornWeight += weight;
+  //         }
+  //         else {
+  //             totalPackWeight += weight;
+  //         }
 
-    //         gearItem.after(row);
-    //     });
-    // }
-    // else {
-    //     const nextRow = newGearConfigItemRow(configuration.id);
-    //     gearItem.after(nextRow);
-    // }
+  //         gearItem.after(row);
+  //     });
+  // }
+  // else {
+  //     const nextRow = newGearConfigItemRow(configuration.id);
+  //     gearItem.after(nextRow);
+  // }
 
-    // collapse.droppable(
-    //     {
-    //         accept: '.gear-item',
-    //         drop(event, ui) {
-    //             const row = newGearConfigItemRow(configuration.id, undefined, ui.helper.data('id'));
-    //             const record = getNamedValues(ui.helper);
+  // collapse.droppable(
+  //     {
+  //         accept: '.gear-item',
+  //         drop(event, ui) {
+  //             const row = newGearConfigItemRow(
+  //                configuration.id, undefined, ui.helper.data('id')
+  //             );
+  //             const record = getNamedValues(ui.helper);
 
-    //             setNamedValues(row, record);
+  //             setNamedValues(row, record);
 
-    //             gearItem.after(row);
-    //             event.stopPropagation();
+  //             gearItem.after(row);
+  //             event.stopPropagation();
 
-    //             row.delayedSave();
-    //         },
-    //     },
-    // );
+  //             row.delayedSave();
+  //         },
+  //     },
+  // );
 
-    // collapse.on('sortreceive');
+  // collapse.on('sortreceive');
 
-    // $('#gear-kits').append(card);
+  // $('#gear-kits').append(card);
 
-    // return card;
+  // return card;
 };
 
 Configuration.propTypes = {
-    configuration: PropTypes.shape().isRequired,
-    selected: PropTypes.bool,
-    dispatch: PropTypes.func.isRequired,
+  configuration: PropTypes.shape().isRequired,
 };
 
 Configuration.defaultProps = {
-    selected: false,
 };
 
-export default connect()(Configuration);
+export default observer(Configuration);

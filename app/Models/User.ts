@@ -10,6 +10,8 @@ import {
 } from '@ioc:Adonis/Lucid/Orm';
 import Hike from 'App/Models/Hike';
 import HikerProfile from './HikerProfile';
+import GearConfiguration from './GearConfiguration';
+import GearItem from './GearItem';
 
 export default class User extends BaseModel {
   @column({ isPrimary: true })
@@ -72,4 +74,10 @@ export default class User extends BaseModel {
 
   @hasMany(() => Hike)
   public hikes: HasMany<typeof Hike>
+
+  @hasMany(() => GearConfiguration)
+  public gearConfigurations: HasMany<typeof GearConfiguration>
+
+  @hasMany(() => GearItem)
+  public gearItems: HasMany<typeof GearItem>
 }

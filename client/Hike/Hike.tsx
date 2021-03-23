@@ -1,12 +1,12 @@
 import React, {
-  useEffect, useContext, ReactElement,
+  useEffect, ReactElement,
 } from 'react';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { matchPath, useHistory } from 'react-router-dom';
 import ElevationChart from './Elevation/ElevationChart';
 import Controls from './Controls';
-import MobxStore from '../state/store';
+import { useStores } from '../state/store';
 import MapContainer from './MapContainer';
 import EditableText from '../Hikes/EditableText';
 import HikeData from '../state/Hike';
@@ -18,7 +18,7 @@ type Props = {
 const Hike = ({
   tileServerUrl,
 }: Props): ReactElement | null => {
-  const { uiState } = useContext(MobxStore);
+  const { uiState } = useStores();
   const history = useHistory();
 
   useEffect(() => {

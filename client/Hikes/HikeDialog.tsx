@@ -1,8 +1,8 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import React, { useRef, useContext, ReactElement } from 'react';
+import React, { useRef, ReactElement } from 'react';
 // import PropTypes from 'prop-types';
 import { Modal, Button } from 'react-bootstrap';
-import MobxStore from '../state/store';
+import { useStores } from '../state/store';
 import { VIEW_HIKE } from '../menuEvents';
 import useModal, { ModalProps } from '../useModal';
 
@@ -10,7 +10,7 @@ const HikeDialog = ({
   show,
   onHide,
 }: ModalProps): ReactElement => {
-  const { uiState, hikeManager } = useContext(MobxStore);
+  const { uiState } = useStores();
   const formRef = useRef<HTMLFormElement>(null);
 
   const insertHike = async () => {

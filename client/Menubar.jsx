@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import {
   Navbar, Container, Nav, NavDropdown,
@@ -11,12 +11,12 @@ import {
 import { useProfileDialog } from './ProfileDialog';
 import { useAccountDialog } from './AccountDialog';
 import { useChangePasswordDialog } from './ChangePasswordDialog';
-import MobxStore from './state/store';
+import { useStores } from './state/store';
 
 const Menubar = ({
   username,
 }) => {
-  const { uiState } = useContext(MobxStore);
+  const { uiState } = useStores();
   const [ProfileDialog, showProfileDialog] = useProfileDialog();
   const [AccountDialog, showAccountDialog] = useAccountDialog();
   const [ChangePasswordDialog, showChangePasswordDialog] = useChangePasswordDialog();

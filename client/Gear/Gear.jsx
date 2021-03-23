@@ -1,74 +1,62 @@
 /* eslint-disable jsx-a11y/control-has-associated-label */
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import {
-    requestGearConfigurations,
-    requestGearInventory,
-} from '../redux/actions';
+import { observer } from 'mobx-react-lite';
 import Configurations from './Configurations';
 import ConfigurationItems from './ConfigurationItems';
 import Inventory from './Inventory';
+import { useStores } from '../state/store';
 
-const mapStateToProps = (state) => ({
-    inventory: state.gear.inventory,
-    selectedInventoryItem: state.gear.selectedInventoryItem,
-    configurations: state.gear.configurations,
-    configurationId: state.gear.configurationId,
-});
+// const mapStateToProps = (state) => ({
+//   selectedInventoryItem: state.gear.selectedInventoryItem,
+//   configurationId: state.gear.configurationId,
+// });
 
 const Gear = ({
-    inventory,
-    selectedInventoryItem,
-    configurations,
-    configurationId,
-    dispatch,
+  selectedInventoryItem,
 }) => {
-    const [initialized, setInitialized] = useState(false);
+  const { gear, uiState } = useStores();
+  const [initialized, setInitialized] = useState(false);
 
-    if (!initialized) {
-        setInitialized(true);
-        dispatch(requestGearInventory());
-        dispatch(requestGearConfigurations());
-    }
+  if (!initialized) {
+    setInitialized(true);
+    gear.requestGearInventory();
+    gear.requestGearConfigurations();
+  }
 
-    return (
-        <>
-            <div className={`gear-main ${configurationId ? 'selected' : null}`}>
-                <Configurations
-                    configurations={configurations}
-                    selected={configurationId}
-                />
-                {
-                    configurationId ? <ConfigurationItems /> : null
-                }
-                <Inventory
-                    items={inventory}
-                    selectedItem={selectedInventoryItem}
-                    dispatch={dispatch}
-                />
-            </div>
+  let className = 'gear-main';
+  if (uiState.selectedGearConfiguration) {
+    className += ' selected';
+  }
 
-            <datalist id="gear-location">
-                <option value="Pack" />
-                <option value="Worn" />
-            </datalist>
-            <datalist id="gear-system" />
-        </>
-    );
+  return (
+    <>
+      <div className={className}>
+        <Configurations
+          configurations={gear.configurations}
+        />
+        <ConfigurationItems />
+        <Inventory
+          items={gear.inventory}
+          selectedItem={selectedInventoryItem}
+        />
+      </div>
+
+      <datalist id="gear-location">
+        <option value="Pack" />
+        <option value="Worn" />
+      </datalist>
+      <datalist id="gear-system" />
+    </>
+  );
 };
 
 Gear.propTypes = {
-    inventory: PropTypes.arrayOf(PropTypes.shape()).isRequired,
-    selectedInventoryItem: PropTypes.number,
-    configurations: PropTypes.arrayOf(PropTypes.shape()).isRequired,
-    configurationId: PropTypes.number,
-    dispatch: PropTypes.func.isRequired,
+  selectedInventoryItem: PropTypes.number,
 };
 
 Gear.defaultProps = {
-    selectedInventoryItem: null,
-    configurationId: null,
+  selectedInventoryItem: null,
 };
 
-export default connect(mapStateToProps)(Gear);
+export default observer(Gear);

@@ -2,127 +2,127 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Modal, Button } from 'react-bootstrap';
 import { Formik, Form, Field } from 'formik';
-import useModal from '../Modal';
+import useModal from '../useModal';
 
 const FileUpload = ({
-    field,
-    form,
+  field,
+  form,
 }) => {
-    const handleChange = (event) => {
-        const file = event.currentTarget.files[0];
-        form.setFieldValue(field.name, file);
-    };
+  const handleChange = (event) => {
+    const file = event.currentTarget.files[0];
+    form.setFieldValue(field.name, file);
+  };
 
-    return (
-        <input type="file" accept=".csv" onChange={handleChange} className="form-control" />
-    );
+  return (
+    <input type="file" accept=".csv" onChange={handleChange} className="form-control" />
+  );
 };
 
 FileUpload.propTypes = {
-    field: PropTypes.shape().isRequired,
-    form: PropTypes.shape().isRequired,
+  field: PropTypes.shape().isRequired,
+  form: PropTypes.shape().isRequired,
 };
 
 const UploadInventoryDialog = ({
-    show,
-    onHide,
+  show,
+  onHide,
 }) => {
-    const handleSubmit = (values) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const lines = e.target.result.split('\n');
+  const handleSubmit = (values) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const lines = e.target.result.split('\n');
 
-            const topRow = lines.splice(0, 1)[0].split(',');
+      const topRow = lines.splice(0, 1)[0].split(',');
 
-            const colMap = {};
-            colMap.name = topRow.findIndex((l) => l === 'Name');
-            colMap.description = topRow.findIndex((l) => l === 'Description');
-            colMap.system = topRow.findIndex((l) => l === 'System');
-            colMap.weight = topRow.findIndex((l) => l === 'Weight');
-            colMap.unitOfMeasure = topRow.findIndex((l) => l === 'Unit of Measure');
+      const colMap = {};
+      colMap.name = topRow.findIndex((l) => l === 'Name');
+      colMap.description = topRow.findIndex((l) => l === 'Description');
+      colMap.system = topRow.findIndex((l) => l === 'System');
+      colMap.weight = topRow.findIndex((l) => l === 'Weight');
+      colMap.unitOfMeasure = topRow.findIndex((l) => l === 'Unit of Measure');
 
-            const result = lines
-                .map((l) => (
-                    l.split(',')
-                ))
-                .filter((row) => (
-                    row[colMap.name]
+      const result = lines
+        .map((l) => (
+          l.split(',')
+        ))
+        .filter((row) => (
+          row[colMap.name]
                         && (row[colMap.description]
                         || row[colMap.system]
                         || row[colMap.weight]
                         || row[colMap.unitOfMeasure])
-                ))
-                .map((row) => ({
-                    name: row[colMap.name],
-                    description: row[colMap.description],
-                    system: row[colMap.system],
-                    weight: parseFloat(row[colMap.weight]),
-                    unitOfMeasure: row[colMap.unitOfMeasure],
-                    consumable: false,
-                }));
+        ))
+        .map((row) => ({
+          name: row[colMap.name],
+          description: row[colMap.description],
+          system: row[colMap.system],
+          weight: parseFloat(row[colMap.weight]),
+          unitOfMeasure: row[colMap.unitOfMeasure],
+          consumable: false,
+        }));
 
-            fetch('/gear/item', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Context-Type': 'application/json',
-                },
-                body: JSON.stringify(result),
-            })
-                .then((response) => {
-                    if (response.ok) {
-                        onHide();
-                    }
-                });
-        };
-
-        reader.readAsText(values.file);
+      fetch('/gear/item', {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+          'Context-Type': 'application/json',
+        },
+        body: JSON.stringify(result),
+      })
+        .then((response) => {
+          if (response.ok) {
+            onHide();
+          }
+        });
     };
 
-    return (
-        <Modal show={show} onHide={onHide}>
-            <Formik
-                initialValues={{
-                    file: '',
-                }}
-                onSubmit={handleSubmit}
-            >
-                <Form>
-                    <Modal.Header closeButton>
-                        <h4 id="modalTitle" className="modal-title">Upload Inventory File</h4>
-                    </Modal.Header>
-                    <Modal.Body>
-                        <Field
-                            name="file"
-                            component={FileUpload}
-                        />
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <Button variant="secondary" onClick={onHide}>Cancel</Button>
-                        <Button variant="primary" type="submit">Save</Button>
-                    </Modal.Footer>
-                </Form>
-            </Formik>
-        </Modal>
-    );
+    reader.readAsText(values.file);
+  };
+
+  return (
+    <Modal show={show} onHide={onHide}>
+      <Formik
+        initialValues={{
+          file: '',
+        }}
+        onSubmit={handleSubmit}
+      >
+        <Form>
+          <Modal.Header closeButton>
+            <h4 id="modalTitle" className="modal-title">Upload Inventory File</h4>
+          </Modal.Header>
+          <Modal.Body>
+            <Field
+              name="file"
+              component={FileUpload}
+            />
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={onHide}>Cancel</Button>
+            <Button variant="primary" type="submit">Save</Button>
+          </Modal.Footer>
+        </Form>
+      </Formik>
+    </Modal>
+  );
 };
 
 UploadInventoryDialog.propTypes = {
-    show: PropTypes.bool.isRequired,
-    onHide: PropTypes.func.isRequired,
+  show: PropTypes.bool.isRequired,
+  onHide: PropTypes.func.isRequired,
 };
 
 const useUploadInventoryDialog = () => {
-    const [DialogModal, showDialogModal] = useModal(UploadInventoryDialog);
+  const [DialogModal, showDialogModal] = useModal(UploadInventoryDialog);
 
-    const createProfileDialog = () => (
-        <DialogModal />
-    );
+  const createProfileDialog = () => (
+    <DialogModal />
+  );
 
-    return [
-        createProfileDialog,
-        showDialogModal,
-    ];
+  return [
+    createProfileDialog,
+    showDialogModal,
+  ];
 };
 
 export default UploadInventoryDialog;

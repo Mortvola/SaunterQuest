@@ -1,13 +1,13 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { observer } from 'mobx-react-lite';
 import Hike from './Hike';
 import PleaseWait from './PleaseWait';
-import MobxStore from '../state/store';
+import { useStores } from '../state/store';
 import { VIEW_HIKE } from '../menuEvents';
 import HikeData from '../state/Hike';
 
 const Hikes = () => {
-  const { uiState, hikeManager } = useContext(MobxStore);
+  const { uiState, hikeManager } = useStores();
 
   const handleDelete = (id: number) => {
     hikeManager.deleteHike(id);
