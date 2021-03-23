@@ -683,6 +683,10 @@ div.hike-card-header {
   box-shadow: 0 2px 7px 1px rgba(0, 0, 0, 0.3);
 }
 
+.selected {
+  box-shadow: 0 0 5px 5px #8BBAF8;
+}
+
 .drop-down-checks {
   position: relative;
 }
