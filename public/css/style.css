@@ -466,32 +466,43 @@ div.hike-card-header {
   max-width: 475px;
 }
 
-.gear-item>.gear-delete, .gear-configuration>.gear-configuration-delete, .gear-config-item>.gear-configuration-delete {
+.gear-item>.gear-delete,
+.gear-configuration>.gear-configuration-delete,
+.gear-config-item>.gear-configuration-delete {
   align-self: start;
   grid-area: delete;
 }
 
-.gear-item div, .gear-config-item div {
+.gear-item div,
+.gear-config-item div {
   width: 100%;
 }
 
-.gear-item input[type='text'], .gear-config-item input[type='text'] {
+.gear-item input[type='text'],
+.gear-config-item input[type='text'],
+.gear-configuration input[type='text'] {
   border-style: none;
   padding: 2px;
   width: 100%;
 }
 
-.gear-item select, .gear-config-item select {
+.gear-item select,
+.gear-config-item select,
+.gear-configuration select {
   border-style: none;
 }
 
-.gear-item input:hover, .gear-config-item input:hover:not([readonly]) {
+.gear-item input:hover,
+.gear-config-item input:hover:not([readonly]),
+.gear-configuration input:hover:not([readonly]) {
   border-style: solid;
   border-width: 2px;
   padding: 0;
 }
 
-.gear-item input:focus, .gear-config-item input:focus {
+.gear-item input:focus,
+.gear-config-item input:focus,
+.gear-configuration input:focus {
   border-style: solid;
   border-width: 2px;
   padding: 0;
@@ -622,9 +633,16 @@ div.hike-card-header {
   color: var(--gear-card-color);
 }
 
-.gear-config-item input[readonly], .gear-config-item select {
-    background-color: var(--gear-config-bg-color);
-    color: var(--gear-card-color);
+.gear-configuration input:not([readonly]) {
+  background-color: #CEBBA0;
+  color: var(--gear-card-color);
+}
+
+.gear-configuration input[readonly],
+.gear-config-item input[readonly],
+.gear-config-item select {
+  background-color: var(--gear-config-bg-color);
+  color: var(--gear-card-color);
 }
 
 .gear-config-misc {

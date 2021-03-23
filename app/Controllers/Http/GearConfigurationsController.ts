@@ -109,4 +109,18 @@ export default class GearConfigurationsController {
       response.send(item);
     }
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async update({
+    auth, request, params, response,
+  }: HttpContextContract): Promise<void> {
+    if (auth.user) {
+      const config = await GearConfiguration.findOrFail(params.configId);
+
+      config.name = request.post().name;
+      config.save();
+
+      response.send(config);
+    }
+  }
 }

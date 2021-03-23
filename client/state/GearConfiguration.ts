@@ -2,7 +2,7 @@ import { makeAutoObservable, runInAction } from 'mobx';
 import GearConfigurationItem from './GearConfigurationItem';
 import GearItem from './GearItem';
 import { Store } from './store';
-import { httpDelete, postJSON } from './Transports';
+import { httpDelete, postJSON, putJSON } from './Transports';
 import { GearConfigItemProps, GearConfigProps } from './Types';
 
 class GearConfiguration {
@@ -133,6 +133,16 @@ class GearConfiguration {
         if (index !== -1) {
           this.items.splice(index, 1);
         }
+      });
+    }
+  }
+
+  update = async (name: string): Promise<void> => {
+    const response = await putJSON(`/gear/configuration/${this.id}`, { name });
+
+    if (response.ok) {
+      runInAction(() => {
+        this.name = name;
       });
     }
   }

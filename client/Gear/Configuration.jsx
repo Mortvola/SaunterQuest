@@ -2,11 +2,13 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { observer } from 'mobx-react-lite';
 import { runInAction } from 'mobx';
+import { Field, Form, Formik } from 'formik';
 import EditableText from '../Hikes/EditableText';
 import IconButton from '../IconButton';
 import { useDeleteConfirmation } from '../DeleteConfirmation';
 import { useStores } from '../state/store';
 import { gramsToPoundsAndOunces } from '../utilities';
+import AutoSubmit from './AutoSubmit';
 
 const Configuration = ({
   configuration,
@@ -47,106 +49,60 @@ const Configuration = ({
     className += ' selected';
   }
 
+  const handleSubmit = async (values) => {
+    configuration.update(values.name);
+  };
+
   const weight = configuration.weight();
 
   return (
-    <div className={className} onClick={handleClick}>
-      <EditableText
-        className="config-title"
-        url={`/gear/configuration/${configuration.id}`}
-        prop="name"
-        style={{ display: 'inline-block', gridArea: 'title' }}
-        defaultValue={configuration.name}
-      />
-      <IconButton className="gear-configuration-delete" icon="trash-alt" onClick={handleDeleteClick} />
-      <div className="config-weight pack">
-        <div>Pack Weight:</div>
-        <div>
-          {
-            gramsToPoundsAndOunces(weight.packWeight)
-          }
+    <Formik
+      initialValues={{
+        name: configuration.name,
+      }}
+      onSubmit={handleSubmit}
+    >
+      <Form>
+        <div className={className} onClick={handleClick}>
+          <div className="gear-config-group">
+            <label className="gear-config-label">Name</label>
+            <Field
+              type="text"
+              className="config-title"
+              name="name"
+            />
+          </div>
+          <IconButton className="gear-configuration-delete" icon="trash-alt" onClick={handleDeleteClick} />
+          <div className="config-weight pack">
+            <div>Pack Weight:</div>
+            <div>
+              {
+                gramsToPoundsAndOunces(weight.packWeight)
+              }
+            </div>
+          </div>
+          <div className="config-weight worn">
+            <div>Worn Weight:</div>
+            <div>
+              {
+                gramsToPoundsAndOunces(weight.wornWeight)
+              }
+            </div>
+          </div>
+          <div className="config-weight consumable">
+            <div>Consumable Weight:</div>
+            <div>
+              {
+                gramsToPoundsAndOunces(weight.consumableWeight)
+              }
+            </div>
+          </div>
+          <DeleteConfirmation />
         </div>
-      </div>
-      <div className="config-weight worn">
-        <div>Worn Weight:</div>
-        <div>
-          {
-            gramsToPoundsAndOunces(weight.wornWeight)
-          }
-        </div>
-      </div>
-      <div className="config-weight consumable">
-        <div>Consumable Weight:</div>
-        <div>
-          {
-            gramsToPoundsAndOunces(weight.consumableWeight)
-          }
-        </div>
-      </div>
-      <DeleteConfirmation />
-    </div>
+        <AutoSubmit />
+      </Form>
+    </Formik>
   );
-
-  // if (configuration.gear_configuration_items
-  //     && configuration.gear_configuration_items.length > 0) {
-  //     configuration.gear_configuration_items.forEach((configItem) => {
-  //         let gearItemId;
-
-  //         if (configItem.gear_item) {
-  //             gearItemId = configItem.gear_item.id;
-  //         }
-
-  //         const row = newGearConfigItemRow(configuration.id, configItem.id, gearItemId);
-
-  //         setNamedValues(row, configItem);
-
-  //         if (configItem.gear_item) {
-  //             setNamedValues(row, configItem.gear_item);
-
-  //             row.find('.uofm-text').text(configItem.gear_item.unitOfMeasure);
-  //         }
-
-  //         const weight = row.computeWeight();
-
-  //         if (configItem.worn) {
-  //             totalWornWeight += weight;
-  //         }
-  //         else {
-  //             totalPackWeight += weight;
-  //         }
-
-  //         gearItem.after(row);
-  //     });
-  // }
-  // else {
-  //     const nextRow = newGearConfigItemRow(configuration.id);
-  //     gearItem.after(nextRow);
-  // }
-
-  // collapse.droppable(
-  //     {
-  //         accept: '.gear-item',
-  //         drop(event, ui) {
-  //             const row = newGearConfigItemRow(
-  //                configuration.id, undefined, ui.helper.data('id')
-  //             );
-  //             const record = getNamedValues(ui.helper);
-
-  //             setNamedValues(row, record);
-
-  //             gearItem.after(row);
-  //             event.stopPropagation();
-
-  //             row.delayedSave();
-  //         },
-  //     },
-  // );
-
-  // collapse.on('sortreceive');
-
-  // $('#gear-kits').append(card);
-
-  // return card;
 };
 
 Configuration.propTypes = {
