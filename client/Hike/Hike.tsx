@@ -38,6 +38,19 @@ const Hike = ({
     });
   }, [history.location.pathname, uiState]);
 
+
+  const handleDayMarkerToggle = () => {
+    runInAction(() => {
+      uiState.showDayMarkers = !uiState.showDayMarkers;
+    });
+  };
+
+  const handleWaypointToggle = () => {
+    runInAction(() => {
+      uiState.showWaypoints = !uiState.showWaypoints;
+    });
+  };
+
   let locationPopup = null;
   if (uiState.hike && uiState.hike.map) {
     locationPopup = uiState.hike.map.locationPopup;
@@ -53,6 +66,22 @@ const Hike = ({
             url={`hike/${uiState.hike.id}`}
             prop="name"
           />
+          <div className="blog-controls">
+            <input
+              type="image"
+              onClick={handleDayMarkerToggle}
+              style={{ padding: '3px 3px' }}
+              src="/moon.svg"
+              alt="moon"
+            />
+            <input
+              type="image"
+              onClick={handleWaypointToggle}
+              style={{ padding: '3px 3px' }}
+              src="/compass.svg"
+              alt="waypoint"
+            />
+          </div>
         </div>
         <MapContainer
           tileServerUrl={tileServerUrl}

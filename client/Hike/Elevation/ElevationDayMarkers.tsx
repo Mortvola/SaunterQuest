@@ -1,6 +1,8 @@
 import React, { ReactElement } from 'react';
+import { observer } from 'mobx-react-lite';
 import ElevationDayMarker from './ElevationDayMarker';
 import { Day } from '../../state/Types';
+import { useStores } from '../../state/store';
 
 type Props = {
   days: Array<Day>;
@@ -11,7 +13,9 @@ const ElevationDayMarkers = ({
   days,
   chart,
 }: Props): ReactElement | null => {
-  if (days && chart) {
+  const { uiState } = useStores();
+
+  if (days && chart && uiState.showDayMarkers) {
     return (
       <>
         {
@@ -28,4 +32,4 @@ const ElevationDayMarkers = ({
   return null;
 };
 
-export default ElevationDayMarkers;
+export default observer(ElevationDayMarkers);

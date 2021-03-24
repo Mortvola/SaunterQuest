@@ -12,6 +12,10 @@ class UiState {
 
   gearConfigSort = 'System';
 
+  showDayMarkers = true;
+
+  showWaypoints = true;
+
   constructor() {
     makeAutoObservable(this);
   }

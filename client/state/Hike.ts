@@ -10,6 +10,7 @@ import {
 } from './Types';
 import { createIcon } from '../Hike/mapUtils';
 import CampsiteMarker from './Markers/CampsiteMarker';
+import WaterMarker from './Markers/WaterMarker';
 import DayMarker from './Markers/DayMarker';
 
 interface ProfileProps {
@@ -39,7 +40,7 @@ class Hike implements HikeInterface {
 
   map = new Map();
 
-  elevationMarkerIcon = createIcon('https://maps.google.com/mapfiles/ms/micons/red.png');
+  elevationMarkerIcon = createIcon('/red-circle.svg');
 
   elevationMarkerPos: LatLng | null = null;
 
@@ -153,6 +154,12 @@ class Hike implements HikeInterface {
     const campsite = new CampsiteMarker(latLng);
     this.camps.push(campsite);
     this.map.addMarker(campsite);
+  }
+
+  addWater(latLng: LatLng): void {
+    const water = new WaterMarker(latLng);
+    // this.camps.push(water);
+    this.map.addMarker(water);
   }
 }
 

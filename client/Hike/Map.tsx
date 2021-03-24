@@ -78,6 +78,7 @@ const Map = ({
       mapMenuItems.length, 0,
       { type: 'separator' },
       { label: 'Add Camp', callback: ({ latlng }: L.LeafletMouseEvent) => hike.addCamp(latlng) },
+      { label: 'Add Water', callback: ({ latlng }: L.LeafletMouseEvent) => hike.addWater(latlng) },
       {
         label: 'Show Location in 3D',
         callback: (e: L.LeafletMouseEvent) => {

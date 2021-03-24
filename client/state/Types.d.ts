@@ -27,7 +27,7 @@ export interface MapMarkerInterface {
   move(latLng: LatLng): void;
 }
 
-export type MarkerTypes = 'waypoint' | 'campsite' | 'day';
+export type MarkerTypes = 'waypoint' | 'campsite' | 'day' | 'water';
 
 export interface MarkerInterface {
   type: MarkerTypes;

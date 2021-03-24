@@ -16,7 +16,8 @@ html, body {
   height: 100%;
   width: 100%;
   -webkit-touch-callout: none !important;
-  -webkit-user-select: none !important;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 #app {
@@ -179,12 +180,23 @@ div.hike-card-header {
 }
 
 .name-grid-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   grid-area: name;
-  height: 2rem;
+  height: max-content;
   background-color: #733700;
   border-bottom: thin black solid;
   color: whitesmoke;
   padding-left: 0.5rem;
+}
+
+.blog-controls {
+  display: flex;
+  width: max-content;
+  align-items: center;
+  padding: 0.25rem;
+  grid-gap: 1rem;
 }
 
 .map-grid-item {
@@ -701,3 +713,17 @@ div.hike-card-header {
   border-radius: 4px;
   padding: 0 4px;
 }
+
+label.btn {
+  margin: 0;
+}
+
+label.btn:hover {
+  cursor: pointer;
+}
+
+.elevation-day-marker {
+  position: absolute;
+  pointer-events: none;
+}
+
