@@ -41,7 +41,7 @@ class Anchor extends Marker implements MarkerInterface {
   route: RouteInterface;
 
   constructor(props: AnchorProps, route: RouteInterface) {
-    super('waypoint', { lat: props.lat, lng: props.lng });
+    super('waypoint', { lat: props.lat, lng: props.lng }, true);
 
     this.id = props.id;
     this.trail = props.trail;

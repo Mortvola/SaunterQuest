@@ -15,7 +15,7 @@ const ElevationDayMarkers = ({
 }: Props): ReactElement | null => {
   const { uiState } = useStores();
 
-  if (days && chart && uiState.showDayMarkers) {
+  if (days && chart && uiState.showMarkers.get('day')) {
     return (
       <>
         {

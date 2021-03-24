@@ -16,7 +16,7 @@ const HikerProfiles = ({
       setInitialized(true);
       hike.requestHikerProfiles();
     }
-  }, [hike]);
+  }, [hike, initialized]);
 
   return (
     <div className="profiles">

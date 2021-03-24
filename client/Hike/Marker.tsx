@@ -45,8 +45,10 @@ const Marker = ({
 
   const icons = marker.types()
     .filter((type) => (
-      (type !== 'day' || uiState.showDayMarkers)
-      && (type !== 'waypoint' || uiState.showWaypoints)
+      (type !== 'day' || uiState.showMarkers.get('day'))
+      && (type !== 'waypoint' || uiState.showMarkers.get('waypoint'))
+      && (type !== 'water' || uiState.showMarkers.get('water'))
+      && (type !== 'campsite' || uiState.showMarkers.get('campsite'))
     ))
     .map((type) => {
       switch (type) {

@@ -1,21 +1,17 @@
 import { makeAutoObservable, runInAction } from 'mobx';
-import L from 'leaflet';
 import HikerProfile from './HikerProfile';
 import Map from './Map';
 import TrailMarker from './TrailMarker';
 import Route from './Route';
-import { httpDelete } from './Transports';
+import { httpDelete, postJSON } from './Transports';
 import {
-  Day, DayProps, HikeInterface, HikeItemInterface, LatLng,
+  Day, DayProps, HikeInterface, HikeItemInterface, LatLng, PointOfInterestProps,
+  ProfileProps,
 } from './Types';
 import { createIcon } from '../Hike/mapUtils';
 import CampsiteMarker from './Markers/CampsiteMarker';
-import WaterMarker from './Markers/WaterMarker';
+import Marker from './Markers/Marker';
 import DayMarker from './Markers/DayMarker';
-
-interface ProfileProps {
-  id: number;
-}
 
 const dayMarkerUrl = '/moon.svg';
 
@@ -38,6 +34,8 @@ class Hike implements HikeInterface {
 
   camps: Array<CampsiteMarker> = [];
 
+  pointsOfInterest: Array<Marker> = [];
+
   map = new Map();
 
   elevationMarkerIcon = createIcon('/red-circle.svg');
@@ -52,6 +50,8 @@ class Hike implements HikeInterface {
     this.name = hikeItem.name;
 
     this.route.requestRoute();
+
+    this.requestPointsOfInterest();
   }
 
   async requestHikerProfiles(): Promise<void> {
@@ -61,17 +61,26 @@ class Hike implements HikeInterface {
       const profiles: Array<ProfileProps> = await response.json();
 
       runInAction(() => {
-        this.setHikerProfiles(profiles.map((p) => new HikerProfile(p)));
+        this.hikerProfiles = profiles.map((p) => new HikerProfile(p, this));
       });
     }
   }
 
-  setHikerProfiles(profiles: Array<HikerProfile>): void {
-    this.hikerProfiles = profiles;
-  }
+  addHikerProfile = async (profile: ProfileProps): Promise<void> => {
+    const response = await postJSON(`/hike/${this.id}/hiker-profile`, {
+      startTime: profile.startTime,
+      endTime: profile.endTime,
+      startDay: profile.startDay,
+      endDay: profile.endDay,
+    });
 
-  addHikerProfile(profile: HikerProfile): void {
-    this.hikerProfiles.push(profile);
+    if (response.ok) {
+      const body: ProfileProps = await response.json();
+
+      runInAction(() => {
+        this.hikerProfiles.push(new HikerProfile(body, this));
+      });
+    }
   }
 
   async deleteHikerProfile(id: number): Promise<void> {
@@ -85,10 +94,10 @@ class Hike implements HikeInterface {
           const index = this.hikerProfiles.findIndex((p) => p.id === id);
 
           if (index !== -1) {
-            this.setHikerProfiles([
+            this.hikerProfiles = [
               ...this.hikerProfiles.slice(0, index),
               ...this.hikerProfiles.slice(index + 1),
-            ]);
+            ];
           }
         }
       });
@@ -140,6 +149,22 @@ class Hike implements HikeInterface {
     }
   }
 
+  requestPointsOfInterest = async (): Promise<void> => {
+    const response = await fetch(`/hike/${this.id}/poi`);
+
+    if (response.ok) {
+      const body: Array<PointOfInterestProps> = await response.json();
+
+      runInAction(() => {
+        body.forEach((poi) => this.map.addMarker(new Marker(
+          poi.type,
+          { lat: poi.lat, lng: poi.lng },
+          true,
+        )));
+      });
+    }
+  }
+
   setSchedule(schedule: Array<Day>): void {
     this.schedule = schedule;
   }
@@ -156,10 +181,20 @@ class Hike implements HikeInterface {
     this.map.addMarker(campsite);
   }
 
-  addWater(latLng: LatLng): void {
-    const water = new WaterMarker(latLng);
-    // this.camps.push(water);
-    this.map.addMarker(water);
+  addWater = async (latLng: LatLng): Promise<void> => {
+    const response = await postJSON(`/hike/${this.id}/poi`, {
+      name: null,
+      description: null,
+      lat: latLng.lat,
+      lng: latLng.lng,
+      type: 'water',
+    });
+
+    if (response.ok) {
+      const water = new Marker('water', latLng, true);
+      // this.camps.push(water);
+      this.map.addMarker(water);
+    }
   }
 }
 

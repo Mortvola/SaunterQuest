@@ -38,16 +38,27 @@ const Hike = ({
     });
   }, [history.location.pathname, uiState]);
 
-
   const handleDayMarkerToggle = () => {
     runInAction(() => {
-      uiState.showDayMarkers = !uiState.showDayMarkers;
+      uiState.showMarkers.set('day', !uiState.showMarkers.get('day'));
     });
   };
 
   const handleWaypointToggle = () => {
     runInAction(() => {
-      uiState.showWaypoints = !uiState.showWaypoints;
+      uiState.showMarkers.set('waypoint', !uiState.showMarkers.get('waypoint'));
+    });
+  };
+
+  const handleWaterToggle = () => {
+    runInAction(() => {
+      uiState.showMarkers.set('water', !uiState.showMarkers.get('water'));
+    });
+  };
+
+  const handleCampsiteToggle = () => {
+    runInAction(() => {
+      uiState.showMarkers.set('campsite', !uiState.showMarkers.get('campsite'));
     });
   };
 
@@ -80,6 +91,20 @@ const Hike = ({
               style={{ padding: '3px 3px' }}
               src="/compass.svg"
               alt="waypoint"
+            />
+            <input
+              type="image"
+              onClick={handleWaterToggle}
+              style={{ padding: '3px 3px' }}
+              src="/water.svg"
+              alt="water"
+            />
+            <input
+              type="image"
+              onClick={handleCampsiteToggle}
+              style={{ padding: '3px 3px' }}
+              src="/campsite.svg"
+              alt="campsite"
             />
           </div>
         </div>

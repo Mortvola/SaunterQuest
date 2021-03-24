@@ -29,45 +29,24 @@ const HikerProfileDialog = ({
   };
 
   const handleSubmit = async (vals) => {
-    let url = `/hike/${hike.id}/hiker-profile`;
-    let method = 'POST';
-    const { id, ...v2 } = vals;
-    if (id !== undefined && id !== null) {
-      url = `${url}/${id}`;
-      method = 'PUT';
+    if (profile.id) {
+      profile.update({
+        startTime: toTimeFloat(vals.startTime),
+        endTime: toTimeFloat(vals.endTime),
+        startDay: decrementValue(vals.startDay),
+        endDay: decrementValue(vals.endDay),
+      });
+    }
+    else {
+      hike.addHikerProfile({
+        startTime: toTimeFloat(vals.startTime),
+        endTime: toTimeFloat(vals.endTime),
+        startDay: decrementValue(vals.startDay),
+        endDay: decrementValue(vals.endDay),
+      });
     }
 
-    fetch(url, {
-      method,
-      headers:
-            {
-              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-              'Content-Type': 'application/json',
-            },
-      body: JSON.stringify({
-        ...v2,
-        startTime: toTimeFloat(v2.startTime),
-        endTime: toTimeFloat(v2.endTime),
-        startDay: decrementValue(v2.startDay),
-        endDay: decrementValue(v2.endDay),
-      }),
-    })
-      .then((response) => {
-        if (response.ok) {
-          return response.json();
-        }
-
-        throw new Error('invalid response');
-      })
-      .then((response) => {
-        if (method === 'POST') {
-          hike.addHikerProfile(new HikerProfile(response));
-        }
-        else {
-          profile.setProfile(response);
-        }
-        onHide();
-      });
+    onHide();
   };
 
   const nullsToEmptyStrings = (v) => {

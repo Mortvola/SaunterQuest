@@ -130,3 +130,21 @@ export interface GearItemProps {
   unitOfMeasure: string;
   weight: number;
 }
+
+export interface PointOfInterestProps {
+  id: number;
+  lat: number;
+  lng: number;
+  type: MarkerTypes;
+}
+
+export interface ProfileProps {
+  id: number;
+  startDay: number | null;
+  endDay: number | null;
+  startTime: number | null;
+  endTime: number | null;
+  breakDuration: number;
+  speedFactor: number;
+  endDayExtension: number | null;
+}

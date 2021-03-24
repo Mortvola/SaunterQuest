@@ -70,3 +70,6 @@ Route.get('/gear/item', 'GearItemsController.get');
 Route.put('/gear/item/:itemId', 'GearItemsController.updateItem');
 Route.post('/gear/item', 'GearItemsController.addItem');
 Route.delete('/gear/item/:itemId', 'GearItemsController.deleteItem');
+
+Route.get('/hike/:hikeId/poi', 'PointOfInterestsController.get');
+Route.post('/hike/:hikeId/poi', 'PointOfInterestsController.add');

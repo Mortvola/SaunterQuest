@@ -2,6 +2,7 @@ import { makeAutoObservable } from 'mobx';
 import { VIEW_HIKES } from '../menuEvents';
 import GearConfiguration from './GearConfiguration';
 import Hike from './Hike';
+import { MarkerTypes } from './Types';
 
 class UiState {
   view: string = VIEW_HIKES;
@@ -12,9 +13,12 @@ class UiState {
 
   gearConfigSort = 'System';
 
-  showDayMarkers = true;
-
-  showWaypoints = true;
+  showMarkers = new Map<MarkerTypes, boolean>([
+    ['day', true],
+    ['water', true],
+    ['waypoint', true],
+    ['campsite', true],
+  ]);
 
   constructor() {
     makeAutoObservable(this);

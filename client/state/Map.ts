@@ -14,17 +14,17 @@ class Map implements MapInterface {
   }
 
   addMarker(marker: MarkerInterface): void {
-    let mapMmarker = this.markers.find((m) => (
+    let mapMarker = this.markers.find((m) => (
       m.latLng.lat === marker.latLng.lat
       && m.latLng.lng === marker.latLng.lng
     ));
 
-    if (!mapMmarker) {
-      mapMmarker = new MapMarker(marker.latLng);
-      this.markers.push(mapMmarker);
+    if (!mapMarker) {
+      mapMarker = new MapMarker(marker.latLng);
+      this.markers.push(mapMarker);
     }
 
-    mapMmarker.addMarker(marker);
+    mapMarker.addMarker(marker);
   }
 
   showLocationPopup(latlng: LatLng | null): void {

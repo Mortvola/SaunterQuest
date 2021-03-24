@@ -6,15 +6,26 @@ class Marker {
 
   latLng: LatLng;
 
+  moveable: boolean;
+
   mapMarker: MapMarkerInterface | null = null;
 
-  constructor(type: MarkerTypes, latLng: LatLng) {
+  constructor(type: MarkerTypes, latLng: LatLng, moveable: boolean) {
     this.type = type;
     this.latLng = latLng;
+    this.moveable = moveable;
 
     makeObservable(this, {
       latLng: observable,
     });
+  }
+
+  move = async (latLng: LatLng): Promise<LatLng> => {
+    if (this.moveable) {
+      this.latLng = latLng;
+    }
+
+    return latLng;
   }
 }
 

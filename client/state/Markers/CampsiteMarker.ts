@@ -3,13 +3,7 @@ import Marker from './Marker';
 
 class CampsiteMarker extends Marker implements MarkerInterface {
   constructor(latLng: LatLng) {
-    super('campsite', latLng);
-  }
-
-  move = async (latLng: LatLng): Promise<LatLng> => {
-    this.latLng = latLng;
-
-    return latLng;
+    super('campsite', latLng, true);
   }
 }
 

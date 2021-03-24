@@ -18,6 +18,7 @@ import Scheduler from 'App/Services/Scheduler';
 import User from 'App/Models/User';
 import Router from 'App/Services/Router';
 import Point from 'App/Types/Point';
+import PointOfInterest from 'App/Models/PointOfInterest';
 
 const MAX_ORDER = 100000;
 
@@ -51,6 +52,9 @@ export default class Hike extends BaseModel {
   @hasOne(() => Schedule)
   public schedule: HasOne<typeof Schedule>;
 
+  @hasMany(() => PointOfInterest)
+  public pointsOfInterest: HasMany<typeof PointOfInterest>;
+
   public async getDuration(this: Hike): Promise<number> {
     await this.preload('schedule');
 
@@ -76,6 +80,8 @@ export default class Hike extends BaseModel {
   public async updateSchedule(this: Hike, user: User): Promise<void> {
     if (this.routePoints && this.routePoints.length > 1) {
       const scheduler = new Scheduler();
+
+      await this.preload('hikerProfiles');
 
       scheduler.createSchedule(this.routePoints, user, this.hikerProfiles);
 
