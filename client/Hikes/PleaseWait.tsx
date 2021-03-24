@@ -1,5 +1,4 @@
 import React, { ReactElement } from 'react';
-import { Spinner } from 'react-bootstrap';
 
 type PropsType = {
   show: boolean;
