@@ -15,7 +15,7 @@ class Hike extends Model
 
     protected $hidden = [Hike::CREATED_AT, Hike::UPDATED_AT, 'user_id'];
 
-    protected $fillable = ['user_id', 'name'];
+    protected $fillable = ['user_id', 'name', 'gear_configuration_id'];
 
     function user ()
     {

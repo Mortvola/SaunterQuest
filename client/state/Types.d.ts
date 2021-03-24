@@ -105,3 +105,28 @@ export interface Day {
 export interface RouteInterface {
   moveWaypoint: (id: number, point: LatLng) => Promise<LatLng>;
 }
+
+export interface GearConfigProps {
+  id: number;
+  name: string;
+  wornWeight: number;
+  packWeight: number;
+  consumableWeight: number;
+}
+
+export interface GearConfigItemProps {
+  id: number;
+  gearItem: GearItemProps;
+  quantity: number;
+  worn: boolean;
+}
+
+export interface GearItemProps {
+  id: number;
+  consumable: boolean;
+  description: string;
+  name: string;
+  system: string;
+  unitOfMeasure: string;
+  weight: number;
+}

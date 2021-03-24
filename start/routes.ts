@@ -56,3 +56,17 @@ Route.put('/hike/:hikeId/hiker-profile/:profileId', 'HikerProfilesController.upd
 Route.delete('/hike/:hikeId/hiker-profile/:profileId', 'HikerProfilesController.deleteProfile');
 
 Route.get('/hike/:hikeId/schedule', 'SchedulesController.get');
+
+Route.get('/gear/configuration', 'GearConfigurationsController.get');
+Route.post('/gear/configuration', 'GearConfigurationsController.add');
+Route.put('/gear/configuration/:configId', 'GearConfigurationsController.update');
+Route.delete('/gear/configuration/:configId', 'GearConfigurationsController.delete');
+Route.get('/gear/configuration/:configId/items', 'GearConfigurationsController.getItems');
+Route.post('/gear/configuration/:configId/item', 'GearConfigurationsController.addItem');
+Route.put('/gear/configuration/:configId/item/:itemId', 'GearConfigurationsController.updateItem');
+Route.delete('/gear/configuration/:configId/item/:itemId', 'GearConfigurationsController.deleteItem');
+
+Route.get('/gear/item', 'GearItemsController.get');
+Route.put('/gear/item/:itemId', 'GearItemsController.updateItem');
+Route.post('/gear/item', 'GearItemsController.addItem');
+Route.delete('/gear/item/:itemId', 'GearItemsController.deleteItem');

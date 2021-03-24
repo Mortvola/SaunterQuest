@@ -62,4 +62,14 @@ class User extends Authenticatable implements MustVerifyEmail
             "endHikeDayExtension" => $this->end_hike_day_extension
         ];
     }
+
+    public function gearItems ()
+    {
+        return $this->hasMany('\App\GearItem', 'user_id');
+    }
+
+    public function gearConfigurations ()
+    {
+        return $this->hasMany('\App\GearConfiguration', 'user_id');
+    }
 }

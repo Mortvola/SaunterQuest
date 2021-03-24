@@ -1,38 +1,52 @@
+:root {
+  --gear-title-color: white;
+  --gear-card-container-bg-color: whitesmoke;
+  --gear-config-title-bg-color: #6c3108;
+  --gear-config-header-bg-color: #c3ac8a;
+  --gear-config-header-color: black;
+  --gear-config-bg-color: #e4dacb;
+  --gear-title-bg-color: #4d5461;
+  --gear-card-color: black;
+  --gear-bg-color: #bec0c5;
+  --gear-color: black;
+  --highlight-color: 0, 0, 255
+}
+
 html, body {
-    height: 100%;
-    width: 100%;
-    -webkit-touch-callout: none !important;
-    -webkit-user-select: none !important;
+  height: 100%;
+  width: 100%;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
 }
 
 #app {
-    width:100vw;
-    height:100vh;
-    overflow: hidden
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden
 }
 
 .app {
-    height: 100%;
-    width: 100%;
-    display: grid;
-    grid-template-rows: max-content minmax(0,1fr);
+  height: 100%;
+  width: 100%;
+  display: grid;
+  grid-template-rows: max-content minmax(0, 1fr);
 }
 
 .background-picture {
-    background-color: black;
-    background-image: url(/Forester.jpg);
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    background-position: center;
-    background-size: cover;
+  background-color: black;
+  background-image: url(/Forester.jpg);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center;
+  background-size: cover;
 }
 
 .app .navbar {
-	background-color:#508c00;
+  background-color: #508c00;
 }
 
 .app .navbar-nav .nav-link {
-    color: white;
+  color: white;
 }
 
 .hikes-wrapper {
@@ -41,76 +55,71 @@ html, body {
   position: relative;
 }
 
-.hikes
-{
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    align-content: baseline;
-    overflow: auto;
-    padding-left: 14px;
-    padding-right: 14px;
+.hikes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  align-content: baseline;
+  overflow: auto;
+  padding-left: 14px;
+  padding-right: 14px;
 }
 
-div.hike-card-header
-{
-    background-color: #733700;
-    color: white;
+div.hike-card-header {
+  background-color: #733700;
+  color: white;
 }
 
-.bpp-shadow
-{
-    box-shadow: 0 2px 7px 1px rgba(0,0,0,0.3);
+.bpp-shadow {
+  box-shadow: 0 2px 7px 1px rgba(0, 0, 0, 0.3);
 }
 
-.resupply-grid
-{
-    display: grid;
-    grid-template-columns: auto auto;
-    justify-content: space-between;
+.resupply-grid {
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: space-between;
 }
 
-.resupply-grid-item
-{
-    overflow:hidden;
-    white-space:nowrap;
-    text-overflow:ellipsis;
+.resupply-grid-item {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .day-card-header {
-    font: 14px sans-serif;
-    display: grid;
-    grid-template-columns: auto auto auto;
-    justify-content: space-between;
+  font: 14px sans-serif;
+  display: grid;
+  grid-template-columns: auto auto auto;
+  justify-content: space-between;
 }
 
 .day-card {
-    font: 14px sans-serif;
-    margin: 8px 8px 12px 8px;
-    box-shadow: 0 2px 7px 1px rgba(0,0,0,0.3);
+  font: 14px sans-serif;
+  margin: 8px 8px 12px 8px;
+  box-shadow: 0 2px 7px 1px rgba(0, 0, 0, 0.3);
 }
 
-.day-card-body > div {
-    padding: 2px 2px 2px 2px;
+.day-card-body>div {
+  padding: 2px 2px 2px 2px;
 }
 
 .map-info {
-    display:none;
-    position:absolute;
-    top:10%;
-    justify-self: center;
-    width:200px;
-    height:50px;
-    background-color:white;
-    border-radius:5px;
-    box-shadow:0 2px 7px 1px rgba(0,0,0,0.3);
-    z-index: 800;
+  display: none;
+  position: absolute;
+  top: 10%;
+  justify-self: center;
+  width: 200px;
+  height: 50px;
+  background-color: white;
+  border-radius: 5px;
+  box-shadow: 0 2px 7px 1px rgba(0, 0, 0, 0.3);
+  z-index: 800;
 }
 
 .map-distance-window {
-    width:14px;
-    height:14px;
-    font-size:14px
+  width: 14px;
+  height: 14px;
+  font-size: 14px
 }
 
 .map-please-wait {
@@ -137,23 +146,37 @@ div.hike-card-header
 }
 
 .waypoint-table-header {
-    border-bottom-style: solid;
+  border-bottom-style: solid;
 }
 
 .waypoint-table-header-cell {
-    display:inline-block;
-    font-weight:700;
+  display: inline-block;
+  font-weight: 700;
 }
 
 .waypoint-table-cell {
-    display:inline-block;
+  display: inline-block;
 }
 
-.color-a {color: #733700;}
-.color-b {color: #ad6522;}
-.color-c {color: #007309;}
-.color-d {color: #0da319;}
-.color-e {color: #5700ff;}
+.color-a {
+  color: #733700;
+}
+
+.color-b {
+  color: #ad6522;
+}
+
+.color-c {
+  color: #007309;
+}
+
+.color-d {
+  color: #0da319;
+}
+
+.color-e {
+  color: #5700ff;
+}
 
 .name-grid-item {
   grid-area: name;
@@ -165,88 +188,77 @@ div.hike-card-header
 }
 
 .map-grid-item {
-    grid-area: map;
-    display:grid;
-    grid: minmax(0, 1fr) / minmax(0, 1fr);
-    width:100%;
-    height:100%
+  grid-area: map;
+  display: grid;
+  grid: minmax(0, 1fr) / minmax(0, 1fr);
+  width: 100%;
+  height: 100%
 }
 
 .ele-grid-item {
-    grid-area: ele;
-    background-color: #fbfbfb;
-    position: relative;
+  grid-area: ele;
+  background-color: #fbfbfb;
+  position: relative;
 }
 
 .controls-grid-item {
-    grid-area: controls;
-    border-right-style: solid;
-    border-right-width: thin;
-    height: 100%;
-    display:grid;
-    grid-template-rows: min-content minmax(0, 1fr);
+  grid-area: controls;
+  border-right-style: solid;
+  border-right-width: thin;
+  height: 100%;
+  display: grid;
+  grid-template-rows: min-content minmax(0, 1fr);
 }
 
 .controls-grid-item .tab-content {
-    height: 100%;
-    background-color: #fbfbfb;
-    overflow-y: auto;
-    width: 100%;
-    height: 100%;
+  height: 100%;
+  background-color: #fbfbfb;
+  overflow-y: auto;
+  width: 100%;
+  height: 100%;
 }
 
-.tab-content > div {
-    height: 100%;
-    overflow-y: auto;
+.tab-content>div {
+  height: 100%;
+  overflow-y: auto;
 }
 
 .hike-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
-    grid-template-rows: max-content minmax(0, 3fr) minmax(0, 1fr);
-    grid-template-areas:
-        "controls name"
-        "controls map"
-        "controls ele"
-        ;
-    justify-items: stretch;
-    align-items: stretch;
-    align-content:stretch;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+  grid-template-rows: max-content minmax(0, 3fr) minmax(0, 1fr);
+  grid-template-areas: "controls name" "controls map" "controls ele";
+  justify-items: stretch;
+  align-items: stretch;
+  align-content: stretch;
 }
 
-
-
 .card {
-    margin: 8px 8px 12px 8px;
-    box-shadow: 0 2px 7px 1px rgba(0,0,0,0.3);
+  margin: 8px 8px 12px 8px;
+  box-shadow: 0 2px 7px 1px rgba(0, 0, 0, 0.3);
 }
 
 .card-header {
-    padding: 8px;
+  padding: 8px;
 }
 
 .gear-card-body {
-    margin: 4px;
+  margin: 4px;
 }
 
-@media screen and (max-width: 668px)
-{
-    .controls-grid-item {
-        display:none;
-    }
-
-    .hike-grid {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr);
-        grid-template-rows: minmax(0, 3fr) minmax(0, 1fr);
-        grid-template-areas:
-            "map"
-            "ele"
-            ;
-        justify-items: stretch;
-        align-items: stretch;
-        align-content: stretch;
-    }
+@media screen and (max-width: 668px) {
+  .controls-grid-item {
+    display: none;
+  }
+  .hike-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 3fr) minmax(0, 1fr);
+    grid-template-areas: "map" "ele";
+    justify-items: stretch;
+    align-items: stretch;
+    align-content: stretch;
+  }
 }
 
 .trail-marker {
@@ -273,75 +285,75 @@ div.hike-card-header
 }
 
 .hike-detail {
-    margin-left: 0.5rem;
+  margin-left: 0.5rem;
 }
 
 .hike-detail-spinner {
-    color: lightgray;
-    margin-left: 0.5rem;
+  color: lightgray;
+  margin-left: 0.5rem;
 }
 
 .two-column {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-gap: 1rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-gap: 1rem;
 }
 
 .hiker-profile {
-    display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-    grid-gap: 0.1rem;
-    padding: 0 1rem 1rem 1rem;
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  grid-gap: 0.1rem;
+  padding: 0 1rem 1rem 1rem;
 }
 
 .hiker-profile div {
-    text-align: right;
+  text-align: right;
 }
 
 .hiker-profile-header {
-    display: flex;
-    justify-content: end;
+  display: flex;
+  justify-content: end;
 }
 
 .icon-button {
-	padding: .25rem .25rem;
-	display: inline-grid;
-	align-items: center;
+  padding: .25rem .25rem;
+  display: inline-grid;
+  align-items: center;
 }
 
 .icon-button i {
-	color: rgba(0,0,0,0.4);
-	font-size: smaller;
+  color: rgba(0, 0, 0, 0.4);
+  font-size: smaller;
 }
 
 .icon-button.invert i {
-	color: rgba(255,255,255,0.6);
-	font-size: smaller;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: smaller;
 }
 
 .icon-button:hover i {
-    color: black;
-    cursor: pointer;
+  color: black;
+  cursor: pointer;
 }
 
 .icon-button:hover {
-	background-color: lightgray;
-    cursor: pointer;
+  background-color: lightgray;
+  cursor: pointer;
 }
 
 .icon-button.i {
-	font-size:smaller;
-	color: inherit;
+  font-size: smaller;
+  color: inherit;
 }
 
 .profiles {
-    display: grid;
-    height: 100%;
-    grid-template-rows: max-content minmax(0, 1fr);
+  display: grid;
+  height: 100%;
+  grid-template-rows: max-content minmax(0, 1fr);
 }
 
 .profile-list {
-    overflow-y: auto;
+  overflow-y: auto;
 }
 
 .terrain-content {
@@ -350,7 +362,7 @@ div.hike-card-header
 
 .context-menu {
   background-color: white;
-  box-shadow: 0 1px 7px rgba(0,0,0,0.4);
+  box-shadow: 0 1px 7px rgba(0, 0, 0, 0.4);
   border-radius: 4px;
   user-select: none;
   cursor: default;
@@ -371,4 +383,321 @@ div.hike-card-header
   background-color: #f4f4f4;
   border-top: 1px solid #f0f0f0;
   border-bottom: 1px solid #f0f0f0;
+}
+
+.gear-main {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 300px) minmax(0, 495px) minmax(0, 1fr);
+  grid-template-areas: "kits items inventory";
+  width: 100%;
+  height: 100%;
+  background-color: var(--gear-card-container-bg-color);
+  row-gap: 1em;
+  transition: grid-template-columns 0.25s;
+}
+
+.gear-main.selected {
+  grid-template-columns: minmax(0, 300px) minmax(0, 495px) minmax(0, 1fr);
+  transition: grid-template-columns 0.25s;
+}
+
+.gear-configurations {
+  grid-area: kits;
+}
+
+.gear-kits-title {
+  display: flex;
+  background-color: var(--gear-config-title-bg-color);
+  color: var(--gear-title-color);
+  grid-area: kits-title;
+  user-select: none;
+  padding: .5rem .5rem;
+}
+
+.gear-kits {
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+}
+
+.gear-inventory {
+  grid-area: inventory;
+  display: flex;
+  flex-direction: column;
+}
+
+.gear-inventory-items {
+  overflow-y: auto;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.gear-configuration {
+  padding: 0;
+  background-color: var(--gear-config-header-bg-color);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) max-content;
+  grid-template-areas:
+    "title title delete"
+    "pack-weight pack-weight ."
+    "worn-weight worn-weight ."
+    "consumable-weight consumable-weight .";
+  align-items: center;
+  padding: 0.25em;
+  margin: 14px;
+  padding: 4px;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(0, 0, 0, .125);
+}
+
+.gear-item {
+  display: grid;
+  grid-template-columns: 14px repeat(4, minmax(0, 1fr)) min-content;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  grid-template-areas:
+    "menu name name name system consumable delete"
+    ". description description description description description delete"
+    ". weight weight . days distance delete";
+  border: 1px solid rgba(0, 0, 0, 0.125);
+  margin: 4px;
+  padding: 4px 0;
+  border-radius: 8px;
+  max-width: 475px;
+}
+
+.gear-item>.gear-delete,
+.gear-configuration>.gear-configuration-delete,
+.gear-config-item>.gear-configuration-delete {
+  align-self: start;
+  grid-area: delete;
+}
+
+.gear-item div,
+.gear-config-item div {
+  width: 100%;
+}
+
+.gear-item input[type='text'],
+.gear-config-item input[type='text'],
+.gear-configuration input[type='text'] {
+  border-style: none;
+  padding: 2px;
+  width: 100%;
+}
+
+.gear-item select,
+.gear-config-item select,
+.gear-configuration select {
+  border-style: none;
+}
+
+.gear-item input:hover,
+.gear-config-item input:hover:not([readonly]),
+.gear-configuration input:hover:not([readonly]) {
+  border-style: solid;
+  border-width: 2px;
+  padding: 0;
+}
+
+.gear-item input:focus,
+.gear-config-item input:focus,
+.gear-configuration input:focus {
+  border-style: solid;
+  border-width: 2px;
+  padding: 0;
+}
+
+.config-weight.pack {
+  grid-area: pack-weight;
+}
+
+.config-weight.worn {
+  grid-area: worn-weight;
+}
+
+.config-weight.consumable {
+  grid-area: consumable-weight;
+}
+
+.config-weight>div:first-child {
+  margin-right: 0.5em;
+}
+
+.config-weight>div {
+  display: inline;
+}
+
+.gear-config-group {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: max-content max-content;
+  padding-right: 0.5em;
+}
+
+.gear-name {
+  grid-area: name;
+}
+
+.gear-system {
+  grid-area: system;
+}
+
+.gear-consumable {
+  grid-area: consumable;
+  margin-top: 14px;
+}
+
+.gear-age {
+  grid-area: age;
+}
+
+.gear-weight {
+  grid-area: weight;
+}
+
+.gear-weight-input {
+  display: flex;
+}
+
+.gear-number {
+  text-align: right;
+}
+
+.gear-days {
+  grid-area: days;
+}
+
+.gear-distance {
+  grid-area: distance;
+}
+
+.gear-description {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  grid-area: description;
+}
+
+.gear-config-label {
+  display: block;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.5);
+  align-self: end;
+  margin: 0;
+  border-bottom: rgba(0, 0, 0, 0.25) solid thin;
+  width: 100%;
+}
+
+.gear-config-check-group>label {
+  margin-bottom: 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.gear-config-items {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+.gear-configuration-items {
+  overflow-y: auto;
+  width: 100%;
+  height: 100%;
+}
+
+.gear-config-item {
+  display: grid;
+  grid-template-columns: 14px repeat(4, minmax(0, 1fr)) max-content;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  grid-template-areas:
+      "menu name name system consumable delete"
+      ". description description description consumable delete"
+      ". weight quantity totalWeight consumable delete"
+      ;
+  border: 1px solid rgba(0, 0, 0, 0.125);
+  margin: 14px;
+  padding: 4px 0;
+  border-radius: 8px;
+  background-color: var(--gear-config-bg-color);
+}
+
+.gear-config-item .uofm-select {
+  display: none;
+}
+
+.gear-config-item input:not([readonly]) {
+  background-color: #EDE6DD;
+  color: var(--gear-card-color);
+}
+
+.gear-configuration input:not([readonly]) {
+  background-color: #CEBBA0;
+  color: var(--gear-card-color);
+}
+
+.gear-configuration input[readonly],
+.gear-config-item input[readonly],
+.gear-config-item select {
+  background-color: var(--gear-config-bg-color);
+  color: var(--gear-card-color);
+}
+
+.gear-config-misc {
+  grid-area: consumable;
+  margin-top: 14px;
+}
+
+.gear-config-description {
+  grid-area: description;
+}
+
+.gear-config-quantity
+{
+    grid-area: quantity;
+}
+
+.gear-config-total-weight
+{
+    grid-area: totalWeight;
+}
+
+.gear-config-system
+{
+    grid-area: system;
+}
+
+.gear-config-location
+{
+    grid-area: location;
+}
+
+.gear-config-consumable
+{
+    grid-area: consumable
+}
+
+.bpp-shadow {
+  box-shadow: 0 2px 7px 1px rgba(0, 0, 0, 0.3);
+}
+
+.selected {
+  box-shadow: 0 0 5px 5px #8BBAF8;
+}
+
+.drop-down-checks {
+  position: relative;
+}
+
+.drop-down-check-items {
+  margin: 0px 4px;
+  position: absolute;
+  background-color: white;
+  color: black;
+  width: max-content;
+  border: thin black solid;
+  border-radius: 4px;
+  padding: 0 4px;
 }

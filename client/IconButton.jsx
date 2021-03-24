@@ -7,6 +7,7 @@ const IconButton = ({
   rotate,
   onClick,
   className,
+  style,
 }) => {
   let iconClassName = `fas fa-${icon}`;
 
@@ -20,7 +21,11 @@ const IconButton = ({
   }
 
   return (
-    <div className={`btn btn-sm icon-button ${invertClass} ${className}`} onClick={onClick}>
+    <div
+      className={`btn btn-sm icon-button ${invertClass} ${className}`}
+      onClick={onClick}
+      style={style && style}
+    >
       <i className={iconClassName} />
     </div>
   );
@@ -32,12 +37,14 @@ IconButton.propTypes = {
   onClick: PropTypes.func.isRequired,
   rotate: PropTypes.bool,
   className: PropTypes.string,
+  style: PropTypes.shape(),
 };
 
 IconButton.defaultProps = {
   className: '',
   rotate: false,
   invert: false,
+  style: null,
 };
 
 export default IconButton;

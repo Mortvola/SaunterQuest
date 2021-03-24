@@ -12,6 +12,10 @@ use App\Http\Controllers\ResupplyPlanController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\TileController;
+use App\Http\Controllers\GearController;
+use App\Http\Controllers\GearConfigurationController;
+use App\Http\Controllers\GearConfigurationItemController;
+use App\Http\Controllers\GearItemController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,10 +39,56 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/home', 'HomeController@index');
 
-    Route::get('/gear', function ()
+    Route::get('/gear', 'GearController@index');
+
+    Route::post('/gear', 'GearController@post');
+
+    // Gear item interface
+
+    Route::get('/gear/item', 'GearItemController@get');
+
+    Route::post('/gear/item', 'GearItemController@post');
+
+    Route::put('/gear/item/{itemId}', function ($itemId, Request $request)
     {
-        return view('gear');
+        return (new GearItemController())->put($itemId, $request);
     });
+
+    Route::delete('/gear/item/{itemId}', function ($itemId)
+    {
+        return (new GearItemController())->delete($itemId);
+    });
+
+    // Gear configuration interface
+
+    Route::get('/gear/configuration/{gearConfigId?}', function ($gearConfigId = null)
+    {
+        return (new GearConfigurationController)->get($gearConfigId);
+    });
+    Route::post('/gear/configuration', 'GearConfigurationController@post');
+    Route::put('/gear/configuration/{gearConfigId}', function ($gearConfigId, Request $request)
+    {
+        return (new GearConfigurationController())->put($gearConfigId, $request);
+    });
+    Route::delete('/gear/configuration/{gearConfigId}', function ($gearConfigId)
+    {
+        return (new GearConfigurationController())->delete($gearConfigId);
+    });
+
+    // Gear configuration item interface
+
+    Route::post('/gear/configuration/item', 'GearConfigurationItemController@post');
+    Route::put('/gear/configuration/item/{itemId}', function ($itemId, Request $request)
+    {
+        return (new GearConfigurationItemController())->put($itemId, $request);
+    });
+
+    Route::delete('/gear/configuration/item/{itemId}', function ($itemId)
+    {
+        return (new GearConfigurationItemController())->delete($itemId);
+    });
+
+    //
 
     Route::get('/hikes', function ($hikeId = null)
     {
