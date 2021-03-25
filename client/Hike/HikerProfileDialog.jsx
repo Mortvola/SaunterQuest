@@ -4,7 +4,6 @@ import { Modal } from 'react-bootstrap';
 import { Formik, Form, Field } from 'formik';
 import useModal from '../useModal';
 import { toTimeFloat, toTimeString } from '../utilities';
-import HikerProfile from '../state/HikerProfile';
 
 const HikerProfileDialog = ({
   hike,

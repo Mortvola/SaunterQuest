@@ -49,6 +49,7 @@ const Marker = ({
       && (type !== 'waypoint' || uiState.showMarkers.get('waypoint'))
       && (type !== 'water' || uiState.showMarkers.get('water'))
       && (type !== 'campsite' || uiState.showMarkers.get('campsite'))
+      && (type !== 'resupply' || uiState.showMarkers.get('resupply'))
     ))
     .map((type) => {
       switch (type) {
@@ -60,6 +61,8 @@ const Marker = ({
           return '/moon.svg';
         case 'water':
           return '/water.svg';
+        case 'resupply':
+          return '/resupply.svg';
         default:
           return '';
       }

@@ -18,6 +18,7 @@ class UiState {
     ['water', true],
     ['waypoint', true],
     ['campsite', true],
+    ['resupply', true],
   ]);
 
   constructor() {

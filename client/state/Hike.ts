@@ -5,7 +5,7 @@ import TrailMarker from './TrailMarker';
 import Route from './Route';
 import { httpDelete, postJSON } from './Transports';
 import {
-  Day, DayProps, HikeInterface, HikeItemInterface, LatLng, PointOfInterestProps,
+  Day, DayProps, HikeInterface, HikeItemInterface, LatLng, MarkerTypes, PointOfInterestProps,
   ProfileProps,
 } from './Types';
 import { createIcon } from '../Hike/mapUtils';
@@ -181,20 +181,27 @@ class Hike implements HikeInterface {
     this.map.addMarker(campsite);
   }
 
-  addWater = async (latLng: LatLng): Promise<void> => {
+  private addPOI = async (latLng: LatLng, type: MarkerTypes): Promise<void> => {
     const response = await postJSON(`/hike/${this.id}/poi`, {
       name: null,
       description: null,
       lat: latLng.lat,
       lng: latLng.lng,
-      type: 'water',
+      type,
     });
 
     if (response.ok) {
-      const water = new Marker('water', latLng, true);
-      // this.camps.push(water);
-      this.map.addMarker(water);
+      const poi = new Marker(type, latLng, true);
+      this.map.addMarker(poi);
     }
+  }
+
+  addWater = async (latLng: LatLng): Promise<void> => {
+    this.addPOI(latLng, 'water');
+  }
+
+  addResupply = async (latLng: LatLng): Promise<void> => {
+    this.addPOI(latLng, 'resupply');
   }
 }
 

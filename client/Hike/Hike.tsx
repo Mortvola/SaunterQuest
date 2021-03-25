@@ -62,6 +62,12 @@ const Hike = ({
     });
   };
 
+  const handleResupplyToggle = () => {
+    runInAction(() => {
+      uiState.showMarkers.set('resupply', !uiState.showMarkers.get('resupply'));
+    });
+  };
+
   let locationPopup = null;
   if (uiState.hike && uiState.hike.map) {
     locationPopup = uiState.hike.map.locationPopup;
@@ -105,6 +111,13 @@ const Hike = ({
               style={{ padding: '3px 3px' }}
               src="/campsite.svg"
               alt="campsite"
+            />
+            <input
+              type="image"
+              onClick={handleResupplyToggle}
+              style={{ padding: '3px 3px' }}
+              src="/resupply.svg"
+              alt="resupply"
             />
           </div>
         </div>
