@@ -32,6 +32,7 @@ export type MarkerTypes = 'waypoint' | 'campsite' | 'day' | 'water' | 'resupply'
 export interface MarkerInterface {
   type: MarkerTypes;
   latLng: LatLng;
+  label: string | null;
   mapMarker: MapMarkerInterface | null;
   move(latLng: LatLng): Promise<LatLng>;
 }

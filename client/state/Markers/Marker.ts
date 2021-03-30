@@ -6,6 +6,8 @@ class Marker {
 
   latLng: LatLng;
 
+  label: string | null = null;
+
   moveable: boolean;
 
   mapMarker: MapMarkerInterface | null = null;

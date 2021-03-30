@@ -9,11 +9,11 @@ class TrailMarker {
 
   marker: unknown;
 
-  label: string | undefined;
+  label: string | undefined | null;
 
   infoMessageCallback: unknown;
 
-  constructor(iconUrl: string, label?: string) {
+  constructor(iconUrl: string, label?: string | null) {
     this.iconUrl = iconUrl;
     this.label = label;
     this.icon = this.createIcon(label);
@@ -39,7 +39,7 @@ class TrailMarker {
     makeAutoObservable(this);
   }
 
-  createIcon(label?: string): L.DivIcon {
+  createIcon(label?: string | null): L.DivIcon {
     return createIcon(this.iconUrl, label);
   }
 
@@ -94,7 +94,7 @@ class TrailMarker {
   //   this.removeListener();
   // }
 
-  infoMessage(): string | undefined {
+  infoMessage(): string | undefined | null {
     return this.getCommonInfoDivs();
   }
 
@@ -102,7 +102,7 @@ class TrailMarker {
     this.infoMessageCallback = callback;
   }
 
-  getCommonInfoDivs(): string | undefined {
+  getCommonInfoDivs(): string | undefined | null {
     return this.label;
     // const position = this.marker.getLatLng();
 
@@ -137,7 +137,7 @@ class TrailMarker {
     this.label = label;
   }
 
-  getLabel(): string | undefined {
+  getLabel(): string | undefined | null {
     return this.label;
   }
 }

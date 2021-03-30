@@ -80,7 +80,7 @@ const Hike = ({
         <div className="name-grid-item">
           <EditableText
             defaultValue={uiState.hike.name}
-            url={`hike/${uiState.hike.id}`}
+            url={uiState.hike.id.toString()}
             prop="name"
           />
           <div className="blog-controls">

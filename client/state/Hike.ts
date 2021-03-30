@@ -62,6 +62,34 @@ class Hike implements HikeInterface {
 
       runInAction(() => {
         this.hikerProfiles = profiles.map((p) => new HikerProfile(p, this));
+
+        this.hikerProfiles.sort((a, b) => {
+          if (a.startDay === null) {
+            if (b.startDay === null) {
+              if (a.endDay === null) {
+                if (b.endDay === null) {
+                  return 0;
+                }
+
+                return 0;
+              }
+
+              if (b.endDay === null) {
+                return 0;
+              }
+
+              return a.endDay - b.endDay;
+            }
+
+            return 0;
+          }
+
+          if (b.startDay === null) {
+            return 0;
+          }
+
+          return a.startDay - b.startDay;
+        });
       });
     }
   }

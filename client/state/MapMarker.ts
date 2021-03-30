@@ -42,6 +42,16 @@ class MapMarker {
   types(): Array<MarkerTypes> {
     return this.#markers.map((m) => m.type);
   }
+
+  label = (): string | null => {
+    const labeledMarker = this.#markers.find((m) => m.label !== null);
+
+    if (labeledMarker) {
+      return labeledMarker.label;
+    }
+
+    return null;
+  }
 }
 
 export default MapMarker;

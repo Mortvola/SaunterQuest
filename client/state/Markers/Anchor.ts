@@ -8,13 +8,15 @@ import Marker from './Marker';
 const wayPointUrl = 'compass.svg';
 
 let waypointLabel = 'A';
+let repeat = 1;
 
 const resetWaypointLabel = (): void => {
   waypointLabel = 'A';
+  repeat = 1;
 };
 
 const getWaypointLabel = () => {
-  const label = waypointLabel;
+  const newLabel = waypointLabel.repeat(repeat);
 
   // Get the next label. If the current label is Z then
   // start uing lower case letters.
@@ -22,11 +24,15 @@ const getWaypointLabel = () => {
   if (waypointLabel === 'Z') {
     waypointLabel = 'a';
   }
+  else if (waypointLabel === 'z') {
+    repeat += 1;
+    waypointLabel = 'A';
+  }
   else {
     waypointLabel = String.fromCharCode(waypointLabel.charCodeAt(0) + 1);
   }
 
-  return label;
+  return newLabel;
 };
 
 class Anchor extends Marker implements MarkerInterface {
@@ -47,6 +53,10 @@ class Anchor extends Marker implements MarkerInterface {
     this.trail = props.trail;
     this.trailLength = props.trailLength;
 
+    if (props.type === 'waypoint') {
+      this.label = getWaypointLabel() ?? null;
+    }
+
     this.route = route;
 
     makeObservable(this, {
@@ -56,7 +66,7 @@ class Anchor extends Marker implements MarkerInterface {
 
     this.marker = new TrailMarker(
       wayPointUrl,
-      getWaypointLabel(),
+      this.label,
     );
   }
 
@@ -71,7 +81,8 @@ class Anchor extends Marker implements MarkerInterface {
   }
 
   setLabel(): void {
-    this.marker.setLabel(getWaypointLabel());
+    this.label = getWaypointLabel();
+    this.marker.setLabel(this.label);
   }
 }
 

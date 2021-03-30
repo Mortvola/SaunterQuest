@@ -32,7 +32,7 @@ export function positionMapToBounds(map: L.Map, p1: LatLng, p2: LatLng): void {
   map.fitBounds([[bounds.south, bounds.west], [bounds.north, bounds.east]]);
 }
 
-export function createIcon(iconUrl: string | Array<string>, label?: string): L.DivIcon {
+export function createIcon(iconUrl: string | Array<string>, label?: string | null): L.DivIcon {
   let html = '<div style="display: flex;flex-direction: column; width: max-content; height: max-content; background: #263a7a; border-radius: 12px;">';
 
   let iconCount = 1;

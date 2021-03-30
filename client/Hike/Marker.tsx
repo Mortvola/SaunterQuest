@@ -68,6 +68,8 @@ const Marker = ({
       }
     });
 
+  const label = marker.label();
+
   if (icons.length !== 0) {
     return (
       <>
@@ -75,7 +77,7 @@ const Marker = ({
         <LeafletMarker
           ref={markerRef}
           position={marker.latLng}
-          icon={createIcon(icons)}
+          icon={createIcon(icons, label)}
           draggable
           eventHandlers={{
             dragend: handleDragEnd,
