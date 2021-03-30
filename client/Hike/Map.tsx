@@ -12,7 +12,6 @@ import {
 } from 'react-leaflet';
 import { observer } from 'mobx-react-lite';
 import Route from './Route';
-import DayMarker from './DayMarker';
 import { useGotoLocationDialog } from './GotoLocationDialog';
 import { useTerrainDialog } from './TerrainDialog';
 import Graticule from './Graticule';

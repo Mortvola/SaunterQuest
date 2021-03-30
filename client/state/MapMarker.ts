@@ -1,4 +1,5 @@
 import { makeAutoObservable, runInAction } from 'mobx';
+import DayMarker from './Markers/DayMarker';
 import { LatLng, MarkerInterface, MarkerTypes } from './Types';
 
 class MapMarker {
@@ -39,8 +40,18 @@ class MapMarker {
     }
   }
 
-  types(): Array<MarkerTypes> {
-    return this.#markers.map((m) => m.type);
+  types = (): Array<MarkerTypes> => (
+    this.#markers.map((m) => m.type)
+  )
+
+  popup = (): string | null => {
+    const dayMarker = this.#markers.find((m) => m.type === 'day');
+
+    if (dayMarker) {
+      return `Day ${(dayMarker as DayMarker).day.day}`;
+    }
+
+    return null;
   }
 
   label = (): string | null => {

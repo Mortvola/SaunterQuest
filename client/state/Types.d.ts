@@ -100,7 +100,6 @@ export interface Day {
   gain: number;
   loss: number;
   accumWeight: number;
-  marker: TrailMarker,
 }
 
 export interface RouteInterface {

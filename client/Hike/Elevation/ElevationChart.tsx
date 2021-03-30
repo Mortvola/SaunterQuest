@@ -37,12 +37,14 @@ const ElevationChart = ({
         }
 
         google.visualization.events.addListener(c, 'onmouseover', (event: { column: number, row: number }) => {
-          if (typeof elevationData[event.row + 1][2] === 'number'
+          if (elevationData[event.row + 1] !== undefined) {
+            if (typeof elevationData[event.row + 1][2] === 'number'
             && typeof elevationData[event.row + 1][3] === 'number') {
-            hike.setElevationMarker({
-              lat: elevationData[event.row + 1][2] as number,
-              lng: elevationData[event.row + 1][3] as number,
-            });
+              hike.setElevationMarker({
+                lat: elevationData[event.row + 1][2] as number,
+                lng: elevationData[event.row + 1][3] as number,
+              });
+            }
           }
         });
 

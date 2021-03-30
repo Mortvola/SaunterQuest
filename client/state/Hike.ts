@@ -1,7 +1,6 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import HikerProfile from './HikerProfile';
 import Map from './Map';
-import TrailMarker from './TrailMarker';
 import Route from './Route';
 import { httpDelete, postJSON } from './Transports';
 import {
@@ -12,8 +11,6 @@ import { createIcon } from '../Hike/mapUtils';
 import CampsiteMarker from './Markers/CampsiteMarker';
 import Marker from './Markers/Marker';
 import DayMarker from './Markers/DayMarker';
-
-const dayMarkerUrl = '/moon.svg';
 
 class Hike implements HikeInterface {
   id: number;
@@ -158,11 +155,10 @@ class Hike implements HikeInterface {
               gain: d.gain,
               loss: d.loss,
               accumWeight: 0,
-              marker: new TrailMarker(dayMarkerUrl),
             };
 
             if (index > 0) {
-              this.map.addMarker(new DayMarker({ lat: d.lat, lng: d.lng }));
+              this.map.addMarker(new DayMarker(day, { lat: d.lat, lng: d.lng }));
             }
 
             meters += d.meters;

@@ -1,6 +1,6 @@
 import React, { ReactElement, useRef } from 'react';
 // import PropTypes from 'prop-types';
-import { Marker as LeafletMarker } from 'react-leaflet';
+import { Marker as LeafletMarker, Popup } from 'react-leaflet';
 import { observer } from 'mobx-react-lite';
 import Route from '../state/Route';
 import Anchor from '../state/Markers/Anchor';
@@ -43,6 +43,8 @@ const Marker = ({
 
   const [ContextMenu, showContextMenu] = useContextMenu('marker', makeContextMenu, 'main');
 
+  let draggable = false;
+
   const icons = marker.types()
     .filter((type) => (
       (type !== 'day' || uiState.showMarkers.get('day'))
@@ -54,19 +56,25 @@ const Marker = ({
     .map((type) => {
       switch (type) {
         case 'waypoint':
+          draggable = true;
           return '/compass.svg';
         case 'campsite':
+          draggable = true;
           return '/campsite.svg';
         case 'day':
           return '/moon.svg';
         case 'water':
+          draggable = true;
           return '/water.svg';
         case 'resupply':
+          draggable = true;
           return '/resupply.svg';
         default:
           return '';
       }
     });
+
+  const popup = marker.popup();
 
   const label = marker.label();
 
@@ -78,12 +86,22 @@ const Marker = ({
           ref={markerRef}
           position={marker.latLng}
           icon={createIcon(icons, label)}
-          draggable
+          draggable={draggable}
           eventHandlers={{
             dragend: handleDragEnd,
             contextmenu: showContextMenu,
           }}
-        />
+        >
+          {
+            popup
+              ? (
+                <Popup offset={[0, -12]}>
+                  { popup }
+                </Popup>
+              )
+              : null
+          }
+        </LeafletMarker>
       </>
     );
   }

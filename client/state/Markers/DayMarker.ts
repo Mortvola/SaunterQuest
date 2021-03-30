@@ -1,9 +1,13 @@
-import { LatLng, MarkerInterface } from '../Types';
+import { Day, LatLng, MarkerInterface } from '../Types';
 import Marker from './Marker';
 
 class DayMarker extends Marker implements MarkerInterface {
-  constructor(latLng: LatLng) {
+  day: Day;
+
+  constructor(day: Day, latLng: LatLng) {
     super('day', latLng, false);
+
+    this.day = day;
   }
 }
 
