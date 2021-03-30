@@ -61,7 +61,8 @@
     "redux-thunk": "^2.3.0",
     "reflect-metadata": "^0.1.13",
     "regenerator-runtime": "^0.13.7",
-    "source-map-support": "^0.5.19"
+    "source-map-support": "^0.5.19",
+    "xml2js": "^0.4.23"
   },
   "devDependencies": {
     "@adonisjs/assembler": "^3.1.1",
@@ -69,6 +70,7 @@
     "@babel/preset-env": "^7.13.10",
     "@types/leaflet": "^1.7.0",
     "@types/react-router-dom": "^5.1.7",
+    "@types/xml2js": "^0.4.8",
     "@typescript-eslint/eslint-plugin": "^4.18.0",
     "@typescript-eslint/parser": "^4.18.0",
     "adonis-preset-ts": "^1.1.0",

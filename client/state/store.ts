@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react';
 import Gear from './Gear';
+import Gpx from './Gpx';
 import HikeManager from './HikeManager';
 import UiState from './UiState';
 
@@ -9,6 +10,8 @@ class Store {
   hikeManager = new HikeManager(this);
 
   gear = new Gear(this);
+
+  gpx = new Gpx();
 }
 
 const store = new Store();

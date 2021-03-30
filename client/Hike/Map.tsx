@@ -1,7 +1,6 @@
 import React, {
   useState, useRef, ReactElement, useEffect, useCallback,
 } from 'react';
-import PropTypes from 'prop-types';
 import {
   TileLayer,
   useMap,
@@ -19,6 +18,7 @@ import Hike from '../state/Hike';
 import { LatLng } from '../state/Types';
 import useContextMenu, { MenuItemTypes } from '../../Utilities/ContextMenu';
 import Marker from './Marker';
+import Gpx from './Gpx';
 
 type Props = {
   tileServerUrl: string;
@@ -134,6 +134,7 @@ const Map = ({
           <Marker key={`${m.latLng.lat},${m.latLng.lng}`} marker={m} />
         ))
       }
+      <Gpx />
       {
         hike.elevationMarkerPos
           ? (

@@ -10,6 +10,7 @@ import { useStores } from '../state/store';
 import MapContainer from './MapContainer';
 import EditableText from '../Hikes/EditableText';
 import HikeData from '../state/Hike';
+import UploadFileButton from './UploadFileButton';
 
 type Props = {
   tileServerUrl: string;
@@ -18,7 +19,7 @@ type Props = {
 const Hike = ({
   tileServerUrl,
 }: Props): ReactElement | null => {
-  const { uiState } = useStores();
+  const { uiState, gpx } = useStores();
   const history = useHistory();
 
   useEffect(() => {
@@ -73,6 +74,14 @@ const Hike = ({
     locationPopup = uiState.hike.map.locationPopup;
   }
 
+  const handleFileSelection = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { files } = event.target;
+
+    if (files && files.length > 0) {
+      gpx.loadGpxData(files[0]);
+    }
+  };
+
   if (uiState.hike) {
     return (
       <div className="hike-grid">
@@ -83,6 +92,7 @@ const Hike = ({
             url={uiState.hike.id.toString()}
             prop="name"
           />
+          <UploadFileButton onFileSelection={handleFileSelection} label="Upload GPX" />
           <div className="blog-controls">
             <input
               type="image"
