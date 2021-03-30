@@ -2,7 +2,7 @@ import React, { useState, useEffect, ReactElement } from 'react';
 // import PropTypes from 'prop-types';
 import { Modal } from 'react-bootstrap';
 import { LatLng } from '../state/Types';
-import useModal, { ModalProps } from '../useModal';
+import useModal, { ModalProps } from '../../Utilities/useModal';
 import Terrain from './Terrain';
 
 type Props = {

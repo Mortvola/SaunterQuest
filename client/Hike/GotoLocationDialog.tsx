@@ -3,7 +3,7 @@ import React, { ReactElement } from 'react';
 // import PropTypes from 'prop-types';
 import { Modal, Button } from 'react-bootstrap';
 import { Formik, Form, Field } from 'formik';
-import useModal, { ModalProps } from '../useModal';
+import useModal, { ModalProps } from '../../Utilities/useModal';
 import Hike from '../state/Hike';
 
 type Props = {

@@ -4,7 +4,7 @@ import React, { useRef, ReactElement } from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import { useStores } from '../state/store';
 import { VIEW_HIKE } from '../menuEvents';
-import useModal, { ModalProps } from '../useModal';
+import useModal, { ModalProps } from '../../Utilities/useModal';
 
 const HikeDialog = ({
   show,
