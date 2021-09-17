@@ -1,74 +1,89 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+/* eslint-disable jsx-a11y/label-has-associated-control */
+import React, { ReactElement } from 'react';
 import { Modal } from 'react-bootstrap';
 import { Formik, Form, Field } from 'formik';
-import useModal from '../../Utilities/useModal';
+import useModal, { ModalProps } from '../../Utilities/useModal';
 import { toTimeFloat, toTimeString } from '../utilities';
+import HikerProfile from '../state/HikerProfile';
+import Hike from '../state/Hike';
+
+type PropsType = {
+  hike: Hike,
+  profile?: HikerProfile | null,
+}
 
 const HikerProfileDialog = ({
   hike,
   profile,
   show,
   onHide,
-}) => {
-  const incrementValue = (value) => {
-    if (value !== '' && value !== undefined && value !== null) {
-      return value + 1;
+}: PropsType & ModalProps): ReactElement | null => {
+  type ValuesType = {
+    breakDuration: string,
+    speedFactor: string,
+    startTime: string,
+    endTime: string,
+    startDay: string,
+    endDay: string,
+    endDayExtension: string,
+  }
+
+  const incrementValue = (value: null | number) => {
+    if (value !== null) {
+      return (value + 1).toString();
     }
 
     return '';
   };
 
-  const decrementValue = (value) => {
-    if (value !== '' && value !== undefined && value !== null) {
-      return value - 1;
+  const decrementValue = (value: string) => {
+    if (value !== '') {
+      return parseInt(value, 10) - 1;
     }
 
     return null;
   };
 
-  const handleSubmit = async (vals) => {
-    if (profile.id) {
+  const handleSubmit = async (vals: ValuesType) => {
+    if (profile) {
       profile.update({
+        id: profile.id,
+        breakDuration: parseInt(vals.breakDuration, 10),
+        speedFactor: parseInt(vals.speedFactor, 10),
         startTime: toTimeFloat(vals.startTime),
         endTime: toTimeFloat(vals.endTime),
         startDay: decrementValue(vals.startDay),
         endDay: decrementValue(vals.endDay),
+        endDayExtension: parseInt(vals.endDayExtension, 10),
       });
     }
     else {
       hike.addHikerProfile({
+        id: 0,
+        breakDuration: parseInt(vals.breakDuration, 10),
+        speedFactor: parseInt(vals.speedFactor, 10),
         startTime: toTimeFloat(vals.startTime),
         endTime: toTimeFloat(vals.endTime),
         startDay: decrementValue(vals.startDay),
         endDay: decrementValue(vals.endDay),
+        endDayExtension: parseInt(vals.endDayExtension, 10),
       });
     }
 
     onHide();
   };
 
-  const nullsToEmptyStrings = (v) => {
-    const v2 = v;
-
-    Object.keys(v2).forEach((k) => {
-      if (v2[k] === null) {
-        v2[k] = '';
-      }
-    });
-
-    return v2;
-  };
-
   return (
     <Modal show={show} onHide={onHide}>
-      <Formik
+      <Formik<ValuesType>
         initialValues={{
-          ...nullsToEmptyStrings(profile),
-          startTime: toTimeString(profile.startTime),
-          endTime: toTimeString(profile.endTime),
-          startDay: incrementValue(profile.startDay),
-          endDay: incrementValue(profile.endDay),
+          startTime: profile ? (toTimeString(profile.startTime) ?? '') : '',
+          endTime: profile ? (toTimeString(profile.endTime) ?? '') : '',
+          startDay: profile ? (incrementValue(profile.startDay) ?? '') : '',
+          endDay: profile ? (incrementValue(profile.endDay) ?? '') : '',
+          speedFactor: profile && (profile.speedFactor !== null) ? (profile.speedFactor.toString() ?? '') : '',
+          breakDuration: profile && (profile.breakDuration !== null) ? (profile.breakDuration.toString() ?? '') : '',
+          endDayExtension: profile && (profile.endDayExtension !== null) ? (profile.endDayExtension.toString() ?? '') : '',
         }}
         onSubmit={handleSubmit}
       >
@@ -126,28 +141,15 @@ const HikerProfileDialog = ({
   );
 };
 
-HikerProfileDialog.propTypes = {
-  hike: PropTypes.shape().isRequired,
-  profile: PropTypes.shape(),
-  show: PropTypes.bool.isRequired,
-  onHide: PropTypes.func.isRequired,
-};
-
 HikerProfileDialog.defaultProps = {
-  profile: {
-    startDay: '',
-    endDay: '',
-    speedFactor: 100,
-    startTime: 7.0,
-    endTime: 18.00,
-    breakDuration: 60,
-    endDayExtension: 60,
-    endHikeDayExtension: 60,
-  },
+  profile: null,
 };
 
-const useHikerProfileDialog = () => {
-  const [DialogModal, showDialogModal] = useModal(HikerProfileDialog);
+const useHikerProfileDialog = (): [
+  (props: PropsType) => (ReactElement | null),
+  () => void,
+] => {
+  const [DialogModal, showDialogModal] = useModal<PropsType>(HikerProfileDialog);
 
   return [
     DialogModal,

@@ -4,7 +4,7 @@ import { putJSON } from './Transports';
 import { ProfileProps } from './Types';
 
 class HikerProfile {
-  id: number;
+  id: number | null;
 
   startDay: number | null;
 
@@ -14,9 +14,9 @@ class HikerProfile {
 
   endTime: number | null;
 
-  breakDuration: number;
+  breakDuration: number | null;
 
-  speedFactor: number;
+  speedFactor: number | null;
 
   endDayExtension: number | null;
 
@@ -38,6 +38,9 @@ class HikerProfile {
 
   update = async (profile: ProfileProps): Promise<void> => {
     const response = await putJSON(`/hike/${this.hike.id}/hiker-profile/${this.id}`, {
+      breakDuration: profile.breakDuration,
+      speedFactor: profile.speedFactor,
+      endDayExtension: profile.endDayExtension,
       startTime: profile.startTime,
       endTime: profile.endTime,
       startDay: profile.startDay,

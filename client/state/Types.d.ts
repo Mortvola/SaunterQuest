@@ -139,12 +139,12 @@ export interface PointOfInterestProps {
 }
 
 export interface ProfileProps {
-  id: number;
+  id: number | null;
   startDay: number | null;
   endDay: number | null;
   startTime: number | null;
   endTime: number | null;
-  breakDuration: number;
-  speedFactor: number;
+  breakDuration: number | null;
+  speedFactor: number | null;
   endDayExtension: number | null;
 }

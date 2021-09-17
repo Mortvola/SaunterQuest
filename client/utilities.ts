@@ -88,8 +88,8 @@ function unformatTime(t: string): number {
   return parseInt(time[0], 10) * 60 + parseInt(time[1], 10);
 }
 
-function toTimeString(time: number | undefined): string | null {
-  if (time !== undefined) {
+function toTimeString(time: number | undefined | null): string | null {
+  if (time !== undefined && time !== null) {
     let hour = Math.floor(time).toString();
     if (time < 10) {
       hour = `0${hour}`;

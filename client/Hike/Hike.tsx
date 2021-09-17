@@ -92,7 +92,7 @@ const Hike = ({
             url={uiState.hike.id.toString()}
             prop="name"
           />
-          <UploadFileButton onFileSelection={handleFileSelection} label="Upload GPX" />
+          <UploadFileButton onFileSelection={handleFileSelection} label="Upload GPX" accept="*.gpx" />
           <div className="blog-controls">
             <input
               type="image"
