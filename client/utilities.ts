@@ -1,4 +1,4 @@
-function nvl(value: unknown, replacement: unknown): unknown {
+function nvl<T1, T2>(value: T1, replacement: T2): T1 | T2 {
   if (value == null) {
     return replacement;
   }

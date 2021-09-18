@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
 import { observer } from 'mobx-react-lite';
 import { useHikerProfileDialog } from './HikerProfileDialog';
 import HikerProfile from './HikerProfile';
 import IconButton from '../IconButton';
+import { HikeInterface } from '../state/Types';
+
+type PropsType = {
+  hike: HikeInterface,
+}
 
 const HikerProfiles = ({
   hike,
-}) => {
+}: PropsType) => {
   const [initialized, setInitialized] = useState(false);
   const [HikerProfilDialog, showHikerProfileDialog] = useHikerProfileDialog();
 
@@ -40,10 +44,6 @@ const HikerProfiles = ({
       <HikerProfilDialog hike={hike} />
     </div>
   );
-};
-
-HikerProfiles.propTypes = {
-  hike: PropTypes.shape().isRequired,
 };
 
 export default observer(HikerProfiles);

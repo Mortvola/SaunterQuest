@@ -23,11 +23,11 @@ class Hike implements HikeInterface {
 
   requesting = false;
 
-  hikerProfiles: Array<HikerProfile> = [];
+  hikerProfiles: HikerProfile[] = [];
 
-  schedule: Array<Day> = [];
+  schedule: Day[] = [];
 
-  route = new Route(this);
+  route: Route = new Route(this);
 
   camps: Array<CampsiteMarker> = [];
 

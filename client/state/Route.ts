@@ -10,7 +10,7 @@ import {
 class Route implements RouteInterface {
   hike: HikeInterface;
 
-  anchors: Array<Anchor> = [];
+  anchors: Anchor[] = [];
 
   elevations: Array<[number, number, number, number]> = [];
 

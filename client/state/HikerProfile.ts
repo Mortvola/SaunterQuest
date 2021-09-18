@@ -1,9 +1,9 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import Hike from './Hike';
 import { putJSON } from './Transports';
-import { ProfileProps } from './Types';
+import { HikerProfileInterface, ProfileProps } from './Types';
 
-class HikerProfile {
+class HikerProfile implements HikerProfileInterface {
   id: number | null;
 
   startDay: number | null;
@@ -36,7 +36,7 @@ class HikerProfile {
     makeAutoObservable(this);
   }
 
-  update = async (profile: ProfileProps): Promise<void> => {
+  async update(profile: ProfileProps): Promise<void> {
     const response = await putJSON(`/hike/${this.hike.id}/hiker-profile/${this.id}`, {
       breakDuration: profile.breakDuration,
       speedFactor: profile.speedFactor,

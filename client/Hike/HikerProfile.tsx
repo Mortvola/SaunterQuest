@@ -1,20 +1,30 @@
-import React from 'react';
+import React, { ReactElement } from 'react';
 import PropTypes from 'prop-types';
 import { Card } from 'react-bootstrap';
 import { observer } from 'mobx-react-lite';
+import { HikeInterface, HikerProfileInterface } from '../state/Types';
 import { nvl, formatTime } from '../utilities';
 import { useDeleteConfirmation } from '../DeleteConfirmation';
 import { useHikerProfileDialog } from './HikerProfileDialog';
 import IconButton from '../IconButton';
 
+type PropsType = {
+  hike: HikeInterface,
+  profile: HikerProfileInterface,
+}
+
 const HikerProfile = ({
   hike,
   profile,
-}) => {
+}: PropsType): ReactElement => {
   const [HikerProfilDialog, showHikerProfileDialog] = useHikerProfileDialog();
   const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
     'Are you sure you want to delete this profile?',
     () => {
+      if (profile.id === null) {
+        throw new Error('hiker profile id is null');
+      }
+
       hike.deleteHikerProfile(profile.id);
     },
   );
@@ -22,14 +32,14 @@ const HikerProfile = ({
   // fixup start day.
   let startDay = nvl(profile.startDay, '');
 
-  if (startDay !== '') {
+  if (typeof startDay === 'string' && startDay !== '') {
     startDay = parseInt(startDay, 10) + 1;
   }
 
   // fixup end day
   let endDay = nvl(profile.endDay, '');
 
-  if (endDay !== '') {
+  if (typeof endDay === 'string' && endDay !== '') {
     endDay = parseInt(endDay, 10) + 1;
   }
 
@@ -49,9 +59,9 @@ const HikerProfile = ({
         <div>Pace Factor</div>
         <div>{nvl(profile.speedFactor, '')}</div>
         <div>Start Time</div>
-        <div>{formatTime(nvl(profile.startTime * 60, ''))}</div>
+        <div>{formatTime(profile.startTime !== null ? profile.startTime * 60 : 0)}</div>
         <div>End Time</div>
-        <div>{formatTime(nvl(profile.endTime * 60, ''))}</div>
+        <div>{formatTime(profile.endTime !== null ? profile.endTime * 60 : 0)}</div>
         <div>Break Duration</div>
         <div>{nvl(profile.breakDuration, '')}</div>
         <div>End of Day Extension</div>
@@ -61,11 +71,6 @@ const HikerProfile = ({
       <DeleteConfirmation />
     </Card>
   );
-};
-
-HikerProfile.propTypes = {
-  hike: PropTypes.shape().isRequired,
-  profile: PropTypes.shape().isRequired,
 };
 
 export default observer(HikerProfile);

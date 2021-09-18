@@ -1,13 +1,17 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import React, { ReactElement } from 'react';
 import { loadResupply } from './resupplyPlan';
 import { addTrailCondition } from './trailCondition';
 import Schedule from './Schedule';
 import HikerProfiles from './HikerProfiles';
+import { HikeInterface } from 'state/Types';
+
+type PropsType = {
+  hike: HikeInterface,
+}
 
 const Controls = ({
   hike,
-}) => {
+}: PropsType): ReactElement => {
   const handleResupplyClick = () => {
     loadResupply(hike.id);
   };
@@ -108,10 +112,6 @@ const Controls = ({
       </div>
     </div>
   );
-};
-
-Controls.propTypes = {
-  hike: PropTypes.shape().isRequired,
 };
 
 export default Controls;

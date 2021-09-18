@@ -4,17 +4,16 @@ import { Modal } from 'react-bootstrap';
 import { Formik, Form, Field } from 'formik';
 import useModal, { ModalProps, UseModalType } from '@mortvola/usemodal';
 import { toTimeFloat, toTimeString } from '../utilities';
-import HikerProfile from '../state/HikerProfile';
-import Hike from '../state/Hike';
+import { HikeInterface, HikerProfileInterface } from '../state/Types';
 
 type PropsType = {
-  hike: Hike,
-  profile?: HikerProfile | null,
+  hike: HikeInterface,
+  profile?: HikerProfileInterface | null,
 }
 
 const HikerProfileDialog = ({
   hike,
-  profile,
+  profile = null,
   show,
   onHide,
 }: PropsType & ModalProps): ReactElement | null => {

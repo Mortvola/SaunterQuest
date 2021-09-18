@@ -1,15 +1,19 @@
-import React from 'react';
+import React, { ReactElement } from 'react';
 import { observer } from 'mobx-react-lite';
 import { positionMapToBounds } from './mapUtils';
 import {
   metersToFeet, gramsToPoundsAndOunces, metersToMilesRounded, formatTime,
 } from '../utilities';
-import { useStores } from '../state/store';
-import { Day } from '../state/Types';
+import { Day, HikeInterface } from '../state/Types';
 // import EndOfDayMarker from './trailMarker/EndOfDayMarker';
 
-const Schedule = () => {
-  const { uiState: { hike } } = useStores();
+type PropsType = {
+  hike: HikeInterface,
+}
+
+const Schedule = ({
+  hike,
+}: PropsType): ReactElement => {
   const positionMapToDay = (d: number) => {
     if (hike === null) {
       throw new Error('hike is null');

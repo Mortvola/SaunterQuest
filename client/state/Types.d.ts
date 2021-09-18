@@ -9,17 +9,52 @@ export interface HikeItemInterface {
   name: string;
 }
 
+export interface HikerProfileInterface {
+  id: number | null;
+
+  startDay: number | null;
+
+  endDay: number | null;
+
+  startTime: number | null;
+
+  endTime: number | null;
+
+  breakDuration: number | null;
+
+  speedFactor: number | null;
+
+  endDayExtension: number | null;
+
+  update(profile: ProfileProps): Promise<void>;
+}
+
 export interface HikeInterface {
   id: number;
+
   map: MapInterface;
 
+  schedule: Day[];
+
+  route: RouteInterface;
+
+  hikerProfiles: HikerProfileInterface[];
+
   requestSchedule(): Promise<void>;
+
+  requestHikerProfiles(): Promise<void>;
+
+  deleteHikerProfile(id: number): Promise<void>;
+
+  addHikerProfile: (profile: ProfileProps) => Promise<void>;
 }
 
 export interface MapInterface {
-  markers: Array<MapMarkerInterface>;
+  markers: MapMarkerInterface[];
 
   addMarker(marker: MarkerInterface): void;
+
+  getLeafLetMap(): L.Map | null;
 }
 
 export interface MapMarkerInterface {
@@ -103,6 +138,8 @@ export interface Day {
 }
 
 export interface RouteInterface {
+  anchors: Anchor[];
+
   moveWaypoint: (id: number, point: LatLng) => Promise<LatLng>;
 }
 
