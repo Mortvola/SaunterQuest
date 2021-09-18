@@ -88,10 +88,6 @@ $().ready(()
         
                                     $.ajax({
                                         url: url,
-                                        headers:
-                                        {
-                                            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
-                                        },
                                         type: "PUT",
                                         contentType: "application/json",
                                         data: JSON.stringify({[prop]: value})

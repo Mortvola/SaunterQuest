@@ -22,7 +22,7 @@ class HikeManager implements HikeManagerInterface {
   async requestHikes(): Promise<void> {
     this.setRequesting(true);
 
-    const response = await fetch('/hikes');
+    const response = await fetch('/api/hikes');
 
     if (response.ok) {
       const hikes = await response.json();
@@ -97,7 +97,7 @@ class HikeManager implements HikeManagerInterface {
   }
 
   async deleteHike(id: number): Promise<void> {
-    const response = await httpDelete(`hike/${id}`);
+    const response = await httpDelete(`/api/hike/${id}`);
 
     if (response.ok) {
       runInAction(() => {

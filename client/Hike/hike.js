@@ -109,10 +109,6 @@ function gotoLocation(event) {
 function downloadElevations(object, position) {
   $.ajax({
     url: '/elevation/file',
-    headers:
-        {
-          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-        },
     contentType: 'application/json',
     type: 'PUT',
     data: JSON.stringify({ lat: position.lat(), lng: position.lng() }),

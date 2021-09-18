@@ -37,52 +37,57 @@ Route.get('/password/reset/:id/:token', 'AuthController.resetPassword');
 Route.post('/password/update', 'AuthController.updatePassword').as('updatePassword');
 Route.post('/password/change', 'AuthController.changePassword');
 
-Route.get('/hikes', 'HikesController.get');
-
 Route.group(() => {
-  Route.post('/', 'HikesController.addHike');
+  Route.get('/hikes', 'HikesController.get');
 
   Route.group(() => {
-    Route.put('/', 'HikesController.update');
-    Route.delete('/', 'HikesController.delete');
-    Route.get('/details', 'HikesController.getDetails');
-    Route.get('/route', 'RouteController.get');
-    Route.post('/route/start-point', 'RouteController.addWaypoint');
-    Route.post('/route/end-point', 'RouteController.addEndPoint');
-    Route.post('/route/waypoint', 'RouteController.addWaypoint');
-    Route.delete('/route/waypoint/:waypointId', 'RouteController.deleteWaypoint');
+    Route.post('/', 'HikesController.addHike');
 
-    Route.put('/route/waypoint/:waypointId/position', 'RouteController.updateWaypointPosition');
+    Route.group(() => {
+      Route.put('/', 'HikesController.update');
+      Route.delete('/', 'HikesController.delete');
+      Route.get('/details', 'HikesController.getDetails');
+      Route.get('/route', 'RouteController.get');
+      Route.post('/route/start-point', 'RouteController.addWaypoint');
+      Route.post('/route/end-point', 'RouteController.addEndPoint');
+      Route.post('/route/waypoint', 'RouteController.addWaypoint');
+      Route.delete('/route/waypoint/:waypointId', 'RouteController.deleteWaypoint');
 
-    Route.get('/hiker-profile', 'HikerProfilesController.get').middleware('auth');
-    Route.post('/hiker-profile', 'HikerProfilesController.addProfile');
-    Route.put('/hiker-profile/:profileId', 'HikerProfilesController.updateProfile');
-    Route.delete('/hiker-profile/:profileId', 'HikerProfilesController.deleteProfile');
+      Route.put('/route/waypoint/:waypointId/position', 'RouteController.updateWaypointPosition');
 
-    Route.get('/schedule', 'SchedulesController.get');
+      Route.group(() => {
+        Route.get('', 'HikerProfilesController.get').middleware('auth');
+        Route.post('', 'HikerProfilesController.addProfile');
+        Route.put('/:profileId', 'HikerProfilesController.updateProfile');
+        Route.delete('/:profileId', 'HikerProfilesController.deleteProfile');
+      })
+        .prefix('/hiker-profile');
 
-    Route.get('/poi', 'PointOfInterestsController.get');
-    Route.post('/poi', 'PointOfInterestsController.add');
+      Route.get('/schedule', 'SchedulesController.get');
+
+      Route.get('/poi', 'PointOfInterestsController.get');
+      Route.post('/poi', 'PointOfInterestsController.add');
+    })
+      .prefix('/:hikeId');
   })
-    .prefix('/:hikeId');
-})
-  .prefix('/hike')
-  .middleware('auth');
+    .prefix('/hike');
 
-Route.group(() => {
-  Route.get('/configuration', 'GearConfigurationsController.get');
-  Route.post('/configuration', 'GearConfigurationsController.add');
-  Route.put('/configuration/:configId', 'GearConfigurationsController.update');
-  Route.delete('/configuration/:configId', 'GearConfigurationsController.delete');
-  Route.get('/configuration/:configId/items', 'GearConfigurationsController.getItems');
-  Route.post('/configuration/:configId/item', 'GearConfigurationsController.addItem');
-  Route.put('/configuration/:configId/item/:itemId', 'GearConfigurationsController.updateItem');
-  Route.delete('/configuration/:configId/item/:itemId', 'GearConfigurationsController.deleteItem');
+  Route.group(() => {
+    Route.get('/configuration', 'GearConfigurationsController.get');
+    Route.post('/configuration', 'GearConfigurationsController.add');
+    Route.put('/configuration/:configId', 'GearConfigurationsController.update');
+    Route.delete('/configuration/:configId', 'GearConfigurationsController.delete');
+    Route.get('/configuration/:configId/items', 'GearConfigurationsController.getItems');
+    Route.post('/configuration/:configId/item', 'GearConfigurationsController.addItem');
+    Route.put('/configuration/:configId/item/:itemId', 'GearConfigurationsController.updateItem');
+    Route.delete('/configuration/:configId/item/:itemId', 'GearConfigurationsController.deleteItem');
 
-  Route.get('/item', 'GearItemsController.get');
-  Route.put('/item/:itemId', 'GearItemsController.updateItem');
-  Route.post('/item', 'GearItemsController.addItem');
-  Route.delete('/item/:itemId', 'GearItemsController.deleteItem');
+    Route.get('/item', 'GearItemsController.get');
+    Route.put('/item/:itemId', 'GearItemsController.updateItem');
+    Route.post('/item', 'GearItemsController.addItem');
+    Route.delete('/item/:itemId', 'GearItemsController.deleteItem');
+  })
+    .prefix('/gear');
 })
-  .prefix('/gear')
+  .prefix('/api')
   .middleware('auth');

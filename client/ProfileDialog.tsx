@@ -37,14 +37,6 @@ const ProfileDialog = ({
   const handleSubmit = async (vals: ValuesType) => {
     const headers = new Headers();
 
-    const crsfElement = document.querySelector('meta[name="csrf-token"]');
-    if (crsfElement) {
-      const token = crsfElement.getAttribute('content');
-      if (token) {
-        headers.append('X-CSRF-TOKEN', token);
-      }
-    }
-
     headers.append('Content-Type', 'application/json');
 
     fetch('/user/profile', {

@@ -36,7 +36,7 @@ const Hike = ({
       <div className="hike-card-header card-header">
         <EditableText
           defaultValue={hike.name}
-          url={`hike/${hike.id}`}
+          url={`/api/hike/${hike.id}`}
           prop="name"
         />
       </div>

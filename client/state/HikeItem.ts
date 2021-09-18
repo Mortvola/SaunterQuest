@@ -24,7 +24,7 @@ class HikeItem {
 
   requestDetails = async (): Promise<void> => {
     this.setRequesting(true);
-    const response = await fetch(`/hike/${this.id}/details`);
+    const response = await fetch(`/api/hike/${this.id}/details`);
 
     if (response.ok) {
       const details = await response.json();

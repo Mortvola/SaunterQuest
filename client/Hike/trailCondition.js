@@ -51,7 +51,6 @@ function insertTrailCondition() {
       url: `${sessionStorage.getItem('hikeId')}/trailCondition`,
       headers:
             {
-              'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
               'Content-type': 'application/json',
             },
       data: JSON.stringify(trailCondition),
@@ -119,7 +118,7 @@ function getTrailConditionColor(type) {
 }
 
 function retrieveTrailConditions(hikeId) {
-  fetch(`/hike/${hikeId}/trailCondition`)
+  fetch(`/api/hike/${hikeId}/trailCondition`)
     .then(async (response) => {
       if (response.ok) {
         trailConditions = await response.json();
@@ -253,7 +252,6 @@ function updateTrailCondition(trailConditionId) {
     url: `${sessionStorage.getItem('hikeId')}/trailCondition/${trailConditionId}`,
     headers:
         {
-          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
           'Content-type': 'application/json',
         },
     type: 'PUT',
@@ -287,10 +285,6 @@ function updateTrailCondition(trailConditionId) {
 function removeTrailCondition(trailConditionId) {
   $.ajax({
     url: `${sessionStorage.getItem('hikeId')}/trailCondition/${trailConditionId}`,
-    headers:
-        {
-          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-        },
     type: 'DELETE',
   })
     .done((trailCondition) => {

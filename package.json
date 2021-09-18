@@ -5,10 +5,10 @@
   "scripts": {
     "build": "node ace build",
     "start": "node ace serve --watch",
-    "dev-welcome-build": "browserify -t [ babelify --presets [ @babel/preset-react @babel/env ] ] client/Welcome.jsx --extension=.jsx > public/welcome.js",
+    "dev-welcome-build": "webpack --config-name welcome",
     "dev-app-build": "webpack --config-name app",
-    "welcome-build": "NODE_ENV=production browserify -t [ babelify --presets [ @babel/preset-react @babel/env ] ]  -t dotenvify client/Welcome.jsx --extension=.jsx | terser --compress --mangle > public/welcome.js",
-    "app-build": "NODE_ENV=production browserify -t [ babelify --presets [ @babel/preset-react @babel/env ] ]  -t dotenvify client/App.jsx --extension=.jsx | terser --compress --mangle > public/app.js",
+    "welcome-build": "webpack --config-name welcome --production",
+    "app-build": "webpack --config-name app --production",
     "lint": "eslint ."
   },
   "dependencies": {

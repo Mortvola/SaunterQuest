@@ -4,7 +4,6 @@ function submitForm(event, form, url, success, fail) {
   fetch(url, {
     method: 'POST',
     headers: {
-      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
       Accept: 'application/json',
     },
     body: formData,

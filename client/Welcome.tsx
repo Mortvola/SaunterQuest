@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import 'regenerator-runtime/runtime';
@@ -26,7 +28,12 @@ const Welcome = () => {
   };
 
   const handleLoad = () => {
-    document.querySelector('body').className = 'background';
+    const body = document.querySelector('body');
+
+    if (body) {
+      body.className = 'background';
+    }
+
     setImageLoaded(true);
   };
 

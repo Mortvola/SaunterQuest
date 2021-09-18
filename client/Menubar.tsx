@@ -27,14 +27,6 @@ const Menubar = ({
 
   const headers = new Headers();
 
-  const csrfElement = document.querySelector('meta[name="csrf-token"]');
-  if (csrfElement) {
-    const csrfToken = csrfElement.getAttribute('content') ?? undefined;
-    if (csrfToken) {
-      headers.append('X-CSRF-TOKEN', csrfToken);
-    }
-  }
-
   const logout = async () => {
     const response = await fetch('/logout', {
       method: 'POST',

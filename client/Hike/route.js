@@ -139,7 +139,6 @@ class Route {
       url: `${this.hikeId}/route/start-point`,
       headers:
             {
-              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
               'Content-type': 'application/json',
             },
       type: 'PUT',
@@ -167,7 +166,6 @@ class Route {
       url: `${this.hikeId}/route/endPoint`,
       headers:
             {
-              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
               'Content-type': 'application/json',
             },
       type: 'PUT',
@@ -191,11 +189,10 @@ class Route {
   updateWaypoint(marker) {
     $('#pleaseWait').show();
 
-    fetch(`/hike/${this.hikeId}/route/waypoint/${marker.id}/position`, {
+    fetch(`/api/hike/${this.hikeId}/route/waypoint/${marker.id}/position`, {
       method: 'PUT',
       headers:
             {
-              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
               'Content-type': 'application/json',
             },
       body: JSON.stringify(marker.getPosition()),
@@ -221,10 +218,6 @@ class Route {
 
     $.ajax({
       url: `${this.hikeId}/route/waypoint/${marker.id}`,
-      headers:
-            {
-              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            },
       type: 'DELETE',
       context: this,
     })
@@ -654,10 +647,6 @@ class Route {
 
       $.ajax({
         url: `${this.hikeId}/route/waypoint/${marker.id}/details`,
-        headers:
-                {
-                  'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                },
         type: 'PUT',
         contentType: 'application/json',
         data: JSON.stringify(details),
@@ -679,7 +668,6 @@ class Route {
       url: `${this.hikeId}/route/waypoint/order`,
       headers:
             {
-              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
               'Content-type': 'application/json',
             },
       type: 'PUT',

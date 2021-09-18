@@ -34,14 +34,6 @@ const ChangePasswordDialog = ({
 
     const headers = new Headers();
 
-    const csrfElement = document.querySelector('meta[name="csrf-token"]');
-    if (csrfElement) {
-      const csrfToken = csrfElement.getAttribute('content') ?? undefined;
-      if (csrfToken) {
-        headers.append('X-CSRF-TOKEN', csrfToken);
-      }
-    }
-
     headers.append('Accept', 'application/json');
 
     fetch('/password/change', {

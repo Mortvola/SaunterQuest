@@ -109,7 +109,7 @@ export const http: HttpConfig = {
     maxAge: '2h',
     httpOnly: true,
     secure: false,
-    sameSite: false,
+    sameSite: 'strict',
   },
 
   /*

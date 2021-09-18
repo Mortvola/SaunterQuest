@@ -21,7 +21,6 @@ const EditableText = ({
     fetch(url, {
       method: 'PUT',
       headers: {
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ [prop]: value }),

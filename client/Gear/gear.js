@@ -158,10 +158,6 @@ function createConfigItemMenu(item) {
 function deleteConfigItem(item) {
   $.ajax({
     url: `/gear/configuration/item/${item.data('id')}`,
-    headers:
-        {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-        },
     type: 'DELETE',
     context: item,
   })
@@ -227,10 +223,6 @@ function saveConfigItem(item) {
   item.removeData('timeoutId');
 
   const options = {
-    headers:
-        {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-        },
     contentType: 'application/json',
     dataType: 'json',
   };
@@ -363,10 +355,6 @@ function saveGearItem(item) {
   const record = getNamedValues(item);
 
   const options = {
-    headers:
-        {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-        },
     contentType: 'application/json',
     dataType: 'json',
     data: JSON.stringify(record),
@@ -419,10 +407,6 @@ function createGearItemMenu(item) {
   addMenuItem(menu, 'Delete Gear', () => {
     $.ajax({
       url: `/gear/item/${item.data('id')}`,
-      headers:
-                {
-                  'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                },
       type: 'DELETE',
     })
       .done(() => {
@@ -562,10 +546,6 @@ function loadGearItem(item) {
 function addGearConfiguration() {
   $.ajax({
     url: '/gear/configuration',
-    headers:
-        {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-        },
     contentType: 'application/json',
     type: 'POST',
     dataType: 'json',
