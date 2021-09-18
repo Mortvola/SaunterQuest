@@ -10,13 +10,13 @@ import {
   Marker as LeafletMarker,
 } from 'react-leaflet';
 import { observer } from 'mobx-react-lite';
+import useContextMenu, { MenuItemTypes } from '@mortvola/leaflet-context-menu';
 import Route from './Route';
 import { useGotoLocationDialog } from './GotoLocationDialog';
 import { useTerrainDialog } from './TerrainDialog';
 import Graticule from './Graticule';
 import Hike from '../state/Hike';
 import { LatLng } from '../state/Types';
-import useContextMenu, { MenuItemTypes } from '../../Utilities/ContextMenu';
 import Marker from './Marker';
 import Gpx from './Gpx';
 
