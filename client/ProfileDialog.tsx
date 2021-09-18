@@ -1,6 +1,6 @@
 /* eslint-disable react/require-default-props */
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import React, { ReactElement, useState } from 'react';
+import React, { ReactElement } from 'react';
 import { Formik, Form, Field } from 'formik';
 import { Modal } from 'react-bootstrap';
 import useModal, { ModalProps, UseModalType } from '@mortvola/usemodal';
