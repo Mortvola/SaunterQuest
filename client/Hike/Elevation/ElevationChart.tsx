@@ -1,11 +1,10 @@
-import React, { ReactElement, useState, useContext } from 'react';
-import PropTypes from 'prop-types';
+import React, { ReactElement, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import Chart from 'react-google-charts';
-import { ReactGoogleChartEvent } from 'react-google-charts/dist/types';
+import { ReactGoogleChartEvent, GoogleChartWrapper, GoogleVizEventName } from 'react-google-charts/dist/types';
 import ElevationDayMarkers from './ElevationDayMarkers';
-import { Day } from '../../state/Types';
 import Hike from '../../state/Hike';
+import { GoogleChartInterface } from './GoogleChartInterface';
 
 type Props = {
   hike: Hike;
@@ -14,7 +13,7 @@ type Props = {
 const ElevationChart = ({
   hike,
 }: Props): ReactElement => {
-  const [chart, setChart] = useState<google.visualization.LineChart | null>(null);
+  const [chart, setChart] = useState<GoogleChartInterface | null>(null);
   const elevationData: Array<Array<unknown | number>> = [
     [
       { label: 'Distance', role: 'domain', type: 'number' },
@@ -25,36 +24,51 @@ const ElevationChart = ({
     ...(hike.route.elevations || []),
   ];
 
-  const chartEvents: Array<ReactGoogleChartEvent> = [
+  const chartEvents: ReactGoogleChartEvent[] = [
     {
       eventName: 'ready',
-      callback({ chartWrapper }) {
-        const cw = ((chartWrapper as unknown) as google.visualization.ChartWrapper);
-        const c = cw.getChart() as (google.visualization.LineChart | null);
+      callback({ chartWrapper, google }) {
+        const c = (chartWrapper.getChart() as unknown) as GoogleChartInterface;
 
         if (c === null) {
           throw new Error('chart is null');
         }
 
-        google.visualization.events.addListener(c, 'onmouseover', (event: { column: number, row: number }) => {
-          if (elevationData[event.row + 1] !== undefined) {
-            if (typeof elevationData[event.row + 1][2] === 'number'
-            && typeof elevationData[event.row + 1][3] === 'number') {
+        const eventHandler = (cw: GoogleChartWrapper) => {
+          const [point] = cw.getSelection();
+
+          if (elevationData[point.row + 1] !== undefined) {
+            if (typeof elevationData[point.row + 1][2] === 'number'
+            && typeof elevationData[point.row + 1][3] === 'number') {
               hike.setElevationMarker({
-                lat: elevationData[event.row + 1][2] as number,
-                lng: elevationData[event.row + 1][3] as number,
+                lat: elevationData[point.row + 1][2] as number,
+                lng: elevationData[point.row + 1][3] as number,
               });
             }
           }
-        });
+        };
 
-        google.visualization.events.addListener(c, 'onmouseout', () => {
-          hike.setElevationMarker(null);
-        });
+        google.visualization.events.addListener(
+          chartWrapper,
+          'onmouseover' as GoogleVizEventName,
+          eventHandler,
+        );
 
-        google.visualization.events.addListener(c, 'select', () => {
-          console.log('mouse select');
-        });
+        google.visualization.events.addListener(
+          chartWrapper,
+          'onmouseout' as GoogleVizEventName,
+          () => {
+            hike.setElevationMarker(null);
+          },
+        );
+
+        google.visualization.events.addListener(
+          chartWrapper,
+          'select',
+          () => {
+            console.log('mouse select');
+          },
+        );
 
         setChart(c);
       },
@@ -79,15 +93,5 @@ const ElevationChart = ({
     </div>
   );
 };
-
-// ElevationChart.propTypes = {
-//   elevations: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.number)),
-//   days: PropTypes.arrayOf(PropTypes.shape()),
-// };
-
-// ElevationChart.defaultProps = {
-//   elevations: null,
-//   days: null,
-// };
 
 export default observer(ElevationChart);

@@ -29,7 +29,7 @@ export default class Schedule extends BaseModel {
   public days: HasMany<typeof Day>;
 
   public async getDays(this: Schedule): Promise<number> {
-    const [days] = await this.related('days').query().count('*');
-    return days;
+    const days = await this.related('days').query().count('*');
+    return days.length;
   }
 }

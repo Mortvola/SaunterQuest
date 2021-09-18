@@ -14,10 +14,12 @@ import UploadFileButton from './UploadFileButton';
 
 type Props = {
   tileServerUrl: string;
+  extendedMenu: unknown;
 }
 
 const Hike = ({
   tileServerUrl,
+  extendedMenu,
 }: Props): ReactElement | null => {
   const { uiState, gpx } = useStores();
   const history = useHistory();

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactElement } from 'react';
 import PropTypes from 'prop-types';
 import {
   Navbar, Container, Nav, NavDropdown,
@@ -13,29 +13,42 @@ import { useAccountDialog } from './AccountDialog';
 import { useChangePasswordDialog } from './ChangePasswordDialog';
 import { useStores } from './state/store';
 
+let csrfToken: string | undefined;
+const csrfElement = document.querySelector('meta[name="csrf-token"]');
+if (csrfElement) {
+  csrfToken = csrfElement.getAttribute('content') ?? undefined;
+}
+
+type PropsType = {
+  username: string,
+}
+
 const Menubar = ({
   username,
-}) => {
+}: PropsType): ReactElement => {
   const { uiState } = useStores();
   const [ProfileDialog, showProfileDialog] = useProfileDialog();
   const [AccountDialog, showAccountDialog] = useAccountDialog();
   const [ChangePasswordDialog, showChangePasswordDialog] = useChangePasswordDialog();
 
-  const logout = () => {
-    fetch('/logout', {
+  const headers = new Headers();
+
+  if (csrfToken) {
+    headers.append('X-CSRF-TOKEN', csrfToken);
+  }
+
+  const logout = async () => {
+    const response = await fetch('/logout', {
       method: 'POST',
-      headers: {
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-      },
-    })
-      .then((response) => {
-        if (response.ok) {
-          window.location.replace('/');
-        }
-      });
+      headers,
+    });
+
+    if (response.ok) {
+      window.location.replace('/');
+    }
   };
 
-  const handleSelect = (eventKey) => {
+  const handleSelect = (eventKey: string | null) => {
     switch (eventKey) {
       case MENU_EVENT_KEY_ACCOUNT:
         showAccountDialog();
@@ -54,7 +67,9 @@ const Menubar = ({
         break;
 
       default:
-        uiState.setView(eventKey);
+        if (eventKey !== null) {
+          uiState.setView(eventKey);
+        }
     }
   };
 
@@ -70,7 +85,7 @@ const Menubar = ({
             <Nav.Link as={Link} to="/gear">Gear</Nav.Link>
           </Nav>
           <Nav className="ml-auto">
-            <NavDropdown className="dropdown menubar-item" title={username}>
+            <NavDropdown id="dropdown" className="dropdown menubar-item" title={username}>
               <Nav.Link eventKey={MENU_EVENT_KEY_ACCOUNT}>Account</Nav.Link>
               <Nav.Link eventKey={MENU_EVENT_KEY_CHANGE_PASSWORD}>Change Password</Nav.Link>
               <Nav.Link eventKey={MENU_EVENT_KEY_PROFILE}>Profile</Nav.Link>

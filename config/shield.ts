@@ -57,7 +57,7 @@ export const csp: ShieldConfig['csp'] = {
   |
   */
   reportOnly: false,
-}
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -115,24 +115,7 @@ export const csrf: ShieldConfig['csrf'] = {
   |
   */
   methods: ['POST', 'PUT', 'PATCH', 'DELETE'],
-}
-
-/*
-|--------------------------------------------------------------------------
-| No Open
-|--------------------------------------------------------------------------
-|
-| This will prevent old versions of Internet Explorer from allowing
-| malicious HTML downloads to be executed in the context of your
-| site.
-|
-| By default, the security header is disabled, since not many websites are
-| running on ie8 these days.
-|
-*/
-export const noOpen: ShieldConfig['noOpen'] = {
-  enabled: false,
-}
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -166,7 +149,7 @@ export const dnsPrefetch: ShieldConfig['dnsPrefetch'] = {
   |
   */
   allow: true,
-}
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -185,7 +168,7 @@ export const dnsPrefetch: ShieldConfig['dnsPrefetch'] = {
 export const xFrame: ShieldConfig['xFrame'] = {
   enabled: true,
   action: 'DENY',
-}
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -231,7 +214,7 @@ export const hsts: ShieldConfig['hsts'] = {
   |
   */
   preload: false,
-}
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -247,20 +230,4 @@ export const hsts: ShieldConfig['hsts'] = {
 */
 export const contentTypeSniffing: ShieldConfig['contentTypeSniffing'] = {
   enabled: true,
-}
-
-/*
-|--------------------------------------------------------------------------
-| X-XSS-Protection
-|--------------------------------------------------------------------------
-|
-| X-XSS Protection saves applications from XSS attacks. It was adopted
-| by IE and later followed by some other browsers.
-|
-| Learn more at https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection
-*/
-export const xss: ShieldConfig['xss'] = {
-  enabled: true,
-  enableOnOldIE: false,
-  mode: 'block',
-}
+};

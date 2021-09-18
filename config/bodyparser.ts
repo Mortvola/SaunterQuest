@@ -56,6 +56,7 @@ const bodyParserConfig: BodyParserConfig = {
     types: [
       'application/x-www-form-urlencoded',
     ],
+    convertEmptyStringsToNull: true,
   },
 
   /*
@@ -180,7 +181,9 @@ const bodyParserConfig: BodyParserConfig = {
     types: [
       'multipart/form-data',
     ],
-  },
-}
 
-export default bodyParserConfig
+    convertEmptyStringsToNull: true,
+  },
+};
+
+export default bodyParserConfig;

@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { ReactElement } from 'react';
 import ReactDOM from 'react-dom';
-import PropTypes from 'prop-types';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import 'regenerator-runtime/runtime';
@@ -16,11 +15,17 @@ import Gear from './Gear/Gear';
 
 Leaflet.Icon.Default.imagePath = '//cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.4/images/';
 
+type PropsType = {
+  username: string,
+  tileServerUrl: string,
+  extendedMenu: string,
+}
+
 const App = ({
   username,
   tileServerUrl,
   extendedMenu,
-}) => (
+}: PropsType): ReactElement => (
   <DndProvider backend={HTML5Backend}>
     <Menubar username={username} />
     <Switch>
@@ -40,19 +45,19 @@ const App = ({
   </DndProvider>
 );
 
-App.propTypes = {
-  username: PropTypes.string.isRequired,
-  tileServerUrl: PropTypes.string.isRequired,
-  extendedMenu: PropTypes.bool,
-};
+const appElement = document.querySelector('.app');
+if (appElement === null) {
+  throw new Error('app element could not be found');
+}
 
-App.defaultProps = {
-  extendedMenu: false,
-};
+const initialPropsString = appElement.getAttribute('data-props');
+if (initialPropsString === null) {
+  throw new Error('initialProps attribute could not be found');
+}
+
+const initialProps = JSON.parse(initialPropsString) as PropsType;
 
 const ConnectedApp = observer(App);
-let initialProps = document.querySelector('.app').getAttribute('data-props');
-initialProps = JSON.parse(initialProps);
 
 ReactDOM.render(
   <StoreContext.Provider value={store}>

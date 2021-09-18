@@ -1,4 +1,4 @@
-import { RouteHighlighter } from './routeHighlighter';
+import RouteHighlighter from './routeHighlighter';
 import { getRoute, getSchedule } from './tempstore';
 import { positionMapToBounds } from './mapUtils';
 

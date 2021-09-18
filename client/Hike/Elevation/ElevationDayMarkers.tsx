@@ -3,10 +3,11 @@ import { observer } from 'mobx-react-lite';
 import ElevationDayMarker from './ElevationDayMarker';
 import { Day } from '../../state/Types';
 import { useStores } from '../../state/store';
+import { GoogleChartInterface } from './GoogleChartInterface';
 
 type Props = {
   days: Array<Day>;
-  chart: google.visualization.LineChart | null;
+  chart: GoogleChartInterface | null;
 }
 
 const ElevationDayMarkers = ({

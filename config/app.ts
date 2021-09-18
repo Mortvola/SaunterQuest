@@ -128,8 +128,8 @@ export const http: HttpConfig = {
   | to set the header explicitly.
   |
   */
-  forceContentNegotiationToJSON: false,
-}
+  forceContentNegotiationTo: 'application/json',
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -183,7 +183,7 @@ export const logger: LoggerConfig = {
   |
   */
   prettyPrint: Env.get('NODE_ENV') === 'development',
-}
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -222,4 +222,4 @@ export const profiler: ProfilerConfig = {
   |
   */
   whitelist: [],
-}
+};

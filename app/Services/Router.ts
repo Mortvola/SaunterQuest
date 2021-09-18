@@ -7,7 +7,10 @@ export type TrailInfo = {
   point: {
     lat: number;
     lng: number;
-  }
+  },
+  // eslint-disable-next-line camelcase
+  line_id: number;
+  fraction: number;
 }
 
 class Router {

@@ -47,8 +47,8 @@ const mailConfig: MailConfig = {
       host: Env.get('MAIL_HOST') as string,
       port: Env.get('MAIL_PORT') as string,
       auth: {
-          user: Env.get('MAIL_USERNAME') as string,
-          pass: Env.get('MAIL_PASSWORD') as string,
+        user: Env.get('MAIL_USERNAME') as string,
+        pass: Env.get('MAIL_PASSWORD') as string,
       } as SmtpSimpleAuth,
     },
 
@@ -81,13 +81,14 @@ const mailConfig: MailConfig = {
     | Mailgun
     |--------------------------------------------------------------------------
     |
-		| Uses Mailgun service for sending emails.
+    | Uses Mailgun service for sending emails.
     |
     */
     mailgun: {
       driver: 'mailgun',
       baseUrl: 'https://api.mailgun.net/v3',
       key: Env.get('MAILGUN_API_KEY') as string,
+      domain: Env.get('MAILGUN_DOMAIN') as string,
     },
 
     /*
@@ -95,7 +96,7 @@ const mailConfig: MailConfig = {
     | SparkPost
     |--------------------------------------------------------------------------
     |
-		| Uses Sparkpost service for sending emails.
+    | Uses Sparkpost service for sending emails.
     |
     */
     sparkpost: {
@@ -104,6 +105,6 @@ const mailConfig: MailConfig = {
       key: Env.get('SPARKPOST_API_KEY') as string,
     },
   },
-}
+};
 
-export default mailConfig
+export default mailConfig;

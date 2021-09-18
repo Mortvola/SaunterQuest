@@ -1,23 +1,43 @@
-import React, { useState } from 'react';
-import PropTypes from 'prop-types';
+/* eslint-disable react/require-default-props */
+/* eslint-disable jsx-a11y/label-has-associated-control */
+import React, { ReactElement, useState } from 'react';
 import { Formik, Form, Field } from 'formik';
 import { Modal } from 'react-bootstrap';
 import useModal from '../Utilities/useModal';
 import { toTimeFloat, toTimeString } from './utilities';
 
+type PropsType = {
+  values: { startTime: number, endTime: number },
+  show?: boolean,
+  onHide?: () => void,
+};
+
 const ProfileDialog = ({
   values,
-  show,
+  show = false,
   onHide,
-}) => {
-  const handleSubmit = async (vals) => {
+}: PropsType): ReactElement => {
+  type ValuesType = {
+    startTime: string,
+    endTime: string,
+  }
+
+  const handleSubmit = async (vals: ValuesType) => {
+    const headers = new Headers();
+
+    const crsfElement = document.querySelector('meta[name="csrf-token"]');
+    if (crsfElement) {
+      const token = crsfElement.getAttribute('content');
+      if (token) {
+        headers.append('X-CSRF-TOKEN', token);
+      }
+    }
+
+    headers.append('Content-Type', 'application/json');
+
     fetch('/user/profile', {
       method: 'PUT',
-      headers:
-            {
-              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-              'Content-Type': 'application/json',
-            },
+      headers,
       body: JSON.stringify({
         ...vals,
         startTime: toTimeFloat(vals.startTime),
@@ -26,18 +46,20 @@ const ProfileDialog = ({
     })
       .then((response) => {
         if (response.ok) {
-          onHide();
+          if (onHide) {
+            onHide();
+          }
         }
       });
   };
 
   return (
     <Modal show={show} onHide={onHide}>
-      <Formik
+      <Formik<ValuesType>
         initialValues={{
           ...values,
-          startTime: toTimeString(values.startTime),
-          endTime: toTimeString(values.endTime),
+          startTime: toTimeString(values.startTime) ?? '',
+          endTime: toTimeString(values.endTime) ?? '',
         }}
         onSubmit={handleSubmit}
       >
@@ -90,13 +112,7 @@ const ProfileDialog = ({
   );
 };
 
-ProfileDialog.propTypes = {
-  values: PropTypes.shape().isRequired,
-  show: PropTypes.bool.isRequired,
-  onHide: PropTypes.func.isRequired,
-};
-
-const useProfileDialog = () => {
+const useProfileDialog = (): [() => ReactElement, () => void] => {
   const [DialogModal, showDialogModal] = useModal(ProfileDialog);
   const [values, setValues] = useState({
     paceFactor: 100,

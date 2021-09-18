@@ -56,12 +56,12 @@ export default class Hike extends BaseModel {
   public pointsOfInterest: HasMany<typeof PointOfInterest>;
 
   public async getDuration(this: Hike): Promise<number> {
-    await this.preload('schedule');
+    await this.load('schedule');
 
     if (this.schedule) {
-      const result = await this.schedule.related('days').query().count('*');
+      const result = await this.schedule.related('days').query();
 
-      return result[0].count;
+      return result.length;
     }
 
     return 0;

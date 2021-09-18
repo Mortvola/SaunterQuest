@@ -261,12 +261,13 @@ class Scheduler {
     return metersPerHour;
   }
 
-  private activeTrailConditionsGet(segmentIndex, segmentPercentage) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private activeTrailConditionsGet(_segmentIndex, _segmentPercentage) {
     const speedFactor = 1.0;
     const type = 2; // 'other'
 
     if (this.trailConditions !== null && this.trailConditions !== undefined) {
-      this.trailConditions.forEach((tc) => {
+      this.trailConditions.forEach((/* tc */) => {
         // if ((tc.startSegment.segment < segmentIndex
         //   || (tc.startSegment.segment === segmentIndex
         //     && tc.startSegment.percentage <= segmentPercentage))

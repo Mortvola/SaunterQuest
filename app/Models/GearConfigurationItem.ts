@@ -1,7 +1,6 @@
 import { DateTime } from 'luxon';
 import {
   BaseModel, belongsTo, BelongsTo, column,
-  hasOne, HasOne,
 } from '@ioc:Adonis/Lucid/Orm';
 import GearConfiguration from './GearConfiguration';
 import GearItem from './GearItem';

@@ -56,8 +56,8 @@ export default class RoutePoint extends BaseModel {
   @computed()
   public trailLength = 0;
 
-  // @computed()
-  // public distance = 0;
+  @computed()
+  public distance = 0;
 
   @beforeFetch()
   public static sortRoutePoints(query: ModelQueryBuilderContract<typeof RoutePoint>) : void {
