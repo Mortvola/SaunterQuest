@@ -2,7 +2,7 @@
 import React, { ReactElement } from 'react';
 import { Modal } from 'react-bootstrap';
 import { Formik, Form, Field } from 'formik';
-import useModal, { ModalProps } from '../../Utilities/useModal';
+import useModal, { ModalProps, UseModalType } from '@mortvola/usemodal';
 import { toTimeFloat, toTimeString } from '../utilities';
 import HikerProfile from '../state/HikerProfile';
 import Hike from '../state/Hike';
@@ -145,17 +145,9 @@ HikerProfileDialog.defaultProps = {
   profile: null,
 };
 
-const useHikerProfileDialog = (): [
-  (props: PropsType) => (ReactElement | null),
-  () => void,
-] => {
-  const [DialogModal, showDialogModal] = useModal<PropsType>(HikerProfileDialog);
-
-  return [
-    DialogModal,
-    showDialogModal,
-  ];
-};
+const useHikerProfileDialog = (): UseModalType<PropsType> => (
+  useModal<PropsType>(HikerProfileDialog)
+);
 
 export default HikerProfileDialog;
 export { useHikerProfileDialog };

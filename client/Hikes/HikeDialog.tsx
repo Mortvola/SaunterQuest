@@ -2,14 +2,17 @@
 import React, { useRef, ReactElement } from 'react';
 // import PropTypes from 'prop-types';
 import { Modal, Button } from 'react-bootstrap';
+import useModal, { ModalProps, UseModalType } from '@mortvola/usemodal';
 import { useStores } from '../state/store';
 import { VIEW_HIKE } from '../menuEvents';
-import useModal, { ModalProps } from '../../Utilities/useModal';
+
+type PropsType = {
+}
 
 const HikeDialog = ({
   show,
   onHide,
-}: ModalProps): ReactElement => {
+}: PropsType & ModalProps): ReactElement => {
   const { uiState } = useStores();
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -57,9 +60,6 @@ const HikeDialog = ({
 //   onHide: PropTypes.func.isRequired,
 // };
 
-export const useHikeDialog = (): [
-  () => (ReactElement | null),
-  () => void,
-] => useModal(HikeDialog);
+export const useHikeDialog = (): UseModalType<PropsType> => useModal<PropsType>(HikeDialog);
 
 export default HikeDialog;

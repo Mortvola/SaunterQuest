@@ -13,12 +13,6 @@ import { useAccountDialog } from './AccountDialog';
 import { useChangePasswordDialog } from './ChangePasswordDialog';
 import { useStores } from './state/store';
 
-let csrfToken: string | undefined;
-const csrfElement = document.querySelector('meta[name="csrf-token"]');
-if (csrfElement) {
-  csrfToken = csrfElement.getAttribute('content') ?? undefined;
-}
-
 type PropsType = {
   username: string,
 }
@@ -33,8 +27,12 @@ const Menubar = ({
 
   const headers = new Headers();
 
-  if (csrfToken) {
-    headers.append('X-CSRF-TOKEN', csrfToken);
+  const csrfElement = document.querySelector('meta[name="csrf-token"]');
+  if (csrfElement) {
+    const csrfToken = csrfElement.getAttribute('content') ?? undefined;
+    if (csrfToken) {
+      headers.append('X-CSRF-TOKEN', csrfToken);
+    }
   }
 
   const logout = async () => {

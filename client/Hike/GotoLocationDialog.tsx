@@ -3,10 +3,10 @@ import React, { ReactElement } from 'react';
 // import PropTypes from 'prop-types';
 import { Modal, Button } from 'react-bootstrap';
 import { Formik, Form, Field } from 'formik';
-import useModal, { ModalProps } from '../../Utilities/useModal';
+import useModal, { ModalProps, UseModalType } from '@mortvola/usemodal';
 import Hike from '../state/Hike';
 
-type Props = {
+type PropsType = {
   leafletMap: L.Map,
   hike: Hike,
 }
@@ -16,7 +16,7 @@ const GotoLocationDialog = ({
   onHide,
   leafletMap,
   hike,
-}: Props & ModalProps): ReactElement => {
+}: PropsType & ModalProps): ReactElement => {
   type FormType = {
     lat: string;
     lng: string;
@@ -71,19 +71,8 @@ const GotoLocationDialog = ({
   );
 };
 
-// GotoLocationDialog.propTypes = {
-//   show: PropTypes.bool.isRequired,
-//   onHide: PropTypes.func.isRequired,
-//   leafletMap: PropTypes.shape().isRequired,
-//   hike: PropTypes.shape().isRequired,
-// };
-
-// const useGotoLocationDialog = () => (
-//   useModal(GotoLocationDialog)
-// );
-export const useGotoLocationDialog = (): [
-  (props: Props) => (ReactElement | null),
-  () => void,
-] => useModal<Props>(GotoLocationDialog);
+export const useGotoLocationDialog = (): UseModalType<PropsType> => (
+  useModal<PropsType>(GotoLocationDialog)
+);
 
 export default GotoLocationDialog;

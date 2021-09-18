@@ -3,20 +3,32 @@
 import React, { ReactElement, useState } from 'react';
 import { Formik, Form, Field } from 'formik';
 import { Modal } from 'react-bootstrap';
-import useModal from '../Utilities/useModal';
+import useModal, { ModalProps, UseModalType } from '@mortvola/usemodal';
 import { toTimeFloat, toTimeString } from './utilities';
 
 type PropsType = {
-  values: { startTime: number, endTime: number },
-  show?: boolean,
-  onHide?: () => void,
+  values?: {
+    paceFactor: number,
+    startTime: number,
+    endTime: number,
+    breakDuration: number,
+    endDayExtension: number,
+    endHikeDayExtension: number,
+  },
 };
 
 const ProfileDialog = ({
-  values,
+  values = {
+    paceFactor: 100,
+    startTime: 7.0,
+    endTime: 18.0,
+    breakDuration: 60,
+    endDayExtension: 60,
+    endHikeDayExtension: 60,
+  },
   show = false,
   onHide,
-}: PropsType): ReactElement => {
+}: PropsType & ModalProps): ReactElement => {
   type ValuesType = {
     startTime: string,
     endTime: string,
@@ -112,36 +124,9 @@ const ProfileDialog = ({
   );
 };
 
-const useProfileDialog = (): [() => ReactElement, () => void] => {
-  const [DialogModal, showDialogModal] = useModal(ProfileDialog);
-  const [values, setValues] = useState({
-    paceFactor: 100,
-    startTime: 7.0,
-    endTime: 18.0,
-    breakDuration: 60,
-    endDayExtension: 60,
-    endHikeDayExtension: 60,
-  });
-
-  const handleShowClick = () => {
-    fetch('/user/profile')
-      .then(async (response) => {
-        if (response.ok) {
-          setValues(await response.json());
-          showDialogModal();
-        }
-      });
-  };
-
-  const createProfileDialog = () => (
-    <DialogModal values={values} />
-  );
-
-  return [
-    createProfileDialog,
-    handleShowClick,
-  ];
-};
+const useProfileDialog = (): UseModalType<PropsType> => (
+  useModal<PropsType>(ProfileDialog)
+);
 
 export default ProfileDialog;
 export { useProfileDialog };

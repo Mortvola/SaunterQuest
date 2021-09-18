@@ -1,32 +1,50 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+/* eslint-disable jsx-a11y/label-has-associated-control */
+/* eslint-disable react/require-default-props */
+import React, { ReactElement } from 'react';
 import { Modal } from 'react-bootstrap';
 import { Formik, Form, Field } from 'formik';
-import useModal from '../Utilities/useModal';
+import useModal, { UseModalType, ModalProps } from '@mortvola/usemodal';
+
+type PropsType = {
+}
 
 const AccountDialog = ({
-  show,
+  show = false,
   onHide,
-}) => {
-  const handleSubmit = async (vals) => {
+}: PropsType & ModalProps): ReactElement => {
+  type ValuesType = {
+  };
+
+  const handleSubmit = async (vals: ValuesType) => {
+    const headers = new Headers();
+
+    const csrfElement = document.querySelector('meta[name="csrf-token"]');
+    if (csrfElement) {
+      const csrfToken = csrfElement.getAttribute('content') ?? undefined;
+      if (csrfToken) {
+        headers.append('X-CSRF-TOKEN', csrfToken);
+      }
+    }
+
+    headers.append('Content-Type', 'application/json');
+
     fetch('/user/account', {
       method: 'PUT',
-      headers: {
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify({ ...vals }),
     })
       .then((response) => {
         if (response.ok) {
-          onHide();
+          if (onHide) {
+            onHide();
+          }
         }
       });
   };
 
   return (
     <Modal show={show} onHide={onHide}>
-      <Formik
+      <Formik<ValuesType>
         initialValues={{}}
         onSubmit={handleSubmit}
       >
@@ -51,14 +69,7 @@ const AccountDialog = ({
   );
 };
 
-AccountDialog.propTypes = {
-  show: PropTypes.bool.isRequired,
-  onHide: PropTypes.func.isRequired,
-};
-
-const useAccountDialog = () => (
-  useModal(AccountDialog)
-);
+const useAccountDialog = (): UseModalType<PropsType> => useModal<PropsType>(AccountDialog);
 
 export default AccountDialog;
 export { useAccountDialog };

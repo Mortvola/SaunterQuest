@@ -1,42 +1,60 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+/* eslint-disable react/require-default-props */
+/* eslint-disable jsx-a11y/label-has-associated-control */
+import React, { ReactElement } from 'react';
 import { Modal } from 'react-bootstrap';
 import {
-  Formik, Form, Field, ErrorMessage,
+  Formik, Form, Field, ErrorMessage, FormikHelpers,
 } from 'formik';
-import useModal from '../Utilities/useModal';
+import useModal, { UseModalType, ModalProps } from '@mortvola/usemodal';
+
+type ErrorProps = {
+  name: string,
+}
 
 const Error = ({
   name,
-}) => (
+}: ErrorProps): ReactElement => (
   <ErrorMessage name={name}>{(msg) => <div className="text-danger">{msg}</div>}</ErrorMessage>
 );
 
-Error.propTypes = {
-  name: PropTypes.string.isRequired,
-};
+type PropsType = {
+}
 
 const ChangePasswordDialog = ({
-  show,
+  show = false,
   onHide,
-}) => {
-  const handleSubmit = async (vals, { setErrors }) => {
+}: PropsType & ModalProps): ReactElement => {
+  type ValuesType = Record<string, string>;
+
+  const handleSubmit = async (vals: ValuesType, { setErrors }: FormikHelpers<ValuesType>) => {
     const formData = new FormData();
     Object.keys(vals).forEach((key) => {
       formData.set(key, vals[key]);
     });
 
+    const headers = new Headers();
+
+    const csrfElement = document.querySelector('meta[name="csrf-token"]');
+    if (csrfElement) {
+      const csrfToken = csrfElement.getAttribute('content') ?? undefined;
+      if (csrfToken) {
+        headers.append('X-CSRF-TOKEN', csrfToken);
+      }
+    }
+
+    headers.append('Accept', 'application/json');
+
     fetch('/password/change', {
       method: 'POST',
-      headers: {
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-        Accept: 'application/json',
-      },
+      headers,
       body: formData,
     })
       .then((response) => {
         if (response.ok) {
-          onHide();
+          if (onHide) {
+            onHide();
+          }
+
           return null;
         }
 
@@ -51,7 +69,7 @@ const ChangePasswordDialog = ({
 
   return (
     <Modal show={show} onHide={onHide}>
-      <Formik
+      <Formik<ValuesType>
         initialValues={{}}
         onSubmit={handleSubmit}
       >
@@ -82,13 +100,8 @@ const ChangePasswordDialog = ({
   );
 };
 
-ChangePasswordDialog.propTypes = {
-  show: PropTypes.bool.isRequired,
-  onHide: PropTypes.func.isRequired,
-};
-
-const useChangePasswordDialog = () => (
-  useModal(ChangePasswordDialog)
+const useChangePasswordDialog = (): UseModalType<PropsType> => (
+  useModal<PropsType>(ChangePasswordDialog)
 );
 
 export default ChangePasswordDialog;

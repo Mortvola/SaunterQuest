@@ -1,12 +1,11 @@
+/* eslint-disable react/require-default-props */
 import React, { useState, useEffect, ReactElement } from 'react';
-// import PropTypes from 'prop-types';
 import { Modal } from 'react-bootstrap';
+import useModal, { ModalProps, UseModalType } from '@mortvola/usemodal';
 import { LatLng } from '../state/Types';
-import useModal, { ModalProps } from '../../Utilities/useModal';
 import Terrain from './Terrain';
 
-type Props = {
-  // eslint-disable-next-line react/require-default-props
+type PropsType = {
   latLng?: LatLng | null,
 }
 
@@ -14,7 +13,7 @@ const TerrainDialog = ({
   show,
   onHide,
   latLng,
-}: Props & ModalProps): ReactElement => {
+}: PropsType & ModalProps): ReactElement => {
   const [terrain, setTerrain] = useState(null);
 
   useEffect(() => {
@@ -49,19 +48,8 @@ const TerrainDialog = ({
   );
 };
 
-// TerrainDialog.propTypes = {
-//   show: PropTypes.bool.isRequired,
-//   onHide: PropTypes.func.isRequired,
-//   latLng: PropTypes.shape(),
-// };
-
-// TerrainDialog.defaultProps = {
-//   latLng: null,
-// };
-
-export const useTerrainDialog = (): [
-  (props: Props) => (ReactElement | null),
-  () => void,
-] => useModal<Props>(TerrainDialog);
+export const useTerrainDialog = (): UseModalType<PropsType> => (
+  useModal<PropsType>(TerrainDialog)
+);
 
 export default TerrainDialog;
