@@ -1,11 +1,11 @@
 import React, { ReactElement } from 'react';
 import { Day } from '../../state/Types';
 import { metersToFeet, metersToMilesRounded } from '../../utilities';
-import { GoogleChartInterface } from './GoogleChartInterface';
+import { GoogleChart } from './GoogleChart';
 
 type Props = {
   day: Day;
-  chart: GoogleChartInterface;
+  chart: GoogleChart;
 }
 
 const ElevationDayMarker = ({

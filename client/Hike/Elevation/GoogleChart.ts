@@ -1,5 +1,5 @@
 import ChartLayoutInterface from './ChartLayoutInterface';
 
-export interface GoogleChartInterface {
+export interface GoogleChart {
   getChartLayoutInterface(): ChartLayoutInterface;
 }

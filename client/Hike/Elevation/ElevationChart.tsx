@@ -4,7 +4,7 @@ import Chart from 'react-google-charts';
 import { ReactGoogleChartEvent, GoogleChartWrapper, GoogleVizEventName } from 'react-google-charts/dist/types';
 import ElevationDayMarkers from './ElevationDayMarkers';
 import Hike from '../../state/Hike';
-import { GoogleChartInterface } from './GoogleChartInterface';
+import { GoogleChart } from './GoogleChart';
 
 type Props = {
   hike: Hike;
@@ -13,7 +13,7 @@ type Props = {
 const ElevationChart = ({
   hike,
 }: Props): ReactElement => {
-  const [chart, setChart] = useState<GoogleChartInterface | null>(null);
+  const [chart, setChart] = useState<GoogleChart | null>(null);
   const elevationData: Array<Array<unknown | number>> = [
     [
       { label: 'Distance', role: 'domain', type: 'number' },
@@ -28,15 +28,13 @@ const ElevationChart = ({
     {
       eventName: 'ready',
       callback({ chartWrapper, google }) {
-        const c = (chartWrapper.getChart() as unknown) as GoogleChartInterface;
+        const readyChart = (chartWrapper.getChart() as unknown) as GoogleChart;
 
-        if (c === null) {
+        if (readyChart === null) {
           throw new Error('chart is null');
         }
 
-        const eventHandler = (cw: GoogleChartWrapper) => {
-          const [point] = cw.getSelection();
-
+        const eventHandler = (point: { row: number, column: number}) => {
           if (elevationData[point.row + 1] !== undefined) {
             if (typeof elevationData[point.row + 1][2] === 'number'
             && typeof elevationData[point.row + 1][3] === 'number') {
@@ -49,13 +47,13 @@ const ElevationChart = ({
         };
 
         google.visualization.events.addListener(
-          chartWrapper,
+          readyChart as any,
           'onmouseover' as GoogleVizEventName,
-          eventHandler,
+          (eventHandler as unknown) as (chartWrapper: GoogleChartWrapper) => void,
         );
 
         google.visualization.events.addListener(
-          chartWrapper,
+          readyChart as any,
           'onmouseout' as GoogleVizEventName,
           () => {
             hike.setElevationMarker(null);
@@ -70,7 +68,7 @@ const ElevationChart = ({
           },
         );
 
-        setChart(c);
+        setChart(readyChart);
       },
     },
   ];
