@@ -179,24 +179,6 @@ div.hike-card-header {
   color: #5700ff;
 }
 
-.name-grid-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  grid-area: name;
-  height: max-content;
-  background-color: #733700;
-  border-bottom: thin black solid;
-  color: whitesmoke;
-  padding-left: 0.5rem;
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
-}
-
-.name-grid-item > .btn {
-  padding: 0.1rem 0.3rem;
-}
-
 .blog-controls {
   display: flex;
   width: max-content;
@@ -242,16 +224,6 @@ div.hike-card-header {
   overflow-y: auto;
 }
 
-.hike-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
-  grid-template-rows: max-content minmax(0, 3fr) minmax(0, 1fr);
-  grid-template-areas: "controls name" "controls map" "controls ele";
-  justify-items: stretch;
-  align-items: stretch;
-  align-content: stretch;
-}
-
 .card {
   margin: 8px 8px 12px 8px;
   box-shadow: 0 2px 7px 1px rgba(0, 0, 0, 0.3);
@@ -268,15 +240,6 @@ div.hike-card-header {
 @media screen and (max-width: 668px) {
   .controls-grid-item {
     display: none;
-  }
-  .hike-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(0, 3fr) minmax(0, 1fr);
-    grid-template-areas: "map" "ele";
-    justify-items: stretch;
-    align-items: stretch;
-    align-content: stretch;
   }
 }
 

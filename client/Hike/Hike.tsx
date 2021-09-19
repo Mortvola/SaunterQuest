@@ -10,6 +10,8 @@ import { useStores } from '../state/store';
 import MapContainer from './MapContainer';
 import HikeData from '../state/Hike';
 import Toolbar from './Toolbar';
+import styles from './Hike.module.css';
+import useMediaQuery from '../MediaQuery';
 
 type Props = {
   tileServerUrl: string;
@@ -22,6 +24,7 @@ const Hike = ({
 }: Props): ReactElement | null => {
   const { uiState } = useStores();
   const history = useHistory();
+  const { isMobile, addMediaClass } = useMediaQuery();
 
   useEffect(() => {
     runInAction(() => {
@@ -47,8 +50,14 @@ const Hike = ({
 
   if (uiState.hike) {
     return (
-      <div className="hike-grid">
-        <Controls hike={uiState.hike} />
+      <div className={addMediaClass(styles.hikeGrid)}>
+        {
+          !isMobile
+            ? (
+              <Controls hike={uiState.hike} />
+            )
+            : null
+        }
         <Toolbar hike={uiState.hike} />
         <MapContainer
           tileServerUrl={tileServerUrl}

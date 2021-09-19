@@ -126,7 +126,8 @@ function retrieveTrailConditions(hikeId) {
 
         trailConditions.forEach((t) => {
           // t.polyLine = routeHighlightPolylineCreate(
-          //     new google.maps.LatLng({ lat: parseFloat(t.startLat), lng: parseFloat(t.startLng) }),
+          //     new google.maps.LatLng(
+          // { lat: parseFloat(t.startLat), lng: parseFloat(t.startLng) }),
           //     new google.maps.LatLng({ lat: parseFloat(t.endLat), lng: parseFloat(t.endLng) }),
           //     getTrailConditionColor(t.type),
           // );
@@ -140,13 +141,9 @@ function retrieveTrailConditions(hikeId) {
 }
 
 function findTrailConditionIndex(trailConditionId) {
-  for (const t in trailConditions) {
-    if (trailConditions[t].id == trailConditionId) {
-      return t;
-    }
-  }
-
-  return -1;
+  return trailConditions.findIndex((t) => (
+    trailConditions[t].id === trailConditionId
+  ));
 }
 
 function trailConditionMarkerSet(highlighter) {

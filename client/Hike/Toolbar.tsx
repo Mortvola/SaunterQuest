@@ -4,6 +4,8 @@ import EditableText from '../Hikes/EditableText';
 import UploadFileButton from './UploadFileButton';
 import Hike from '../state/Hike';
 import POIToggle from './POIToggle';
+import useMediaQuery from '../MediaQuery';
+import styles from './Toolbar.module.css';
 
 type PropsType = {
   hike: Hike,
@@ -13,6 +15,7 @@ const Toolbar = ({
   hike,
 }: PropsType): ReactElement | null => {
   const { gpx } = useStores();
+  const { addMediaClass } = useMediaQuery();
 
   const handleFileSelection = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const { files } = event.target;
@@ -23,7 +26,7 @@ const Toolbar = ({
   };
 
   return (
-    <div className="name-grid-item">
+    <div className={addMediaClass(styles.toolbar)}>
       <EditableText
         defaultValue={hike.name}
         url={hike.id.toString()}

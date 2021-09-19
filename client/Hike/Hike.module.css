@@ -1,0 +1,19 @@
+.hike-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+  grid-template-rows: max-content minmax(0, 3fr) minmax(0, 1fr);
+  grid-template-areas: "controls toolbar" "controls map" "controls ele";
+  justify-items: stretch;
+  align-items: stretch;
+  align-content: stretch;
+}
+
+:global(.mobile).hike-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: max-content minmax(0, 3fr) minmax(0, 1fr);
+  grid-template-areas: "toolbar" "map" "ele";
+  justify-items: stretch;
+  align-items: stretch;
+  align-content: stretch;
+}
