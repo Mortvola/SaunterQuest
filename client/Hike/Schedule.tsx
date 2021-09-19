@@ -5,6 +5,7 @@ import {
   metersToFeet, gramsToPoundsAndOunces, metersToMilesRounded, formatTime,
 } from '../utilities';
 import { Day, HikeInterface } from '../state/Types';
+import styles from './Schedule.module.css';
 // import EndOfDayMarker from './trailMarker/EndOfDayMarker';
 
 type PropsType = {
@@ -73,13 +74,13 @@ const Schedule = ({
   };
 
   return (
-    <>
+    <div className={styles.schedule}>
       {
         hike && hike.schedule
           ? hike.schedule.map((day, index) => renderDay(day, index))
           : null
       }
-    </>
+    </div>
   );
 
   // const processResponse = (days) => {

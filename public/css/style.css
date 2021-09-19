@@ -226,6 +226,7 @@ div.hike-card-header {
   height: 100%;
   display: grid;
   grid-template-rows: min-content minmax(0, 1fr);
+  background-color: #fff;
 }
 
 .controls-grid-item .tab-content {

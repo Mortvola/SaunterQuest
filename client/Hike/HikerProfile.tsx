@@ -1,5 +1,4 @@
 import React, { ReactElement } from 'react';
-import PropTypes from 'prop-types';
 import { Card } from 'react-bootstrap';
 import { observer } from 'mobx-react-lite';
 import { HikeInterface, HikerProfileInterface } from '../state/Types';
