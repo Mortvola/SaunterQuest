@@ -3,7 +3,7 @@ import React, { useState, useEffect, ReactElement } from 'react';
 import { Modal } from 'react-bootstrap';
 import useModal, { ModalProps, UseModalType } from '@mortvola/usemodal';
 import { LatLng } from '../state/Types';
-import Terrain from './Terrain';
+import Terrain, { Points } from './Terrain';
 
 type PropsType = {
   latLng?: LatLng | null,
@@ -14,27 +14,27 @@ const TerrainDialog = ({
   onHide,
   latLng,
 }: PropsType & ModalProps): ReactElement => {
-  const [terrain, setTerrain] = useState(null);
+  const [terrain, setTerrain] = useState<Points | null>(null);
 
   useEffect(() => {
-    if (latLng) {
-      fetch(`http://localhost:8090/elevation/area?lat=${latLng.lat}&lng=${latLng.lng}&dim=80`, {
-        headers: {
-          'access-control-allow-origins': '*',
-        },
-      })
-        .then((response) => {
-          if (response.ok) {
-            return response.json();
-          }
-
-          throw new Error('invalid response');
-        })
-        .then((response) => {
-          setTerrain(response);
+    (async () => {
+      if (latLng) {
+        const response = await fetch(`http://localhost:8090/elevation/area?lat=${latLng.lat}&lng=${latLng.lng}&dim=80`, {
+          headers: {
+            'access-control-allow-origins': '*',
+          },
         });
-    }
-  }, []);
+
+        if (response.ok) {
+          const body = await response.json();
+          setTerrain(body);
+        }
+        else {
+          throw new Error('invalid response');
+        }
+      }
+    })();
+  }, [latLng]);
 
   return (
     <Modal show={show} onHide={onHide} role="dialog" size="lg" contentClassName="terrain-content">
@@ -42,7 +42,11 @@ const TerrainDialog = ({
         3D View
       </Modal.Header>
       <Modal.Body>
-        <Terrain points={terrain} />
+        {
+          terrain
+            ? <Terrain points={terrain} />
+            : null
+        }
       </Modal.Body>
     </Modal>
   );
