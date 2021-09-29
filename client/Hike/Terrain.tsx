@@ -1000,11 +1000,11 @@ const Terrain = ({
   };
 
   const handlePointerCapture = (event: React.MouseEvent) => {
-    console.log('got pointer capture');
+    // console.log('got pointer capture');
   };
 
   const handlePointerRelease = (event: React.MouseEvent) => {
-    console.log('released pointer capture');
+    // console.log('released pointer capture');
   };
 
   return (
