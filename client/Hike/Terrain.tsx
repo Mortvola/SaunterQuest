@@ -2,7 +2,6 @@ import React, {
   ReactElement, useCallback, useEffect, useRef,
 } from 'react';
 import { vec3, mat4 } from 'gl-matrix';
-import Quaternion from 'quaternion';
 import { haversineGreatCircleDistance } from '../utilities';
 
 export type Points = {
@@ -54,10 +53,8 @@ const Terrain = ({
     centerElevation: number,
   }
 
-  let xRotation = Math.PI * 2;
-  let yRotation = 0;
-  let rotation = mat4.create();
-  let accumQ: Quaternion | null = null;
+  let pitch = 0;
+  let yaw = 90;
 
   const programInfoRef = useRef<ProgramInfo | null>(null);
   const lineProgramInfoRef = useRef<LineProgramInfo | null>(null);
@@ -643,8 +640,8 @@ const Terrain = ({
 
     const normalizeEle = (e: number) => ((e - min - delta / 2) * zScale);
 
-    console.log(`zscale: ${zScale}, latScale=${latScale}, lngScale=${lngScale}`);
-    console.log(`${-1 * lngScale}, ${1 * latScale} to ${1 * lngScale}, ${-1 * latScale}`);
+    // console.log(`zscale: ${zScale}, latScale=${latScale}, lngScale=${lngScale}`);
+    // console.log(`${-1 * lngScale}, ${1 * latScale} to ${1 * lngScale}, ${-1 * latScale}`);
 
     const { positionBuffer, positions } = createPositionsBuffer(
       gl, numPointsX, numPointsY, xyDelta, latScale, lngScale, normalizeEle,
@@ -653,11 +650,11 @@ const Terrain = ({
     const normalBuffer = createNormalBuffer(gl, positions, indices, numPointsX, numPointsY);
     const { lineBuffer, lines } = createLinesBuffer(gl, latScale, lngScale, normalizeEle);
 
-    console.log(`number of positions: ${positions.length}`);
-    console.log(`number of indices: ${indices.length}`);
+    // console.log(`number of positions: ${positions.length}`);
+    // console.log(`number of indices: ${indices.length}`);
 
-    console.log(`min/max elevation: ${min}/${max} ${normalizeEle(min)}/${normalizeEle(max)}`);
-    console.log(`elevation: ${center + 2}, ${normalizeEle(center + 2)}`);
+    // console.log(`min/max elevation: ${min}/${max} ${normalizeEle(min)}/${normalizeEle(max)}`);
+    // console.log(`elevation: ${center + 2}, ${normalizeEle(center + 2)}`);
 
     return {
       position: positionBuffer,
@@ -701,41 +698,36 @@ const Terrain = ({
     // eslint-disable-next-line no-bitwise
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    // Create a perspective matrix, a special matrix that is
-    // used to simulate the distortion of perspective in a camera.
-    // Our field of view is 45 degrees, with a width/height
-    // ratio that matches the display size of the canvas
-    // and we only want to see objects between 0.1 units
-    // and 100 units away from the camera.
-
+    // Set up the projection matrix
     const fieldOfView = (45 * Math.PI) / 180; // in radians
     const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-    const zNear = 1;
+    const zNear = 0.1;
     const zFar = 6000.0;
     const projectionMatrix = mat4.create();
 
-    // note: glmatrix.js always has the first argument
-    // as the destination to receive the result.
     mat4.perspective(projectionMatrix,
       fieldOfView,
       aspect,
       zNear,
       zFar);
 
+    // Set up the view matrix
     const modelViewMatrix = mat4.create();
+    const cameraPos = vec3.fromValues(0.0, 0.0, buffers.centerElevation + 2);
 
-    const invert = mat4.create();
-    mat4.invert(invert, rotation);
-    mat4.multiply(modelViewMatrix, modelViewMatrix, invert);
+    const cameraTarget = vec3.fromValues(
+      Math.cos((yaw * Math.PI) / 180) * Math.cos((pitch * Math.PI) / 180),
+      Math.sin((yaw * Math.PI) / 180) * Math.cos((pitch * Math.PI) / 180),
+      Math.sin((pitch * Math.PI) / 180),
+    );
+    vec3.normalize(cameraTarget, cameraTarget);
+    cameraTarget[2] += buffers.centerElevation + 2;
 
-    mat4.translate(modelViewMatrix, // destination matrix
-      modelViewMatrix, // matrix to translate
-      [0.0, 0.0, -buffers.centerElevation - 100]); // zNear]); // amount to translate
+    const cameraUp = vec3.fromValues(0.0, 0.0, 1.0);
 
-    // mat4.translate(modelViewMatrix, // destination matrix
-    //   modelViewMatrix, // matrix to translate
-    //   [0.0, 0.0, -0.5]); // amount to translate
+    mat4.lookAt(modelViewMatrix, cameraPos, cameraTarget, cameraUp);
 
+    // Set up the normal matrix
     const normalMatrix = mat4.create();
     mat4.invert(normalMatrix, modelViewMatrix);
     mat4.transpose(normalMatrix, normalMatrix);
@@ -868,7 +860,7 @@ const Terrain = ({
       const offset = 0;
       gl.drawArrays(gl.LINES, offset, count);
     }
-  }, [rotation]);
+  }, [pitch, yaw]);
 
   useEffect(() => {
     if (terrain) {
@@ -882,8 +874,6 @@ const Terrain = ({
         if (gl === null) {
           throw new Error('gl is null');
         }
-
-        console.log(`MAX_VERTEX_UNIFORM_VECTORS: ${gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS)}`);
 
         // Only continue if WebGL is available and working
         // Set clear color to black, fully opaque
@@ -978,21 +968,13 @@ const Terrain = ({
       const canvas = canvasRef.current;
 
       if (canvas) {
-        yRotation = ((event.clientX - mouseRef.current.x)
-        / canvas.clientWidth) * Math.PI;
-        xRotation = ((event.clientY - mouseRef.current.y)
-        / canvas.clientHeight) * Math.PI;
+        const xOffset = event.clientX - mouseRef.current.x;
+        const yOffset = event.clientY - mouseRef.current.y;
 
-        const q = Quaternion.fromEuler(-xRotation, -yRotation, 0, 'XYZ') as Quaternion;
+        yaw += xOffset * 0.1;
+        pitch += yOffset * 0.1;
 
-        if (accumQ) {
-          accumQ = accumQ.mul(q);
-        }
-        else {
-          accumQ = q;
-        }
-
-        rotation = accumQ.conjugate().toMatrix4();
+        pitch = Math.max(Math.min(pitch, 89), -89);
 
         drawScene();
         mouseRef.current = { x: event.clientX, y: event.clientY };
@@ -1011,7 +993,7 @@ const Terrain = ({
   return (
     <canvas
       ref={canvasRef}
-      width="640"
+      width="853"
       height="480"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
