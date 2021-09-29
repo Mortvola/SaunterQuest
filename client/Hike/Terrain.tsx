@@ -5,51 +5,6 @@ import { vec3, mat4 } from 'gl-matrix';
 import Quaternion from 'quaternion';
 import { haversineGreatCircleDistance } from '../utilities';
 
-let gl: WebGLRenderingContext | null = null;
-
-type ProgramInfo = {
-  program: WebGLProgram,
-  attribLocations: {
-    vertexPosition: number,
-    vertexNormal: number,
-  },
-  uniformLocations: {
-    projectionMatrix: WebGLUniformLocation,
-    modelViewMatrix: WebGLUniformLocation,
-    normalMatrix: WebGLUniformLocation,
-  },
-};
-
-let programInfo: ProgramInfo | null = null;
-
-type LineProgramInfo = {
-  program: WebGLProgram,
-  attribLocations: {
-    vertexPosition: number,
-  },
-  uniformLocations: {
-    projectionMatrix: WebGLUniformLocation,
-    modelViewMatrix: WebGLUniformLocation,
-  },
-};
-
-let lineProgramInfo: LineProgramInfo | null = null;
-
-type Buffers = {
-  position: WebGLBuffer,
-  indices: WebGLBuffer,
-  numVertices: number,
-  normal: WebGLBuffer,
-  lines: WebGLBuffer,
-  numLinePoints: number,
-}
-
-let buffers: Buffers | null = null;
-let xRotation = Math.PI * 2;
-let yRotation = 0;
-let rotation = mat4.create();
-let accumQ: Quaternion | null = null;
-
 export type Points = {
   ne: { lat: number, lng: number },
   sw: { lat: number, lng: number },
@@ -59,16 +14,60 @@ export type Points = {
 };
 
 type PropsType = {
-  points: Points,
+  terrain: Points,
 }
 
 const Terrain = ({
-  points,
+  terrain,
 }: PropsType): ReactElement => {
+  type ProgramInfo = {
+    program: WebGLProgram,
+    attribLocations: {
+      vertexPosition: number,
+      vertexNormal: number,
+    },
+    uniformLocations: {
+      projectionMatrix: WebGLUniformLocation,
+      modelViewMatrix: WebGLUniformLocation,
+      normalMatrix: WebGLUniformLocation,
+    },
+  };
+
+  type LineProgramInfo = {
+    program: WebGLProgram,
+    attribLocations: {
+      vertexPosition: number,
+    },
+    uniformLocations: {
+      projectionMatrix: WebGLUniformLocation,
+      modelViewMatrix: WebGLUniformLocation,
+    },
+  };
+
+  type Buffers = {
+    position: WebGLBuffer,
+    indices: WebGLBuffer,
+    numVertices: number,
+    normal: WebGLBuffer,
+    lines: WebGLBuffer,
+    numLinePoints: number,
+    centerElevation: number,
+  }
+
+  let xRotation = Math.PI * 2;
+  let yRotation = 0;
+  let rotation = mat4.create();
+  let accumQ: Quaternion | null = null;
+
+  const programInfoRef = useRef<ProgramInfo | null>(null);
+  const lineProgramInfoRef = useRef<LineProgramInfo | null>(null);
+  const buffersRef = useRef<Buffers | null>(null);
+  const glRef = useRef<WebGLRenderingContext | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const mouseRef = useRef<{ x: number, y: number} | null>(null);
 
-  const loadShader = (type: number, source: string) => {
+  const loadShader = useCallback((type: number, source: string) => {
+    const gl = glRef.current;
     if (gl === null) {
       throw new Error('gl is null');
     }
@@ -96,9 +95,10 @@ const Terrain = ({
     }
 
     return shader;
-  };
+  }, []);
 
-  const compileProgram = (vertexShader: WebGLShader, fragmentShader: WebGLShader) => {
+  const compileProgram = useCallback((vertexShader: WebGLShader, fragmentShader: WebGLShader) => {
+    const gl = glRef.current;
     if (gl === null) {
       throw new Error('gl is null');
     }
@@ -119,9 +119,10 @@ const Terrain = ({
     }
 
     return shaderProgram;
-  };
+  }, []);
 
   const initShaderProgram = useCallback(() => {
+    const gl = glRef.current;
     if (gl === null) {
       throw new Error('gl is null');
     }
@@ -173,7 +174,7 @@ const Terrain = ({
     }
 
     return compileProgram(vertexShader, fragmentShader);
-  }, []);
+  }, [compileProgram, loadShader]);
 
   const initLineProgram = useCallback(() => {
     const vsSource = `
@@ -192,6 +193,7 @@ const Terrain = ({
     }
   `;
 
+    const gl = glRef.current;
     if (gl === null) {
       throw new Error('gl is null');
     }
@@ -209,7 +211,7 @@ const Terrain = ({
     }
 
     return compileProgram(vertexShader, fragmentShader);
-  }, []);
+  }, [compileProgram, loadShader]);
 
   const computeNormal = (positions: number[], indices: number[], index: number) => {
     const v1 = vec3.fromValues(
@@ -231,43 +233,48 @@ const Terrain = ({
     return normal;
   };
 
-  const getMinMaxElevation = useCallback(() => {
-    let min = points.points[0][0];
-    let max = points.points[0][0];
-    for (let j = 0; j < points.points.length; j += 1) {
-      for (let i = 0; i < points.points[j].length; i += 1) {
-        if (points.points[j][i] > max) {
-          max = points.points[j][i];
+  const getMinMaxElevation = useCallback((): { min: number, max: number, center: number } => {
+    let min = terrain.points[0][0];
+    let max = terrain.points[0][0];
+    for (let j = 0; j < terrain.points.length; j += 1) {
+      for (let i = 0; i < terrain.points[j].length; i += 1) {
+        if (terrain.points[j][i] > max) {
+          max = terrain.points[j][i];
         }
 
-        if (points.points[j][i] < min) {
-          min = points.points[j][i];
-        }
-      }
-    }
-
-    for (let j = 0; j < points.lineStrings.length; j += 1) {
-      for (let i = 0; i < points.lineStrings[j].length; i += 1) {
-        if (points.lineStrings[j][i][2] > max) {
-          [, , max] = points.lineStrings[j][i];
-        }
-
-        if (points.lineStrings[j][i][2] < min) {
-          [, , min] = points.lineStrings[j][i];
+        if (terrain.points[j][i] < min) {
+          min = terrain.points[j][i];
         }
       }
     }
 
-    return { min, max };
-  }, [points.lineStrings, points.points]);
+    for (let j = 0; j < terrain.lineStrings.length; j += 1) {
+      for (let i = 0; i < terrain.lineStrings[j].length; i += 1) {
+        if (terrain.lineStrings[j][i][2] > max) {
+          [, , max] = terrain.lineStrings[j][i];
+        }
 
-  const initBuffers = useCallback(() => {
-    if (gl === null) {
-      throw new Error('gl is null');
+        if (terrain.lineStrings[j][i][2] < min) {
+          [, , min] = terrain.lineStrings[j][i];
+        }
+      }
     }
 
-    // Create a buffer for the square's positions.
+    const center1 = terrain.points[Math.floor(terrain.points.length / 2)];
+    const center = center1[Math.floor(center1.length / 2)];
 
+    return { min, max, center };
+  }, [terrain.lineStrings, terrain.points]);
+
+  const createPositionsBuffer = useCallback((
+    gl: WebGLRenderingContext,
+    numPointsX: number,
+    numPointsY: number,
+    xyDelta: number,
+    latScale: number,
+    lngScale: number,
+    normalizeEle: (e: number) => number,
+  ): { positionBuffer: WebGLBuffer, positions: number[] } => {
     const positionBuffer = gl.createBuffer();
 
     if (positionBuffer === null) {
@@ -279,43 +286,14 @@ const Terrain = ({
 
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
-    const { min, max } = getMinMaxElevation();
-    const delta = max - min;
-
     const positions = [];
-    const xyDelta = 2.0 / (points.points.length - 1);
-
-    const latDistance = haversineGreatCircleDistance(
-      points.ne.lat, points.sw.lng, points.sw.lat, points.sw.lng,
-    );
-    const lngDistance = haversineGreatCircleDistance(
-      points.sw.lat, points.ne.lng, points.sw.lat, points.sw.lng,
-    );
-    let zScale = 2.0 / latDistance;
-    let latScale2 = 1.0;
-    let lngScale2 = lngDistance / latDistance;
-    if (lngDistance > latDistance) {
-      zScale = 2.0 / lngDistance;
-      latScale2 = latDistance / lngDistance;
-      lngScale2 = 1.0;
-    }
-
-    const normalizeEle = (v: number) => ((v - min - delta) * zScale);
-
-    const normalizeLatLng = (lng: number, lat: number) => ([
-      (((lng - points.sw.lng) / (points.ne.lng - points.sw.lng)) * 2 - 1) * lngScale2,
-      (((lat - points.sw.lat) / (points.ne.lat - points.sw.lat)) * 2 - 1) * latScale2,
-    ]);
-
-    const numPointsX = points.points[0].length;
-    const numPointsY = points.points.length;
 
     let x = -1.0;
     let y = 1.0;
     for (let i = 0; i < numPointsX; i += 1) {
-      positions.push(x * lngScale2);
-      positions.push(y * latScale2);
-      positions.push(normalizeEle(points.points[0][i]));
+      positions.push(x * lngScale);
+      positions.push(y * latScale);
+      positions.push(normalizeEle(terrain.points[0][i]));
 
       x += xyDelta;
     }
@@ -324,25 +302,33 @@ const Terrain = ({
       x = -1.0;
       y -= xyDelta;
 
-      positions.push(x * lngScale2);
-      positions.push(y * latScale2);
-      positions.push(normalizeEle(points.points[j][0]));
+      positions.push(x * lngScale);
+      positions.push(y * latScale);
+      positions.push(normalizeEle(terrain.points[j][0]));
 
       for (let i = 1; i < numPointsX; i += 1) {
         x += xyDelta;
 
-        positions.push((x - xyDelta / 2) * lngScale2);
-        positions.push((y + xyDelta / 2) * latScale2);
-        positions.push(normalizeEle(points.centers[j - 1][i - 1]));
+        positions.push((x - xyDelta / 2) * lngScale);
+        positions.push((y + xyDelta / 2) * latScale);
+        positions.push(normalizeEle(terrain.centers[j - 1][i - 1]));
 
-        positions.push(x * lngScale2);
-        positions.push(y * latScale2);
-        positions.push(normalizeEle(points.points[j][i]));
+        positions.push(x * lngScale);
+        positions.push(y * latScale);
+        positions.push(normalizeEle(terrain.points[j][i]));
       }
     }
 
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
+    return { positionBuffer, positions };
+  }, [terrain.centers, terrain.points]);
+
+  const createIndexBuffer = (
+    gl: WebGLRenderingContext,
+    numPointsX: number,
+    numPointsY: number,
+  ): { indexBuffer: WebGLBuffer, indices: number[] } => {
     const indexBuffer = gl.createBuffer();
 
     if (indexBuffer === null) {
@@ -393,8 +379,18 @@ const Terrain = ({
       }
     }
 
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(indices), gl.STATIC_DRAW);
 
+    return { indexBuffer, indices };
+  };
+
+  const createNormalBuffer = useCallback((
+    gl: WebGLRenderingContext,
+    positions: number[],
+    indices: number[],
+    numPointsX: number,
+    numPointsY: number,
+  ): WebGLBuffer => {
     const normalBuffer = gl.createBuffer();
 
     if (normalBuffer === null) {
@@ -523,12 +519,26 @@ const Terrain = ({
 
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals), gl.STATIC_DRAW);
 
+    return normalBuffer;
+  }, []);
+
+  const createLinesBuffer = useCallback((
+    gl: WebGLRenderingContext,
+    latScale: number,
+    lngScale: number,
+    normalizeEle: (e: number) => number,
+  ): { lineBuffer: WebGLBuffer, lines: number[] } => {
     // Create a buffer for lines
     const lineBuffer = gl.createBuffer();
 
     if (lineBuffer === null) {
       throw new Error('lineBuffer is null');
     }
+
+    const normalizeLatLng = (lng: number, lat: number): [number, number] => ([
+      (((lng - terrain.sw.lng) / (terrain.ne.lng - terrain.sw.lng)) * 2 - 1) * lngScale,
+      (((lat - terrain.sw.lat) / (terrain.ne.lat - terrain.sw.lat)) * 2 - 1) * latScale,
+    ]);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, lineBuffer);
 
@@ -545,22 +555,22 @@ const Terrain = ({
     //   normalizeEle(points.elevation),
     // );
 
-    for (let j = 0; j < points.lineStrings.length; j += 1) {
-      for (let i = 0; i < points.lineStrings[j].length - 1; i += 1) {
+    for (let j = 0; j < terrain.lineStrings.length; j += 1) {
+      for (let i = 0; i < terrain.lineStrings[j].length - 1; i += 1) {
         lines.push(
           ...normalizeLatLng(
-            points.lineStrings[j][i][0],
-            points.lineStrings[j][i][1],
+            terrain.lineStrings[j][i][0],
+            terrain.lineStrings[j][i][1],
           ),
-          normalizeEle(points.lineStrings[j][i][2]) + 0.025,
+          normalizeEle(terrain.lineStrings[j][i][2] + 1),
         );
 
         lines.push(
           ...normalizeLatLng(
-            points.lineStrings[j][i + 1][0],
-            points.lineStrings[j][i + 1][1],
+            terrain.lineStrings[j][i + 1][0],
+            terrain.lineStrings[j][i + 1][1],
           ),
-          normalizeEle(points.lineStrings[j][i + 1][2]) + 0.025,
+          normalizeEle(terrain.lineStrings[j][i + 1][2] + 1),
         );
       }
     }
@@ -595,6 +605,60 @@ const Terrain = ({
 
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(lines), gl.STATIC_DRAW);
 
+    return { lineBuffer, lines };
+  }, [terrain.lineStrings, terrain.ne.lat, terrain.ne.lng, terrain.sw.lat, terrain.sw.lng]);
+
+  const initBuffers = useCallback(() => {
+    const gl = glRef.current;
+    if (gl === null) {
+      throw new Error('gl is null');
+    }
+
+    const numPointsX = terrain.points[0].length;
+    const numPointsY = terrain.points.length;
+
+    const { min, max, center } = getMinMaxElevation();
+    const delta = max - min;
+
+    const xyDelta = 2.0 / (terrain.points.length - 1);
+
+    const latDistance = haversineGreatCircleDistance(
+      terrain.ne.lat, terrain.sw.lng, terrain.sw.lat, terrain.sw.lng,
+    );
+    const lngDistance = haversineGreatCircleDistance(
+      terrain.sw.lat, terrain.ne.lng, terrain.sw.lat, terrain.sw.lng,
+    );
+    let zScale = 1.0 / latDistance;
+    let latScale = 1.0;
+    let lngScale = lngDistance / latDistance;
+    if (lngDistance > latDistance) {
+      zScale = 1.0 / lngDistance;
+      latScale = latDistance / lngDistance;
+      lngScale = 1.0;
+    }
+
+    zScale = 1;
+    latScale = latDistance / 2;
+    lngScale = lngDistance / 2;
+
+    const normalizeEle = (e: number) => ((e - min - delta / 2) * zScale);
+
+    console.log(`zscale: ${zScale}, latScale=${latScale}, lngScale=${lngScale}`);
+    console.log(`${-1 * lngScale}, ${1 * latScale} to ${1 * lngScale}, ${-1 * latScale}`);
+
+    const { positionBuffer, positions } = createPositionsBuffer(
+      gl, numPointsX, numPointsY, xyDelta, latScale, lngScale, normalizeEle,
+    );
+    const { indexBuffer, indices } = createIndexBuffer(gl, numPointsX, numPointsY);
+    const normalBuffer = createNormalBuffer(gl, positions, indices, numPointsX, numPointsY);
+    const { lineBuffer, lines } = createLinesBuffer(gl, latScale, lngScale, normalizeEle);
+
+    console.log(`number of positions: ${positions.length}`);
+    console.log(`number of indices: ${indices.length}`);
+
+    console.log(`min/max elevation: ${min}/${max} ${normalizeEle(min)}/${normalizeEle(max)}`);
+    console.log(`elevation: ${center + 2}, ${normalizeEle(center + 2)}`);
+
     return {
       position: positionBuffer,
       indices: indexBuffer,
@@ -602,21 +666,29 @@ const Terrain = ({
       normal: normalBuffer,
       lines: lineBuffer,
       numLinePoints: lines.length / 3,
+      centerElevation: normalizeEle(center + 2),
     };
   }, [
+    createLinesBuffer,
+    createNormalBuffer,
+    createPositionsBuffer,
     getMinMaxElevation,
-    points.centers,
-    points.lineStrings,
-    points.ne.lat,
-    points.ne.lng,
-    points.points,
-    points.sw.lat,
-    points.sw.lng,
+    terrain.ne.lat,
+    terrain.ne.lng,
+    terrain.points,
+    terrain.sw.lat,
+    terrain.sw.lng,
   ]);
 
-  const drawScene = () => {
+  const drawScene = useCallback(() => {
+    const gl = glRef.current;
     if (gl === null) {
       throw new Error('gl is null');
+    }
+
+    const buffers = buffersRef.current;
+    if (buffers === null) {
+      throw new Error('buffers is null');
     }
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0); // Clear to black, fully opaque
@@ -638,8 +710,8 @@ const Terrain = ({
 
     const fieldOfView = (45 * Math.PI) / 180; // in radians
     const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-    const zNear = 0.1;
-    const zFar = 100.0;
+    const zNear = 1;
+    const zFar = 6000.0;
     const projectionMatrix = mat4.create();
 
     // note: glmatrix.js always has the first argument
@@ -652,13 +724,13 @@ const Terrain = ({
 
     const modelViewMatrix = mat4.create();
 
-    mat4.translate(modelViewMatrix, // destination matrix
-      modelViewMatrix, // matrix to translate
-      [0.0, 0.0, -2.5]); // amount to translate
-
     const invert = mat4.create();
     mat4.invert(invert, rotation);
     mat4.multiply(modelViewMatrix, modelViewMatrix, invert);
+
+    mat4.translate(modelViewMatrix, // destination matrix
+      modelViewMatrix, // matrix to translate
+      [0.0, 0.0, -buffers.centerElevation - 100]); // zNear]); // amount to translate
 
     // mat4.translate(modelViewMatrix, // destination matrix
     //   modelViewMatrix, // matrix to translate
@@ -668,17 +740,19 @@ const Terrain = ({
     mat4.invert(normalMatrix, modelViewMatrix);
     mat4.transpose(normalMatrix, normalMatrix);
 
+    const programInfo = programInfoRef.current;
+    if (programInfo === null) {
+      throw new Error('programInfo is null');
+    }
+
+    const lineProgramInfo = lineProgramInfoRef.current;
+    if (lineProgramInfo === null) {
+      throw new Error('lineProgramInfo is null');
+    }
+
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
     {
-      if (buffers === null) {
-        throw new Error('buffers is null');
-      }
-
-      if (programInfo === null) {
-        throw new Error('programInfo is null');
-      }
-
       const numComponents = 3; // pull out 2 values per iteration
       const type = gl.FLOAT; // the data in the buffer is 32bit floats
       const normalize = false; // don't normalize
@@ -702,14 +776,6 @@ const Terrain = ({
     // Tell WebGL how to pull out the normals from
     // the normal buffer into the vertexNormal attribute.
     {
-      if (buffers === null) {
-        throw new Error('buffers is null');
-      }
-
-      if (lineProgramInfo === null) {
-        throw new Error('lineProgramInfo is null');
-      }
-
       const numComponents = 3;
       const type = gl.FLOAT;
       const normalize = false;
@@ -756,7 +822,7 @@ const Terrain = ({
 
     {
       const vertexCount = buffers.numVertices;
-      const type = gl.UNSIGNED_SHORT;
+      const type = gl.UNSIGNED_INT;
       const offset = 0;
       gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
     }
@@ -802,19 +868,22 @@ const Terrain = ({
       const offset = 0;
       gl.drawArrays(gl.LINES, offset, count);
     }
-  };
+  }, [rotation]);
 
   useEffect(() => {
-    if (points) {
+    if (terrain) {
       const canvas = canvasRef.current;
 
       if (canvas !== null) {
       // Initialize the GL context
-        gl = canvas.getContext('webgl');
+        glRef.current = canvas.getContext('webgl2');
 
+        const gl = glRef.current;
         if (gl === null) {
           throw new Error('gl is null');
         }
+
+        console.log(`MAX_VERTEX_UNIFORM_VECTORS: ${gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS)}`);
 
         // Only continue if WebGL is available and working
         // Set clear color to black, fully opaque
@@ -846,7 +915,7 @@ const Terrain = ({
           throw new Error('normalMatrix is null');
         }
 
-        programInfo = {
+        programInfoRef.current = {
           program: shaderProgram,
           attribLocations: {
             vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
@@ -877,7 +946,7 @@ const Terrain = ({
           throw new Error('modelViewMatrix2 is null');
         }
 
-        lineProgramInfo = {
+        lineProgramInfoRef.current = {
           program: lineProgram,
           attribLocations: {
             vertexPosition: gl.getAttribLocation(lineProgram, 'aVertexPosition'),
@@ -890,13 +959,13 @@ const Terrain = ({
 
         // Here's where we call the routine that builds all the
         // objects we'll be drawing.
-        buffers = initBuffers();
+        buffersRef.current = initBuffers();
 
         // Draw the scene
         drawScene();
       }
     }
-  }, [initBuffers, initLineProgram, initShaderProgram, points]);
+  }, [drawScene, initBuffers, initLineProgram, initShaderProgram, terrain]);
 
   const handleMouseDown = (event: React.MouseEvent) => {
     mouseRef.current = { x: event.clientX, y: event.clientY };
@@ -914,7 +983,7 @@ const Terrain = ({
         xRotation = ((event.clientY - mouseRef.current.y)
         / canvas.clientHeight) * Math.PI;
 
-        const q = Quaternion.fromEuler(0, -xRotation, -yRotation, 'XYZ') as Quaternion;
+        const q = Quaternion.fromEuler(-xRotation, -yRotation, 0, 'XYZ') as Quaternion;
 
         if (accumQ) {
           accumQ = accumQ.mul(q);

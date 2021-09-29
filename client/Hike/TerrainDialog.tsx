@@ -19,7 +19,7 @@ const TerrainDialog = ({
   useEffect(() => {
     (async () => {
       if (latLng) {
-        const response = await fetch(`http://localhost:8090/elevation/area?lat=${latLng.lat}&lng=${latLng.lng}&dim=80`, {
+        const response = await fetch(`http://localhost:8090/elevation/area?lat=${latLng.lat}&lng=${latLng.lng}&dim=320`, {
           headers: {
             'access-control-allow-origins': '*',
           },
@@ -37,14 +37,14 @@ const TerrainDialog = ({
   }, [latLng]);
 
   return (
-    <Modal show={show} onHide={onHide} role="dialog" size="lg" contentClassName="terrain-content">
+    <Modal show={show} onHide={onHide} backdrop="static" role="dialog" size="lg" contentClassName="terrain-content">
       <Modal.Header closeButton>
         3D View
       </Modal.Header>
       <Modal.Body>
         {
           terrain
-            ? <Terrain points={terrain} />
+            ? <Terrain terrain={terrain} />
             : null
         }
       </Modal.Body>
