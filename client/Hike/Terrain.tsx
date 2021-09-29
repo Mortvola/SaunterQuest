@@ -43,14 +43,17 @@ const Terrain = ({
     },
   };
 
-  type Buffers = {
+  type TerrainBuffers = {
     position: WebGLBuffer,
     indices: WebGLBuffer,
     numVertices: number,
     normal: WebGLBuffer,
+    centerElevation: number,
+  }
+
+  type LineBuffers = {
     lines: WebGLBuffer,
     numLinePoints: number,
-    centerElevation: number,
   }
 
   let pitch = 0;
@@ -58,7 +61,8 @@ const Terrain = ({
 
   const programInfoRef = useRef<ProgramInfo | null>(null);
   const lineProgramInfoRef = useRef<LineProgramInfo | null>(null);
-  const buffersRef = useRef<Buffers | null>(null);
+  const terrainBuffersRef = useRef<TerrainBuffers | null>(null);
+  const lineBuffersRef = useRef<LineBuffers | null>(null);
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const mouseRef = useRef<{ x: number, y: number} | null>(null);
@@ -278,11 +282,6 @@ const Terrain = ({
       throw new Error('positionBuffer is null');
     }
 
-    // Select the positionBuffer as the one to apply buffer
-    // operations to from here out.
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
     const positions = [];
 
     let x = -1.0;
@@ -316,6 +315,7 @@ const Terrain = ({
       }
     }
 
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
     return { positionBuffer, positions };
@@ -331,8 +331,6 @@ const Terrain = ({
     if (indexBuffer === null) {
       throw new Error('indexBuffer is null');
     }
-
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 
     const indices = [];
 
@@ -376,6 +374,7 @@ const Terrain = ({
       }
     }
 
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(indices), gl.STATIC_DRAW);
 
     return { indexBuffer, indices };
@@ -605,7 +604,7 @@ const Terrain = ({
     return { lineBuffer, lines };
   }, [terrain.lineStrings, terrain.ne.lat, terrain.ne.lng, terrain.sw.lat, terrain.sw.lng]);
 
-  const initBuffers = useCallback(() => {
+  const initBuffers = useCallback((): [TerrainBuffers, LineBuffers] => {
     const gl = glRef.current;
     if (gl === null) {
       throw new Error('gl is null');
@@ -656,15 +655,19 @@ const Terrain = ({
     // console.log(`min/max elevation: ${min}/${max} ${normalizeEle(min)}/${normalizeEle(max)}`);
     // console.log(`elevation: ${center + 2}, ${normalizeEle(center + 2)}`);
 
-    return {
-      position: positionBuffer,
-      indices: indexBuffer,
-      numVertices: indices.length,
-      normal: normalBuffer,
-      lines: lineBuffer,
-      numLinePoints: lines.length / 3,
-      centerElevation: normalizeEle(center + 2),
-    };
+    return [
+      {
+        position: positionBuffer,
+        indices: indexBuffer,
+        numVertices: indices.length,
+        normal: normalBuffer,
+        centerElevation: normalizeEle(center + 2),
+      },
+      {
+        lines: lineBuffer,
+        numLinePoints: lines.length / 3,
+      },
+    ];
   }, [
     createLinesBuffer,
     createNormalBuffer,
@@ -677,69 +680,16 @@ const Terrain = ({
     terrain.sw.lng,
   ]);
 
-  const drawScene = useCallback(() => {
-    const gl = glRef.current;
-    if (gl === null) {
-      throw new Error('gl is null');
-    }
-
-    const buffers = buffersRef.current;
-    if (buffers === null) {
-      throw new Error('buffers is null');
-    }
-
-    gl.clearColor(0.0, 0.0, 0.0, 1.0); // Clear to black, fully opaque
-    gl.clearDepth(1.0); // Clear everything
-    gl.enable(gl.DEPTH_TEST); // Enable depth testing
-    gl.depthFunc(gl.LEQUAL); // Near things obscure far things
-
-    // Clear the canvas before we start drawing on it.
-
-    // eslint-disable-next-line no-bitwise
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-    // Set up the projection matrix
-    const fieldOfView = (45 * Math.PI) / 180; // in radians
-    const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-    const zNear = 0.1;
-    const zFar = 6000.0;
-    const projectionMatrix = mat4.create();
-
-    mat4.perspective(projectionMatrix,
-      fieldOfView,
-      aspect,
-      zNear,
-      zFar);
-
-    // Set up the view matrix
-    const modelViewMatrix = mat4.create();
-    const cameraPos = vec3.fromValues(0.0, 0.0, buffers.centerElevation + 2);
-
-    const cameraTarget = vec3.fromValues(
-      Math.cos((yaw * Math.PI) / 180) * Math.cos((pitch * Math.PI) / 180),
-      Math.sin((yaw * Math.PI) / 180) * Math.cos((pitch * Math.PI) / 180),
-      Math.sin((pitch * Math.PI) / 180),
-    );
-    vec3.normalize(cameraTarget, cameraTarget);
-    cameraTarget[2] += buffers.centerElevation + 2;
-
-    const cameraUp = vec3.fromValues(0.0, 0.0, 1.0);
-
-    mat4.lookAt(modelViewMatrix, cameraPos, cameraTarget, cameraUp);
-
-    // Set up the normal matrix
-    const normalMatrix = mat4.create();
-    mat4.invert(normalMatrix, modelViewMatrix);
-    mat4.transpose(normalMatrix, normalMatrix);
-
+  const drawTerrain = useCallback((
+    gl: WebGLRenderingContext,
+    buffers: TerrainBuffers,
+    projectionMatrix: mat4,
+    modelViewMatrix: mat4,
+    normalMatrix: mat4,
+  ) => {
     const programInfo = programInfoRef.current;
     if (programInfo === null) {
       throw new Error('programInfo is null');
-    }
-
-    const lineProgramInfo = lineProgramInfoRef.current;
-    if (lineProgramInfo === null) {
-      throw new Error('lineProgramInfo is null');
     }
 
     // Tell WebGL how to pull out the positions from the position
@@ -801,11 +751,13 @@ const Terrain = ({
       false,
       projectionMatrix,
     );
+
     gl.uniformMatrix4fv(
       programInfo.uniformLocations.modelViewMatrix,
       false,
       modelViewMatrix,
     );
+
     gl.uniformMatrix4fv(
       programInfo.uniformLocations.normalMatrix,
       false,
@@ -817,6 +769,18 @@ const Terrain = ({
       const type = gl.UNSIGNED_INT;
       const offset = 0;
       gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
+    }
+  }, []);
+
+  const drawTrails = useCallback((
+    gl: WebGLRenderingContext,
+    buffers: LineBuffers,
+    projectionMatrix: mat4,
+    modelViewMatrix: mat4,
+  ) => {
+    const lineProgramInfo = lineProgramInfoRef.current;
+    if (lineProgramInfo === null) {
+      throw new Error('lineProgramInfo is null');
     }
 
     gl.useProgram(lineProgramInfo.program);
@@ -860,7 +824,76 @@ const Terrain = ({
       const offset = 0;
       gl.drawArrays(gl.LINES, offset, count);
     }
+  }, []);
+
+  const getProjectionMatrix = (gl: WebGLRenderingContext) => {
+    // Set up the projection matrix
+    const fieldOfView = (45 * Math.PI) / 180; // in radians
+    const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+    const zNear = 0.1;
+    const zFar = 6000.0;
+    const projectionMatrix = mat4.create();
+
+    mat4.perspective(projectionMatrix,
+      fieldOfView,
+      aspect,
+      zNear,
+      zFar);
+
+    return projectionMatrix;
+  };
+
+  const getModelViewMatrix = useCallback((centerElevation: number) => {
+    // Set up the view matrix
+    const modelViewMatrix = mat4.create();
+    const cameraPos = vec3.fromValues(0.0, 0.0, centerElevation + 2);
+
+    const cameraTarget = vec3.fromValues(
+      Math.cos((yaw * Math.PI) / 180) * Math.cos((pitch * Math.PI) / 180),
+      Math.sin((yaw * Math.PI) / 180) * Math.cos((pitch * Math.PI) / 180),
+      Math.sin((pitch * Math.PI) / 180),
+    );
+    vec3.normalize(cameraTarget, cameraTarget);
+    cameraTarget[2] += centerElevation + 2;
+
+    const cameraUp = vec3.fromValues(0.0, 0.0, 1.0);
+
+    mat4.lookAt(modelViewMatrix, cameraPos, cameraTarget, cameraUp);
+
+    return modelViewMatrix;
   }, [pitch, yaw]);
+
+  const drawScene = useCallback(() => {
+    const gl = glRef.current;
+    if (gl === null) {
+      throw new Error('gl is null');
+    }
+
+    const terrainBuffers = terrainBuffersRef.current;
+    if (terrainBuffers === null) {
+      throw new Error('terrainBuffers is null');
+    }
+
+    const lineBuffers = lineBuffersRef.current;
+    if (lineBuffers === null) {
+      throw new Error('lineBuffers is null');
+    }
+
+    // Clear the canvas before we start drawing on it.
+    // eslint-disable-next-line no-bitwise
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    const projectionMatrix = getProjectionMatrix(gl);
+    const modelViewMatrix = getModelViewMatrix(terrainBuffers.centerElevation);
+
+    // Set up the normal matrix
+    const normalMatrix = mat4.create();
+    mat4.invert(normalMatrix, modelViewMatrix);
+    mat4.transpose(normalMatrix, normalMatrix);
+
+    drawTerrain(gl, terrainBuffers, projectionMatrix, modelViewMatrix, normalMatrix);
+    drawTrails(gl, lineBuffers, projectionMatrix, modelViewMatrix);
+  }, [drawTerrain, drawTrails, getModelViewMatrix]);
 
   useEffect(() => {
     if (terrain) {
@@ -878,8 +911,9 @@ const Terrain = ({
         // Only continue if WebGL is available and working
         // Set clear color to black, fully opaque
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        // Clear the color buffer with specified clear color
-        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.clearDepth(1.0); // Clear everything
+        gl.enable(gl.DEPTH_TEST); // Enable depth testing
+        gl.depthFunc(gl.LEQUAL); // Near things obscure far things
 
         const shaderProgram = initShaderProgram();
 
@@ -949,7 +983,7 @@ const Terrain = ({
 
         // Here's where we call the routine that builds all the
         // objects we'll be drawing.
-        buffersRef.current = initBuffers();
+        [terrainBuffersRef.current, lineBuffersRef.current] = initBuffers();
 
         // Draw the scene
         drawScene();
