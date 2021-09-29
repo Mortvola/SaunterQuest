@@ -19,7 +19,7 @@ const TerrainDialog = ({
   useEffect(() => {
     (async () => {
       if (latLng) {
-        const response = await fetch(`http://localhost:8090/elevation/area?lat=${latLng.lat}&lng=${latLng.lng}&dim=320`, {
+        const response = await fetch(`http://localhost:8090/elevation/area?lat=${latLng.lat}&lng=${latLng.lng}&dim=640`, {
           headers: {
             'access-control-allow-origins': '*',
           },
