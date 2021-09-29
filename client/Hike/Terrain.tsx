@@ -957,13 +957,22 @@ const Terrain = ({
     }
   }, [drawScene, initBuffers, initLineProgram, initShaderProgram, terrain]);
 
-  const handleMouseDown = (event: React.MouseEvent) => {
+  const handlePointerDown = (
+    event: React.PointerEvent<HTMLCanvasElement> & {
+      target: {
+        setPointerCapture?: (id: number) => void,
+      },
+    },
+  ) => {
     mouseRef.current = { x: event.clientX, y: event.clientY };
+    if (event.target.setPointerCapture) {
+      event.target.setPointerCapture(event.pointerId);
+    }
     event.stopPropagation();
     event.preventDefault();
   };
 
-  const handleMouseMove = (event: React.MouseEvent) => {
+  const handlePointerMove = (event: React.PointerEvent) => {
     if (mouseRef.current) {
       const canvas = canvasRef.current;
 
@@ -984,20 +993,31 @@ const Terrain = ({
     }
   };
 
-  const handleMouseUp = (event: React.MouseEvent) => {
+  const handlePointerUp = (event: React.MouseEvent) => {
     mouseRef.current = null;
     event.stopPropagation();
     event.preventDefault();
   };
 
+  const handlePointerCapture = (event: React.MouseEvent) => {
+    console.log('got pointer capture');
+  };
+
+  const handlePointerRelease = (event: React.MouseEvent) => {
+    console.log('released pointer capture');
+  };
+
   return (
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
     <canvas
       ref={canvasRef}
       width="853"
       height="480"
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onGotPointerCapture={handlePointerCapture}
+      onLostPointerCapture={handlePointerRelease}
     />
   );
 };
