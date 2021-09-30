@@ -39,6 +39,12 @@ const config = (name, env) => ({
         },
         exclude: [/node_modules/, /public/],
       },
+      {
+        test: /\.glsl$/,
+        use: {
+          loader: 'webpack-glsl-loader',
+        },
+      },
     ],
   },
   resolve: {

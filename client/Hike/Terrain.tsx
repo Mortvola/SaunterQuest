@@ -3,6 +3,10 @@ import React, {
 } from 'react';
 import { vec3, mat4 } from 'gl-matrix';
 import { haversineGreatCircleDistance } from '../utilities';
+import terrainVertex from './TerrainVertex.glsl';
+import terrainFragment from './TerrainFragment.glsl';
+import lineVertex from './LineVertex.glsl';
+import lineFragment from './LineFragment.glsl';
 
 export type Points = {
   ne: { lat: number, lng: number },
@@ -122,53 +126,19 @@ const Terrain = ({
     return shaderProgram;
   }, []);
 
-  const initShaderProgram = useCallback(() => {
+  const initTerrainProgram = useCallback(() => {
     const gl = glRef.current;
     if (gl === null) {
       throw new Error('gl is null');
     }
 
-    const vsSource = `
-    attribute vec4 aVertexPosition;
-    attribute vec3 aVertexNormal;
-
-    uniform mat4 uNormalMatrix;
-    uniform mat4 uModelViewMatrix;
-    uniform mat4 uProjectionMatrix;
-
-    varying highp vec3 vLighting;
-
-    void main() {
-      gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
-
-      // Apply lighting effect
-
-      highp vec3 ambientLight = vec3(0.3, 0.3, 0.3);
-      highp vec3 directionalLightColor = vec3(0.6, 0.6, 0.6);
-      // highp vec3 directionalVector = normalize(vec3(0.85, 0.8, 0.75));
-      highp vec3 directionalVector = normalize(vec3(0, -1, -1));
-
-      highp vec4 transformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);
-
-      highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);
-      vLighting = ambientLight + (directionalLightColor * directional);
-    }
-  `;
-    const fsSource = `
-    varying highp vec3 vLighting;
-    
-    void main() {
-      highp vec3 color = vec3(1.0, 1.0, 1.0);
-      gl_FragColor = vec4(color * vLighting, 1.0);
-    }
-  `;
-    const vertexShader = loadShader(gl.VERTEX_SHADER, vsSource);
+    const vertexShader = loadShader(gl.VERTEX_SHADER, terrainVertex);
 
     if (vertexShader === null) {
       throw new Error('vertexShader is null');
     }
 
-    const fragmentShader = loadShader(gl.FRAGMENT_SHADER, fsSource);
+    const fragmentShader = loadShader(gl.FRAGMENT_SHADER, terrainFragment);
 
     if (fragmentShader === null) {
       throw new Error('fragmentShader is null');
@@ -178,34 +148,18 @@ const Terrain = ({
   }, [compileProgram, loadShader]);
 
   const initLineProgram = useCallback(() => {
-    const vsSource = `
-    attribute vec4 aVertexPosition;
-
-    uniform mat4 uModelViewMatrix;
-    uniform mat4 uProjectionMatrix;
-
-    void main() {
-      gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
-    }
-  `;
-    const fsSource = `
-    void main() {
-      gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-    }
-  `;
-
     const gl = glRef.current;
     if (gl === null) {
       throw new Error('gl is null');
     }
 
-    const vertexShader = loadShader(gl.VERTEX_SHADER, vsSource);
+    const vertexShader = loadShader(gl.VERTEX_SHADER, lineVertex);
 
     if (vertexShader === null) {
       throw new Error('vertexShader is null');
     }
 
-    const fragmentShader = loadShader(gl.FRAGMENT_SHADER, fsSource);
+    const fragmentShader = loadShader(gl.FRAGMENT_SHADER, lineFragment);
 
     if (fragmentShader === null) {
       throw new Error('fragmentShader is null');
@@ -915,7 +869,7 @@ const Terrain = ({
         gl.enable(gl.DEPTH_TEST); // Enable depth testing
         gl.depthFunc(gl.LEQUAL); // Near things obscure far things
 
-        const shaderProgram = initShaderProgram();
+        const shaderProgram = initTerrainProgram();
 
         if (shaderProgram === null) {
           throw new Error('shaderProgram is null');
@@ -989,7 +943,7 @@ const Terrain = ({
         drawScene();
       }
     }
-  }, [drawScene, initBuffers, initLineProgram, initShaderProgram, terrain]);
+  }, [drawScene, initBuffers, initLineProgram, initTerrainProgram, terrain]);
 
   const handlePointerDown = (
     event: React.PointerEvent<HTMLCanvasElement> & {
