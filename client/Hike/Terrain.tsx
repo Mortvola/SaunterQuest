@@ -785,7 +785,7 @@ const Terrain = ({
     const fieldOfView = (45 * Math.PI) / 180; // in radians
     const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
     const zNear = 0.1;
-    const zFar = 6000.0;
+    const zFar = 8000.0;
     const projectionMatrix = mat4.create();
 
     mat4.perspective(projectionMatrix,
