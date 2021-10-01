@@ -7,12 +7,14 @@ import { LatLng } from '../state/Types';
 
 type Props = {
   tileServerUrl: string;
+  pathFinderUrl: string;
   hike: Hike;
   locationPopup: LatLng | null;
 }
 
 const MyMapContainer = ({
   tileServerUrl,
+  pathFinderUrl,
   hike,
   locationPopup,
 }: Props): ReactElement => (
@@ -24,6 +26,7 @@ const MyMapContainer = ({
   >
     <Map
       tileServerUrl={tileServerUrl}
+      pathFinderUrl={pathFinderUrl}
       hike={hike}
       locationPopup={locationPopup}
     />

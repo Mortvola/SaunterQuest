@@ -8,6 +8,7 @@ export default class HomeController {
       const props = {
         username: auth.user.username,
         tileServerUrl: Env.get('TILE_SERVER_URL'),
+        pathFinderUrl: Env.get('PATHFINDER_URL'),
         extendedMenu: auth.user.admin,
       };
 

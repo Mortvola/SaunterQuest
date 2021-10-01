@@ -8,7 +8,6 @@ module.exports = {
     'airbnb',
     'plugin:react/recommended',
     'plugin:react-hooks/recommended',
-    'glsl',
   ],
   globals: {
     Atomics: 'readonly',
@@ -43,7 +42,6 @@ module.exports = {
         "tsx": "never"
       }
     ],
-    "glsl/rule-name": 2,
   },
   settings: {
     'import/resolver': {
