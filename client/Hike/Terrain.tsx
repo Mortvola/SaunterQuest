@@ -5,8 +5,6 @@ import { vec3, mat4 } from 'gl-matrix';
 import { haversineGreatCircleDistance } from '../utilities';
 import terrainVertex from './TerrainVertex.vert';
 import terrainFragment from './TerrainFragment.frag';
-import lineVertex from './LineVertex.vert';
-import lineFragment from './LineFragment.frag';
 import { LatLng } from '../state/Types';
 
 export type Points = {
@@ -14,7 +12,6 @@ export type Points = {
   sw: { lat: number, lng: number },
   points: number[][],
   centers: number[][],
-  lineStrings: number[][][],
 };
 
 export type Location = {
@@ -52,27 +49,11 @@ const Terrain = ({
     },
   };
 
-  type LineProgramInfo = {
-    program: WebGLProgram,
-    attribLocations: {
-      vertexPosition: number,
-    },
-    uniformLocations: {
-      projectionMatrix: WebGLUniformLocation,
-      modelViewMatrix: WebGLUniformLocation,
-    },
-  };
-
   type TerrainBuffers = {
     position: WebGLBuffer,
     indices: WebGLBuffer,
     numVertices: number,
     normal: WebGLBuffer,
-  }
-
-  type LineBuffers = {
-    lines: WebGLBuffer,
-    numLinePoints: number,
   }
 
   let pitch = 0;
@@ -81,9 +62,7 @@ const Terrain = ({
   const terrainVertexStride = 5;
 
   const programInfoRef = useRef<ProgramInfo | null>(null);
-  const lineProgramInfoRef = useRef<LineProgramInfo | null>(null);
   const terrainBuffersRef = useRef<TerrainBuffers | null>(null);
-  const lineBuffersRef = useRef<LineBuffers | null>(null);
   const glRef = useRef<WebGL2RenderingContext | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const mouseRef = useRef<{ x: number, y: number} | null>(null);
@@ -158,27 +137,6 @@ const Terrain = ({
     }
 
     const fragmentShader = loadShader(gl.FRAGMENT_SHADER, terrainFragment);
-
-    if (fragmentShader === null) {
-      throw new Error('fragmentShader is null');
-    }
-
-    return compileProgram(vertexShader, fragmentShader);
-  }, [compileProgram, loadShader]);
-
-  const initLineProgram = useCallback(() => {
-    const gl = glRef.current;
-    if (gl === null) {
-      throw new Error('gl is null');
-    }
-
-    const vertexShader = loadShader(gl.VERTEX_SHADER, lineVertex);
-
-    if (vertexShader === null) {
-      throw new Error('vertexShader is null');
-    }
-
-    const fragmentShader = loadShader(gl.FRAGMENT_SHADER, lineFragment);
 
     if (fragmentShader === null) {
       throw new Error('fragmentShader is null');
@@ -472,93 +430,7 @@ const Terrain = ({
     return normalBuffer;
   }, []);
 
-  const createLinesBuffer = useCallback((
-    gl: WebGL2RenderingContext,
-    latStep: number,
-    lngStep: number,
-    normalizeEle: (e: number) => number,
-  ): { lineBuffer: WebGLBuffer, lines: number[] } => {
-    // Create a buffer for lines
-    const lineBuffer = gl.createBuffer();
-
-    if (lineBuffer === null) {
-      throw new Error('lineBuffer is null');
-    }
-
-    const normalizeLatLng = (lng: number, lat: number): [number, number] => ([
-      (((lng - terrain.sw.lng) / (terrain.ne.lng - terrain.sw.lng)) * 2 - 1) * lngStep,
-      (((lat - terrain.sw.lat) / (terrain.ne.lat - terrain.sw.lat)) * 2 - 1) * latStep,
-    ]);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, lineBuffer);
-
-    const lines = [];
-
-    // lines.push(
-    //   ...normalizeLatLng(points.selected.lng, points.selected.lat),
-    //   1.0,
-    // );
-
-    // lines.push(
-    //   lines[0],
-    //   lines[1],
-    //   normalizeEle(points.elevation),
-    // );
-
-    for (let j = 0; j < terrain.lineStrings.length; j += 1) {
-      for (let i = 0; i < terrain.lineStrings[j].length - 1; i += 1) {
-        lines.push(
-          ...normalizeLatLng(
-            terrain.lineStrings[j][i][0],
-            terrain.lineStrings[j][i][1],
-          ),
-          normalizeEle(terrain.lineStrings[j][i][2] + 1),
-        );
-
-        lines.push(
-          ...normalizeLatLng(
-            terrain.lineStrings[j][i + 1][0],
-            terrain.lineStrings[j][i + 1][1],
-          ),
-          normalizeEle(terrain.lineStrings[j][i + 1][2] + 1),
-        );
-      }
-    }
-
-    // Add normals to lines
-    // for (let i = 0; i < (numPointsY - 1) * (numPointsX - 1) * 12; i += 1) {
-    //   const v0 = vec3.fromValues(
-    //     vertexNormals[indices[i] * 3 + 0],
-    //     vertexNormals[indices[i] * 3 + 1],
-    //     vertexNormals[indices[i] * 3 + 2],
-    //   );
-
-    //   const v1 = vec3.fromValues(
-    //     positions[indices[i] * 3 + 0],
-    //     positions[indices[i] * 3 + 1],
-    //     positions[indices[i] * 3 + 2],
-    //   );
-
-    //   const v3 = vec3.fromValues(0.01, 0.01, 0.01);
-    //   const v4 = vec3.fromValues(0.05, 0.05, 0.05);
-
-    //   const v2 = vec3.create();
-
-    //   vec3.multiply(v2, v0, v3);
-    //   vec3.add(v1, v1, v2);
-    //   lines.push(...v1);
-
-    //   vec3.multiply(v2, v0, v4);
-    //   vec3.add(v1, v1, v2);
-    //   lines.push(...v1);
-    // }
-
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(lines), gl.STATIC_DRAW);
-
-    return { lineBuffer, lines };
-  }, [terrain.lineStrings, terrain.ne.lat, terrain.ne.lng, terrain.sw.lat, terrain.sw.lng]);
-
-  const initBuffers = useCallback((): [TerrainBuffers, LineBuffers] => {
+  const initBuffers = useCallback((): TerrainBuffers => {
     const gl = glRef.current;
     if (gl === null) {
       throw new Error('gl is null');
@@ -598,7 +470,6 @@ const Terrain = ({
     );
     const { indexBuffer, indices } = createIndexBuffer(gl, numPointsX, numPointsY);
     const normalBuffer = createNormalBuffer(gl, positions, indices, numPointsX, numPointsY);
-    const { lineBuffer, lines } = createLinesBuffer(gl, latStep, lngStep, normalizeEle);
 
     // console.log(`number of positions: ${positions.length}`);
     // console.log(`number of indices: ${indices.length}`);
@@ -606,27 +477,13 @@ const Terrain = ({
     // console.log(`min/max elevation: ${min}/${max} ${normalizeEle(min)}/${normalizeEle(max)}`);
     // console.log(`elevation: ${center + 2}, ${normalizeEle(center + 2)}`);
 
-    return [
-      {
-        position: positionBuffer,
-        indices: indexBuffer,
-        numVertices: indices.length,
-        normal: normalBuffer,
-      },
-      {
-        lines: lineBuffer,
-        numLinePoints: lines.length / 3,
-      },
-    ];
-  }, [
-    createLinesBuffer,
-    createNormalBuffer,
-    createPositionsBuffer,
-    position,
-    terrain.ne,
-    terrain.points,
-    terrain.sw,
-  ]);
+    return {
+      position: positionBuffer,
+      indices: indexBuffer,
+      numVertices: indices.length,
+      normal: normalBuffer,
+    };
+  }, [createNormalBuffer, createPositionsBuffer, position, terrain.ne, terrain.points, terrain.sw]);
 
   const drawTerrain = useCallback((
     gl: WebGL2RenderingContext,
@@ -729,60 +586,6 @@ const Terrain = ({
     }
   }, []);
 
-  const drawTrails = useCallback((
-    gl: WebGL2RenderingContext,
-    buffers: LineBuffers,
-    projectionMatrix: mat4,
-    modelViewMatrix: mat4,
-  ) => {
-    const lineProgramInfo = lineProgramInfoRef.current;
-    if (lineProgramInfo === null) {
-      throw new Error('lineProgramInfo is null');
-    }
-
-    gl.useProgram(lineProgramInfo.program);
-
-    // Tell WebGL how to pull out the positions from the position
-    // buffer into the vertexPosition attribute.
-    {
-      const numComponents = 3; // pull out 2 values per iteration
-      const type = gl.FLOAT; // the data in the buffer is 32bit floats
-      const normalize = false; // don't normalize
-      const stride = 0; // how many bytes to get from one set of values to the next
-      // 0 = use type and numComponents above
-      const offset = 0; // how many bytes inside the buffer to start from
-      gl.bindBuffer(gl.ARRAY_BUFFER, buffers.lines);
-      gl.vertexAttribPointer(
-        lineProgramInfo.attribLocations.vertexPosition,
-        numComponents,
-        type,
-        normalize,
-        stride,
-        offset,
-      );
-      gl.enableVertexAttribArray(
-        lineProgramInfo.attribLocations.vertexPosition,
-      );
-    }
-
-    gl.uniformMatrix4fv(
-      lineProgramInfo.uniformLocations.projectionMatrix,
-      false,
-      projectionMatrix,
-    );
-    gl.uniformMatrix4fv(
-      lineProgramInfo.uniformLocations.modelViewMatrix,
-      false,
-      modelViewMatrix,
-    );
-
-    {
-      const count = buffers.numLinePoints;
-      const offset = 0;
-      gl.drawArrays(gl.LINES, offset, count);
-    }
-  }, []);
-
   const getProjectionMatrix = (gl: WebGL2RenderingContext) => {
     // Set up the projection matrix
     const fieldOfView = (45 * Math.PI) / 180; // in radians
@@ -832,11 +635,6 @@ const Terrain = ({
       throw new Error('terrainBuffers is null');
     }
 
-    const lineBuffers = lineBuffersRef.current;
-    if (lineBuffers === null) {
-      throw new Error('lineBuffers is null');
-    }
-
     // Clear the canvas before we start drawing on it.
     // eslint-disable-next-line no-bitwise
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -850,8 +648,7 @@ const Terrain = ({
     mat4.transpose(normalMatrix, normalMatrix);
 
     drawTerrain(gl, terrainBuffers, projectionMatrix, modelViewMatrix, normalMatrix);
-    drawTrails(gl, lineBuffers, projectionMatrix, modelViewMatrix);
-  }, [drawTerrain, drawTrails, getModelViewMatrix]);
+  }, [drawTerrain, getModelViewMatrix]);
 
   const initTexture = useCallback((gl: WebGL2RenderingContext) => {
     const image = new Image();
@@ -961,38 +758,9 @@ const Terrain = ({
           },
         };
 
-        const lineProgram = initLineProgram();
-
-        if (lineProgram === null) {
-          throw new Error('lineProgram is null');
-        }
-
-        const projectionMatrix2 = gl.getUniformLocation(lineProgram, 'uProjectionMatrix');
-
-        if (projectionMatrix2 === null) {
-          throw new Error('projectionMatrix2 is null');
-        }
-
-        const modelViewMatrix2 = gl.getUniformLocation(lineProgram, 'uModelViewMatrix');
-
-        if (modelViewMatrix2 === null) {
-          throw new Error('modelViewMatrix2 is null');
-        }
-
-        lineProgramInfoRef.current = {
-          program: lineProgram,
-          attribLocations: {
-            vertexPosition: gl.getAttribLocation(lineProgram, 'aVertexPosition'),
-          },
-          uniformLocations: {
-            projectionMatrix: projectionMatrix2,
-            modelViewMatrix: modelViewMatrix2,
-          },
-        };
-
         // Here's where we call the routine that builds all the
         // objects we'll be drawing.
-        [terrainBuffersRef.current, lineBuffersRef.current] = initBuffers();
+        terrainBuffersRef.current = initBuffers();
 
         initTexture(gl);
 
@@ -1000,7 +768,7 @@ const Terrain = ({
         drawScene();
       }
     }
-  }, [drawScene, initBuffers, initLineProgram, initTerrainProgram, initTexture, terrain]);
+  }, [drawScene, initBuffers, initTerrainProgram, initTexture, terrain]);
 
   const handlePointerDown = (
     event: React.PointerEvent<HTMLCanvasElement> & {
