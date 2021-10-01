@@ -1,5 +1,5 @@
 import React, {
-  ReactElement, useCallback, useEffect, useRef, useState,
+  ReactElement, useCallback, useEffect, useRef,
 } from 'react';
 import { vec3, mat4 } from 'gl-matrix';
 import { haversineGreatCircleDistance } from '../utilities';
@@ -25,6 +25,7 @@ export type Location = {
 
 type PropsType = {
   position: LatLng,
+  elevation: number,
   terrain: Points,
   tileServerUrl: string,
   location: Location,
@@ -32,6 +33,7 @@ type PropsType = {
 
 const Terrain = ({
   position,
+  elevation,
   terrain,
   tileServerUrl,
   location,
@@ -66,7 +68,6 @@ const Terrain = ({
     indices: WebGLBuffer,
     numVertices: number,
     normal: WebGLBuffer,
-    centerElevation: number,
   }
 
   type LineBuffers = {
@@ -211,39 +212,6 @@ const Terrain = ({
 
     return normal;
   };
-
-  const getMinMaxElevation = useCallback((): { min: number, max: number, center: number } => {
-    let min = terrain.points[0][0];
-    let max = terrain.points[0][0];
-    for (let j = 0; j < terrain.points.length; j += 1) {
-      for (let i = 0; i < terrain.points[j].length; i += 1) {
-        if (terrain.points[j][i] > max) {
-          max = terrain.points[j][i];
-        }
-
-        if (terrain.points[j][i] < min) {
-          min = terrain.points[j][i];
-        }
-      }
-    }
-
-    for (let j = 0; j < terrain.lineStrings.length; j += 1) {
-      for (let i = 0; i < terrain.lineStrings[j].length; i += 1) {
-        if (terrain.lineStrings[j][i][2] > max) {
-          [, , max] = terrain.lineStrings[j][i];
-        }
-
-        if (terrain.lineStrings[j][i][2] < min) {
-          [, , min] = terrain.lineStrings[j][i];
-        }
-      }
-    }
-
-    const center1 = terrain.points[Math.floor(terrain.points.length / 2)];
-    const center = center1[Math.floor(center1.length / 2)];
-
-    return { min, max, center };
-  }, [terrain.lineStrings, terrain.points]);
 
   const createPositionsBuffer = useCallback((
     gl: WebGL2RenderingContext,
@@ -599,9 +567,6 @@ const Terrain = ({
     const numPointsX = terrain.points[0].length;
     const numPointsY = terrain.points.length;
 
-    const { min, max, center } = getMinMaxElevation();
-    const delta = max - min;
-
     const latDistance = haversineGreatCircleDistance(
       terrain.ne.lat, terrain.sw.lng, terrain.sw.lat, terrain.sw.lng,
     );
@@ -616,8 +581,8 @@ const Terrain = ({
       position.lat, terrain.sw.lng, position.lat, position.lng,
     );
 
-    console.log(`ne: ${JSON.stringify(terrain.ne)}, sw: ${JSON.stringify(terrain.sw)})`);
-    console.log(`position: ${JSON.stringify(position)}`);
+    // console.log(`ne: ${JSON.stringify(terrain.ne)}, sw: ${JSON.stringify(terrain.sw)})`);
+    // console.log(`position: ${JSON.stringify(position)}`);
 
     // const zScale = 1;
     const latStep = latDistance / (numPointsY - 1);
@@ -647,7 +612,6 @@ const Terrain = ({
         indices: indexBuffer,
         numVertices: indices.length,
         normal: normalBuffer,
-        centerElevation: normalizeEle(center + 2),
       },
       {
         lines: lineBuffer,
@@ -658,7 +622,6 @@ const Terrain = ({
     createLinesBuffer,
     createNormalBuffer,
     createPositionsBuffer,
-    getMinMaxElevation,
     position,
     terrain.ne,
     terrain.points,
@@ -837,13 +800,11 @@ const Terrain = ({
     return projectionMatrix;
   };
 
-  const getModelViewMatrix = useCallback((centerElevation: number) => {
+  const getModelViewMatrix = useCallback(() => {
     // Set up the view matrix
-    const elevation = 4345;
-    console.log(centerElevation);
 
     const modelViewMatrix = mat4.create();
-    const cameraPos = vec3.fromValues(0.0, 0.0, elevation);
+    const cameraPos = vec3.fromValues(0.0, 0.0, elevation + 2);
 
     const cameraTarget = vec3.fromValues(
       Math.cos((yaw * Math.PI) / 180) * Math.cos((pitch * Math.PI) / 180),
@@ -851,14 +812,14 @@ const Terrain = ({
       Math.sin((pitch * Math.PI) / 180),
     );
     vec3.normalize(cameraTarget, cameraTarget);
-    cameraTarget[2] += elevation;
+    cameraTarget[2] += elevation + 2;
 
     const cameraUp = vec3.fromValues(0.0, 0.0, 1.0);
 
     mat4.lookAt(modelViewMatrix, cameraPos, cameraTarget, cameraUp);
 
     return modelViewMatrix;
-  }, [pitch, yaw]);
+  }, [elevation, pitch, yaw]);
 
   const drawScene = useCallback(() => {
     const gl = glRef.current;
@@ -881,7 +842,7 @@ const Terrain = ({
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     const projectionMatrix = getProjectionMatrix(gl);
-    const modelViewMatrix = getModelViewMatrix(terrainBuffers.centerElevation);
+    const modelViewMatrix = getModelViewMatrix();
 
     // Set up the normal matrix
     const normalMatrix = mat4.create();
@@ -922,8 +883,6 @@ const Terrain = ({
         pixel);
 
       image.onload = () => {
-        console.log('image loaded');
-
         gl.bindTexture(gl.TEXTURE_2D, textureRef.current);
         gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, 256, 256, 0, srcFormat, srcType, image);
         gl.generateMipmap(gl.TEXTURE_2D);
@@ -960,15 +919,15 @@ const Terrain = ({
           throw new Error('shaderProgram is null');
         }
 
-        const count = gl.getProgramParameter(shaderProgram, gl.ACTIVE_UNIFORMS);
-        console.log(`count = ${count}`);
+        // const count = gl.getProgramParameter(shaderProgram, gl.ACTIVE_UNIFORMS);
+        // console.log(`count = ${count}`);
 
-        for (let i = 0; i < count; i += 1) {
-          const info = gl.getActiveUniform(shaderProgram, i);
-          if (info !== null) {
-            console.log(`name: ${info.name}`);
-          }
-        }
+        // for (let i = 0; i < count; i += 1) {
+        //   const info = gl.getActiveUniform(shaderProgram, i);
+        //   if (info !== null) {
+        //     console.log(`name: ${info.name}`);
+        //   }
+        // }
 
         const projectionMatrix = gl.getUniformLocation(shaderProgram, 'uProjectionMatrix');
 
