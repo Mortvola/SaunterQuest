@@ -5,12 +5,6 @@ import useModal, { ModalProps, UseModalType } from '@mortvola/usemodal';
 import { LatLng } from '../state/Types';
 import Terrain, { Points } from './Terrain';
 
-type PropsType = {
-  latLng?: LatLng | null,
-  tileServerUrl: string,
-  pathFinderUrl: string,
-}
-
 const tile2lng = (x: number, z: number) => (
   (x / (2 ** z)) * 360 - 180
 );
@@ -31,6 +25,12 @@ const lat2tile = (lat: number, zoom: number) => (
   )
 );
 
+type PropsType = {
+  latLng: LatLng,
+  tileServerUrl: string,
+  pathFinderUrl: string,
+}
+
 const TerrainDialog = ({
   show,
   onHide,
@@ -39,15 +39,16 @@ const TerrainDialog = ({
   pathFinderUrl,
 }: PropsType & ModalProps): ReactElement => {
   const [terrain, setTerrain] = useState<Points | null>(null);
-  const [location, setLocation] = useState<{ x: number, y: number, zoom: number } | null>(null);
+
+  const zoom = 13;
+  const x = lng2tile(latLng.lng, zoom);
+  const y = lat2tile(latLng.lat, zoom);
+
+  const location = { x, y, zoom };
 
   useEffect(() => {
     (async () => {
       if (latLng) {
-        const zoom = 16;
-        const x = lng2tile(latLng.lng, zoom);
-        const y = lat2tile(latLng.lat, zoom);
-
         const response = await fetch(`${pathFinderUrl}/elevation/tile/${zoom}/${x}/${y}`, {
           headers: {
             'access-control-allow-origins': '*',
@@ -57,15 +58,13 @@ const TerrainDialog = ({
         if (response.ok) {
           const body = await response.json();
           setTerrain(body);
-
-          setLocation({ x, y, zoom });
         }
         else {
           throw new Error('invalid response');
         }
       }
     })();
-  }, [latLng, pathFinderUrl, tileServerUrl]);
+  }, [latLng, pathFinderUrl, tileServerUrl, x, y]);
 
   return (
     <Modal show={show} onHide={onHide} backdrop="static" role="dialog" size="lg" contentClassName="terrain-content">
@@ -74,7 +73,7 @@ const TerrainDialog = ({
       </Modal.Header>
       <Modal.Body>
         {
-          terrain && location
+          terrain
             ? <Terrain terrain={terrain} location={location} tileServerUrl={tileServerUrl} />
             : null
         }

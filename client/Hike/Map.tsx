@@ -157,7 +157,17 @@ const Map = ({
           )
           : null
       }
-      <TerrainDialog latLng={latLng} tileServerUrl={tileServerUrl} pathFinderUrl={pathFinderUrl} />
+      {
+        latLng
+          ? (
+            <TerrainDialog
+              latLng={latLng}
+              tileServerUrl={tileServerUrl}
+              pathFinderUrl={pathFinderUrl}
+            />
+          )
+          : null
+      }
     </>
   );
 };

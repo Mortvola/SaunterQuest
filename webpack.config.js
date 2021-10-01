@@ -40,7 +40,7 @@ const config = (name, env) => ({
         exclude: [/node_modules/, /public/],
       },
       {
-        test: /\.glsl$/,
+        test: /\.(vert|frag)$/,
         use: {
           loader: 'webpack-glsl-loader',
         },

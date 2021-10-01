@@ -1,12 +1,12 @@
 import React, {
-  ReactElement, useCallback, useEffect, useRef,
+  ReactElement, useCallback, useEffect, useRef, useState,
 } from 'react';
 import { vec3, mat4 } from 'gl-matrix';
 import { haversineGreatCircleDistance } from '../utilities';
-import terrainVertex from './TerrainVertex.glsl';
-import terrainFragment from './TerrainFragment.glsl';
-import lineVertex from './LineVertex.glsl';
-import lineFragment from './LineFragment.glsl';
+import terrainVertex from './TerrainVertex.vert';
+import terrainFragment from './TerrainFragment.frag';
+import lineVertex from './LineVertex.vert';
+import lineFragment from './LineFragment.frag';
 
 export type Points = {
   ne: { lat: number, lng: number },
@@ -16,17 +16,28 @@ export type Points = {
   lineStrings: number[][][],
 };
 
+export type Location = {
+  x: number,
+  y: number,
+  zoom: number,
+};
+
 type PropsType = {
   terrain: Points,
+  tileServerUrl: string,
+  location: Location,
 }
 
 const Terrain = ({
   terrain,
+  tileServerUrl,
+  location,
 }: PropsType): ReactElement => {
   type ProgramInfo = {
     program: WebGLProgram,
     attribLocations: {
       vertexPosition: number,
+      texCoord: number,
       vertexNormal: number,
     },
     uniformLocations: {
@@ -63,13 +74,16 @@ const Terrain = ({
   let pitch = 0;
   let yaw = 90;
 
+  const terrainVertexStride = 5;
+
   const programInfoRef = useRef<ProgramInfo | null>(null);
   const lineProgramInfoRef = useRef<LineProgramInfo | null>(null);
   const terrainBuffersRef = useRef<TerrainBuffers | null>(null);
   const lineBuffersRef = useRef<LineBuffers | null>(null);
-  const glRef = useRef<WebGLRenderingContext | null>(null);
+  const glRef = useRef<WebGL2RenderingContext | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const mouseRef = useRef<{ x: number, y: number} | null>(null);
+  const textureRef = useRef<WebGLTexture | null>(null);
 
   const loadShader = useCallback((type: number, source: string) => {
     const gl = glRef.current;
@@ -94,9 +108,10 @@ const Terrain = ({
     // See if it compiled successfully
 
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      const log = gl.getShaderInfoLog(shader);
       gl.deleteShader(shader);
 
-      throw new Error(`An error occurred compiling the shaders: ${gl.getShaderInfoLog(shader)}`);
+      throw new Error(`An error occurred compiling the shaders: ${log}`);
     }
 
     return shader;
@@ -170,15 +185,21 @@ const Terrain = ({
 
   const computeNormal = (positions: number[], indices: number[], index: number) => {
     const v1 = vec3.fromValues(
-      positions[indices[index + 2] * 3 + 0] - positions[indices[index + 1] * 3 + 0],
-      positions[indices[index + 2] * 3 + 1] - positions[indices[index + 1] * 3 + 1],
-      positions[indices[index + 2] * 3 + 2] - positions[indices[index + 1] * 3 + 2],
+      positions[indices[index + 2] * terrainVertexStride + 0]
+        - positions[indices[index + 1] * terrainVertexStride + 0],
+      positions[indices[index + 2] * terrainVertexStride + 1]
+        - positions[indices[index + 1] * terrainVertexStride + 1],
+      positions[indices[index + 2] * terrainVertexStride + 2]
+      - positions[indices[index + 1] * terrainVertexStride + 2],
     );
 
     const v2 = vec3.fromValues(
-      positions[indices[index] * 3 + 0] - positions[indices[index + 1] * 3 + 0],
-      positions[indices[index] * 3 + 1] - positions[indices[index + 1] * 3 + 1],
-      positions[indices[index] * 3 + 2] - positions[indices[index + 1] * 3 + 2],
+      positions[indices[index] * terrainVertexStride + 0]
+        - positions[indices[index + 1] * terrainVertexStride + 0],
+      positions[indices[index] * terrainVertexStride + 1]
+        - positions[indices[index + 1] * terrainVertexStride + 1],
+      positions[indices[index] * terrainVertexStride + 2]
+        - positions[indices[index + 1] * terrainVertexStride + 2],
     );
 
     const normal = vec3.create();
@@ -222,7 +243,7 @@ const Terrain = ({
   }, [terrain.lineStrings, terrain.points]);
 
   const createPositionsBuffer = useCallback((
-    gl: WebGLRenderingContext,
+    gl: WebGL2RenderingContext,
     numPointsX: number,
     numPointsY: number,
     xyDelta: number,
@@ -245,6 +266,10 @@ const Terrain = ({
       positions.push(y * latScale);
       positions.push(normalizeEle(terrain.points[0][i]));
 
+      // texture coordinates
+      positions.push(i / (numPointsX - 1));
+      positions.push(0);
+
       x += xyDelta;
     }
 
@@ -256,6 +281,10 @@ const Terrain = ({
       positions.push(y * latScale);
       positions.push(normalizeEle(terrain.points[j][0]));
 
+      // texture coordinates
+      positions.push(0);
+      positions.push(j / (numPointsY - 1));
+
       for (let i = 1; i < numPointsX; i += 1) {
         x += xyDelta;
 
@@ -263,9 +292,17 @@ const Terrain = ({
         positions.push((y + xyDelta / 2) * latScale);
         positions.push(normalizeEle(terrain.centers[j - 1][i - 1]));
 
+        // texture coordinates
+        positions.push((i - 0.5) / (numPointsX - 1));
+        positions.push((j - 0.5) / (numPointsY - 1));
+
         positions.push(x * lngScale);
         positions.push(y * latScale);
         positions.push(normalizeEle(terrain.points[j][i]));
+
+        // texture coordinates
+        positions.push(i / (numPointsX - 1));
+        positions.push(j / (numPointsY - 1));
       }
     }
 
@@ -276,7 +313,7 @@ const Terrain = ({
   }, [terrain.centers, terrain.points]);
 
   const createIndexBuffer = (
-    gl: WebGLRenderingContext,
+    gl: WebGL2RenderingContext,
     numPointsX: number,
     numPointsY: number,
   ): { indexBuffer: WebGLBuffer, indices: number[] } => {
@@ -291,19 +328,19 @@ const Terrain = ({
     for (let i = 0; i < numPointsX - 1; i += 1) {
       indices.push(i);
       indices.push(i + 1);
-      indices.push(numPointsX + i * 2 + 1);
+      indices.push(numPointsX + i * 2 + 1); // center
 
       indices.push(i + 1);
       indices.push(numPointsX + i * 2 + 2);
-      indices.push(numPointsX + i * 2 + 1);
+      indices.push(numPointsX + i * 2 + 1); // center
 
       indices.push(numPointsX + i * 2 + 2);
       indices.push(numPointsX + i * 2 + 0);
-      indices.push(numPointsX + i * 2 + 1);
+      indices.push(numPointsX + i * 2 + 1); // center
 
       indices.push(numPointsX + i * 2 + 0);
       indices.push(i);
-      indices.push(numPointsX + i * 2 + 1);
+      indices.push(numPointsX + i * 2 + 1); // center
     }
 
     const firstRowOffset = numPointsX;
@@ -335,7 +372,7 @@ const Terrain = ({
   };
 
   const createNormalBuffer = useCallback((
-    gl: WebGLRenderingContext,
+    gl: WebGL2RenderingContext,
     positions: number[],
     indices: number[],
     numPointsX: number,
@@ -473,7 +510,7 @@ const Terrain = ({
   }, []);
 
   const createLinesBuffer = useCallback((
-    gl: WebGLRenderingContext,
+    gl: WebGL2RenderingContext,
     latScale: number,
     lngScale: number,
     normalizeEle: (e: number) => number,
@@ -635,7 +672,7 @@ const Terrain = ({
   ]);
 
   const drawTerrain = useCallback((
-    gl: WebGLRenderingContext,
+    gl: WebGL2RenderingContext,
     buffers: TerrainBuffers,
     projectionMatrix: mat4,
     modelViewMatrix: mat4,
@@ -648,26 +685,30 @@ const Terrain = ({
 
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
-    {
-      const numComponents = 3; // pull out 2 values per iteration
-      const type = gl.FLOAT; // the data in the buffer is 32bit floats
-      const normalize = false; // don't normalize
-      const stride = 0; // how many bytes to get from one set of values to the next
-      // 0 = use type and numComponents above
-      const offset = 0; // how many bytes inside the buffer to start from
-      gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
-      gl.vertexAttribPointer(
-        programInfo.attribLocations.vertexPosition,
-        numComponents,
-        type,
-        normalize,
-        stride,
-        offset,
-      );
-      gl.enableVertexAttribArray(
-        programInfo.attribLocations.vertexPosition,
-      );
-    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+    gl.vertexAttribPointer(
+      programInfo.attribLocations.vertexPosition,
+      3, // Number of components
+      gl.FLOAT,
+      false, // normalize
+      terrainVertexStride * 4, // stride
+      0, // offset
+    );
+    gl.enableVertexAttribArray(
+      programInfo.attribLocations.vertexPosition,
+    );
+
+    gl.vertexAttribPointer(
+      programInfo.attribLocations.texCoord,
+      2, // Number of components
+      gl.FLOAT,
+      false, // normalize
+      terrainVertexStride * 4, // stride
+      3 * 4, // offset
+    );
+    gl.enableVertexAttribArray(
+      programInfo.attribLocations.texCoord,
+    );
 
     // Tell WebGL how to pull out the normals from
     // the normal buffer into the vertexNormal attribute.
@@ -718,6 +759,11 @@ const Terrain = ({
       normalMatrix,
     );
 
+    gl.uniform1i(gl.getUniformLocation(programInfo.program, 'terrainTexture'), 0);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, textureRef.current);
+
     {
       const vertexCount = buffers.numVertices;
       const type = gl.UNSIGNED_INT;
@@ -727,7 +773,7 @@ const Terrain = ({
   }, []);
 
   const drawTrails = useCallback((
-    gl: WebGLRenderingContext,
+    gl: WebGL2RenderingContext,
     buffers: LineBuffers,
     projectionMatrix: mat4,
     modelViewMatrix: mat4,
@@ -780,7 +826,7 @@ const Terrain = ({
     }
   }, []);
 
-  const getProjectionMatrix = (gl: WebGLRenderingContext) => {
+  const getProjectionMatrix = (gl: WebGL2RenderingContext) => {
     // Set up the projection matrix
     const fieldOfView = (45 * Math.PI) / 180; // in radians
     const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
@@ -849,6 +895,48 @@ const Terrain = ({
     drawTrails(gl, lineBuffers, projectionMatrix, modelViewMatrix);
   }, [drawTerrain, drawTrails, getModelViewMatrix]);
 
+  const initTexture = useCallback((gl: WebGL2RenderingContext) => {
+    const image = new Image();
+
+    if (textureRef.current === null) {
+      textureRef.current = gl.createTexture();
+      if (textureRef.current === null) {
+        throw new Error('textureRef.current is null');
+      }
+
+      gl.bindTexture(gl.TEXTURE_2D, textureRef.current);
+
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+      const level = 0;
+      const internalFormat = gl.RGBA;
+      const width = 1;
+      const height = 1;
+      const border = 0;
+      const srcFormat = gl.RGBA;
+      const srcType = gl.UNSIGNED_BYTE;
+
+      const pixel = new Uint8Array([0, 0, 255, 255]); // opaque blue
+      gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+        width, height, border, srcFormat, srcType,
+        pixel);
+
+      image.onload = () => {
+        console.log('image loaded');
+
+        gl.bindTexture(gl.TEXTURE_2D, textureRef.current);
+        gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, 256, 256, 0, srcFormat, srcType, image);
+        gl.generateMipmap(gl.TEXTURE_2D);
+      };
+
+      image.crossOrigin = 'anonymous';
+      image.src = `${tileServerUrl}/tile/detail/${location.zoom}/${location.x}/${location.y}`;
+    }
+  }, [location.x, location.y, location.zoom, tileServerUrl]);
+
   useEffect(() => {
     if (terrain) {
       const canvas = canvasRef.current;
@@ -875,6 +963,16 @@ const Terrain = ({
           throw new Error('shaderProgram is null');
         }
 
+        const count = gl.getProgramParameter(shaderProgram, gl.ACTIVE_UNIFORMS);
+        console.log(`count = ${count}`);
+
+        for (let i = 0; i < count; i += 1) {
+          const info = gl.getActiveUniform(shaderProgram, i);
+          if (info !== null) {
+            console.log(`name: ${info.name}`);
+          }
+        }
+
         const projectionMatrix = gl.getUniformLocation(shaderProgram, 'uProjectionMatrix');
 
         if (projectionMatrix === null) {
@@ -897,6 +995,7 @@ const Terrain = ({
           program: shaderProgram,
           attribLocations: {
             vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+            texCoord: gl.getAttribLocation(shaderProgram, 'aTexCoord'),
             vertexNormal: gl.getAttribLocation(shaderProgram, 'aVertexNormal'),
           },
           uniformLocations: {
@@ -939,11 +1038,13 @@ const Terrain = ({
         // objects we'll be drawing.
         [terrainBuffersRef.current, lineBuffersRef.current] = initBuffers();
 
+        initTexture(gl);
+
         // Draw the scene
         drawScene();
       }
     }
-  }, [drawScene, initBuffers, initLineProgram, initTerrainProgram, terrain]);
+  }, [drawScene, initBuffers, initLineProgram, initTerrainProgram, initTexture, terrain]);
 
   const handlePointerDown = (
     event: React.PointerEvent<HTMLCanvasElement> & {
