@@ -74,7 +74,14 @@ const TerrainDialog = ({
       <Modal.Body>
         {
           terrain
-            ? <Terrain terrain={terrain} location={location} tileServerUrl={tileServerUrl} />
+            ? (
+              <Terrain
+                position={latLng}
+                terrain={terrain}
+                location={location}
+                tileServerUrl={tileServerUrl}
+              />
+            )
             : null
         }
       </Modal.Body>

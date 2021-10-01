@@ -7,6 +7,7 @@ import terrainVertex from './TerrainVertex.vert';
 import terrainFragment from './TerrainFragment.frag';
 import lineVertex from './LineVertex.vert';
 import lineFragment from './LineFragment.frag';
+import { LatLng } from '../state/Types';
 
 export type Points = {
   ne: { lat: number, lng: number },
@@ -23,12 +24,14 @@ export type Location = {
 };
 
 type PropsType = {
+  position: LatLng,
   terrain: Points,
   tileServerUrl: string,
   location: Location,
 }
 
 const Terrain = ({
+  position,
   terrain,
   tileServerUrl,
   location,
@@ -246,9 +249,10 @@ const Terrain = ({
     gl: WebGL2RenderingContext,
     numPointsX: number,
     numPointsY: number,
-    xyDelta: number,
-    latScale: number,
-    lngScale: number,
+    latStep: number,
+    lngStep: number,
+    latOffset: number,
+    lngOffset: number,
     normalizeEle: (e: number) => number,
   ): { positionBuffer: WebGLBuffer, positions: number[] } => {
     const positionBuffer = gl.createBuffer();
@@ -259,50 +263,41 @@ const Terrain = ({
 
     const positions = [];
 
-    let x = -1.0;
-    let y = 1.0;
     for (let i = 0; i < numPointsX; i += 1) {
-      positions.push(x * lngScale);
-      positions.push(y * latScale);
+      positions.push(i * lngStep - lngOffset);
+      positions.push(0 * latStep - latOffset);
       positions.push(normalizeEle(terrain.points[0][i]));
 
       // texture coordinates
       positions.push(i / (numPointsX - 1));
-      positions.push(0);
-
-      x += xyDelta;
+      positions.push(1);
     }
 
     for (let j = 1; j < numPointsY; j += 1) {
-      x = -1.0;
-      y -= xyDelta;
-
-      positions.push(x * lngScale);
-      positions.push(y * latScale);
+      positions.push(0 * lngStep - lngOffset);
+      positions.push(j * latStep - latOffset);
       positions.push(normalizeEle(terrain.points[j][0]));
 
       // texture coordinates
       positions.push(0);
-      positions.push(j / (numPointsY - 1));
+      positions.push(1 - j / (numPointsY - 1));
 
       for (let i = 1; i < numPointsX; i += 1) {
-        x += xyDelta;
-
-        positions.push((x - xyDelta / 2) * lngScale);
-        positions.push((y + xyDelta / 2) * latScale);
+        positions.push((i - 0.5) * lngStep - lngOffset);
+        positions.push((j - 0.5) * latStep - latOffset);
         positions.push(normalizeEle(terrain.centers[j - 1][i - 1]));
 
         // texture coordinates
         positions.push((i - 0.5) / (numPointsX - 1));
-        positions.push((j - 0.5) / (numPointsY - 1));
+        positions.push(1 - (j - 0.5) / (numPointsY - 1));
 
-        positions.push(x * lngScale);
-        positions.push(y * latScale);
+        positions.push(i * lngStep - lngOffset);
+        positions.push(j * latStep - latOffset);
         positions.push(normalizeEle(terrain.points[j][i]));
 
         // texture coordinates
         positions.push(i / (numPointsX - 1));
-        positions.push(j / (numPointsY - 1));
+        positions.push(1 - (j / (numPointsY - 1)));
       }
     }
 
@@ -511,8 +506,8 @@ const Terrain = ({
 
   const createLinesBuffer = useCallback((
     gl: WebGL2RenderingContext,
-    latScale: number,
-    lngScale: number,
+    latStep: number,
+    lngStep: number,
     normalizeEle: (e: number) => number,
   ): { lineBuffer: WebGLBuffer, lines: number[] } => {
     // Create a buffer for lines
@@ -523,8 +518,8 @@ const Terrain = ({
     }
 
     const normalizeLatLng = (lng: number, lat: number): [number, number] => ([
-      (((lng - terrain.sw.lng) / (terrain.ne.lng - terrain.sw.lng)) * 2 - 1) * lngScale,
-      (((lat - terrain.sw.lat) / (terrain.ne.lat - terrain.sw.lat)) * 2 - 1) * latScale,
+      (((lng - terrain.sw.lng) / (terrain.ne.lng - terrain.sw.lng)) * 2 - 1) * lngStep,
+      (((lat - terrain.sw.lat) / (terrain.ne.lat - terrain.sw.lat)) * 2 - 1) * latStep,
     ]);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, lineBuffer);
@@ -607,38 +602,38 @@ const Terrain = ({
     const { min, max, center } = getMinMaxElevation();
     const delta = max - min;
 
-    const xyDelta = 2.0 / (terrain.points.length - 1);
-
     const latDistance = haversineGreatCircleDistance(
       terrain.ne.lat, terrain.sw.lng, terrain.sw.lat, terrain.sw.lng,
     );
     const lngDistance = haversineGreatCircleDistance(
       terrain.sw.lat, terrain.ne.lng, terrain.sw.lat, terrain.sw.lng,
     );
-    let zScale = 1.0 / latDistance;
-    let latScale = 1.0;
-    let lngScale = lngDistance / latDistance;
-    if (lngDistance > latDistance) {
-      zScale = 1.0 / lngDistance;
-      latScale = latDistance / lngDistance;
-      lngScale = 1.0;
-    }
 
-    zScale = 1;
-    latScale = latDistance / 2;
-    lngScale = lngDistance / 2;
+    const latOffset = haversineGreatCircleDistance(
+      terrain.sw.lat, position.lng, position.lat, position.lng,
+    );
+    const lngOffset = haversineGreatCircleDistance(
+      position.lat, terrain.sw.lng, position.lat, position.lng,
+    );
 
-    const normalizeEle = (e: number) => ((e - min - delta / 2) * zScale);
+    console.log(`ne: ${JSON.stringify(terrain.ne)}, sw: ${JSON.stringify(terrain.sw)})`);
+    console.log(`position: ${JSON.stringify(position)}`);
 
-    // console.log(`zscale: ${zScale}, latScale=${latScale}, lngScale=${lngScale}`);
-    // console.log(`${-1 * lngScale}, ${1 * latScale} to ${1 * lngScale}, ${-1 * latScale}`);
+    // const zScale = 1;
+    const latStep = latDistance / (numPointsY - 1);
+    const lngStep = lngDistance / (numPointsX - 1);
+
+    const normalizeEle = (e: number) => e; // ((e - min - delta / 2) * zScale);
+
+    // console.log(`zscale: ${zScale}, latStep=${latStep}, lngStep=${lngStep}`);
+    // console.log(`${-1 * lngStep}, ${1 * latStep} to ${1 * lngStep}, ${-1 * latStep}`);
 
     const { positionBuffer, positions } = createPositionsBuffer(
-      gl, numPointsX, numPointsY, xyDelta, latScale, lngScale, normalizeEle,
+      gl, numPointsX, numPointsY, latStep, lngStep, latOffset, lngOffset, normalizeEle,
     );
     const { indexBuffer, indices } = createIndexBuffer(gl, numPointsX, numPointsY);
     const normalBuffer = createNormalBuffer(gl, positions, indices, numPointsX, numPointsY);
-    const { lineBuffer, lines } = createLinesBuffer(gl, latScale, lngScale, normalizeEle);
+    const { lineBuffer, lines } = createLinesBuffer(gl, latStep, lngStep, normalizeEle);
 
     // console.log(`number of positions: ${positions.length}`);
     // console.log(`number of indices: ${indices.length}`);
@@ -664,11 +659,10 @@ const Terrain = ({
     createNormalBuffer,
     createPositionsBuffer,
     getMinMaxElevation,
-    terrain.ne.lat,
-    terrain.ne.lng,
+    position,
+    terrain.ne,
     terrain.points,
-    terrain.sw.lat,
-    terrain.sw.lng,
+    terrain.sw,
   ]);
 
   const drawTerrain = useCallback((
@@ -845,8 +839,11 @@ const Terrain = ({
 
   const getModelViewMatrix = useCallback((centerElevation: number) => {
     // Set up the view matrix
+    const elevation = 4345;
+    console.log(centerElevation);
+
     const modelViewMatrix = mat4.create();
-    const cameraPos = vec3.fromValues(0.0, 0.0, centerElevation + 2);
+    const cameraPos = vec3.fromValues(0.0, 0.0, elevation);
 
     const cameraTarget = vec3.fromValues(
       Math.cos((yaw * Math.PI) / 180) * Math.cos((pitch * Math.PI) / 180),
@@ -854,7 +851,7 @@ const Terrain = ({
       Math.sin((pitch * Math.PI) / 180),
     );
     vec3.normalize(cameraTarget, cameraTarget);
-    cameraTarget[2] += centerElevation + 2;
+    cameraTarget[2] += elevation;
 
     const cameraUp = vec3.fromValues(0.0, 0.0, 1.0);
 
