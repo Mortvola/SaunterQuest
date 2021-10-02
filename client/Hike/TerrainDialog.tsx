@@ -4,7 +4,6 @@ import { Modal } from 'react-bootstrap';
 import useModal, { ModalProps, UseModalType } from '@mortvola/usemodal';
 import { LatLng } from '../state/Types';
 import Terrain from './Terrain';
-import { Points } from '../ResponseTypes';
 
 const tile2lng = (x: number, z: number) => (
   (x / (2 ** z)) * 360 - 180

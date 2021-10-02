@@ -19,8 +19,6 @@ const terrainVertexStride = 5;
 class TerrainTile {
   gl: WebGL2RenderingContext;
 
-  location: Location;
-
   texture: WebGLTexture | null = null;
 
   buffers: TerrainBuffers | null = null;
@@ -40,20 +38,23 @@ class TerrainTile {
 
   constructor(
     gl: WebGL2RenderingContext,
-    location: { x: number, y: number, zoom: number },
+    location: Location,
     tileServerUrl: string,
     pathFinderUrl: string,
   ) {
     this.gl = gl;
-    this.location = location;
 
     this.initTerrainProgram();
 
-    this.loadTerrain(tileServerUrl, pathFinderUrl);
+    this.loadTerrain(tileServerUrl, pathFinderUrl, location);
   }
 
-  async loadTerrain(tileServerUrl: string, pathFinderUrl: string): Promise<void> {
-    const response = await fetch(`${pathFinderUrl}/elevation/tile/${this.location.zoom}/${this.location.x}/${this.location.y}`, {
+  async loadTerrain(
+    tileServerUrl: string,
+    pathFinderUrl: string,
+    location: Location,
+  ): Promise<void> {
+    const response = await fetch(`${pathFinderUrl}/elevation/tile/${location.zoom}/${location.x}/${location.y}`, {
       headers: {
         'access-control-allow-origins': '*',
       },
@@ -64,7 +65,7 @@ class TerrainTile {
       const terrain: Points = body;
       if (terrain !== null) {
         this.initBuffers(terrain);
-        this.initTexture(tileServerUrl);
+        this.initTexture(tileServerUrl, location);
       }
     }
     else {
@@ -495,7 +496,7 @@ class TerrainTile {
     }
   }
 
-  initTexture(tileServerUrl: string): void {
+  initTexture(tileServerUrl: string, location: Location): void {
     const image = new Image();
 
     if (this.texture === null) {
@@ -537,7 +538,7 @@ class TerrainTile {
       };
 
       image.crossOrigin = 'anonymous';
-      image.src = `${tileServerUrl}/tile/detail/${this.location.zoom}/${this.location.x}/${this.location.y}`;
+      image.src = `${tileServerUrl}/tile/detail/${location.zoom}/${location.x}/${location.y}`;
     }
   }
 
