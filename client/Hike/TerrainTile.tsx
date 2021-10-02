@@ -15,7 +15,7 @@ export type TerrainBuffers = {
 const terrainVertexStride = 5;
 
 class TerrainTile {
-  gl: WebGL2RenderingContext | null = null;
+  gl: WebGL2RenderingContext;
 
   texture: WebGLTexture | null = null;
 
@@ -34,13 +34,13 @@ class TerrainTile {
     vertexNormal: number | null,
   } = { vertexPosition: null, texCoord: null, vertexNormal: null }
 
+  constructor(gl: WebGL2RenderingContext) {
+    this.gl = gl;
+  }
+
   initBuffers(
     terrain: Points,
   ): void {
-    if (this.gl === null) {
-      throw new Error('gl is null');
-    }
-
     const numPointsX = terrain.points[0].length;
     const numPointsY = terrain.points.length;
 
@@ -92,10 +92,6 @@ class TerrainTile {
     latStep: number,
     lngStep: number,
   ): { positionBuffer: WebGLBuffer, positions: number[] } {
-    if (this.gl === null) {
-      throw new Error('gl is null');
-    }
-
     const positionBuffer = this.gl.createBuffer();
 
     if (positionBuffer === null) {
@@ -152,10 +148,6 @@ class TerrainTile {
     numPointsX: number,
     numPointsY: number,
   ): { indexBuffer: WebGLBuffer, indices: number[] } {
-    if (this.gl === null) {
-      throw new Error('gl is null');
-    }
-
     const indexBuffer = this.gl.createBuffer();
 
     if (indexBuffer === null) {
@@ -242,10 +234,6 @@ class TerrainTile {
     numPointsX: number,
     numPointsY: number,
   ): WebGLBuffer {
-    if (this.gl === null) {
-      throw new Error('gl is null');
-    }
-
     const normalBuffer = this.gl.createBuffer();
 
     if (normalBuffer === null) {
@@ -372,10 +360,6 @@ class TerrainTile {
     projectionMatrix: mat4,
     modelViewMatrix: mat4,
   ): void {
-    if (this.gl === null) {
-      throw new Error('gl is null');
-    }
-
     if (this.buffers === null) {
       throw new Error('this.buffers is null');
     }
@@ -480,10 +464,6 @@ class TerrainTile {
   }
 
   initTexture(tileServerUrl: string, location: { x: number, y: number, zoom: number }): void {
-    if (this.gl === null) {
-      throw new Error('gl is null');
-    }
-
     const image = new Image();
 
     if (this.texture === null) {
@@ -507,7 +487,7 @@ class TerrainTile {
       const srcFormat = this.gl.RGBA;
       const srcType = this.gl.UNSIGNED_BYTE;
 
-      const pixel = new Uint8Array([0, 0, 255, 255]); // opaque blue
+      const pixel = new Uint8Array([255, 255, 255, 255]);
       this.gl.texImage2D(this.gl.TEXTURE_2D, level, internalFormat,
         width, height, border, srcFormat, srcType,
         pixel);
@@ -530,10 +510,6 @@ class TerrainTile {
   }
 
   initTerrainProgram(): void {
-    if (this.gl === null) {
-      throw new Error('gl is null');
-    }
-
     const vertexShader = loadShader(this.gl, this.gl.VERTEX_SHADER, terrainVertex);
 
     if (vertexShader === null) {

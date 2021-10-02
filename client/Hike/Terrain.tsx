@@ -118,10 +118,8 @@ const Terrain = ({
         }
 
         if (terrainTileRef.current === null) {
-          terrainTileRef.current = new TerrainTile();
+          terrainTileRef.current = new TerrainTile(gl);
         }
-
-        terrainTileRef.current.gl = gl;
 
         // Only continue if WebGL is available and working
         // Set clear color to black, fully opaque
