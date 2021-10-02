@@ -54,9 +54,17 @@ class TerrainRenderer implements TerrainRendererInterface {
     const x = lng2tile(position.lng, zoom);
     const y = lat2tile(position.lat, zoom);
 
-    const location = { x, y, zoom };
+    this.addTile({ x: x + 1, y, zoom });
+    this.addTile({ x, y, zoom });
+    this.addTile({ x: x - 1, y, zoom });
 
-    this.addTile(location);
+    this.addTile({ x: x + 1, y: y + 1, zoom });
+    this.addTile({ x, y: y + 1, zoom });
+    this.addTile({ x: x - 1, y: y + 1, zoom });
+
+    this.addTile({ x: x + 1, y: y - 1, zoom });
+    this.addTile({ x, y: y - 1, zoom });
+    this.addTile({ x: x - 1, y: y - 1, zoom });
 
     this.loadElevation();
   }
