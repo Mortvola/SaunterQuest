@@ -117,10 +117,6 @@ const Terrain = ({
           throw new Error('gl is null');
         }
 
-        if (terrainTileRef.current === null) {
-          terrainTileRef.current = new TerrainTile(gl);
-        }
-
         // Only continue if WebGL is available and working
         // Set clear color to black, fully opaque
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -128,12 +124,9 @@ const Terrain = ({
         gl.enable(gl.DEPTH_TEST); // Enable depth testing
         gl.depthFunc(gl.LEQUAL); // Near things obscure far things
 
-        terrainTileRef.current.initTerrainProgram();
-
-        // Here's where we call the routine that builds all the
-        // objects we'll be drawing.
-        terrainTileRef.current.initBuffers(terrain);
-        terrainTileRef.current.initTexture(tileServerUrl, location);
+        if (terrainTileRef.current === null) {
+          terrainTileRef.current = new TerrainTile(gl, location, tileServerUrl, terrain);
+        }
 
         // Draw the scene
         drawScene();

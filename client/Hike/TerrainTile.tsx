@@ -17,6 +17,8 @@ const terrainVertexStride = 5;
 class TerrainTile {
   gl: WebGL2RenderingContext;
 
+  location: { x: number, y: number, zoom: number };
+
   texture: WebGLTexture | null = null;
 
   buffers: TerrainBuffers | null = null;
@@ -34,8 +36,19 @@ class TerrainTile {
     vertexNormal: number | null,
   } = { vertexPosition: null, texCoord: null, vertexNormal: null }
 
-  constructor(gl: WebGL2RenderingContext) {
+  constructor(
+    gl: WebGL2RenderingContext,
+    location: { x: number, y: number, zoom: number },
+    tileServerUrl: string,
+    terrain: Points,
+  ) {
     this.gl = gl;
+    this.location = location;
+
+    this.initTerrainProgram();
+
+    this.initBuffers(terrain);
+    this.initTexture(tileServerUrl);
   }
 
   initBuffers(
@@ -463,7 +476,7 @@ class TerrainTile {
     }
   }
 
-  initTexture(tileServerUrl: string, location: { x: number, y: number, zoom: number }): void {
+  initTexture(tileServerUrl: string): void {
     const image = new Image();
 
     if (this.texture === null) {
@@ -505,7 +518,7 @@ class TerrainTile {
       };
 
       image.crossOrigin = 'anonymous';
-      image.src = `${tileServerUrl}/tile/detail/${location.zoom}/${location.x}/${location.y}`;
+      image.src = `${tileServerUrl}/tile/detail/${this.location.zoom}/${this.location.x}/${this.location.y}`;
     }
   }
 
