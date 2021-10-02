@@ -3,7 +3,6 @@ import React, {
 } from 'react';
 import { vec3, mat4 } from 'gl-matrix';
 import { LatLng } from '../state/Types';
-import { Points } from '../ResponseTypes';
 import TerrainTile from './TerrainTile';
 import { getStartOffset } from './TerrainCommon';
 
@@ -16,16 +15,16 @@ export type Location = {
 type PropsType = {
   position: LatLng,
   elevation: number,
-  terrain: Points,
   tileServerUrl: string,
+  pathFinderUrl: string,
   location: Location,
 }
 
 const Terrain = ({
   position,
   elevation,
-  terrain,
   tileServerUrl,
+  pathFinderUrl,
   location,
 }: PropsType): ReactElement => {
   let pitch = 0;
@@ -105,34 +104,32 @@ const Terrain = ({
   }, [getModelViewMatrix]);
 
   useEffect(() => {
-    if (terrain) {
-      const canvas = canvasRef.current;
+    const canvas = canvasRef.current;
 
-      if (canvas !== null) {
+    if (canvas !== null) {
       // Initialize the GL context
-        glRef.current = canvas.getContext('webgl2');
+      glRef.current = canvas.getContext('webgl2');
 
-        const gl = glRef.current;
-        if (gl === null) {
-          throw new Error('gl is null');
-        }
-
-        // Only continue if WebGL is available and working
-        // Set clear color to black, fully opaque
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.clearDepth(1.0); // Clear everything
-        gl.enable(gl.DEPTH_TEST); // Enable depth testing
-        gl.depthFunc(gl.LEQUAL); // Near things obscure far things
-
-        if (terrainTileRef.current === null) {
-          terrainTileRef.current = new TerrainTile(gl, location, tileServerUrl, terrain);
-        }
-
-        // Draw the scene
-        drawScene();
+      const gl = glRef.current;
+      if (gl === null) {
+        throw new Error('gl is null');
       }
+
+      // Only continue if WebGL is available and working
+      // Set clear color to black, fully opaque
+      gl.clearColor(0.0, 0.0, 0.0, 1.0);
+      gl.clearDepth(1.0); // Clear everything
+      gl.enable(gl.DEPTH_TEST); // Enable depth testing
+      gl.depthFunc(gl.LEQUAL); // Near things obscure far things
+
+      if (terrainTileRef.current === null) {
+        terrainTileRef.current = new TerrainTile(gl, location, tileServerUrl, pathFinderUrl);
+      }
+
+      // Draw the scene
+      drawScene();
     }
-  }, [drawScene, location, terrain, tileServerUrl]);
+  }, [drawScene, location, pathFinderUrl, tileServerUrl]);
 
   const handlePointerDown = (
     event: React.PointerEvent<HTMLCanvasElement> & {

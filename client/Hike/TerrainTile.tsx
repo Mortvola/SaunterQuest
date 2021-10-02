@@ -12,12 +12,14 @@ export type TerrainBuffers = {
   normals: WebGLBuffer,
 }
 
+type Location = { x: number, y: number, zoom: number };
+
 const terrainVertexStride = 5;
 
 class TerrainTile {
   gl: WebGL2RenderingContext;
 
-  location: { x: number, y: number, zoom: number };
+  location: Location;
 
   texture: WebGLTexture | null = null;
 
@@ -40,15 +42,34 @@ class TerrainTile {
     gl: WebGL2RenderingContext,
     location: { x: number, y: number, zoom: number },
     tileServerUrl: string,
-    terrain: Points,
+    pathFinderUrl: string,
   ) {
     this.gl = gl;
     this.location = location;
 
     this.initTerrainProgram();
 
-    this.initBuffers(terrain);
-    this.initTexture(tileServerUrl);
+    this.loadTerrain(tileServerUrl, pathFinderUrl);
+  }
+
+  async loadTerrain(tileServerUrl: string, pathFinderUrl: string): Promise<void> {
+    const response = await fetch(`${pathFinderUrl}/elevation/tile/${this.location.zoom}/${this.location.x}/${this.location.y}`, {
+      headers: {
+        'access-control-allow-origins': '*',
+      },
+    });
+
+    if (response.ok) {
+      const body = await response.json();
+      const terrain: Points = body;
+      if (terrain !== null) {
+        this.initBuffers(terrain);
+        this.initTexture(tileServerUrl);
+      }
+    }
+    else {
+      throw new Error('invalid response');
+    }
   }
 
   initBuffers(
@@ -373,106 +394,104 @@ class TerrainTile {
     projectionMatrix: mat4,
     modelViewMatrix: mat4,
   ): void {
-    if (this.buffers === null) {
-      throw new Error('this.buffers is null');
-    }
+    if (this.buffers !== null) {
+      if (this.shaderProgram === null) {
+        throw new Error('this.shaderProgram is null');
+      }
 
-    if (this.shaderProgram === null) {
-      throw new Error('this.shaderProgram is null');
-    }
+      if (this.attribLocations.vertexPosition === null) {
+        throw new Error('this.attribLocations.vertexPosition is null');
+      }
 
-    if (this.attribLocations.vertexPosition === null) {
-      throw new Error('this.attribLocations.vertexPosition is null');
-    }
-
-    // Tell WebGL how to pull out the positions from the position
-    // buffer into the vertexPosition attribute.
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.position);
-    this.gl.vertexAttribPointer(
-      this.attribLocations.vertexPosition,
-      3, // Number of components
-      this.gl.FLOAT,
-      false, // normalize
-      terrainVertexStride * 4, // stride
-      0, // offset
-    );
-    this.gl.enableVertexAttribArray(
-      this.attribLocations.vertexPosition,
-    );
-
-    if (this.attribLocations.texCoord === null) {
-      throw new Error('this.attribLocations.texCoord is null');
-    }
-
-    this.gl.vertexAttribPointer(
-      this.attribLocations.texCoord,
-      2, // Number of components
-      this.gl.FLOAT,
-      false, // normalize
-      terrainVertexStride * 4, // stride
-      3 * 4, // offset
-    );
-    this.gl.enableVertexAttribArray(
-      this.attribLocations.texCoord,
-    );
-
-    // Tell WebGL how to pull out the normals from
-    // the normal buffer into the vertexNormal attribute.
-    if (this.attribLocations.vertexNormal === null) {
-      throw new Error('this.attribLocations.vertexNormal is null');
-    }
-
-    {
-      const numComponents = 3;
-      const type = this.gl.FLOAT;
-      const normalize = false;
-      const stride = 0;
-      const offset = 0;
-      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.normals);
+      // Tell WebGL how to pull out the positions from the position
+      // buffer into the vertexPosition attribute.
+      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.position);
       this.gl.vertexAttribPointer(
-        this.attribLocations.vertexNormal,
-        numComponents,
-        type,
-        normalize,
-        stride,
-        offset,
+        this.attribLocations.vertexPosition,
+        3, // Number of components
+        this.gl.FLOAT,
+        false, // normalize
+        terrainVertexStride * 4, // stride
+        0, // offset
       );
       this.gl.enableVertexAttribArray(
-        this.attribLocations.vertexNormal,
+        this.attribLocations.vertexPosition,
       );
-    }
 
-    // Tell WebGL which indices to use to index the vertices
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.buffers.indices);
+      if (this.attribLocations.texCoord === null) {
+        throw new Error('this.attribLocations.texCoord is null');
+      }
 
-    // Tell WebGL to use our program when drawing
+      this.gl.vertexAttribPointer(
+        this.attribLocations.texCoord,
+        2, // Number of components
+        this.gl.FLOAT,
+        false, // normalize
+        terrainVertexStride * 4, // stride
+        3 * 4, // offset
+      );
+      this.gl.enableVertexAttribArray(
+        this.attribLocations.texCoord,
+      );
 
-    this.gl.useProgram(this.shaderProgram);
+      // Tell WebGL how to pull out the normals from
+      // the normal buffer into the vertexNormal attribute.
+      if (this.attribLocations.vertexNormal === null) {
+        throw new Error('this.attribLocations.vertexNormal is null');
+      }
 
-    // Set the shader uniforms
+      {
+        const numComponents = 3;
+        const type = this.gl.FLOAT;
+        const normalize = false;
+        const stride = 0;
+        const offset = 0;
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.normals);
+        this.gl.vertexAttribPointer(
+          this.attribLocations.vertexNormal,
+          numComponents,
+          type,
+          normalize,
+          stride,
+          offset,
+        );
+        this.gl.enableVertexAttribArray(
+          this.attribLocations.vertexNormal,
+        );
+      }
 
-    this.gl.uniformMatrix4fv(
-      this.uniformLocations.projectionMatrix,
-      false,
-      projectionMatrix,
-    );
+      // Tell WebGL which indices to use to index the vertices
+      this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.buffers.indices);
 
-    this.gl.uniformMatrix4fv(
-      this.uniformLocations.modelViewMatrix,
-      false,
-      modelViewMatrix,
-    );
+      // Tell WebGL to use our program when drawing
 
-    this.gl.uniform1i(this.gl.getUniformLocation(this.shaderProgram, 'terrainTexture'), 0);
+      this.gl.useProgram(this.shaderProgram);
 
-    this.gl.activeTexture(this.gl.TEXTURE0);
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
+      // Set the shader uniforms
 
-    {
-      const vertexCount = this.buffers.numVertices;
-      const type = this.gl.UNSIGNED_INT;
-      const offset = 0;
-      this.gl.drawElements(this.gl.TRIANGLES, vertexCount, type, offset);
+      this.gl.uniformMatrix4fv(
+        this.uniformLocations.projectionMatrix,
+        false,
+        projectionMatrix,
+      );
+
+      this.gl.uniformMatrix4fv(
+        this.uniformLocations.modelViewMatrix,
+        false,
+        modelViewMatrix,
+      );
+
+      this.gl.uniform1i(this.gl.getUniformLocation(this.shaderProgram, 'terrainTexture'), 0);
+
+      this.gl.activeTexture(this.gl.TEXTURE0);
+      this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
+
+      {
+        const vertexCount = this.buffers.numVertices;
+        const type = this.gl.UNSIGNED_INT;
+        const offset = 0;
+        this.gl.drawElements(this.gl.TRIANGLES, vertexCount, type, offset);
+      }
     }
   }
 

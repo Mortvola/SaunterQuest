@@ -39,7 +39,6 @@ const TerrainDialog = ({
   tileServerUrl,
   pathFinderUrl,
 }: PropsType & ModalProps): ReactElement => {
-  const [terrain, setTerrain] = useState<Points | null>(null);
   const [elevation, setElevation] = useState<{ ele: number } | null>(null);
 
   const zoom = 13;
@@ -51,32 +50,14 @@ const TerrainDialog = ({
   useEffect(() => {
     (async () => {
       if (latLng) {
-        {
-          const response = await fetch(`${pathFinderUrl}/elevation/tile/${zoom}/${x}/${y}`, {
-            headers: {
-              'access-control-allow-origins': '*',
-            },
-          });
+        const response = await fetch(`${pathFinderUrl}/elevation/point?lat=${latLng.lat}&lng=${latLng.lng}`);
 
-          if (response.ok) {
-            const body = await response.json();
-            setTerrain(body);
-          }
-          else {
-            throw new Error('invalid response');
-          }
+        if (response.ok) {
+          const body = await response.json();
+          setElevation(body);
         }
-
-        {
-          const response = await fetch(`${pathFinderUrl}/elevation/point?lat=${latLng.lat}&lng=${latLng.lng}`);
-
-          if (response.ok) {
-            const body = await response.json();
-            setElevation(body);
-          }
-          else {
-            throw new Error('invalid response');
-          }
+        else {
+          throw new Error('invalid response');
         }
       }
     })();
@@ -89,14 +70,14 @@ const TerrainDialog = ({
       </Modal.Header>
       <Modal.Body>
         {
-          terrain && elevation !== null
+          elevation !== null
             ? (
               <Terrain
                 position={latLng}
                 elevation={elevation.ele}
-                terrain={terrain}
                 location={location}
                 tileServerUrl={tileServerUrl}
+                pathFinderUrl={pathFinderUrl}
               />
             )
             : null
