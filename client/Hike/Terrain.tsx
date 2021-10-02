@@ -12,14 +12,12 @@ export type Location = {
 
 type PropsType = {
   position: LatLng,
-  elevation: number,
   tileServerUrl: string,
   pathFinderUrl: string,
 }
 
 const Terrain = ({
   position,
-  elevation,
   tileServerUrl,
   pathFinderUrl,
 }: PropsType): ReactElement => {
@@ -40,11 +38,11 @@ const Terrain = ({
 
       if (rendererRef.current === null) {
         rendererRef.current = new TerrainRenderer(
-          gl, position, elevation, tileServerUrl, pathFinderUrl,
+          gl, position, tileServerUrl, pathFinderUrl,
         );
       }
     }
-  }, [elevation, pathFinderUrl, position, tileServerUrl]);
+  }, [pathFinderUrl, position, tileServerUrl]);
 
   const handlePointerDown = (
     event: React.PointerEvent<HTMLCanvasElement> & {

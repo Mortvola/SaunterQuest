@@ -26,7 +26,7 @@ class TerrainRenderer implements TerrainRendererInterface {
 
   position: LatLng;
 
-  elevation: number;
+  elevation: number | null = null;
 
   pitch = 0;
 
@@ -35,7 +35,6 @@ class TerrainRenderer implements TerrainRendererInterface {
   constructor(
     gl: WebGL2RenderingContext,
     position: LatLng,
-    elevation: number,
     tileServerUrl: string,
     pathFinderUrl: string,
   ) {
@@ -43,7 +42,6 @@ class TerrainRenderer implements TerrainRendererInterface {
     this.pathFinderUrl = pathFinderUrl;
     this.tileServerUrl = tileServerUrl;
     this.position = position;
-    this.elevation = elevation;
 
     // Only continue if WebGL is available and working
     // Set clear color to black, fully opaque
@@ -59,6 +57,20 @@ class TerrainRenderer implements TerrainRendererInterface {
     const location = { x, y, zoom };
 
     this.addTile(location);
+
+    this.loadElevation();
+  }
+
+  async loadElevation(): Promise<void> {
+    const response = await fetch(`${this.pathFinderUrl}/elevation/point?lat=${this.position.lat}&lng=${this.position.lng}`);
+
+    if (response.ok) {
+      const body = await response.json();
+      this.elevation = body.ele;
+    }
+    else {
+      throw new Error('invalid response');
+    }
   }
 
   requestRender(): void {
@@ -80,21 +92,23 @@ class TerrainRenderer implements TerrainRendererInterface {
   }
 
   drawScene(): void {
+    if (this.elevation !== null) {
     // Clear the canvas before we start drawing on it.
     // eslint-disable-next-line no-bitwise
-    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+      this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
-    const projectionMatrix = this.getProjectionMatrix();
-    const modelViewMatrix = this.getModelViewMatrix();
+      const projectionMatrix = this.getProjectionMatrix();
+      const modelViewMatrix = this.getModelViewMatrix();
 
-    // Set up the normal matrix
-    const normalMatrix = mat4.create();
-    mat4.invert(normalMatrix, modelViewMatrix);
-    mat4.transpose(normalMatrix, normalMatrix);
+      // Set up the normal matrix
+      const normalMatrix = mat4.create();
+      mat4.invert(normalMatrix, modelViewMatrix);
+      mat4.transpose(normalMatrix, normalMatrix);
 
-    this.tiles.forEach((tile) => {
-      tile.drawTerrain(projectionMatrix, modelViewMatrix);
-    });
+      this.tiles.forEach((tile) => {
+        tile.drawTerrain(projectionMatrix, modelViewMatrix);
+      });
+    }
   }
 
   getProjectionMatrix(): mat4 {
@@ -116,6 +130,9 @@ class TerrainRenderer implements TerrainRendererInterface {
 
   getModelViewMatrix(): mat4 {
     // Set up the view matrix
+    if (this.elevation === null) {
+      throw new Error('elevation is null');
+    }
 
     const { startLatOffset, startLngOffset } = getStartOffset(this.position);
 
