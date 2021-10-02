@@ -1,7 +1,9 @@
 import { vec3, mat4 } from 'gl-matrix';
 import { haversineGreatCircleDistance } from '../utilities';
 import { Points } from '../ResponseTypes';
-import { compileProgram, getStartOffset, loadShader } from './TerrainCommon';
+import {
+  compileProgram, getStartOffset, loadShader,
+} from './TerrainCommon';
 import terrainVertex from './Terrain.vert';
 import terrainFragment from './Terrain.frag';
 
@@ -16,7 +18,19 @@ type Location = { x: number, y: number, zoom: number };
 
 const terrainVertexStride = 5;
 
+export interface TerrainRendererInterface {
+  gl: WebGL2RenderingContext;
+
+  tileServerUrl: string;
+
+  pathFinderUrl: string;
+
+  requestRender(): void;
+}
+
 class TerrainTile {
+  renderer: TerrainRendererInterface;
+
   gl: WebGL2RenderingContext;
 
   texture: WebGLTexture | null = null;
@@ -37,24 +51,21 @@ class TerrainTile {
   } = { vertexPosition: null, texCoord: null, vertexNormal: null }
 
   constructor(
-    gl: WebGL2RenderingContext,
+    renderer: TerrainRendererInterface,
     location: Location,
-    tileServerUrl: string,
-    pathFinderUrl: string,
   ) {
-    this.gl = gl;
+    this.renderer = renderer;
+    this.gl = renderer.gl;
 
     this.initTerrainProgram();
 
-    this.loadTerrain(tileServerUrl, pathFinderUrl, location);
+    this.loadTerrain(location);
   }
 
   async loadTerrain(
-    tileServerUrl: string,
-    pathFinderUrl: string,
     location: Location,
   ): Promise<void> {
-    const response = await fetch(`${pathFinderUrl}/elevation/tile/${location.zoom}/${location.x}/${location.y}`, {
+    const response = await fetch(`${this.renderer.pathFinderUrl}/elevation/tile/${location.zoom}/${location.x}/${location.y}`, {
       headers: {
         'access-control-allow-origins': '*',
       },
@@ -65,7 +76,8 @@ class TerrainTile {
       const terrain: Points = body;
       if (terrain !== null) {
         this.initBuffers(terrain);
-        this.initTexture(tileServerUrl, location);
+        this.initTexture(location);
+        this.renderer.requestRender();
       }
     }
     else {
@@ -496,7 +508,7 @@ class TerrainTile {
     }
   }
 
-  initTexture(tileServerUrl: string, location: Location): void {
+  initTexture(location: Location): void {
     const image = new Image();
 
     if (this.texture === null) {
@@ -535,10 +547,12 @@ class TerrainTile {
           this.gl.TEXTURE_2D, level, internalFormat, 256, 256, 0, srcFormat, srcType, image,
         );
         this.gl.generateMipmap(this.gl.TEXTURE_2D);
+
+        this.renderer.requestRender();
       };
 
       image.crossOrigin = 'anonymous';
-      image.src = `${tileServerUrl}/tile/detail/${location.zoom}/${location.x}/${location.y}`;
+      image.src = `${this.renderer.tileServerUrl}/tile/detail/${location.zoom}/${location.x}/${location.y}`;
     }
   }
 

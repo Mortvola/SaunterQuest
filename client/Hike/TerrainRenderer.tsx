@@ -1,6 +1,6 @@
 import { vec3, mat4 } from 'gl-matrix';
 import { getStartOffset } from './TerrainCommon';
-import TerrainTile from './TerrainTile';
+import TerrainTile, { TerrainRendererInterface } from './TerrainTile';
 import { LatLng } from '../state/Types';
 import { Location } from './Terrain';
 
@@ -15,7 +15,7 @@ const lat2tile = (lat: number, zoom: number) => (
   )
 );
 
-class TerrainRenderer {
+class TerrainRenderer implements TerrainRendererInterface {
   gl: WebGL2RenderingContext;
 
   tileServerUrl: string;
@@ -61,8 +61,12 @@ class TerrainRenderer {
     this.addTile(location);
   }
 
+  requestRender(): void {
+    this.drawScene();
+  }
+
   addTile(location: Location): void {
-    const tile = new TerrainTile(this.gl, location, this.tileServerUrl, this.pathFinderUrl);
+    const tile = new TerrainTile(this, location);
     this.tiles.push(tile);
   }
 
