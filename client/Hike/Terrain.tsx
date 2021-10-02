@@ -2,7 +2,6 @@ import React, {
   ReactElement, useEffect, useRef,
 } from 'react';
 import { LatLng } from '../state/Types';
-import TerrainTile from './TerrainTile';
 import TerrainRenderer from './TerrainRenderer';
 
 export type Location = {
@@ -16,7 +15,6 @@ type PropsType = {
   elevation: number,
   tileServerUrl: string,
   pathFinderUrl: string,
-  location: Location,
 }
 
 const Terrain = ({
@@ -24,7 +22,6 @@ const Terrain = ({
   elevation,
   tileServerUrl,
   pathFinderUrl,
-  location,
 }: PropsType): ReactElement => {
   const rendererRef = useRef<TerrainRenderer | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -42,16 +39,12 @@ const Terrain = ({
       }
 
       if (rendererRef.current === null) {
-        rendererRef.current = new TerrainRenderer(gl, position, elevation);
-
-        const tile = new TerrainTile(gl, location, tileServerUrl, pathFinderUrl);
-        rendererRef.current.addTile(tile);
-
-        // Draw the scene
-        rendererRef.current.drawScene();
+        rendererRef.current = new TerrainRenderer(
+          gl, position, elevation, tileServerUrl, pathFinderUrl,
+        );
       }
     }
-  }, [elevation, location, pathFinderUrl, position, tileServerUrl]);
+  }, [elevation, pathFinderUrl, position, tileServerUrl]);
 
   const handlePointerDown = (
     event: React.PointerEvent<HTMLCanvasElement> & {

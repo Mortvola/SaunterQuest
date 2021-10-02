@@ -44,8 +44,6 @@ const TerrainDialog = ({
   const x = lng2tile(latLng.lng, zoom);
   const y = lat2tile(latLng.lat, zoom);
 
-  const location = { x, y, zoom };
-
   useEffect(() => {
     (async () => {
       if (latLng) {
@@ -74,7 +72,6 @@ const TerrainDialog = ({
               <Terrain
                 position={latLng}
                 elevation={elevation.ele}
-                location={location}
                 tileServerUrl={tileServerUrl}
                 pathFinderUrl={pathFinderUrl}
               />

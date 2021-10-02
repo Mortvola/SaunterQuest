@@ -2,9 +2,25 @@ import { vec3, mat4 } from 'gl-matrix';
 import { getStartOffset } from './TerrainCommon';
 import TerrainTile from './TerrainTile';
 import { LatLng } from '../state/Types';
+import { Location } from './Terrain';
+
+const lng2tile = (lon:number, zoom: number) => (
+  Math.floor(((lon + 180) / 360) * 2 ** zoom)
+);
+
+const lat2tile = (lat: number, zoom: number) => (
+  Math.floor(
+    ((1 - Math.log(Math.tan(lat * (Math.PI / 180)) + 1 / Math.cos(lat * (Math.PI / 180))) / Math.PI)
+      / 2) * 2 ** zoom,
+  )
+);
 
 class TerrainRenderer {
   gl: WebGL2RenderingContext;
+
+  tileServerUrl: string;
+
+  pathFinderUrl: string;
 
   tiles: TerrainTile[] = [];
 
@@ -16,8 +32,16 @@ class TerrainRenderer {
 
   yaw = 90;
 
-  constructor(gl: WebGL2RenderingContext, position: LatLng, elevation: number) {
+  constructor(
+    gl: WebGL2RenderingContext,
+    position: LatLng,
+    elevation: number,
+    tileServerUrl: string,
+    pathFinderUrl: string,
+  ) {
     this.gl = gl;
+    this.pathFinderUrl = pathFinderUrl;
+    this.tileServerUrl = tileServerUrl;
     this.position = position;
     this.elevation = elevation;
 
@@ -27,9 +51,18 @@ class TerrainRenderer {
     this.gl.clearDepth(1.0); // Clear everything
     this.gl.enable(this.gl.DEPTH_TEST); // Enable depth testing
     this.gl.depthFunc(this.gl.LEQUAL); // Near things obscure far things
+
+    const zoom = 13;
+    const x = lng2tile(position.lng, zoom);
+    const y = lat2tile(position.lat, zoom);
+
+    const location = { x, y, zoom };
+
+    this.addTile(location);
   }
 
-  addTile(tile: TerrainTile): void {
+  addTile(location: Location): void {
+    const tile = new TerrainTile(this.gl, location, this.tileServerUrl, this.pathFinderUrl);
     this.tiles.push(tile);
   }
 
