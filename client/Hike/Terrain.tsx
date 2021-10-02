@@ -171,15 +171,14 @@ const Terrain = ({
     return normal;
   };
 
-  const createPositionsBuffer = useCallback((
+  const createTerrainBuffer = useCallback((
     gl: WebGL2RenderingContext,
     numPointsX: number,
     numPointsY: number,
+    startLatOffset: number,
+    startLngOffset: number,
     latStep: number,
     lngStep: number,
-    latOffset: number,
-    lngOffset: number,
-    normalizeEle: (e: number) => number,
   ): { positionBuffer: WebGLBuffer, positions: number[] } => {
     const positionBuffer = gl.createBuffer();
 
@@ -190,9 +189,9 @@ const Terrain = ({
     const positions = [];
 
     for (let i = 0; i < numPointsX; i += 1) {
-      positions.push(i * lngStep - lngOffset);
-      positions.push(0 * latStep - latOffset);
-      positions.push(normalizeEle(terrain.points[0][i]));
+      positions.push(startLngOffset + i * lngStep);
+      positions.push(startLatOffset);
+      positions.push(terrain.points[0][i]);
 
       // texture coordinates
       positions.push(i / (numPointsX - 1));
@@ -200,26 +199,26 @@ const Terrain = ({
     }
 
     for (let j = 1; j < numPointsY; j += 1) {
-      positions.push(0 * lngStep - lngOffset);
-      positions.push(j * latStep - latOffset);
-      positions.push(normalizeEle(terrain.points[j][0]));
+      positions.push(startLngOffset);
+      positions.push(startLatOffset + j * latStep);
+      positions.push(terrain.points[j][0]);
 
       // texture coordinates
       positions.push(0);
       positions.push(1 - j / (numPointsY - 1));
 
       for (let i = 1; i < numPointsX; i += 1) {
-        positions.push((i - 0.5) * lngStep - lngOffset);
-        positions.push((j - 0.5) * latStep - latOffset);
-        positions.push(normalizeEle(terrain.centers[j - 1][i - 1]));
+        positions.push(startLngOffset + (i - 0.5) * lngStep);
+        positions.push(startLatOffset + (j - 0.5) * latStep);
+        positions.push(terrain.centers[j - 1][i - 1]);
 
         // texture coordinates
         positions.push((i - 0.5) / (numPointsX - 1));
         positions.push(1 - (j - 0.5) / (numPointsY - 1));
 
-        positions.push(i * lngStep - lngOffset);
-        positions.push(j * latStep - latOffset);
-        positions.push(normalizeEle(terrain.points[j][i]));
+        positions.push(startLngOffset + i * lngStep);
+        positions.push(startLatOffset + j * latStep);
+        positions.push(terrain.points[j][i]);
 
         // texture coordinates
         positions.push(i / (numPointsX - 1));
@@ -430,6 +429,34 @@ const Terrain = ({
     return normalBuffer;
   }, []);
 
+  const getStartOffset = useCallback((latLng: LatLng): {
+    startLatOffset: number,
+    startLngOffset: number,
+  } => {
+    const center = { lat: 40, lng: -105 };
+    // const center = terrain.sw;
+    let startLatOffset = haversineGreatCircleDistance(
+      latLng.lat, center.lng, center.lat, center.lng,
+    );
+
+    if (latLng.lat < center.lat) {
+      startLatOffset = -startLatOffset;
+    }
+
+    let startLngOffset = haversineGreatCircleDistance(
+      center.lat, latLng.lng, center.lat, center.lng,
+    );
+
+    if (latLng.lng < center.lng) {
+      startLngOffset = -startLngOffset;
+    }
+
+    return {
+      startLatOffset,
+      startLngOffset,
+    };
+  }, [terrain.sw]);
+
   const initBuffers = useCallback((): TerrainBuffers => {
     const gl = glRef.current;
     if (gl === null) {
@@ -446,13 +473,6 @@ const Terrain = ({
       terrain.sw.lat, terrain.ne.lng, terrain.sw.lat, terrain.sw.lng,
     );
 
-    const latOffset = haversineGreatCircleDistance(
-      terrain.sw.lat, position.lng, position.lat, position.lng,
-    );
-    const lngOffset = haversineGreatCircleDistance(
-      position.lat, terrain.sw.lng, position.lat, position.lng,
-    );
-
     // console.log(`ne: ${JSON.stringify(terrain.ne)}, sw: ${JSON.stringify(terrain.sw)})`);
     // console.log(`position: ${JSON.stringify(position)}`);
 
@@ -460,13 +480,13 @@ const Terrain = ({
     const latStep = latDistance / (numPointsY - 1);
     const lngStep = lngDistance / (numPointsX - 1);
 
-    const normalizeEle = (e: number) => e; // ((e - min - delta / 2) * zScale);
+    const { startLatOffset, startLngOffset } = getStartOffset(terrain.sw);
 
     // console.log(`zscale: ${zScale}, latStep=${latStep}, lngStep=${lngStep}`);
     // console.log(`${-1 * lngStep}, ${1 * latStep} to ${1 * lngStep}, ${-1 * latStep}`);
 
-    const { positionBuffer, positions } = createPositionsBuffer(
-      gl, numPointsX, numPointsY, latStep, lngStep, latOffset, lngOffset, normalizeEle,
+    const { positionBuffer, positions } = createTerrainBuffer(
+      gl, numPointsX, numPointsY, startLatOffset, startLngOffset, latStep, lngStep,
     );
     const { indexBuffer, indices } = createIndexBuffer(gl, numPointsX, numPointsY);
     const normalBuffer = createNormalBuffer(gl, positions, indices, numPointsX, numPointsY);
@@ -483,7 +503,15 @@ const Terrain = ({
       numVertices: indices.length,
       normal: normalBuffer,
     };
-  }, [createNormalBuffer, createPositionsBuffer, position, terrain.ne, terrain.points, terrain.sw]);
+  }, [
+    createNormalBuffer,
+    createTerrainBuffer,
+    getStartOffset,
+    terrain.ne.lat,
+    terrain.ne.lng,
+    terrain.points,
+    terrain.sw,
+  ]);
 
   const drawTerrain = useCallback((
     gl: WebGL2RenderingContext,
@@ -606,23 +634,28 @@ const Terrain = ({
   const getModelViewMatrix = useCallback(() => {
     // Set up the view matrix
 
+    const { startLatOffset, startLngOffset } = getStartOffset(position);
+
     const modelViewMatrix = mat4.create();
-    const cameraPos = vec3.fromValues(0.0, 0.0, elevation + 2);
+    const cameraPos = vec3.fromValues(startLngOffset, startLatOffset, elevation + 2);
 
     const cameraTarget = vec3.fromValues(
       Math.cos((yaw * Math.PI) / 180) * Math.cos((pitch * Math.PI) / 180),
       Math.sin((yaw * Math.PI) / 180) * Math.cos((pitch * Math.PI) / 180),
       Math.sin((pitch * Math.PI) / 180),
     );
+
     vec3.normalize(cameraTarget, cameraTarget);
-    cameraTarget[2] += elevation + 2;
+    cameraTarget[0] += cameraPos[0];
+    cameraTarget[1] += cameraPos[1];
+    cameraTarget[2] += cameraPos[2];
 
     const cameraUp = vec3.fromValues(0.0, 0.0, 1.0);
 
     mat4.lookAt(modelViewMatrix, cameraPos, cameraTarget, cameraUp);
 
     return modelViewMatrix;
-  }, [elevation, pitch, yaw]);
+  }, [elevation, getStartOffset, pitch, position, yaw]);
 
   const drawScene = useCallback(() => {
     const gl = glRef.current;
