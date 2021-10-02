@@ -3,8 +3,8 @@ import React, {
 } from 'react';
 import { vec3, mat4 } from 'gl-matrix';
 import { haversineGreatCircleDistance } from '../utilities';
-import terrainVertex from './TerrainVertex.vert';
-import terrainFragment from './TerrainFragment.frag';
+import terrainVertex from './Terrain.vert';
+import terrainFragment from './Terrain.frag';
 import { LatLng } from '../state/Types';
 
 export type Points = {
@@ -45,7 +45,6 @@ const Terrain = ({
     uniformLocations: {
       projectionMatrix: WebGLUniformLocation,
       modelViewMatrix: WebGLUniformLocation,
-      normalMatrix: WebGLUniformLocation,
     },
   };
 
@@ -53,7 +52,7 @@ const Terrain = ({
     position: WebGLBuffer,
     indices: WebGLBuffer,
     numVertices: number,
-    normal: WebGLBuffer,
+    normals: WebGLBuffer,
   }
 
   let pitch = 0;
@@ -144,32 +143,6 @@ const Terrain = ({
 
     return compileProgram(vertexShader, fragmentShader);
   }, [compileProgram, loadShader]);
-
-  const computeNormal = (positions: number[], indices: number[], index: number) => {
-    const v1 = vec3.fromValues(
-      positions[indices[index + 2] * terrainVertexStride + 0]
-        - positions[indices[index + 1] * terrainVertexStride + 0],
-      positions[indices[index + 2] * terrainVertexStride + 1]
-        - positions[indices[index + 1] * terrainVertexStride + 1],
-      positions[indices[index + 2] * terrainVertexStride + 2]
-      - positions[indices[index + 1] * terrainVertexStride + 2],
-    );
-
-    const v2 = vec3.fromValues(
-      positions[indices[index] * terrainVertexStride + 0]
-        - positions[indices[index + 1] * terrainVertexStride + 0],
-      positions[indices[index] * terrainVertexStride + 1]
-        - positions[indices[index + 1] * terrainVertexStride + 1],
-      positions[indices[index] * terrainVertexStride + 2]
-        - positions[indices[index + 1] * terrainVertexStride + 2],
-    );
-
-    const normal = vec3.create();
-    vec3.cross(normal, v1, v2);
-    vec3.normalize(normal, normal);
-
-    return normal;
-  };
 
   const createTerrainBuffer = useCallback((
     gl: WebGL2RenderingContext,
@@ -291,6 +264,32 @@ const Terrain = ({
     return { indexBuffer, indices };
   };
 
+  const computeNormal = (positions: number[], indices: number[], index: number) => {
+    const v1 = vec3.fromValues(
+      positions[indices[index + 2] * terrainVertexStride + 0]
+        - positions[indices[index + 1] * terrainVertexStride + 0],
+      positions[indices[index + 2] * terrainVertexStride + 1]
+        - positions[indices[index + 1] * terrainVertexStride + 1],
+      positions[indices[index + 2] * terrainVertexStride + 2]
+      - positions[indices[index + 1] * terrainVertexStride + 2],
+    );
+
+    const v2 = vec3.fromValues(
+      positions[indices[index] * terrainVertexStride + 0]
+        - positions[indices[index + 1] * terrainVertexStride + 0],
+      positions[indices[index] * terrainVertexStride + 1]
+        - positions[indices[index + 1] * terrainVertexStride + 1],
+      positions[indices[index] * terrainVertexStride + 2]
+        - positions[indices[index + 1] * terrainVertexStride + 2],
+    );
+
+    const normal = vec3.create();
+    vec3.cross(normal, v1, v2);
+    vec3.normalize(normal, normal);
+
+    return normal;
+  };
+
   const createNormalBuffer = useCallback((
     gl: WebGL2RenderingContext,
     positions: number[],
@@ -316,7 +315,7 @@ const Terrain = ({
 
     // Sum the face normals that share a vertex
 
-    const summedNormals: vec3[] = [];
+    const vertexNormals: number[] = [];
 
     const sumNormals = (indexes: number[]) => {
       const vec = [0, 0, 0];
@@ -329,34 +328,34 @@ const Terrain = ({
       const normal = vec3.fromValues(vec[0], vec[1], vec[2]);
       vec3.normalize(normal, normal);
 
-      summedNormals.push(normal);
+      return normal;
     };
 
-    sumNormals([0, 3]);
+    vertexNormals.push(...sumNormals([0, 3]));
 
     for (let i = 4; i < (numPointsX - 1) * 4; i += 4) {
-      sumNormals([i - 1, i + 3, i + 6, i]);
+      vertexNormals.push(...sumNormals([i - 1, i + 3, i + 6, i]));
     }
 
-    sumNormals([(numPointsX - 1) * 4, (numPointsX - 1) * 4 + 1]);
+    vertexNormals.push(...sumNormals([(numPointsX - 1) * 4, (numPointsX - 1) * 4 + 1]));
 
     for (let j = 1; j < numPointsY - 1; j += 1) {
-      sumNormals([
+      vertexNormals.push(...sumNormals([
         (j - 1) * (numPointsX - 1) * 4 + 3,
         (j - 1) * (numPointsX - 1) * 4 + 2,
         (j + 0) * (numPointsX - 1) * 4 + 0,
         (j + 0) * (numPointsX - 1) * 4 + 3,
-      ]);
+      ]));
 
       for (let i = 1; i < numPointsX - 1; i += 1) {
-        sumNormals([
+        vertexNormals.push(...sumNormals([
           (j - 1) * (numPointsX - 1) * 4 + i * 4 - 1,
           (j - 1) * (numPointsX - 1) * 4 + i * 4 - 2,
           (j - 1) * (numPointsX - 1) * 4 + i * 4 - 3,
           (j - 1) * (numPointsX - 1) * 4 + i * 4 - 4,
-        ]);
+        ]));
 
-        sumNormals([
+        vertexNormals.push(...sumNormals([
           (j - 1) * (numPointsX - 1) * 4 + i * 4 - 2,
           (j - 1) * (numPointsX - 1) * 4 + i * 4 - 3,
           (j - 1) * (numPointsX - 1) * 4 + i * 4 + 3,
@@ -365,64 +364,56 @@ const Terrain = ({
           (j + 0) * (numPointsX - 1) * 4 + i * 4 - 3,
           (j + 0) * (numPointsX - 1) * 4 + i * 4 + 0,
           (j + 0) * (numPointsX - 1) * 4 + i * 4 + 3,
-        ]);
+        ]));
       }
 
-      sumNormals([
+      vertexNormals.push(...sumNormals([
         (j - 1) * (numPointsX - 1) * 4 + ((numPointsX - 1) * 4) - 1,
         (j - 1) * (numPointsX - 1) * 4 + ((numPointsX - 1) * 4) - 2,
         (j - 1) * (numPointsX - 1) * 4 + ((numPointsX - 1) * 4) - 3,
         (j - 1) * (numPointsX - 1) * 4 + ((numPointsX - 1) * 4) - 4,
-      ]);
+      ]));
 
-      sumNormals([
+      vertexNormals.push(...sumNormals([
         (j - 1) * (numPointsX - 1) * 4 + ((numPointsX - 1) * 4) - 2,
         (j - 1) * (numPointsX - 1) * 4 + ((numPointsX - 1) * 4) - 3,
         (j + 0) * (numPointsX - 1) * 4 + ((numPointsX - 1) * 4) - 4,
         (j + 0) * (numPointsX - 1) * 4 + ((numPointsX - 1) * 4) - 3,
-      ]);
+      ]));
     }
 
-    sumNormals([
+    vertexNormals.push(...sumNormals([
       (numPointsY - 2) * (numPointsX - 1) * 4 + 2,
       (numPointsY - 2) * (numPointsX - 1) * 4 + 3,
-    ]);
+    ]));
 
     for (let i = 1; i < numPointsX - 1; i += 1) {
-      sumNormals([
+      vertexNormals.push(...sumNormals([
         (numPointsY - 2) * (numPointsX - 1) * 4 + i * 4 - 1,
         (numPointsY - 2) * (numPointsX - 1) * 4 + i * 4 - 2,
         (numPointsY - 2) * (numPointsX - 1) * 4 + i * 4 - 3,
         (numPointsY - 2) * (numPointsX - 1) * 4 + i * 4 - 4,
-      ]);
+      ]));
 
-      sumNormals([
+      vertexNormals.push(...sumNormals([
         (numPointsY - 2) * (numPointsX - 1) * 4 + i * 4 - 2,
         (numPointsY - 2) * (numPointsX - 1) * 4 + i * 4 - 3,
         (numPointsY - 2) * (numPointsX - 1) * 4 + i * 4 + 3,
         (numPointsY - 2) * (numPointsX - 1) * 4 + i * 4 + 2,
-      ]);
+      ]));
     }
 
-    sumNormals([
+    vertexNormals.push(...sumNormals([
       (numPointsY - 2) * (numPointsX - 1) * 4 + ((numPointsX - 1) * 4) - 1,
       (numPointsY - 2) * (numPointsX - 1) * 4 + ((numPointsX - 1) * 4) - 2,
       (numPointsY - 2) * (numPointsX - 1) * 4 + ((numPointsX - 1) * 4) - 3,
       (numPointsY - 2) * (numPointsX - 1) * 4 + ((numPointsX - 1) * 4) - 4,
-    ]);
+    ]));
 
-    sumNormals([
+    vertexNormals.push(...sumNormals([
       (numPointsY - 2) * (numPointsX - 1) * 4 + ((numPointsX - 1) * 4) - 2,
       (numPointsY - 2) * (numPointsX - 1) * 4 + ((numPointsX - 1) * 4) - 3,
-    ]);
-
-    // Set the vertex normals
-
-    const vertexNormals = [];
-
-    for (let i = 0; i < summedNormals.length; i += 1) {
-      vertexNormals.push(...summedNormals[i]);
-    }
+    ]));
 
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals), gl.STATIC_DRAW);
 
@@ -434,7 +425,6 @@ const Terrain = ({
     startLngOffset: number,
   } => {
     const center = { lat: 40, lng: -105 };
-    // const center = terrain.sw;
     let startLatOffset = haversineGreatCircleDistance(
       latLng.lat, center.lng, center.lat, center.lng,
     );
@@ -455,7 +445,7 @@ const Terrain = ({
       startLatOffset,
       startLngOffset,
     };
-  }, [terrain.sw]);
+  }, []);
 
   const initBuffers = useCallback((): TerrainBuffers => {
     const gl = glRef.current;
@@ -501,7 +491,7 @@ const Terrain = ({
       position: positionBuffer,
       indices: indexBuffer,
       numVertices: indices.length,
-      normal: normalBuffer,
+      normals: normalBuffer,
     };
   }, [
     createNormalBuffer,
@@ -518,7 +508,6 @@ const Terrain = ({
     buffers: TerrainBuffers,
     projectionMatrix: mat4,
     modelViewMatrix: mat4,
-    normalMatrix: mat4,
   ) => {
     const programInfo = programInfoRef.current;
     if (programInfo === null) {
@@ -560,7 +549,7 @@ const Terrain = ({
       const normalize = false;
       const stride = 0;
       const offset = 0;
-      gl.bindBuffer(gl.ARRAY_BUFFER, buffers.normal);
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffers.normals);
       gl.vertexAttribPointer(
         programInfo.attribLocations.vertexNormal,
         numComponents,
@@ -593,12 +582,6 @@ const Terrain = ({
       programInfo.uniformLocations.modelViewMatrix,
       false,
       modelViewMatrix,
-    );
-
-    gl.uniformMatrix4fv(
-      programInfo.uniformLocations.normalMatrix,
-      false,
-      normalMatrix,
     );
 
     gl.uniform1i(gl.getUniformLocation(programInfo.program, 'terrainTexture'), 0);
@@ -680,7 +663,7 @@ const Terrain = ({
     mat4.invert(normalMatrix, modelViewMatrix);
     mat4.transpose(normalMatrix, normalMatrix);
 
-    drawTerrain(gl, terrainBuffers, projectionMatrix, modelViewMatrix, normalMatrix);
+    drawTerrain(gl, terrainBuffers, projectionMatrix, modelViewMatrix);
   }, [drawTerrain, getModelViewMatrix]);
 
   const initTexture = useCallback((gl: WebGL2RenderingContext) => {
@@ -771,12 +754,6 @@ const Terrain = ({
           throw new Error('modelViewMatrix is null');
         }
 
-        const normalMatrix = gl.getUniformLocation(shaderProgram, 'uNormalMatrix');
-
-        if (normalMatrix === null) {
-          throw new Error('normalMatrix is null');
-        }
-
         programInfoRef.current = {
           program: shaderProgram,
           attribLocations: {
@@ -787,7 +764,6 @@ const Terrain = ({
           uniformLocations: {
             projectionMatrix,
             modelViewMatrix,
-            normalMatrix,
           },
         };
 
