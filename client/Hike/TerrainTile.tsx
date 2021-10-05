@@ -1,5 +1,5 @@
 import { vec3, mat4 } from 'gl-matrix';
-import { haversineGreatCircleDistance } from '../utilities';
+import { lngDistance } from '../utilities';
 import { Points } from '../ResponseTypes';
 import {
   compileProgram, getStartOffset, loadShader,
@@ -50,6 +50,13 @@ class TerrainTile {
     vertexNormal: number | null,
   } = { vertexPosition: null, texCoord: null, vertexNormal: null }
 
+  // These members are only needed for debugging.
+  positions: number[] = [];
+
+  numPointsX = 0;
+
+  numPointsY = 0;
+
   constructor(
     renderer: TerrainRendererInterface,
     location: Location,
@@ -91,36 +98,9 @@ class TerrainTile {
     const numPointsX = terrain.points[0].length;
     const numPointsY = terrain.points.length;
 
-    const latDistance = haversineGreatCircleDistance(
-      terrain.ne.lat, terrain.sw.lng, terrain.sw.lat, terrain.sw.lng,
-    );
-    const lngDistance = haversineGreatCircleDistance(
-      terrain.sw.lat, terrain.ne.lng, terrain.sw.lat, terrain.sw.lng,
-    );
-
-    // console.log(`ne: ${JSON.stringify(terrain.ne)}, sw: ${JSON.stringify(terrain.sw)})`);
-    // console.log(`position: ${JSON.stringify(position)}`);
-
-    // const zScale = 1;
-    const latStep = latDistance / (numPointsY - 1);
-    const lngStep = lngDistance / (numPointsX - 1);
-
-    const { startLatOffset, startLngOffset } = getStartOffset(terrain.sw);
-
-    // console.log(`zscale: ${zScale}, latStep=${latStep}, lngStep=${lngStep}`);
-    // console.log(`${-1 * lngStep}, ${1 * latStep} to ${1 * lngStep}, ${-1 * latStep}`);
-
-    const { positionBuffer, positions } = this.createTerrainBuffer(
-      terrain, numPointsX, numPointsY, startLatOffset, startLngOffset, latStep, lngStep,
-    );
+    const { positionBuffer, positions } = this.createTerrainBuffer(terrain, numPointsX, numPointsY);
     const { indexBuffer, indices } = this.createIndexBuffer(numPointsX, numPointsY);
     const normalBuffer = this.createNormalBuffer(positions, indices, numPointsX, numPointsY);
-
-    // console.log(`number of positions: ${positions.length}`);
-    // console.log(`number of indices: ${indices.length}`);
-
-    // console.log(`min/max elevation: ${min}/${max} ${normalizeEle(min)}/${normalizeEle(max)}`);
-    // console.log(`elevation: ${center + 2}, ${normalizeEle(center + 2)}`);
 
     this.buffers = {
       position: positionBuffer,
@@ -134,10 +114,6 @@ class TerrainTile {
     terrain: Points,
     numPointsX: number,
     numPointsY: number,
-    startLatOffset: number,
-    startLngOffset: number,
-    latStep: number,
-    lngStep: number,
   ): { positionBuffer: WebGLBuffer, positions: number[] } {
     const positionBuffer = this.gl.createBuffer();
 
@@ -145,7 +121,18 @@ class TerrainTile {
       throw new Error('positionBuffer is null');
     }
 
+    const { startLatOffset, startLngOffset } = getStartOffset(terrain.sw);
+
+    const sStep = (terrain.textureNE.s - terrain.textureSW.s) / (numPointsX - 1);
+    const tStep = (terrain.textureNE.t - terrain.textureSW.t) / (numPointsY - 1);
+
     const positions = [];
+
+    const latDist = lngDistance(terrain.ne.lat, terrain.sw.lat);
+    const latStep = latDist / (numPointsY - 1);
+
+    const lngDist = lngDistance(terrain.ne.lng, terrain.sw.lng);
+    const lngStep = lngDist / (numPointsX - 1);
 
     for (let i = 0; i < numPointsX; i += 1) {
       positions.push(startLngOffset + i * lngStep);
@@ -153,8 +140,8 @@ class TerrainTile {
       positions.push(terrain.points[0][i]);
 
       // texture coordinates
-      positions.push(i / (numPointsX - 1));
-      positions.push(1);
+      positions.push(terrain.textureSW.s + i * sStep);
+      positions.push(terrain.textureSW.t);
     }
 
     for (let j = 1; j < numPointsY; j += 1) {
@@ -163,8 +150,8 @@ class TerrainTile {
       positions.push(terrain.points[j][0]);
 
       // texture coordinates
-      positions.push(0);
-      positions.push(1 - j / (numPointsY - 1));
+      positions.push(terrain.textureSW.s);
+      positions.push(terrain.textureSW.t + j * tStep);
 
       for (let i = 1; i < numPointsX; i += 1) {
         positions.push(startLngOffset + (i - 0.5) * lngStep);
@@ -172,21 +159,25 @@ class TerrainTile {
         positions.push(terrain.centers[j - 1][i - 1]);
 
         // texture coordinates
-        positions.push((i - 0.5) / (numPointsX - 1));
-        positions.push(1 - (j - 0.5) / (numPointsY - 1));
+        positions.push(terrain.textureSW.s + (i - 0.5) * sStep);
+        positions.push(terrain.textureSW.t + (j - 0.5) * tStep);
 
         positions.push(startLngOffset + i * lngStep);
         positions.push(startLatOffset + j * latStep);
         positions.push(terrain.points[j][i]);
 
         // texture coordinates
-        positions.push(i / (numPointsX - 1));
-        positions.push(1 - (j / (numPointsY - 1)));
+        positions.push(terrain.textureSW.s + i * sStep);
+        positions.push(terrain.textureSW.t + j * tStep);
       }
     }
 
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(positions), this.gl.STATIC_DRAW);
+
+    this.positions = positions;
+    this.numPointsX = numPointsX;
+    this.numPointsY = numPointsY;
 
     return { positionBuffer, positions };
   }
@@ -498,6 +489,9 @@ class TerrainTile {
 
       this.gl.activeTexture(this.gl.TEXTURE0);
       this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
+
+      // this.gl.enable(this.gl.BLEND);
+      // this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 
       {
         const vertexCount = this.buffers.numVertices;
