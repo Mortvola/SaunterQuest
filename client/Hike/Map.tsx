@@ -22,12 +22,14 @@ import Gpx from './Gpx';
 
 type Props = {
   tileServerUrl: string;
+  pathFinderUrl: string;
   hike: Hike,
   locationPopup?: LatLng | null,
 };
 
 const Map = ({
   tileServerUrl,
+  pathFinderUrl,
   hike,
   locationPopup,
 }: Props): ReactElement => {
@@ -155,7 +157,17 @@ const Map = ({
           )
           : null
       }
-      <TerrainDialog latLng={latLng} />
+      {
+        latLng
+          ? (
+            <TerrainDialog
+              latLng={latLng}
+              tileServerUrl={tileServerUrl}
+              pathFinderUrl={pathFinderUrl}
+            />
+          )
+          : null
+      }
     </>
   );
 };

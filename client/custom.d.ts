@@ -3,7 +3,12 @@ declare module '*.module.css' {
   export default classes;
 }
 
-declare module '*.glsl' {
+declare module '*.vert' {
+  const classes: string;
+  export default classes;
+}
+
+declare module '*.frag' {
   const classes: string;
   export default classes;
 }

@@ -15,11 +15,13 @@ import useMediaQuery from '../MediaQuery';
 
 type Props = {
   tileServerUrl: string;
+  pathFinderUrl: string;
   extendedMenu: unknown;
 }
 
 const Hike = ({
   tileServerUrl,
+  pathFinderUrl,
   extendedMenu,
 }: Props): ReactElement | null => {
   const { uiState } = useStores();
@@ -61,6 +63,7 @@ const Hike = ({
         <Toolbar hike={uiState.hike} />
         <MapContainer
           tileServerUrl={tileServerUrl}
+          pathFinderUrl={pathFinderUrl}
           hike={uiState.hike}
           locationPopup={locationPopup}
         />

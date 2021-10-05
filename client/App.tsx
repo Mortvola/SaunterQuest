@@ -18,19 +18,25 @@ Leaflet.Icon.Default.imagePath = '//cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.4
 type PropsType = {
   username: string,
   tileServerUrl: string,
+  pathFinderUrl: string,
   extendedMenu: string,
 }
 
 const App = ({
   username,
   tileServerUrl,
+  pathFinderUrl,
   extendedMenu,
 }: PropsType): ReactElement => (
   <DndProvider backend={HTML5Backend}>
     <Menubar username={username} />
     <Switch>
       <Route path="/hike">
-        <Hike tileServerUrl={tileServerUrl} extendedMenu={extendedMenu} />
+        <Hike
+          tileServerUrl={tileServerUrl}
+          pathFinderUrl={pathFinderUrl}
+          extendedMenu={extendedMenu}
+        />
       </Route>
       <Route path="/gear">
         <Gear />

@@ -138,6 +138,18 @@ function haversineGreatCircleDistance(
   return angle * earthRadius;
 }
 
+export const lngDistance = (fromLng: number, toLng: number): number => (
+  haversineGreatCircleDistance(
+    0, fromLng, 0, toLng,
+  )
+);
+
+export const latDistance = (fromLat: number, toLat: number): number => (
+  haversineGreatCircleDistance(
+    fromLat, 0, toLat, 0,
+  )
+);
+
 function sleep(ms: number): Promise<number> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
