@@ -19,6 +19,7 @@ import Hike from '../state/Hike';
 import { LatLng } from '../state/Types';
 import Marker from './Marker';
 import Gpx from './Gpx';
+import Campsites from './Campsites';
 
 type Props = {
   tileServerUrl: string;
@@ -147,6 +148,7 @@ const Map = ({
           )
           : null
       }
+      <Campsites />
       <GotoLocationDialog leafletMap={leafletMap} hike={hike} />
       {
         locationPopup

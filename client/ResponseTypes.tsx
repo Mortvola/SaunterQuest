@@ -38,3 +38,21 @@ export type ElevationResponse = {
 export const isElevationResponse = (r: unknown): r is ElevationResponse => (
   (r as ElevationResponse).ele !== undefined
 );
+
+export interface Campsite {
+  id: number;
+  name: string;
+  location: [number, number];
+}
+
+export const isCampsiteResponse = (r: unknown): r is Campsite[] => (
+  r !== null && r !== undefined
+  && Array.isArray(r) && (
+    (r as Campsite[]).length === 0
+    || (
+      (r as Campsite[])[0].id !== undefined
+      && (r as Campsite[])[0].name !== undefined
+      && (r as Campsite[])[0].location !== undefined
+    )
+  )
+);

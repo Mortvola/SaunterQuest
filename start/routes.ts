@@ -88,6 +88,8 @@ Route.group(() => {
     Route.delete('/item/:itemId', 'GearItemsController.deleteItem');
   })
     .prefix('/gear');
+
+  Route.get('/campsites', 'CampsitesController.get');
 })
   .prefix('/api')
   .middleware('auth');
