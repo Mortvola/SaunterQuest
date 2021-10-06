@@ -63,7 +63,7 @@ class HikeManager implements HikeManagerInterface {
   }
 
   async addHike(): Promise<HikeItem> {
-    const response = await httpPost('hike');
+    const response = await httpPost('/api/hike');
 
     if (response.ok) {
       const body = await response.json();
