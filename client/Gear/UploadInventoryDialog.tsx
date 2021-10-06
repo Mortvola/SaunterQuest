@@ -2,6 +2,7 @@ import React, { ReactElement } from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import { Formik, Form, Field } from 'formik';
 import { makeUseModal, ModalProps } from '@mortvola/usemodal';
+import Http from '@mortvola/http';
 
 type FileUploadPropsType = {
   field: { name: string },
@@ -52,7 +53,7 @@ const UploadInventoryDialog = ({
     let lines: string[];
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       const { target } = e;
       if (target) {
         const { result } = target;
@@ -95,20 +96,11 @@ const UploadInventoryDialog = ({
           consumable: false,
         }));
 
-      const headers = new Headers();
+      const response = await Http.post('/gear/item', result);
 
-      headers.append('Content-Type', 'application/json');
-
-      fetch('/gear/item', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(result),
-      })
-        .then((response) => {
-          if (response.ok) {
-            setShow(false);
-          }
-        });
+      if (response.ok) {
+        setShow(false);
+      }
     };
 
     if (typeof values.file !== 'string') {

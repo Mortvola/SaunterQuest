@@ -1,3 +1,4 @@
+import Http from '@mortvola/http';
 import { getSchedule } from './tempstore';
 
 const pointOfInterestCM = {};
@@ -178,19 +179,18 @@ function showAddPointOfInterest(object, position) {
   $('#addPointOfInterest').modal('show');
 }
 
-function retrievePointsOfInterest(hikeId, map) {
-  fetch(`/api/hike/${hikeId}/pointOfInterest`)
-    .then(async (response) => {
-      if (response.ok) {
-        const poi = await response.json();
+async function retrievePointsOfInterest(hikeId, map) {
+  const response = await Http.get(`/api/hike/${hikeId}/pointOfInterest`);
 
-        if (map) {
-          poi.forEach((p) => {
-            addPointOfInterest(p);
-          });
-        }
-      }
-    });
+  if (response.ok) {
+    const poi = await response.body();
+
+    if (map) {
+      poi.forEach((p) => {
+        addPointOfInterest(p);
+      });
+    }
+  }
 }
 
 export { showAddPointOfInterest, retrievePointsOfInterest };

@@ -1,6 +1,7 @@
 import { vec3, mat4 } from 'gl-matrix';
+import Http from '@mortvola/http';
 import { lngDistance } from '../utilities';
-import { Points } from '../ResponseTypes';
+import { isPointsResponse, Points } from '../ResponseTypes';
 import {
   compileProgram, getStartOffset, loadShader,
 } from './TerrainCommon';
@@ -72,17 +73,12 @@ class TerrainTile {
   async loadTerrain(
     location: Location,
   ): Promise<void> {
-    const response = await fetch(`${this.renderer.pathFinderUrl}/elevation/tile/${location.zoom}/${location.x}/${location.y}`, {
-      headers: {
-        'access-control-allow-origins': '*',
-      },
-    });
+    const response = await Http.get(`${this.renderer.pathFinderUrl}/elevation/tile/${location.zoom}/${location.x}/${location.y}`);
 
     if (response.ok) {
-      const body = await response.json();
-      const terrain: Points = body;
-      if (terrain !== null) {
-        this.initBuffers(terrain);
+      const body = await response.body();
+      if (isPointsResponse(body)) {
+        this.initBuffers(body);
         this.initTexture(location);
         this.renderer.requestRender();
       }

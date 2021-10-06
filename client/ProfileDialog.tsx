@@ -4,6 +4,7 @@ import React, { ReactElement } from 'react';
 import { Formik, Form, Field } from 'formik';
 import { Modal } from 'react-bootstrap';
 import { makeUseModal, ModalProps } from '@mortvola/usemodal';
+import Http from '@mortvola/http';
 import { toTimeFloat, toTimeString } from './utilities';
 
 export type PropsType = {
@@ -34,26 +35,17 @@ const ProfileDialog = ({
   }
 
   const handleSubmit = async (vals: ValuesType) => {
-    const headers = new Headers();
+    const response = await Http.put('/user/profile', {
+      ...vals,
+      startTime: toTimeFloat(vals.startTime),
+      endTime: toTimeFloat(vals.endTime),
+    });
 
-    headers.append('Content-Type', 'application/json');
-
-    fetch('/user/profile', {
-      method: 'PUT',
-      headers,
-      body: JSON.stringify({
-        ...vals,
-        startTime: toTimeFloat(vals.startTime),
-        endTime: toTimeFloat(vals.endTime),
-      }),
-    })
-      .then((response) => {
-        if (response.ok) {
-          if (onHide) {
-            onHide();
-          }
-        }
-      });
+    if (response.ok) {
+      if (onHide) {
+        onHide();
+      }
+    }
   };
 
   return (

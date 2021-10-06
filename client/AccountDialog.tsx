@@ -4,6 +4,7 @@ import React, { ReactElement } from 'react';
 import { Modal } from 'react-bootstrap';
 import { Formik, Form, Field } from 'formik';
 import { makeUseModal, ModalProps } from '@mortvola/usemodal';
+import Http from '@mortvola/http';
 
 type PropsType = {
 }
@@ -19,18 +20,13 @@ const AccountDialog = ({
 
     headers.append('Content-Type', 'application/json');
 
-    fetch('/user/account', {
-      method: 'PUT',
-      headers,
-      body: JSON.stringify({ ...vals }),
-    })
-      .then((response) => {
-        if (response.ok) {
-          if (onHide) {
-            onHide();
-          }
-        }
-      });
+    const response = await Http.put('/user/account', { ...vals });
+
+    if (response.ok) {
+      if (onHide) {
+        onHide();
+      }
+    }
   };
 
   return (

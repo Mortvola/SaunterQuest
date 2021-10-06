@@ -1,60 +1,61 @@
+import Http from '@mortvola/http';
+
 const resupplyLocationCM = {};
 const resupplyUrl = 'https://maps.google.com/mapfiles/ms/micons/postoffice-us.png';
 
 let resupplyLocations = [];
 
-function loadResupply(hikeId) {
-  fetch(`/api/hike/${hikeId}/resupplyPlan`)
-    .then((response) => {
-      if (response.ok) {
-        const resupplyPlan = JSON.parse(this.responseText);
+async function loadResupply(hikeId) {
+  const response = await Http.get(`/api/hike/${hikeId}/resupplyPlan`);
 
-        let txt = '';
+  if (response.ok) {
+    const resupplyPlan = JSON.parse(this.responseText);
 
-        resupplyPlan.forEach((i) => {
-          txt += "<div class='panel panel-default'>";
+    let txt = '';
 
-          txt += "<div class='panel-heading' style='padding:5px 5px 5px 5px'>";
-          if (i === 0) {
-            txt += '<div>Initial packed items</div>';
-          }
-          else {
-            txt += '<div>Resupply</div>';
-          }
+    resupplyPlan.forEach((i) => {
+      txt += "<div class='panel panel-default'>";
 
-          txt += '</div>';
-
-          txt += '<div>Items</div>';
-
-          resupplyPlan[i].items.sort((a, b) => a.name.localeCompare(b.name));
-
-          resupplyPlan[i].items.forEach((j) => {
-            let servingSize = 0;
-            const words = resupplyPlan[i].items[j].servingDescription.split(' ');
-            const r = /\d+\/\d+/;
-            if (r.test(words[0])) {
-              const ints = words[0].split('/');
-              servingSize = parseFloat(ints[0]) / parseFloat(ints[1]);
-            }
-            else {
-              servingSize = parseInt(words[0], 10);
-            }
-            words.splice(0, 1);
-            const servingDescription = words.join(' ');
-
-            txt += "<div class='resupply-grid' style='border-top:1px solid #f0f0f0'>";
-            txt += `<div class='resupply-grid-item' style='padding-left:2px;padding-right:5px'>${resupplyPlan[i].items[j].name}</div>`;
-            txt += `<div class='resupply-grid-item' style='padding-right:2px'>${parseInt(resupplyPlan[i].items[j].totalServings, 10) * servingSize} ${servingDescription}</div>`;
-            txt += `<div class='resupply-grid-item' style='font-size:11px;padding-left:2px;padding-bottom:5px'>${resupplyPlan[i].items[j].manufacturer}</div>`;
-            txt += '</div>';
-          });
-
-          txt += '</div>';
-        });
-
-        $('#resupply').html(txt);
+      txt += "<div class='panel-heading' style='padding:5px 5px 5px 5px'>";
+      if (i === 0) {
+        txt += '<div>Initial packed items</div>';
       }
+      else {
+        txt += '<div>Resupply</div>';
+      }
+
+      txt += '</div>';
+
+      txt += '<div>Items</div>';
+
+      resupplyPlan[i].items.sort((a, b) => a.name.localeCompare(b.name));
+
+      resupplyPlan[i].items.forEach((j) => {
+        let servingSize = 0;
+        const words = resupplyPlan[i].items[j].servingDescription.split(' ');
+        const r = /\d+\/\d+/;
+        if (r.test(words[0])) {
+          const ints = words[0].split('/');
+          servingSize = parseFloat(ints[0]) / parseFloat(ints[1]);
+        }
+        else {
+          servingSize = parseInt(words[0], 10);
+        }
+        words.splice(0, 1);
+        const servingDescription = words.join(' ');
+
+        txt += "<div class='resupply-grid' style='border-top:1px solid #f0f0f0'>";
+        txt += `<div class='resupply-grid-item' style='padding-left:2px;padding-right:5px'>${resupplyPlan[i].items[j].name}</div>`;
+        txt += `<div class='resupply-grid-item' style='padding-right:2px'>${parseInt(resupplyPlan[i].items[j].totalServings, 10) * servingSize} ${servingDescription}</div>`;
+        txt += `<div class='resupply-grid-item' style='font-size:11px;padding-left:2px;padding-bottom:5px'>${resupplyPlan[i].items[j].manufacturer}</div>`;
+        txt += '</div>';
+      });
+
+      txt += '</div>';
     });
+
+    $('#resupply').html(txt);
+  }
 }
 
 function insertResupplyLocation(position) {
@@ -102,42 +103,40 @@ function addResupplyLocation(object, position) {
   $('#addResupplyLocation').modal('show');
 }
 
-function retrieveResupplyLocations(hikeId, map) {
-  fetch(`/api/hike/${hikeId}/resupplyLocation`)
-    .then(async (response) => {
-      if (response.ok) {
-        resupplyLocations = await response.json();
-        if (map) {
-          resupplyLocations.forEach((r) => {
-            // resupplyLocations[r].marker = new google.maps.Marker({
-            //     position: {
-            //         lat: parseFloat(r.lat),
-            //         lng: parseFloat(r.lng),
-            //     },
-            //     map,
-            //     icon: {
-            //         url: resupplyUrl,
-            //     },
-            // });
+async function retrieveResupplyLocations(hikeId, map) {
+  const response = await Http.get(`/api/hike/${hikeId}/resupplyLocation`);
+  if (response.ok) {
+    resupplyLocations = await response.body();
+    if (map) {
+      resupplyLocations.forEach((r) => {
+        // resupplyLocations[r].marker = new google.maps.Marker({
+        //     position: {
+        //         lat: parseFloat(r.lat),
+        //         lng: parseFloat(r.lng),
+        //     },
+        //     map,
+        //     icon: {
+        //         url: resupplyUrl,
+        //     },
+        // });
 
-            const { shippingLocationId } = r.id;
-            r.marker.addListener('rightclick', (event) => {
-              resupplyLocationCM.open(map, event, shippingLocationId);
-            });
+        const { shippingLocationId } = r.id;
+        r.marker.addListener('rightclick', (event) => {
+          resupplyLocationCM.open(map, event, shippingLocationId);
+        });
 
-            if (r.address2 == null) {
-              r.address2 = '';
-            }
-
-            // r.listener = attachInfoWindowMessage(resupplyLocations[r],
-            //     `<div>${ resupplyLocations[r].name }</div>`
-            //     + `<div>${ resupplyLocations[r].address1 }</div>`
-            //     + `<div>${ resupplyLocations[r].address2 }</div>`
-            //     + `<div>${ resupplyLocations[r].city }, ${ resupplyLocations[r].state } ${ resupplyLocations[r].zip }</div>`);
-          });
+        if (r.address2 == null) {
+          r.address2 = '';
         }
-      }
-    });
+
+        // r.listener = attachInfoWindowMessage(resupplyLocations[r],
+        //     `<div>${ resupplyLocations[r].name }</div>`
+        //     + `<div>${ resupplyLocations[r].address1 }</div>`
+        //     + `<div>${ resupplyLocations[r].address2 }</div>`
+        //     + `<div>${ resupplyLocations[r].city }, ${ resupplyLocations[r].state } ${ resupplyLocations[r].zip }</div>`);
+      });
+    }
+  }
 }
 
 function resupplyFromLocation(object, position) {

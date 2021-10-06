@@ -1,10 +1,8 @@
 import { makeAutoObservable, runInAction, toJS } from 'mobx';
+import Http from '@mortvola/http';
 import GearConfiguration from './GearConfiguration';
 import GearItem from './GearItem';
 import { Store } from './store';
-import {
-  httpDelete, httpPost, postJSON, putJSON,
-} from './Transports';
 import { GearConfigProps, GearItemProps } from './Types';
 
 class Gear {
@@ -23,7 +21,7 @@ class Gear {
   }
 
   requestGearConfigurations = async (): Promise<void> => {
-    const response = await fetch('/gear/configuration');
+    const response = await Http.get('/gear/configuration');
 
     if (response.ok) {
       const body: Array<GearConfigProps> = await response.json();
@@ -35,7 +33,7 @@ class Gear {
   }
 
   addGearConfiguration = async (): Promise<void> => {
-    const response = await httpPost('/gear/configuration');
+    const response = await Http.post('/gear/configuration');
 
     if (response.ok) {
       const body: GearConfigProps = await response.json();
@@ -45,7 +43,7 @@ class Gear {
   }
 
   deleteConfiguration = async (configuration: GearConfiguration): Promise<void> => {
-    const response = await httpDelete(`/gear/configuration/${configuration.id}`);
+    const response = await Http.delete(`/gear/configuration/${configuration.id}`);
 
     if (response.ok) {
       const index = this.configurations.findIndex((cfg) => cfg.id === configuration.id);
@@ -57,7 +55,7 @@ class Gear {
   }
 
   requestGearInventory = async (): Promise<void> => {
-    const response = await fetch('/gear/item');
+    const response = await Http.get('/gear/item');
 
     if (response.ok) {
       const body: Array<GearItemProps> = await response.json();
@@ -84,7 +82,7 @@ class Gear {
   }
 
   addInventoryItem = async (item: GearItem, values: GearItemProps): Promise<void> => {
-    const response = await postJSON('/gear/item', {
+    const response = await Http.post('/gear/item', {
       consumable: values.consumable,
       description: values.description,
       name: values.name,
@@ -109,7 +107,7 @@ class Gear {
   }
 
   updateInventoryItem = async (item: GearItem, values: GearItemProps): Promise<void> => {
-    const response = await putJSON(`/gear/item/${item.id}`, {
+    const response = await Http.put(`/gear/item/${item.id}`, {
       id: item.id,
       consumable: values.consumable,
       description: values.description,
@@ -143,7 +141,7 @@ class Gear {
 
   deleteGearItem = async (item: GearItem): Promise<void> => {
     if (item.id !== null) {
-      const response = await httpDelete(`/gear/item/${item.id}`);
+      const response = await Http.delete(`/gear/item/${item.id}`);
 
       if (response.ok) {
         runInAction(() => {

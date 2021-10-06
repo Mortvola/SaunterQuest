@@ -6,6 +6,8 @@ import {
   Formik, Form, Field, ErrorMessage, FormikHelpers,
 } from 'formik';
 import { makeUseModal, ModalProps } from '@mortvola/usemodal';
+import Http from '@mortvola/http';
+import { isErrorResponse } from './ResponseTypes';
 
 type ErrorProps = {
   name: string,
@@ -31,31 +33,25 @@ const ChangePasswordDialog = ({
       formData.set(key, vals[key]);
     });
 
-    const headers = new Headers();
+    const response = await Http.post('/password/change', formData);
 
-    headers.append('Accept', 'application/json');
+    if (response.ok) {
+      if (onHide) {
+        onHide();
+      }
+    }
+    else {
+      const body = await response.body();
+      if (isErrorResponse(body) && body.errors) {
+        const errors: Record<string, string> = {};
 
-    fetch('/password/change', {
-      method: 'POST',
-      headers,
-      body: formData,
-    })
-      .then((response) => {
-        if (response.ok) {
-          if (onHide) {
-            onHide();
-          }
+        body.errors.forEach((error) => {
+          errors[error.field] = error.message;
+        });
 
-          return null;
-        }
-
-        return response.json();
-      })
-      .then((response) => {
-        if (response.errors) {
-          setErrors(response.errors);
-        }
-      });
+        setErrors(errors);
+      }
+    }
   };
 
   return (

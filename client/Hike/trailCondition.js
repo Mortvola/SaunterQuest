@@ -1,3 +1,4 @@
+import Http from '@mortvola/http';
 import RouteHighlighter from './routeHighlighter';
 import { getRoute, getSchedule } from './tempstore';
 import { positionMapToBounds } from './mapUtils';
@@ -117,27 +118,25 @@ function getTrailConditionColor(type) {
   return '#FF00FF'; // '#C0C0C0'; //'#708090'
 }
 
-function retrieveTrailConditions(hikeId) {
-  fetch(`/api/hike/${hikeId}/trailCondition`)
-    .then(async (response) => {
-      if (response.ok) {
-        trailConditions = await response.json();
-        const txt = '';
+async function retrieveTrailConditions(hikeId) {
+  const response = await Http.get(`/api/hike/${hikeId}/trailCondition`);
+  if (response.ok) {
+    trailConditions = await response.body();
+    const txt = '';
 
-        trailConditions.forEach((t) => {
-          // t.polyLine = routeHighlightPolylineCreate(
-          //     new google.maps.LatLng(
-          // { lat: parseFloat(t.startLat), lng: parseFloat(t.startLng) }),
-          //     new google.maps.LatLng({ lat: parseFloat(t.endLat), lng: parseFloat(t.endLng) }),
-          //     getTrailConditionColor(t.type),
-          // );
+    trailConditions.forEach((t) => {
+      // t.polyLine = routeHighlightPolylineCreate(
+      //     new google.maps.LatLng(
+      // { lat: parseFloat(t.startLat), lng: parseFloat(t.startLng) }),
+      //     new google.maps.LatLng({ lat: parseFloat(t.endLat), lng: parseFloat(t.endLng) }),
+      //     getTrailConditionColor(t.type),
+      // );
 
-          // txt += trailConditionRowGet(t);
-        });
-
-        $('#conditionsLastRow').before(txt);
-      }
+      // txt += trailConditionRowGet(t);
     });
+
+    $('#conditionsLastRow').before(txt);
+  }
 }
 
 function findTrailConditionIndex(trailConditionId) {

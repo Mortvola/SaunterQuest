@@ -1,3 +1,4 @@
+import Http from '@mortvola/http';
 import RouteHighlighter from './routeHighlighter';
 // import { getAndLoadElevationData } from './ElevationChart';
 import { retrieveTrailConditions } from './trailCondition';
@@ -186,31 +187,22 @@ class Route {
       });
   }
 
-  updateWaypoint(marker) {
+  async updateWaypoint(marker) {
     $('#pleaseWait').show();
 
-    fetch(`/api/hike/${this.hikeId}/route/waypoint/${marker.id}/position`, {
-      method: 'PUT',
-      headers:
-            {
-              'Content-type': 'application/json',
-            },
-      body: JSON.stringify(marker.getPosition()),
-    })
-      .then(async (response) => {
-        if (response.ok) {
-          const updates = await response.json();
+    const response = await Http.put(`/api/hike/${this.hikeId}/route/waypoint/${marker.id}/position`, marker.getPosition());
+    if (response.ok) {
+      const updates = await response.body();
 
-          if (updates === undefined) {
-            this.retrieve();
-          }
-          else {
-            this.applyUpdates(updates);
-          }
-        }
+      if (updates === undefined) {
+        this.retrieve();
+      }
+      else {
+        this.applyUpdates(updates);
+      }
+    }
 
-        $('#pleaseWait').hide();
-      });
+    $('#pleaseWait').hide();
   }
 
   removeWaypoint(marker) {

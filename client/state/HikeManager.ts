@@ -1,6 +1,6 @@
 import { makeAutoObservable, runInAction } from 'mobx';
+import Http from '@mortvola/http';
 import HikeItem from './HikeItem';
-import { httpDelete, httpPost } from './Transports';
 import { HikeManagerInterface } from './Types';
 import { Store } from './store';
 
@@ -22,7 +22,7 @@ class HikeManager implements HikeManagerInterface {
   async requestHikes(): Promise<void> {
     this.setRequesting(true);
 
-    const response = await fetch('/api/hikes');
+    const response = await Http.get('/api/hikes');
 
     if (response.ok) {
       const hikes = await response.json();
@@ -63,7 +63,7 @@ class HikeManager implements HikeManagerInterface {
   }
 
   async addHike(): Promise<HikeItem> {
-    const response = await httpPost('/api/hike');
+    const response = await Http.post('/api/hike');
 
     if (response.ok) {
       const body = await response.json();
@@ -97,7 +97,7 @@ class HikeManager implements HikeManagerInterface {
   }
 
   async deleteHike(id: number): Promise<void> {
-    const response = await httpDelete(`/api/hike/${id}`);
+    const response = await Http.delete(`/api/hike/${id}`);
 
     if (response.ok) {
       runInAction(() => {

@@ -1,4 +1,5 @@
 import { makeAutoObservable, runInAction } from 'mobx';
+import Http from '@mortvola/http';
 import { BaseHikeProps } from './Types';
 
 class HikeItem {
@@ -24,7 +25,7 @@ class HikeItem {
 
   requestDetails = async (): Promise<void> => {
     this.setRequesting(true);
-    const response = await fetch(`/api/hike/${this.id}/details`);
+    const response = await Http.get(`/api/hike/${this.id}/details`);
 
     if (response.ok) {
       const details = await response.json();

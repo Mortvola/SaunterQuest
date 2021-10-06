@@ -1,8 +1,8 @@
 import { makeAutoObservable, runInAction } from 'mobx';
+import Http from '@mortvola/http';
 import HikerProfile from './HikerProfile';
 import Map from './Map';
 import Route from './Route';
-import { httpDelete, postJSON } from './Transports';
 import {
   Day, DayProps, HikeInterface, HikeItemInterface, LatLng, MarkerTypes, PointOfInterestProps,
   ProfileProps,
@@ -52,7 +52,7 @@ class Hike implements HikeInterface {
   }
 
   async requestHikerProfiles(): Promise<void> {
-    const response = await fetch(`/api/hike/${this.id}/hiker-profile`);
+    const response = await Http.get(`/api/hike/${this.id}/hiker-profile`);
 
     if (response.ok) {
       const profiles: Array<ProfileProps> = await response.json();
@@ -92,7 +92,7 @@ class Hike implements HikeInterface {
   }
 
   addHikerProfile = async (profile: ProfileProps): Promise<void> => {
-    const response = await postJSON(`/api/hike/${this.id}/hiker-profile`, {
+    const response = await Http.post(`/api/hike/${this.id}/hiker-profile`, {
       startTime: profile.startTime,
       endTime: profile.endTime,
       startDay: profile.startDay,
@@ -109,7 +109,7 @@ class Hike implements HikeInterface {
   }
 
   async deleteHikerProfile(id: number): Promise<void> {
-    const response = await httpDelete(`/api/hike/${this.id}/hiker-profile/${id}`);
+    const response = await Http.delete(`/api/hike/${this.id}/hiker-profile/${id}`);
 
     if (response.ok) {
       const deleted = await response.json();
@@ -133,7 +133,7 @@ class Hike implements HikeInterface {
 
   async requestSchedule(): Promise<void> {
     try {
-      const response = await fetch(`/api/hike/${this.id}/schedule`);
+      const response = await Http.get(`/api/hike/${this.id}/schedule`);
 
       if (response.ok) {
         const schedule: Array<DayProps> = await response.json();
@@ -174,7 +174,7 @@ class Hike implements HikeInterface {
   }
 
   requestPointsOfInterest = async (): Promise<void> => {
-    const response = await fetch(`/api/hike/${this.id}/poi`);
+    const response = await Http.get(`/api/hike/${this.id}/poi`);
 
     if (response.ok) {
       const body: Array<PointOfInterestProps> = await response.json();
@@ -206,7 +206,7 @@ class Hike implements HikeInterface {
   }
 
   private addPOI = async (latLng: LatLng, type: MarkerTypes): Promise<void> => {
-    const response = await postJSON(`/api/hike/${this.id}/poi`, {
+    const response = await Http.post(`/api/hike/${this.id}/poi`, {
       name: null,
       description: null,
       lat: latLng.lat,

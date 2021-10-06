@@ -1,8 +1,8 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import L from 'leaflet';
+import Http from '@mortvola/http';
 import Anchor, { resetWaypointLabel } from './Markers/Anchor';
 import { metersToMiles, metersToFeet } from '../utilities';
-import { httpDelete, postJSON, putJSON } from './Transports';
 import {
   AnchorProps, HikeInterface, LatLng, RouteInterface, TrailPoint,
 } from './Types';
@@ -24,7 +24,7 @@ class Route implements RouteInterface {
 
   async requestRoute(): Promise<void> {
     try {
-      const response = await fetch(`/api/hike/${this.hike.id}/route`);
+      const response = await Http.get(`/api/hike/${this.hike.id}/route`);
 
       if (response.ok) {
         const route = await response.json();
@@ -66,7 +66,7 @@ class Route implements RouteInterface {
   }
 
   async addStartWaypoint(position: LatLng): Promise<void> {
-    const response = await postJSON(`/api/hike/${this.hike.id}/route/start-point`,
+    const response = await Http.post(`/api/hike/${this.hike.id}/route/start-point`,
       position);
 
     if (response.ok) {
@@ -85,7 +85,7 @@ class Route implements RouteInterface {
   }
 
   async addEndWaypoint(position: LatLng): Promise<void> {
-    const response = await postJSON(`/api/hike/${this.hike.id}/route/end-point`,
+    const response = await Http.post(`/api/hike/${this.hike.id}/route/end-point`,
       position);
 
     if (response.ok) {
@@ -104,7 +104,7 @@ class Route implements RouteInterface {
   }
 
   addWaypoint = async (position: LatLng): Promise<void> => {
-    const response = await postJSON(`/api/hike/${this.hike.id}/route/waypoint`,
+    const response = await Http.post(`/api/hike/${this.hike.id}/route/waypoint`,
       position);
 
     if (response.ok) {
@@ -123,7 +123,7 @@ class Route implements RouteInterface {
   }
 
   moveWaypoint = async (id: number, point: LatLng): Promise<LatLng> => {
-    const response = await putJSON(`/api/hike/${this.hike.id}/route/waypoint/${id}/position`,
+    const response = await Http.put(`/api/hike/${this.hike.id}/route/waypoint/${id}/position`,
       point);
 
     if (response.ok) {
@@ -149,7 +149,7 @@ class Route implements RouteInterface {
   }
 
   async deleteWaypoint(id: number): Promise<void> {
-    const response = await httpDelete(`/api/hike/${this.hike.id}/route/waypoint/${id}`);
+    const response = await Http.delete(`/api/hike/${this.hike.id}/route/waypoint/${id}`);
 
     if (response.ok) {
       const updates = await response.json();

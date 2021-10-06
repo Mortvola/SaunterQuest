@@ -1,8 +1,8 @@
 import { makeObservable, observable, runInAction } from 'mobx';
+import Http from '@mortvola/http';
 import GearConfiguration from './GearConfiguration';
 import GearItem from './GearItem';
 import { Store } from './store';
-import { putJSON } from './Transports';
 import { GearConfigItemProps } from './Types';
 
 class GearConfigurationItem {
@@ -39,7 +39,7 @@ class GearConfigurationItem {
   }
 
   update = async (props: { worn: boolean, quantity: number }): Promise<void> => {
-    const response = await putJSON(`/gear/configuration/${this.configuration.id}/item/${this.id}`, {
+    const response = await Http.put(`/gear/configuration/${this.configuration.id}/item/${this.id}`, {
       worn: props.worn,
       quantity: props.quantity,
     });

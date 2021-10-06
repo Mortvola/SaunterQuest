@@ -1,8 +1,8 @@
 import { makeAutoObservable, runInAction } from 'mobx';
+import Http from '@mortvola/http';
 import GearConfigurationItem from './GearConfigurationItem';
 import GearItem from './GearItem';
 import { Store } from './store';
-import { httpDelete, postJSON, putJSON } from './Transports';
 import { GearConfigItemProps, GearConfigProps } from './Types';
 
 class GearConfiguration {
@@ -90,7 +90,7 @@ class GearConfiguration {
   }
 
   getItems = async (): Promise<void> => {
-    const response = await fetch(`/gear/configuration/${this.id}/items`);
+    const response = await Http.get(`/gear/configuration/${this.id}/items`);
 
     if (response.ok) {
       const body: Array<GearConfigItemProps> = await response.json();
@@ -106,7 +106,7 @@ class GearConfiguration {
   }
 
   addItem = async (item: GearItem): Promise<void> => {
-    const response = await postJSON(`/gear/configuration/${this.id}/item`, {
+    const response = await Http.post(`/gear/configuration/${this.id}/item`, {
       gearConfigurationId: this.id,
       gearItemId: item.id,
       quantity: 1,
@@ -124,7 +124,7 @@ class GearConfiguration {
   }
 
   deleteItem = async (item: GearConfigurationItem): Promise<void> => {
-    const response = await httpDelete(`/gear/configuration/${this.id}/item/${item.id}`);
+    const response = await Http.delete(`/gear/configuration/${this.id}/item/${item.id}`);
 
     if (response.ok) {
       runInAction(() => {
@@ -138,7 +138,7 @@ class GearConfiguration {
   }
 
   update = async (name: string): Promise<void> => {
-    const response = await putJSON(`/gear/configuration/${this.id}`, { name });
+    const response = await Http.post(`/gear/configuration/${this.id}`, { name });
 
     if (response.ok) {
       runInAction(() => {

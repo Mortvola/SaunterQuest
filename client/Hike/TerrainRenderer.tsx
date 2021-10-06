@@ -1,8 +1,10 @@
 import { vec3, mat4 } from 'gl-matrix';
+import Http from '@mortvola/http';
 import { getStartOffset } from './TerrainCommon';
 import TerrainTile, { TerrainRendererInterface } from './TerrainTile';
 import { LatLng } from '../state/Types';
 import { Location } from './Terrain';
+import { isElevationResponse } from '../ResponseTypes';
 
 const lng2tile = (lon:number, zoom: number) => (
   Math.floor(((lon + 180) / 360) * 2 ** zoom)
@@ -70,11 +72,13 @@ class TerrainRenderer implements TerrainRendererInterface {
   }
 
   async loadElevation(): Promise<void> {
-    const response = await fetch(`${this.pathFinderUrl}/elevation/point?lat=${this.position.lat}&lng=${this.position.lng}`);
+    const response = await Http.get(`${this.pathFinderUrl}/elevation/point?lat=${this.position.lat}&lng=${this.position.lng}`);
 
     if (response.ok) {
-      const body = await response.json();
-      this.elevation = body.ele;
+      const body = await response.body();
+      if (isElevationResponse(body)) {
+        this.elevation = body.ele;
+      }
     }
     else {
       throw new Error('invalid response');

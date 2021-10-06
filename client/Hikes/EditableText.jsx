@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import Http from '@mortvola/http';
 
 const EditableText = ({
   defaultValue,
@@ -17,17 +18,12 @@ const EditableText = ({
     setEditing(true);
   };
 
-  const handleSave = () => {
-    fetch(url, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ [prop]: value }),
-    })
-      .then(() => {
-        setEditing(false);
-      });
+  const handleSave = async () => {
+    const response = await Http.put(url, { [prop]: value });
+
+    if (response.ok) {
+      setEditing(false);
+    }
   };
 
   const handleCancel = () => {
@@ -47,7 +43,7 @@ const EditableText = ({
                 style={{ width: '100%', borderWidth: '2px', borderStyle: 'solid' }}
                 value={value}
                 onChange={handleChange}
-                  />
+              />
               <button className="btn btn-sm" type="button" onClick={handleSave}>
                 <i className="fas fa-check-square" />
               </button>

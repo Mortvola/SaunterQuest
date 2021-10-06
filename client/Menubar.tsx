@@ -3,6 +3,7 @@ import {
   Navbar, Container, Nav, NavDropdown,
 } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+import Http from '@mortvola/http';
 import {
   MENU_EVENT_KEY_ACCOUNT, MENU_EVENT_KEY_PROFILE,
   MENU_EVENT_KEY_LOGOUT, MENU_EVENT_KEY_CHANGE_PASSWORD,
@@ -24,13 +25,8 @@ const Menubar = ({
   const [AccountDialog, showAccountDialog] = useAccountDialog();
   const [ChangePasswordDialog, showChangePasswordDialog] = useChangePasswordDialog();
 
-  const headers = new Headers();
-
   const logout = async () => {
-    const response = await fetch('/logout', {
-      method: 'POST',
-      headers,
-    });
+    const response = await Http.post('/logout');
 
     if (response.ok) {
       window.location.replace('/');

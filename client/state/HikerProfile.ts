@@ -1,6 +1,6 @@
 import { makeAutoObservable, runInAction } from 'mobx';
+import Http from '@mortvola/http';
 import Hike from './Hike';
-import { putJSON } from './Transports';
 import { HikerProfileInterface, ProfileProps } from './Types';
 
 class HikerProfile implements HikerProfileInterface {
@@ -37,7 +37,7 @@ class HikerProfile implements HikerProfileInterface {
   }
 
   async update(profile: ProfileProps): Promise<void> {
-    const response = await putJSON(`/hike/${this.hike.id}/hiker-profile/${this.id}`, {
+    const response = await Http.put(`/hike/${this.hike.id}/hiker-profile/${this.id}`, {
       breakDuration: profile.breakDuration,
       speedFactor: profile.speedFactor,
       endDayExtension: profile.endDayExtension,
