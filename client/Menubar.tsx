@@ -1,5 +1,4 @@
 import React, { ReactElement } from 'react';
-import PropTypes from 'prop-types';
 import {
   Navbar, Container, Nav, NavDropdown,
 } from 'react-bootstrap';
@@ -89,10 +88,6 @@ const Menubar = ({
       <ProfileDialog />
     </Navbar>
   );
-};
-
-Menubar.propTypes = {
-  username: PropTypes.string.isRequired,
 };
 
 export default Menubar;

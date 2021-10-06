@@ -1,7 +1,7 @@
 import React, { ReactElement } from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import { Formik, Form, Field } from 'formik';
-import useModal, { ModalProps, UseModalType } from '@mortvola/usemodal';
+import { makeUseModal, ModalProps } from '@mortvola/usemodal';
 
 type FileUploadPropsType = {
   field: { name: string },
@@ -33,8 +33,7 @@ type PropsType = {
 }
 
 const UploadInventoryDialog = ({
-  show,
-  onHide,
+  setShow,
 }: PropsType & ModalProps): ReactElement => {
   type ValuesType = {
     file: Blob | string,
@@ -107,7 +106,7 @@ const UploadInventoryDialog = ({
       })
         .then((response) => {
           if (response.ok) {
-            onHide();
+            setShow(false);
           }
         });
     };
@@ -118,36 +117,32 @@ const UploadInventoryDialog = ({
   };
 
   return (
-    <Modal show={show} onHide={onHide}>
-      <Formik
-        initialValues={{
-          file: '',
-        }}
-        onSubmit={handleSubmit}
-      >
-        <Form>
-          <Modal.Header closeButton>
-            <h4 id="modalTitle" className="modal-title">Upload Inventory File</h4>
-          </Modal.Header>
-          <Modal.Body>
-            <Field
-              name="file"
-              component={FileUpload}
-            />
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={onHide}>Cancel</Button>
-            <Button variant="primary" type="submit">Save</Button>
-          </Modal.Footer>
-        </Form>
-      </Formik>
-    </Modal>
+    <Formik
+      initialValues={{
+        file: '',
+      }}
+      onSubmit={handleSubmit}
+    >
+      <Form>
+        <Modal.Header closeButton>
+          <h4 id="modalTitle" className="modal-title">Upload Inventory File</h4>
+        </Modal.Header>
+        <Modal.Body>
+          <Field
+            name="file"
+            component={FileUpload}
+          />
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShow(false)}>Cancel</Button>
+          <Button variant="primary" type="submit">Save</Button>
+        </Modal.Footer>
+      </Form>
+    </Formik>
   );
 };
 
-const useUploadInventoryDialog = (): UseModalType<PropsType> => (
-  useModal<PropsType>(UploadInventoryDialog)
-);
+const useUploadInventoryDialog = makeUseModal<PropsType>(UploadInventoryDialog);
 
 export default UploadInventoryDialog;
 export { useUploadInventoryDialog };

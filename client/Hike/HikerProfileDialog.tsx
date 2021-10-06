@@ -2,7 +2,7 @@
 import React, { ReactElement } from 'react';
 import { Modal } from 'react-bootstrap';
 import { Formik, Form, Field } from 'formik';
-import useModal, { ModalProps, UseModalType } from '@mortvola/usemodal';
+import { makeUseModal, ModalProps } from '@mortvola/usemodal';
 import { toTimeFloat, toTimeString } from '../utilities';
 import { HikeInterface, HikerProfileInterface } from '../state/Types';
 
@@ -14,8 +14,7 @@ type PropsType = {
 const HikerProfileDialog = ({
   hike,
   profile = null,
-  show,
-  onHide,
+  setShow,
 }: PropsType & ModalProps): ReactElement | null => {
   type ValuesType = {
     breakDuration: string,
@@ -69,74 +68,72 @@ const HikerProfileDialog = ({
       });
     }
 
-    onHide();
+    setShow(false);
   };
 
   return (
-    <Modal show={show} onHide={onHide}>
-      <Formik<ValuesType>
-        initialValues={{
-          startTime: profile ? (toTimeString(profile.startTime) ?? '') : '',
-          endTime: profile ? (toTimeString(profile.endTime) ?? '') : '',
-          startDay: profile ? (incrementValue(profile.startDay) ?? '') : '',
-          endDay: profile ? (incrementValue(profile.endDay) ?? '') : '',
-          speedFactor: profile && (profile.speedFactor !== null) ? (profile.speedFactor.toString() ?? '') : '',
-          breakDuration: profile && (profile.breakDuration !== null) ? (profile.breakDuration.toString() ?? '') : '',
-          endDayExtension: profile && (profile.endDayExtension !== null) ? (profile.endDayExtension.toString() ?? '') : '',
-        }}
-        onSubmit={handleSubmit}
-      >
-        <Form>
-          <Modal.Header closeButton>
-            <h4 id="modalTitle" className="modal-title">Profile</h4>
-          </Modal.Header>
-          <Modal.Body>
-            <div className="two-column">
-              <label>
-                Start Day:
-                <Field type="number" className="form-control" name="startDay" />
-              </label>
+    <Formik<ValuesType>
+      initialValues={{
+        startTime: profile ? (toTimeString(profile.startTime) ?? '') : '',
+        endTime: profile ? (toTimeString(profile.endTime) ?? '') : '',
+        startDay: profile ? (incrementValue(profile.startDay) ?? '') : '',
+        endDay: profile ? (incrementValue(profile.endDay) ?? '') : '',
+        speedFactor: profile && (profile.speedFactor !== null) ? (profile.speedFactor.toString() ?? '') : '',
+        breakDuration: profile && (profile.breakDuration !== null) ? (profile.breakDuration.toString() ?? '') : '',
+        endDayExtension: profile && (profile.endDayExtension !== null) ? (profile.endDayExtension.toString() ?? '') : '',
+      }}
+      onSubmit={handleSubmit}
+    >
+      <Form>
+        <Modal.Header closeButton>
+          <h4 id="modalTitle" className="modal-title">Profile</h4>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="two-column">
+            <label>
+              Start Day:
+              <Field type="number" className="form-control" name="startDay" />
+            </label>
 
-              <label>
-                End Day:
-                <Field type="number" className="form-control" name="endDay" />
-              </label>
+            <label>
+              End Day:
+              <Field type="number" className="form-control" name="endDay" />
+            </label>
 
-              <label>
-                Pace Factor (%):
-                <Field type="number" className="form-control" name="speedFactor" />
-              </label>
-              <br />
+            <label>
+              Pace Factor (%):
+              <Field type="number" className="form-control" name="speedFactor" />
+            </label>
+            <br />
 
-              <label>
-                Daily Start Time:
-                <Field type="time" className="form-control" name="startTime" />
-              </label>
+            <label>
+              Daily Start Time:
+              <Field type="time" className="form-control" name="startTime" />
+            </label>
 
-              <label>
-                Daily End Time:
-                <Field type="time" className="form-control" name="endTime" />
-              </label>
+            <label>
+              Daily End Time:
+              <Field type="time" className="form-control" name="endTime" />
+            </label>
 
-              <label>
-                Daily Break Duration (minutes):
-                <Field type="number" className="form-control" name="breakDuration" />
-              </label>
-              <br />
+            <label>
+              Daily Break Duration (minutes):
+              <Field type="number" className="form-control" name="breakDuration" />
+            </label>
+            <br />
 
-              <label>
-                End of Day Extension (minutes)
-                <Field type="number" className="form-control" name="endDayExtension" />
-              </label>
-            </div>
-          </Modal.Body>
-          <Modal.Footer>
-            <button type="button" className="btn" onClick={onHide}>Cancel</button>
-            <button type="submit" className="btn btn-default">Save</button>
-          </Modal.Footer>
-        </Form>
-      </Formik>
-    </Modal>
+            <label>
+              End of Day Extension (minutes)
+              <Field type="number" className="form-control" name="endDayExtension" />
+            </label>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <button type="button" className="btn" onClick={() => setShow(false)}>Cancel</button>
+          <button type="submit" className="btn btn-default">Save</button>
+        </Modal.Footer>
+      </Form>
+    </Formik>
   );
 };
 
@@ -144,9 +141,7 @@ HikerProfileDialog.defaultProps = {
   profile: null,
 };
 
-const useHikerProfileDialog = (): UseModalType<PropsType> => (
-  useModal<PropsType>(HikerProfileDialog)
-);
+const useHikerProfileDialog = makeUseModal<PropsType>(HikerProfileDialog);
 
 export default HikerProfileDialog;
 export { useHikerProfileDialog };

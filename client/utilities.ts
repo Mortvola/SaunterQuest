@@ -154,6 +154,26 @@ function sleep(ms: number): Promise<number> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+export const tile2lng = (x: number, z: number): number => (
+  (x / (2 ** z)) * 360 - 180
+);
+
+export const tile2lat = (y: number, z: number): number => {
+  const n = Math.PI - (2 * Math.PI * y) / 2 ** z;
+  return ((180 / Math.PI) * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n))));
+};
+
+export const lng2tile = (lon:number, zoom: number): number => (
+  Math.floor(((lon + 180) / 360) * 2 ** zoom)
+);
+
+export const lat2tile = (lat: number, zoom: number): number => (
+  Math.floor(
+    ((1 - Math.log(Math.tan(lat * (Math.PI / 180)) + 1 / Math.cos(lat * (Math.PI / 180))) / Math.PI)
+      / 2) * 2 ** zoom,
+  )
+);
+
 export {
   objectifyForm,
   metersToMilesRounded,

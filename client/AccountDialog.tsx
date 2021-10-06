@@ -3,13 +3,12 @@
 import React, { ReactElement } from 'react';
 import { Modal } from 'react-bootstrap';
 import { Formik, Form, Field } from 'formik';
-import useModal, { UseModalType, ModalProps } from '@mortvola/usemodal';
+import { makeUseModal, ModalProps } from '@mortvola/usemodal';
 
 type PropsType = {
 }
 
 const AccountDialog = ({
-  show = false,
   onHide,
 }: PropsType & ModalProps): ReactElement => {
   type ValuesType = {
@@ -35,33 +34,31 @@ const AccountDialog = ({
   };
 
   return (
-    <Modal show={show} onHide={onHide}>
-      <Formik<ValuesType>
-        initialValues={{}}
-        onSubmit={handleSubmit}
-      >
-        <Form>
-          <Modal.Header closeButton>
-            <h4 id="modalTitle" className="modal-title">Account</h4>
-          </Modal.Header>
-          <Modal.Body>
-            <label>Name</label>
-            <Field type="text" className="form-control" name="name" defaultValue="" />
-            <br />
-            <label>E-Mail Address</label>
-            <Field type="text" className="form-control" name="emailAddress" defaultValue="" />
-          </Modal.Body>
-          <Modal.Footer>
-            <button type="button" className="btn" onClick={onHide}>Cancel</button>
-            <button type="submit" className="btn btn-default">Save</button>
-          </Modal.Footer>
-        </Form>
-      </Formik>
-    </Modal>
+    <Formik<ValuesType>
+      initialValues={{}}
+      onSubmit={handleSubmit}
+    >
+      <Form>
+        <Modal.Header closeButton>
+          <h4 id="modalTitle" className="modal-title">Account</h4>
+        </Modal.Header>
+        <Modal.Body>
+          <label>Name</label>
+          <Field type="text" className="form-control" name="name" defaultValue="" />
+          <br />
+          <label>E-Mail Address</label>
+          <Field type="text" className="form-control" name="emailAddress" defaultValue="" />
+        </Modal.Body>
+        <Modal.Footer>
+          <button type="button" className="btn" onClick={onHide}>Cancel</button>
+          <button type="submit" className="btn btn-default">Save</button>
+        </Modal.Footer>
+      </Form>
+    </Formik>
   );
 };
 
-const useAccountDialog = (): UseModalType<PropsType> => useModal<PropsType>(AccountDialog);
+const useAccountDialog = makeUseModal<PropsType>(AccountDialog);
 
 export default AccountDialog;
 export { useAccountDialog };

@@ -1,40 +1,42 @@
 {
-    "include": [
-        "**/*"
-    ],
-    "exclude": [
-        "node_modules",
-        "build",
-        "client-build",
-        "Utilities",
-        "client",
-    ],
-    "extends": "./node_modules/adonis-preset-ts/tsconfig",
-    "compilerOptions": {
-        "jsx": "react",
-        "outDir": "build",
-        "rootDir": "./",
-        "sourceMap": true,
-        "baseUrl": "./",
-        "paths": {
-            "App/*": [
-                "./app/*"
-            ],
-            "Contracts/*": [
-                "./contracts/*"
-            ],
-            "Database/*": [
-                "./database/*"
-            ]
-        },
-        "types": [
-            "@adonisjs/core",
-            "@adonisjs/session",
-            "@adonisjs/view",
-            "@adonisjs/shield",
-            "@adonisjs/auth",
-            "@adonisjs/lucid",
-            "@adonisjs/mail"
-        ]
-      }
+  "extends": "./node_modules/adonis-preset-ts/tsconfig",
+  "include": [
+    "**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "build",
+    "client-build",
+    "Utilities",
+    "client",
+  ],
+  "compilerOptions": {
+    "outDir": "build",
+    "rootDir": "./",
+    "sourceMap": true,
+    "baseUrl": "./",
+    "paths": {
+      "App/*": [
+        "./app/*"
+      ],
+      "Config/*": [
+        "./config/*"
+      ],
+      "Contracts/*": [
+        "./contracts/*"
+      ],
+      "Database/*": [
+        "./database/*"
+      ]
+    },
+    "types": [
+      "@adonisjs/auth",
+      "@adonisjs/core",
+      "@adonisjs/session",
+      "@adonisjs/view",
+      "@adonisjs/shield",
+      "@adonisjs/lucid",
+      "@adonisjs/mail"
+    ]
+  }
 }

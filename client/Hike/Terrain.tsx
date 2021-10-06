@@ -96,6 +96,7 @@ const Terrain = ({
     // eslint-disable-next-line jsx-a11y/no-static-element-interactions
     <canvas
       ref={canvasRef}
+      style={{ width: '100%' }}
       width="853"
       height="480"
       onPointerDown={handlePointerDown}

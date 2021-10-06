@@ -3,7 +3,7 @@ import React, { ReactElement } from 'react';
 // import PropTypes from 'prop-types';
 import { Modal, Button } from 'react-bootstrap';
 import { Formik, Form, Field } from 'formik';
-import useModal, { ModalProps, UseModalType } from '@mortvola/usemodal';
+import { makeUseModal, ModalProps } from '@mortvola/usemodal';
 import Hike from '../state/Hike';
 
 type PropsType = {
@@ -12,8 +12,7 @@ type PropsType = {
 }
 
 const GotoLocationDialog = ({
-  show,
-  onHide,
+  setShow,
   leafletMap,
   hike,
 }: PropsType & ModalProps): ReactElement => {
@@ -34,45 +33,41 @@ const GotoLocationDialog = ({
 
     leafletMap.panTo(latLng);
     hike.map.showLocationPopup(latLng);
-    onHide();
+    setShow(false);
   };
 
   return (
-    <Modal show={show} onHide={onHide} role="dialog">
-      <Formik<FormType>
-        initialValues={{
-          lat: '',
-          lng: '',
-        }}
-        onSubmit={handleGoClick}
-      >
-        <Form>
-          <Modal.Header closeButton>
-            Goto Location
-          </Modal.Header>
-          <Modal.Body>
-            <label>
-              Lat:
-              <Field name="lat" />
-            </label>
-            <label>
-              Lng:
-              <Field name="lng" />
-            </label>
-            <br />
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={onHide}>Cancel</Button>
-            <Button variant="primary" type="submit">Go</Button>
-          </Modal.Footer>
-        </Form>
-      </Formik>
-    </Modal>
+    <Formik<FormType>
+      initialValues={{
+        lat: '',
+        lng: '',
+      }}
+      onSubmit={handleGoClick}
+    >
+      <Form>
+        <Modal.Header closeButton>
+          Goto Location
+        </Modal.Header>
+        <Modal.Body>
+          <label>
+            Lat:
+            <Field name="lat" />
+          </label>
+          <label>
+            Lng:
+            <Field name="lng" />
+          </label>
+          <br />
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShow(false)}>Cancel</Button>
+          <Button variant="primary" type="submit">Go</Button>
+        </Modal.Footer>
+      </Form>
+    </Formik>
   );
 };
 
-export const useGotoLocationDialog = (): UseModalType<PropsType> => (
-  useModal<PropsType>(GotoLocationDialog)
-);
+export const useGotoLocationDialog = makeUseModal<PropsType>(GotoLocationDialog);
 
 export default GotoLocationDialog;

@@ -5,7 +5,7 @@ import { Modal } from 'react-bootstrap';
 import {
   Formik, Form, Field, ErrorMessage, FormikHelpers,
 } from 'formik';
-import useModal, { UseModalType, ModalProps } from '@mortvola/usemodal';
+import { makeUseModal, ModalProps } from '@mortvola/usemodal';
 
 type ErrorProps = {
   name: string,
@@ -21,7 +21,6 @@ type PropsType = {
 }
 
 const ChangePasswordDialog = ({
-  show = false,
   onHide,
 }: PropsType & ModalProps): ReactElement => {
   type ValuesType = Record<string, string>;
@@ -60,41 +59,37 @@ const ChangePasswordDialog = ({
   };
 
   return (
-    <Modal show={show} onHide={onHide}>
-      <Formik<ValuesType>
-        initialValues={{}}
-        onSubmit={handleSubmit}
-      >
-        <Form>
-          <Modal.Header closeButton>
-            <h4 id="modalTitle" className="modal-title">Change Password</h4>
-          </Modal.Header>
-          <Modal.Body>
-            <label>Current Password</label>
-            <Field type="password" className="form-control" name="currentPassword" defaultValue="" />
-            <Error name="currentPassword" />
-            <br />
-            <label>Password</label>
-            <Field type="password" className="form-control" name="password" defaultValue="" />
-            <Error name="password" />
-            <br />
-            <label>Confirm Password</label>
-            <Field type="password" className="form-control" name="passwordConfirmation" defaultValue="" />
-            <Error name="passwordConfirmation" />
-          </Modal.Body>
-          <Modal.Footer>
-            <button type="button" className="btn" onClick={onHide}>Cancel</button>
-            <button type="submit" className="btn btn-default">Save</button>
-          </Modal.Footer>
-        </Form>
-      </Formik>
-    </Modal>
+    <Formik<ValuesType>
+      initialValues={{}}
+      onSubmit={handleSubmit}
+    >
+      <Form>
+        <Modal.Header closeButton>
+          <h4 id="modalTitle" className="modal-title">Change Password</h4>
+        </Modal.Header>
+        <Modal.Body>
+          <label>Current Password</label>
+          <Field type="password" className="form-control" name="currentPassword" defaultValue="" />
+          <Error name="currentPassword" />
+          <br />
+          <label>Password</label>
+          <Field type="password" className="form-control" name="password" defaultValue="" />
+          <Error name="password" />
+          <br />
+          <label>Confirm Password</label>
+          <Field type="password" className="form-control" name="passwordConfirmation" defaultValue="" />
+          <Error name="passwordConfirmation" />
+        </Modal.Body>
+        <Modal.Footer>
+          <button type="button" className="btn" onClick={onHide}>Cancel</button>
+          <button type="submit" className="btn btn-default">Save</button>
+        </Modal.Footer>
+      </Form>
+    </Formik>
   );
 };
 
-const useChangePasswordDialog = (): UseModalType<PropsType> => (
-  useModal<PropsType>(ChangePasswordDialog)
-);
+const useChangePasswordDialog = makeUseModal<PropsType>(ChangePasswordDialog);
 
 export default ChangePasswordDialog;
 export { useChangePasswordDialog };

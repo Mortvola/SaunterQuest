@@ -3,10 +3,10 @@
 import React, { ReactElement } from 'react';
 import { Formik, Form, Field } from 'formik';
 import { Modal } from 'react-bootstrap';
-import useModal, { ModalProps, UseModalType } from '@mortvola/usemodal';
+import { makeUseModal, ModalProps } from '@mortvola/usemodal';
 import { toTimeFloat, toTimeString } from './utilities';
 
-type PropsType = {
+export type PropsType = {
   values?: {
     paceFactor: number,
     startTime: number,
@@ -26,7 +26,6 @@ const ProfileDialog = ({
     endDayExtension: 60,
     endHikeDayExtension: 60,
   },
-  show = false,
   onHide,
 }: PropsType & ModalProps): ReactElement => {
   type ValuesType = {
@@ -58,67 +57,62 @@ const ProfileDialog = ({
   };
 
   return (
-    <Modal show={show} onHide={onHide}>
-      <Formik<ValuesType>
-        initialValues={{
-          ...values,
-          startTime: toTimeString(values.startTime) ?? '',
-          endTime: toTimeString(values.endTime) ?? '',
-        }}
-        onSubmit={handleSubmit}
-      >
-        <Form>
-          <Modal.Header closeButton>
-            <h4 id="modalTitle" className="modal-title">Profile</h4>
-          </Modal.Header>
-          <Modal.Body>
-            <div className="two-column">
-              <label>
-                Pace Factor (%):
-                <Field type="number" className="form-control" name="paceFactor" />
-              </label>
-              <br />
+    <Formik<ValuesType>
+      initialValues={{
+        ...values,
+        startTime: toTimeString(values.startTime) ?? '',
+        endTime: toTimeString(values.endTime) ?? '',
+      }}
+      onSubmit={handleSubmit}
+    >
+      <Form>
+        <Modal.Header closeButton>
+          <h4 id="modalTitle" className="modal-title">Profile</h4>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="two-column">
+            <label>
+              Pace Factor (%):
+              <Field type="number" className="form-control" name="paceFactor" />
+            </label>
+            <br />
 
-              <label>
-                Daily Start Time:
-                <Field type="time" className="form-control" name="startTime" />
-              </label>
+            <label>
+              Daily Start Time:
+              <Field type="time" className="form-control" name="startTime" />
+            </label>
 
-              <label>
-                Daily End Time:
-                <Field type="time" className="form-control" name="endTime" />
-              </label>
+            <label>
+              Daily End Time:
+              <Field type="time" className="form-control" name="endTime" />
+            </label>
 
-              <label>
-                Daily Break Duration (minutes):
-                <Field type="number" className="form-control" name="breakDuration" />
-              </label>
-              <br />
+            <label>
+              Daily Break Duration (minutes):
+              <Field type="number" className="form-control" name="breakDuration" />
+            </label>
+            <br />
 
-              <label>
-                End of Day Extension (minutes)
-                <Field type="number" className="form-control" name="endDayExtension" />
-              </label>
+            <label>
+              End of Day Extension (minutes)
+              <Field type="number" className="form-control" name="endDayExtension" />
+            </label>
 
-              <label>
-                End of Hike Extension (minutes)
-                <Field type="number" className="form-control" name="endHikeDayExtension" />
-              </label>
-            </div>
-          </Modal.Body>
-          <Modal.Footer>
-            <button type="button" className="btn" onClick={onHide}>Cancel</button>
-            <button type="submit" className="btn btn-default">Save</button>
-          </Modal.Footer>
-        </Form>
-      </Formik>
-    </Modal>
+            <label>
+              End of Hike Extension (minutes)
+              <Field type="number" className="form-control" name="endHikeDayExtension" />
+            </label>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <button type="button" className="btn" onClick={onHide}>Cancel</button>
+          <button type="submit" className="btn btn-default">Save</button>
+        </Modal.Footer>
+      </Form>
+    </Formik>
   );
 };
 
-const useProfileDialog = (): UseModalType<PropsType> => (
-  useModal<PropsType>(ProfileDialog)
-);
+export const useProfileDialog = makeUseModal<PropsType>(ProfileDialog);
 
 export default ProfileDialog;
-export { useProfileDialog };

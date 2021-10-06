@@ -1,8 +1,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import React, { useRef, ReactElement } from 'react';
-// import PropTypes from 'prop-types';
 import { Modal, Button } from 'react-bootstrap';
-import useModal, { ModalProps, UseModalType } from '@mortvola/usemodal';
+import { makeUseModal, ModalProps } from '@mortvola/usemodal';
 import { useStores } from '../state/store';
 import { VIEW_HIKE } from '../menuEvents';
 
@@ -10,8 +9,7 @@ type PropsType = {
 }
 
 const HikeDialog = ({
-  show,
-  onHide,
+  setShow,
 }: PropsType & ModalProps): ReactElement => {
   const { uiState } = useStores();
   const formRef = useRef<HTMLFormElement>(null);
@@ -32,11 +30,11 @@ const HikeDialog = ({
     // uiState.hike = hike;
     uiState.setView(VIEW_HIKE);
 
-    onHide();
+    setShow(false);
   };
 
   return (
-    <Modal show={show} onHide={onHide} role="dialog">
+    <>
       <Modal.Header closeButton>
         Name Your Hike
       </Modal.Header>
@@ -48,18 +46,13 @@ const HikeDialog = ({
         </form>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={onHide}>Cancel</Button>
+        <Button variant="secondary" onClick={() => setShow(false)}>Cancel</Button>
         <Button variant="primary" onClick={insertHike}>Save</Button>
       </Modal.Footer>
-    </Modal>
+    </>
   );
 };
 
-// HikeDialog.propTypes = {
-//   show: PropTypes.bool.isRequired,
-//   onHide: PropTypes.func.isRequired,
-// };
-
-export const useHikeDialog = (): UseModalType<PropsType> => useModal<PropsType>(HikeDialog);
+export const useHikeDialog = makeUseModal<PropsType>(HikeDialog);
 
 export default HikeDialog;
