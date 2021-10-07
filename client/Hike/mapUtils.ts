@@ -67,7 +67,7 @@ export function createIcon(iconUrl: string | Array<string>, label?: string | nul
     iconSize: undefined,
     iconAnchor: L.point(12, 12),
     popupAnchor: L.point(0, -32),
-    tooltipAnchor: L.point(0, -32),
+    tooltipAnchor: L.point(0, 0),
   });
 }
 

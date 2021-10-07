@@ -4,21 +4,25 @@ import { useEffect } from 'react';
 
 type LatLng = { lat: number, lng: number};
 
-type TestMarkerProps = {
+type PropsType = {
   position: LatLng,
   icon: DivIcon,
+  title?: string,
 }
 
-const createClusterableMarker = (
-  { position, ...options }: { position: LatLng },
+const useClusterableMarkerHook = createElementHook((
+  { position, title, ...options }: { position: LatLng, title?: string },
   context: LeafletContextInterface,
-) => (
-  { instance: new Marker(position, options), context }
-);
+) => {
+  const marker = new Marker(position, options);
+  if (title) {
+    marker.bindTooltip(title);
+  }
 
-const useClusterableMarkerHook = createElementHook(createClusterableMarker);
+  return ({ instance: marker, context });
+});
 
-const ClusterableMarker = (props: TestMarkerProps): null => {
+const ClusterableMarker = (props: PropsType): null => {
   const context = useLeafletContext();
   const elementRef = useClusterableMarkerHook(props, context);
 

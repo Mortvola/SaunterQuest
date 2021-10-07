@@ -36,7 +36,7 @@ const Campsites = (): ReactElement => {
 
   useEffect(() => {
     (async () => {
-      if (!bounds || map.getZoom() < 9) {
+      if (!bounds || map.getZoom() < 8) {
         setCampsites([]);
       }
       else {
@@ -59,7 +59,8 @@ const Campsites = (): ReactElement => {
           <ClusterableMarker
             key={c.id}
             position={{ lat: c.location[1], lng: c.location[0] }}
-            icon={createIcon('/campsite.svg', c.name)}
+            icon={createIcon('/campsite.svg')}
+            title={c.name}
           />
         ))
       }
