@@ -48,22 +48,24 @@ export function createIcon(iconUrl: string | Array<string>, label?: string | nul
     html += `<img src="${iconUrl}" style="z-index:297">`;
   }
 
-  html += '</div>'
-    + '<div style="height: max-content;display: flex;justify-content: center;cursor: default;margin-top: -4px;">'
-    + '<img src="/black-pin.svg" style="z-index:296">'
-    + '</div>';
+  // html += '</div>'
+  //   + '<div style="height: max-content;display: flex;justify-content: center;cursor: default;margin-top: -4px;">'
+  //   + '<img src="/black-pin.svg" style="z-index:296">'
+  //   + '</div>';
 
-  let labelHeight = 0;
-  if (label) {
-    html = `<div style="display:flex;min-width:100%;justify-content:center"><div class="trail-marker-label" style="z-index:298">${label || ''}</div></div>${html}`;
-    labelHeight = 16;
-  }
+  // let labelHeight = 0;
+  // if (label) {
+  //   html = `<div style="display:flex;min-width:100%;justify-content:center"><div class="trail-marker-label" style="z-index:298">${label || ''}</div></div>${html}`;
+  //   labelHeight = 16;
+  // }
+
+  html = `<div style="display:flex;flex-direction:column;align-items:center">${html}</div>`;
 
   return L.divIcon({
     className: 'trail-marker',
     html,
     iconSize: undefined,
-    iconAnchor: L.point(12, 24 * iconCount + 29 + labelHeight),
+    iconAnchor: L.point(12, 12),
     popupAnchor: L.point(0, -32),
     tooltipAnchor: L.point(0, -32),
   });

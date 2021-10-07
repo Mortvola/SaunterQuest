@@ -1,8 +1,23 @@
-import React, { ReactElement, useEffect, useState } from 'react';
+import React, {
+  ReactElement, useEffect, useState,
+} from 'react';
+import 'leaflet.markercluster';
+import { markerClusterGroup } from 'leaflet';
 import Http from '@mortvola/http';
-import { useMapEvent, Marker as LeafletMarker } from 'react-leaflet';
+import { useMapEvent } from 'react-leaflet';
+import {
+  createPathComponent, LeafletContextInterface,
+} from '@react-leaflet/core';
 import { Campsite, isCampsiteResponse } from '../ResponseTypes';
 import { createIcon } from './mapUtils';
+import ClusterableMarker from './ClusterableMarker';
+
+const createCluster = (props: unknown, context: LeafletContextInterface) => {
+  const instance = markerClusterGroup();
+  return { instance, context: { ...context, layerContainer: instance } };
+};
+
+const MarkerCluster = createPathComponent(createCluster);
 
 const Campsites = (): ReactElement => {
   const [campsites, setCampsites] = useState<Campsite[]>([]);
@@ -21,7 +36,7 @@ const Campsites = (): ReactElement => {
 
   useEffect(() => {
     (async () => {
-      if (!bounds || map.getZoom() < 10) {
+      if (!bounds || map.getZoom() < 9) {
         setCampsites([]);
       }
       else {
@@ -38,17 +53,17 @@ const Campsites = (): ReactElement => {
   }, [bounds, map]);
 
   return (
-    <>
+    <MarkerCluster>
       {
         campsites.map((c) => (
-          <LeafletMarker
+          <ClusterableMarker
             key={c.id}
             position={{ lat: c.location[1], lng: c.location[0] }}
-            icon={createIcon('/campsite.svg')}
+            icon={createIcon('/campsite.svg', c.name)}
           />
         ))
       }
-    </>
+    </MarkerCluster>
   );
 };
 
