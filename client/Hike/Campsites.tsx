@@ -13,7 +13,7 @@ import { createIcon } from './mapUtils';
 import ClusterableMarker from './ClusterableMarker';
 
 const createCluster = (props: unknown, context: LeafletContextInterface) => {
-  const instance = markerClusterGroup();
+  const instance = markerClusterGroup({ maxClusterRadius: 60 });
   return { instance, context: { ...context, layerContainer: instance } };
 };
 
