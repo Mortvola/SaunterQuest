@@ -12,6 +12,7 @@ import Menubar from './Menubar';
 import Hike from './Hike/Hike';
 import { store, StoreContext } from './state/store';
 import Gear from './Gear/Gear';
+import usePageViews from './Tracker';
 
 Leaflet.Icon.Default.imagePath = '//cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.4/images/';
 
@@ -27,29 +28,33 @@ const App = ({
   tileServerUrl,
   pathFinderUrl,
   extendedMenu,
-}: PropsType): ReactElement => (
-  <DndProvider backend={HTML5Backend}>
-    <Menubar username={username} />
-    <Switch>
-      <Route path="/hike">
-        <Hike
-          tileServerUrl={tileServerUrl}
-          pathFinderUrl={pathFinderUrl}
-          extendedMenu={extendedMenu}
-        />
-      </Route>
-      <Route path="/gear">
-        <Gear />
-      </Route>
-      <Route path="/food">
-        <div />
-      </Route>
-      <Route path="/">
-        <Hikes />
-      </Route>
-    </Switch>
-  </DndProvider>
-);
+}: PropsType): ReactElement => {
+  usePageViews();
+
+  return (
+    <DndProvider backend={HTML5Backend}>
+      <Menubar username={username} />
+      <Switch>
+        <Route path="/hike">
+          <Hike
+            tileServerUrl={tileServerUrl}
+            pathFinderUrl={pathFinderUrl}
+            extendedMenu={extendedMenu}
+          />
+        </Route>
+        <Route path="/gear">
+          <Gear />
+        </Route>
+        <Route path="/food">
+          <div />
+        </Route>
+        <Route path="/">
+          <Hikes />
+        </Route>
+      </Switch>
+    </DndProvider>
+  );
+};
 
 const appElement = document.querySelector('.app');
 if (appElement === null) {
