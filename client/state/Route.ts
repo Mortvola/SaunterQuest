@@ -24,10 +24,10 @@ class Route implements RouteInterface {
 
   async requestRoute(): Promise<void> {
     try {
-      const response = await Http.get(`/api/hike/${this.hike.id}/route`);
+      const response = await Http.get<AnchorProps[]>(`/api/hike/${this.hike.id}/route`);
 
       if (response.ok) {
-        const route = await response.json();
+        const route = await response.body();
 
         runInAction(() => {
           if (route) {
@@ -66,11 +66,11 @@ class Route implements RouteInterface {
   }
 
   async addStartWaypoint(position: LatLng): Promise<void> {
-    const response = await Http.post(`/api/hike/${this.hike.id}/route/start-point`,
+    const response = await Http.post<LatLng, AnchorProps[]>(`/api/hike/${this.hike.id}/route/start-point`,
       position);
 
     if (response.ok) {
-      const updates = await response.json();
+      const updates = await response.body();
 
       runInAction(() => {
         if (updates === null) {
@@ -85,11 +85,11 @@ class Route implements RouteInterface {
   }
 
   async addEndWaypoint(position: LatLng): Promise<void> {
-    const response = await Http.post(`/api/hike/${this.hike.id}/route/end-point`,
+    const response = await Http.post<LatLng, AnchorProps[]>(`/api/hike/${this.hike.id}/route/end-point`,
       position);
 
     if (response.ok) {
-      const updates = await response.json();
+      const updates = await response.body();
 
       runInAction(() => {
         if (updates === null) {
@@ -104,11 +104,11 @@ class Route implements RouteInterface {
   }
 
   addWaypoint = async (position: LatLng): Promise<void> => {
-    const response = await Http.post(`/api/hike/${this.hike.id}/route/waypoint`,
+    const response = await Http.post<LatLng, AnchorProps[]>(`/api/hike/${this.hike.id}/route/waypoint`,
       position);
 
     if (response.ok) {
-      const updates = await response.json();
+      const updates = await response.body();
 
       runInAction(() => {
         if (updates === null) {
@@ -123,11 +123,11 @@ class Route implements RouteInterface {
   }
 
   moveWaypoint = async (id: number, point: LatLng): Promise<LatLng> => {
-    const response = await Http.put(`/api/hike/${this.hike.id}/route/waypoint/${id}/position`,
+    const response = await Http.put<LatLng, AnchorProps[]>(`/api/hike/${this.hike.id}/route/waypoint/${id}/position`,
       point);
 
     if (response.ok) {
-      const updates: Array<AnchorProps> = await response.json();
+      const updates = await response.body();
 
       const waypoint = updates.find((a) => a.id === id);
 
@@ -149,10 +149,10 @@ class Route implements RouteInterface {
   }
 
   async deleteWaypoint(id: number): Promise<void> {
-    const response = await Http.delete(`/api/hike/${this.hike.id}/route/waypoint/${id}`);
+    const response = await Http.delete<AnchorProps[]>(`/api/hike/${this.hike.id}/route/waypoint/${id}`);
 
     if (response.ok) {
-      const updates = await response.json();
+      const updates = await response.body();
 
       runInAction(() => {
         if (updates) {

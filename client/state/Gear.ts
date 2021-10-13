@@ -1,4 +1,4 @@
-import { makeAutoObservable, runInAction, toJS } from 'mobx';
+import { makeAutoObservable, runInAction } from 'mobx';
 import Http from '@mortvola/http';
 import GearConfiguration from './GearConfiguration';
 import GearItem from './GearItem';
@@ -21,10 +21,10 @@ class Gear {
   }
 
   requestGearConfigurations = async (): Promise<void> => {
-    const response = await Http.get('/gear/configuration');
+    const response = await Http.get<GearConfigProps[]>('/gear/configuration');
 
     if (response.ok) {
-      const body: Array<GearConfigProps> = await response.json();
+      const body = await response.body();
 
       runInAction(() => {
         this.configurations = body.map((config) => new GearConfiguration(config, this.store));
@@ -33,10 +33,10 @@ class Gear {
   }
 
   addGearConfiguration = async (): Promise<void> => {
-    const response = await Http.post('/gear/configuration');
+    const response = await Http.post<void, GearConfigProps>('/gear/configuration');
 
     if (response.ok) {
-      const body: GearConfigProps = await response.json();
+      const body = await response.body();
 
       this.configurations.push(new GearConfiguration(body, this.store));
     }
@@ -55,10 +55,10 @@ class Gear {
   }
 
   requestGearInventory = async (): Promise<void> => {
-    const response = await Http.get('/gear/item');
+    const response = await Http.get<GearItemProps[]>('/gear/item');
 
     if (response.ok) {
-      const body: Array<GearItemProps> = await response.json();
+      const body = await response.body();
 
       runInAction(() => {
         this.inventory = body.map((props) => {
@@ -82,7 +82,16 @@ class Gear {
   }
 
   addInventoryItem = async (item: GearItem, values: GearItemProps): Promise<void> => {
-    const response = await Http.post('/gear/item', {
+    type AddGearItemRequest = {
+      consumable: boolean,
+      description: string,
+      name: string,
+      system: string,
+      unitOfMeasure: string,
+      weight: number,
+    }
+
+    const response = await Http.post<AddGearItemRequest, GearItemProps>('/gear/item', {
       consumable: values.consumable,
       description: values.description,
       name: values.name,
@@ -92,7 +101,7 @@ class Gear {
     });
 
     if (response.ok) {
-      const body: GearItemProps = await response.json();
+      const body = await response.body();
 
       runInAction(() => {
         item.id = body.id;
@@ -107,7 +116,17 @@ class Gear {
   }
 
   updateInventoryItem = async (item: GearItem, values: GearItemProps): Promise<void> => {
-    const response = await Http.put(`/gear/item/${item.id}`, {
+    type UpdateGearItemRequest = {
+      id: number | null,
+      consumable: boolean,
+      description: string,
+      name: string,
+      system: string,
+      unitOfMeasure: string,
+      weight: number,
+    }
+
+    const response = await Http.put<UpdateGearItemRequest, GearItemProps>(`/gear/item/${item.id}`, {
       id: item.id,
       consumable: values.consumable,
       description: values.description,
@@ -118,7 +137,7 @@ class Gear {
     });
 
     if (response.ok) {
-      const body: GearItemProps = await response.json();
+      const body = await response.body();
 
       runInAction(() => {
         item.consumable = body.consumable;

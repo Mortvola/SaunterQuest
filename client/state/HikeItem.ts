@@ -25,10 +25,16 @@ class HikeItem {
 
   requestDetails = async (): Promise<void> => {
     this.setRequesting(true);
-    const response = await Http.get(`/api/hike/${this.id}/details`);
+
+    type GetHikeDetailsRequest = {
+      duration: number,
+      distance: number,
+    }
+
+    const response = await Http.get<GetHikeDetailsRequest>(`/api/hike/${this.id}/details`);
 
     if (response.ok) {
-      const details = await response.json();
+      const details = await response.body();
 
       runInAction(() => {
         this.duration = details.duration;

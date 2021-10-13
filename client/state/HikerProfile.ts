@@ -37,7 +37,17 @@ class HikerProfile implements HikerProfileInterface {
   }
 
   async update(profile: ProfileProps): Promise<void> {
-    const response = await Http.put(`/hike/${this.hike.id}/hiker-profile/${this.id}`, {
+    type UpdateHikerProfileRequest = {
+      breakDuration: number | null,
+      speedFactor: number | null,
+      endDayExtension: number | null,
+      startTime: number | null,
+      endTime: number | null,
+      startDay: number | null,
+      endDay: number | null,
+    }
+
+    const response = await Http.put<UpdateHikerProfileRequest, ProfileProps>(`/hike/${this.hike.id}/hiker-profile/${this.id}`, {
       breakDuration: profile.breakDuration,
       speedFactor: profile.speedFactor,
       endDayExtension: profile.endDayExtension,
@@ -48,7 +58,7 @@ class HikerProfile implements HikerProfileInterface {
     });
 
     if (response.ok) {
-      const body: ProfileProps = await response.json();
+      const body = await response.body();
 
       runInAction(() => {
         // this.hikerProfiles.push(new HikerProfile(body));

@@ -39,13 +39,21 @@ class GearConfigurationItem {
   }
 
   update = async (props: { worn: boolean, quantity: number }): Promise<void> => {
-    const response = await Http.put(`/gear/configuration/${this.configuration.id}/item/${this.id}`, {
+    type UpdateGearConfigurationRequest = {
+      worn: boolean,
+      quantity: number,
+    }
+
+    const response = await Http.put<
+      UpdateGearConfigurationRequest,
+      GearConfigItemProps
+    >(`/gear/configuration/${this.configuration.id}/item/${this.id}`, {
       worn: props.worn,
       quantity: props.quantity,
     });
 
     if (response.ok) {
-      const body: GearConfigItemProps = await response.json();
+      const body = await response.body();
 
       runInAction(() => {
         this.worn = body.worn;

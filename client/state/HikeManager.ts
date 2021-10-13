@@ -1,7 +1,7 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import Http from '@mortvola/http';
 import HikeItem from './HikeItem';
-import { HikeManagerInterface } from './Types';
+import { BaseHikeProps, HikeManagerInterface } from './Types';
 import { Store } from './store';
 
 class HikeManager implements HikeManagerInterface {
@@ -25,7 +25,7 @@ class HikeManager implements HikeManagerInterface {
     const response = await Http.get('/api/hikes');
 
     if (response.ok) {
-      const hikes = await response.json();
+      const hikes = await response.body();
 
       runInAction(() => {
         if (Array.isArray(hikes)) {
@@ -63,10 +63,10 @@ class HikeManager implements HikeManagerInterface {
   }
 
   async addHike(): Promise<HikeItem> {
-    const response = await Http.post('/api/hike');
+    const response = await Http.post<void, BaseHikeProps>('/api/hike');
 
     if (response.ok) {
-      const body = await response.json();
+      const body = await response.body();
 
       const newHike = new HikeItem(body);
 

@@ -90,10 +90,10 @@ class GearConfiguration {
   }
 
   getItems = async (): Promise<void> => {
-    const response = await Http.get(`/gear/configuration/${this.id}/items`);
+    const response = await Http.get<GearConfigItemProps[]>(`/gear/configuration/${this.id}/items`);
 
     if (response.ok) {
-      const body: Array<GearConfigItemProps> = await response.json();
+      const body = await response.body();
 
       runInAction(() => {
         this.items = body.map((ci) => (
@@ -106,7 +106,14 @@ class GearConfiguration {
   }
 
   addItem = async (item: GearItem): Promise<void> => {
-    const response = await Http.post(`/gear/configuration/${this.id}/item`, {
+    type AddGearConfigItemRequest = {
+      gearConfigurationId: number,
+      gearItemId: number | null,
+      quantity: number,
+      worn: boolean,
+    }
+
+    const response = await Http.post<AddGearConfigItemRequest, GearConfigItemProps>(`/gear/configuration/${this.id}/item`, {
       gearConfigurationId: this.id,
       gearItemId: item.id,
       quantity: 1,
@@ -114,7 +121,7 @@ class GearConfiguration {
     });
 
     if (response.ok) {
-      const body = await response.json();
+      const body = await response.body();
 
       runInAction(() => {
         this.items.push(new GearConfigurationItem(body, this, this.store));

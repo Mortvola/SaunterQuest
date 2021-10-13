@@ -52,10 +52,10 @@ class Hike implements HikeInterface {
   }
 
   async requestHikerProfiles(): Promise<void> {
-    const response = await Http.get(`/api/hike/${this.id}/hiker-profile`);
+    const response = await Http.get<ProfileProps[]>(`/api/hike/${this.id}/hiker-profile`);
 
     if (response.ok) {
-      const profiles: Array<ProfileProps> = await response.json();
+      const profiles = await response.body();
 
       runInAction(() => {
         this.hikerProfiles = profiles.map((p) => new HikerProfile(p, this));
@@ -92,7 +92,14 @@ class Hike implements HikeInterface {
   }
 
   addHikerProfile = async (profile: ProfileProps): Promise<void> => {
-    const response = await Http.post(`/api/hike/${this.id}/hiker-profile`, {
+    type AddHikerProfileRequest = {
+      startTime: number | null,
+      endTime: number | null,
+      startDay: number | null,
+      endDay: number | null,
+    }
+
+    const response = await Http.post<AddHikerProfileRequest, ProfileProps>(`/api/hike/${this.id}/hiker-profile`, {
       startTime: profile.startTime,
       endTime: profile.endTime,
       startDay: profile.startDay,
@@ -100,7 +107,7 @@ class Hike implements HikeInterface {
     });
 
     if (response.ok) {
-      const body: ProfileProps = await response.json();
+      const body = await response.body();
 
       runInAction(() => {
         this.hikerProfiles.push(new HikerProfile(body, this));
@@ -109,10 +116,12 @@ class Hike implements HikeInterface {
   }
 
   async deleteHikerProfile(id: number): Promise<void> {
-    const response = await Http.delete(`/api/hike/${this.id}/hiker-profile/${id}`);
+    type DeleteHikerProfileResponse = unknown;
+
+    const response = await Http.delete<DeleteHikerProfileResponse>(`/api/hike/${this.id}/hiker-profile/${id}`);
 
     if (response.ok) {
-      const deleted = await response.json();
+      const deleted = await response.body();
 
       runInAction(() => {
         if (deleted) {
@@ -133,10 +142,10 @@ class Hike implements HikeInterface {
 
   async requestSchedule(): Promise<void> {
     try {
-      const response = await Http.get(`/api/hike/${this.id}/schedule`);
+      const response = await Http.get<DayProps[]>(`/api/hike/${this.id}/schedule`);
 
       if (response.ok) {
-        const schedule: Array<DayProps> = await response.json();
+        const schedule = await response.body();
 
         runInAction(() => {
           let meters = 0;
@@ -174,10 +183,10 @@ class Hike implements HikeInterface {
   }
 
   requestPointsOfInterest = async (): Promise<void> => {
-    const response = await Http.get(`/api/hike/${this.id}/poi`);
+    const response = await Http.get<PointOfInterestProps[]>(`/api/hike/${this.id}/poi`);
 
     if (response.ok) {
-      const body: Array<PointOfInterestProps> = await response.json();
+      const body = await response.body();
 
       runInAction(() => {
         body.forEach((poi) => this.map.addMarker(new Marker(

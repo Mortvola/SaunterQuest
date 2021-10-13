@@ -25,7 +25,6 @@ module.exports = {
     'react-hooks',
   ],
   rules: {
-    "react/jsx-props-no-spreading": ["off"],
     "brace-style": ["error", "stroustrup"],
     "react/jsx-props-no-spreading": ["off"],
     "jsx-a11y/click-events-have-key-events": ["off"],
