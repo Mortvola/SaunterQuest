@@ -20,3 +20,4 @@ yarn-error.log
 *.hgt
 /old_php/vendor/
 tmp
+/build.zip
