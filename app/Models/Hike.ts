@@ -22,6 +22,24 @@ import PointOfInterest from 'App/Models/PointOfInterest';
 
 const MAX_ORDER = 100000;
 
+type SrcPoint = {
+  point: { lat: number, lng: number },
+  prev?: {
+    lat: number,
+    lng: number,
+    // eslint-disable-next-line camelcase
+    line_id: number,
+    fraction: number,
+  },
+  next?: {
+    lat: number,
+    lng: number,
+    // eslint-disable-next-line camelcase
+    line_id: number,
+    fraction: number,
+  }
+}
+
 export default class Hike extends BaseModel {
   public static table = 'hike';
 
@@ -81,7 +99,7 @@ export default class Hike extends BaseModel {
     if (this.routePoints && this.routePoints.length > 1) {
       const scheduler = new Scheduler();
 
-      await this.preload('hikerProfiles');
+      await this.load('hikerProfiles');
 
       this.hikerProfiles.sort((a, b) => {
         if (a.startDay === null) {
@@ -118,7 +136,7 @@ export default class Hike extends BaseModel {
       }
 
       await this.related('schedule').updateOrCreate({}, {});
-      await this.preload('schedule');
+      await this.load('schedule');
 
       if (Number.isNaN(scheduler.days[0].loss)) {
         throw (new Error('loss is NaN'));
@@ -128,7 +146,7 @@ export default class Hike extends BaseModel {
 
       await this.schedule.related('days').query().delete();
       await this.schedule.related('days').saveMany(scheduler.days);
-      await this.schedule.preload('days');
+      await this.schedule.load('days');
     }
   }
 
@@ -209,7 +227,7 @@ export default class Hike extends BaseModel {
   }
 
   public async getFullRoute(this: Hike): Promise<RoutePoint[]> {
-    await this.preload('routePoints', (query) => query.orderBy('sort_order'));
+    await this.load('routePoints', (query) => query.orderBy('sort_order'));
 
     return Promise.all(this.routePoints
       .map(async (p, index) => {
@@ -372,7 +390,7 @@ export default class Hike extends BaseModel {
     }
   }
 
-  private static transferRoutePointInfo(src: any) {
+  private static transferRoutePointInfo(src: SrcPoint) {
     if (!src) {
       throw (new Error('Source route point is null or undefined'));
     }
@@ -403,8 +421,10 @@ export default class Hike extends BaseModel {
     const valuePerAnchor = Math.trunc(MAX_ORDER / this.routePoints.length);
     let currentValue = valuePerAnchor;
 
-    for (let anchor of this.routePoints) {
+    // eslint-disable-next-line no-restricted-syntax
+    for (const anchor of this.routePoints) {
       anchor.sortOrder = currentValue;
+      // eslint-disable-next-line no-await-in-loop
       await this.related('routePoints').save(anchor);
       currentValue += valuePerAnchor;
     }
@@ -435,6 +455,7 @@ export default class Hike extends BaseModel {
         || (nextAnchorIndex < this.routePoints.length
           && order === this.routePoints[nextAnchorIndex].sortOrder)
       ) {
+        // eslint-disable-next-line no-await-in-loop
         await this.updateSortOrder();
       }
       else {
@@ -490,6 +511,7 @@ export default class Hike extends BaseModel {
           Hike.transferRoutePointInfo(newAnchors[0]),
         );
         this.routePoints.splice(anchorIndex1, 1, anchor1);
+        // eslint-disable-next-line no-await-in-loop
         await this.related('routePoints').save(anchor1);
 
         for (let i = 1; i < newAnchors.length - 1; i += 1) {
@@ -498,9 +520,11 @@ export default class Hike extends BaseModel {
             Hike.transferRoutePointInfo(newAnchors[i]),
           );
 
+          // eslint-disable-next-line no-await-in-loop
           routePoint.sortOrder = await this.getSortOrder(anchorIndex1 + i - 1, anchorIndex1 + i);
 
           this.routePoints.splice(anchorIndex1 + i, 0, routePoint);
+          // eslint-disable-next-line no-await-in-loop
           await this.related('routePoints').save(routePoint);
         }
 
@@ -517,6 +541,7 @@ export default class Hike extends BaseModel {
           Hike.transferRoutePointInfo(newAnchors[newAnchors.length - 1]),
         );
         this.routePoints.splice(anchorIndex2, 1, anchor2);
+        // eslint-disable-next-line no-await-in-loop
         await this.related('routePoints').save(anchor2);
       }
     }

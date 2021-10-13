@@ -1,4 +1,4 @@
-import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import Database from '@ioc:Adonis/Lucid/Database';
 import Hike from 'App/Models/Hike';
 import Point from 'App/Types/Point';
@@ -25,7 +25,7 @@ export default class RouteController {
     const updates = await Database.transaction(async (trx) => {
       const hike = await Hike.findOrFail(params.hikeId);
       hike.useTransaction(trx);
-      await hike.preload('routePoints');
+      await hike.load('routePoints');
 
       return hike.addEndpoint(point);
     });
@@ -45,7 +45,7 @@ export default class RouteController {
     const updates = await Database.transaction(async (trx) => {
       const hike = await Hike.findOrFail(parseInt(params.hikeId, 10));
       hike.useTransaction(trx);
-      await hike.preload('routePoints');
+      await hike.load('routePoints');
       await hike.loadTrails();
 
       return hike.addWaypoint(point);
@@ -66,11 +66,11 @@ export default class RouteController {
     const updates = await Database.transaction(async (trx) => {
       const hike = await Hike.findOrFail(parseInt(params.hikeId, 10));
       hike.useTransaction(trx);
-      await hike.preload('routePoints');
+      await hike.load('routePoints');
 
       const result = hike.updateWaypointPosition(parseInt(params.waypointId, 10), point);
 
-      await hike.preload('schedule');
+      await hike.load('schedule');
 
       if (hike.schedule) {
         hike.schedule.update = true;
@@ -89,7 +89,7 @@ export default class RouteController {
     const updates = await Database.transaction(async (trx) => {
       const hike = await Hike.findOrFail(parseInt(params.hikeId, 10));
       hike.useTransaction(trx);
-      await hike.preload('routePoints');
+      await hike.load('routePoints');
 
       return hike.deleteWaypoint(parseInt(params.waypointId, 10));
     });

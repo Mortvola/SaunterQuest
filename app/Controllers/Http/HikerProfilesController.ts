@@ -7,7 +7,7 @@ export default class HikerProfilesController {
   public async get({ auth, params, response }: HttpContextContract) : Promise<void> {
     if (auth.user) {
       const hike = await Hike.findByOrFail('id', params.hikeId);
-      await hike.preload('hikerProfiles');
+      await hike.load('hikerProfiles');
 
       response.send(JSON.stringify(hike.hikerProfiles));
     }

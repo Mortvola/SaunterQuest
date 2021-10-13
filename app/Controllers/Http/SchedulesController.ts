@@ -1,4 +1,4 @@
-import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import Hike from 'App/Models/Hike';
 import RoutePoint from 'App/Models/RoutePoint';
 
@@ -7,7 +7,7 @@ export default class SchedulesController {
   public async get({ auth, params, response }: HttpContextContract) : Promise<void> {
     if (auth.user) {
       const hike = await Hike.findByOrFail('id', params.hikeId);
-      await hike.preload('schedule', (query) => {
+      await hike.load('schedule', (query) => {
         query.preload('days');
       });
 
@@ -17,7 +17,7 @@ export default class SchedulesController {
         || hike.schedule.days === null || hike.schedule.days === undefined
         || hike.schedule.days.length === 0
       ) {
-        await hike.preload('routePoints');
+        await hike.load('routePoints');
         await hike.loadTrails();
         hike.assignDistances();
         await hike.updateSchedule(auth.user);
@@ -25,6 +25,7 @@ export default class SchedulesController {
 
       if (hike.schedule) {
         for (let i = 0; i < hike.schedule.days.length; i += 1) {
+          // eslint-disable-next-line no-await-in-loop
           const elevation = await RoutePoint.getElevation(
             hike.schedule.days[i].lat, hike.schedule.days[i].lng,
           );

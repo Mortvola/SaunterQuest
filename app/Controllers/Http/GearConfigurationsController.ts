@@ -88,7 +88,7 @@ export default class GearConfigurationsController {
         worn: request.post().worn,
       });
 
-      await item.preload('gearItem');
+      await item.load('gearItem');
 
       response.send(item);
     }
