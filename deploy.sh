@@ -8,4 +8,4 @@ npm run server-build
 
 rm build.zip;
 zip -r build build;
-#to-debertas build.zip
+to-sq build.zip
