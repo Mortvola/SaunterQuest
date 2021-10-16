@@ -26,6 +26,9 @@
     },
     {
       "path": "../sq-router"
+    },
+    {
+      "path": "../Utilities"
     }
   ],
 	"settings": {

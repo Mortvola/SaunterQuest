@@ -20,6 +20,7 @@ import { LatLng } from '../state/Types';
 import Marker from './Marker';
 import Gpx from './Gpx';
 import Campsites from './Campsites';
+import useMediaQuery from '../MediaQuery';
 
 type Props = {
   tileServerUrl: string;
@@ -40,12 +41,17 @@ const Map = ({
   const [GotoLocationDialog, showGotoLocationDialog] = useGotoLocationDialog();
   const [TerrainDialog, showTerrainDialog] = useTerrainDialog();
   const [latLng, setLatLng] = useState<LatLng | null>(null);
+  const { isMobile } = useMediaQuery();
 
   useEffect(() => {
     if (hike.map) {
       hike.map.setLeafletMap(leafletMap);
     }
   }, [hike.map, leafletMap]);
+
+  const dropWaypoint = (event: L.LeafletMouseEvent) => {
+    hike.route.addEndWaypoint(event.latlng);
+  };
 
   const makeContextMenu = useCallback((event: L.LeafletMouseEvent) => {
     const findSteepestPoint = () => {
@@ -107,7 +113,7 @@ const Map = ({
   };
 
   useMapEvents({
-    contextmenu: showContextMenu,
+    contextmenu: isMobile ? dropWaypoint : showContextMenu,
   });
 
   return (
