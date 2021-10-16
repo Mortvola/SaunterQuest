@@ -25,6 +25,8 @@ Route.get('/gear', 'HomeController.index');
 Route.get('/food', 'HomeController.index');
 Route.get('/hike/:id', 'HomeController.index');
 
+Route.get('/signin', 'HomeController.index');
+
 Route.post('register', 'AuthController.register');
 Route.post('/login', 'AuthController.login');
 Route.post('/logout', 'AuthController.logout');
