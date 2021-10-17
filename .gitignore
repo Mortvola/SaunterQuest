@@ -1,6 +1,6 @@
 /trails/
 /data/
-/node_modules
+node_modules
 /public/hot
 /public/storage
 /storage/*.key
@@ -21,3 +21,4 @@ yarn-error.log
 /old_php/vendor/
 tmp
 /build.zip
+/saunter-quest-build.zip

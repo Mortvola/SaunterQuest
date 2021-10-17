@@ -13,15 +13,6 @@
       "path": "../openstreetmap-carto"
     },
     {
-      "path": "../react-leaflet-fork"
-    },
-    {
-      "path": "../Leaflet"
-    },
-    {
-      "path": "../libpqxx"
-    },
-    {
       "path": "../mapRenderer"
     },
     {

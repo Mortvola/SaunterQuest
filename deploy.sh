@@ -6,6 +6,11 @@ npm run welcome-build
 npm run client-build
 npm run server-build
 
-rm build.zip;
-zip -r build build;
-to-sq build.zip
+rm -f build/.env
+
+FILE=saunter-quest-build.zip
+
+rm -f $FILE
+zip -r $FILE build
+to-sq $FILE
+
