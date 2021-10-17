@@ -35,7 +35,7 @@
     "formik": "^2.2.9",
     "gl-matrix": "^3.4.3",
     "jsonwebtoken": "^8.5.1",
-    "leaflet": "^1.7.1",
+    "leaflet": "git+https://github.com/Mortvola/Leaflet.git#6a6e49c9",
     "leaflet-contextmenu": "^1.4.0",
     "leaflet.markercluster": "^1.5.1",
     "luxon": "^2.0.2",
