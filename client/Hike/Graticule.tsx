@@ -1,9 +1,8 @@
-import { useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { createLayerComponent, LeafletContextInterface } from '@react-leaflet/core';
 
 const createGraticuleLayer = (props: unknown, context: LeafletContextInterface) => {
-  const { map } = context; // useMap();
+  const { map } = context;
   let canvas: HTMLCanvasElement | null = null;
 
   const renderGrid = () => {
