@@ -1,7 +1,7 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import L from 'leaflet';
 import Http from '@mortvola/http';
-import Anchor, { resetWaypointLabel } from './Markers/Anchor';
+import Anchor, { resetWaypointLabel } from './Markers/AnchorAttribute';
 import { metersToMiles, metersToFeet } from '../utilities';
 import {
   AnchorProps, HikeInterface, LatLng, RouteInterface, TrailPoint,

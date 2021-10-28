@@ -4,13 +4,13 @@ import HikerProfile from './HikerProfile';
 import Map from './Map';
 import Route from './Route';
 import {
-  Day, DayProps, HikeInterface, HikeItemInterface, LatLng, MarkerTypes, PointOfInterestProps,
-  ProfileProps,
+  Day, DayProps, HikeInterface, HikeItemInterface, LatLng, MarkerAttributeTypes,
+  PointOfInterestProps, ProfileProps,
 } from './Types';
 import { createIcon } from '../Hike/mapUtils';
-import CampsiteMarker from './Markers/CampsiteMarker';
-import Marker from './Markers/Marker';
-import DayMarker from './Markers/DayMarker';
+import CampsiteMarker from './Markers/CampsiteAttribute';
+import Marker from './Markers/MarkerAttribute';
+import DayMarker from './Markers/DayAttribute';
 
 class Hike implements HikeInterface {
   id: number;
@@ -216,7 +216,7 @@ class Hike implements HikeInterface {
     this.map.addMarker(campsite);
   }
 
-  private addPOI = async (latLng: LatLng, type: MarkerTypes): Promise<void> => {
+  private addPOI = async (latLng: LatLng, type: MarkerAttributeTypes): Promise<void> => {
     const response = await Http.post(`/api/hike/${this.id}/poi`, {
       name: null,
       description: null,

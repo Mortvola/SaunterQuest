@@ -1,7 +1,7 @@
 import { makeAutoObservable } from 'mobx';
 import MapMarker from './MapMarker';
 import {
-  HikeInterface, LatLng, MapInterface, MarkerInterface,
+  HikeInterface, LatLng, MapInterface, MarkerAttributeInterface,
 } from './Types';
 
 class Map implements MapInterface {
@@ -19,7 +19,7 @@ class Map implements MapInterface {
     makeAutoObservable(this);
   }
 
-  addMarker(marker: MarkerInterface): void {
+  addMarker(marker: MarkerAttributeInterface): void {
     let mapMarker = this.markers.find((m) => (
       m.latLng.lat === marker.latLng.lat
       && m.latLng.lng === marker.latLng.lng

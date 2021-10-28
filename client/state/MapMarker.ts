@@ -1,14 +1,14 @@
 import { makeAutoObservable, runInAction } from 'mobx';
-import DayMarker from './Markers/DayMarker';
+import DayMarker from './Markers/DayAttribute';
 import {
-  LatLng, MapInterface, MapMarkerInterface, MarkerInterface, MarkerTypes,
+  LatLng, MapInterface, MapMarkerInterface, MarkerAttributeInterface, MarkerAttributeTypes,
 } from './Types';
-import Anchor from './Markers/Anchor';
+import Anchor from './Markers/AnchorAttribute';
 
 class MapMarker implements MapMarkerInterface {
   latLng: LatLng;
 
-  #markers: MarkerInterface[] = [];
+  #markers: MarkerAttributeInterface[] = [];
 
   #map: MapInterface;
 
@@ -19,7 +19,7 @@ class MapMarker implements MapMarkerInterface {
     makeAutoObservable(this);
   }
 
-  addMarker(marker: MarkerInterface): void {
+  addMarker(marker: MarkerAttributeInterface): void {
     this.#markers.push(marker);
     marker.mapMarker = this;
   }
@@ -56,7 +56,7 @@ class MapMarker implements MapMarkerInterface {
     }
   }
 
-  types = (): Array<MarkerTypes> => (
+  types = (): Array<MarkerAttributeTypes> => (
     this.#markers.map((m) => m.type)
   )
 

@@ -1,9 +1,9 @@
 import React, { ReactElement } from 'react';
-import { MarkerTypes } from '../state/Types';
+import { MarkerAttributeTypes } from '../state/Types';
 import { useStores } from '../state/store';
 
 type PropsType = {
-  type: MarkerTypes,
+  type: MarkerAttributeTypes,
 }
 
 const POIToggle = ({
@@ -20,7 +20,7 @@ const POIToggle = ({
     alt: string,
   }
 
-  const markerImages = new Map<MarkerTypes, Image>([
+  const markerImages = new Map<MarkerAttributeTypes, Image>([
     ['day', { src: '/moon.svg', alt: 'moon' }],
     ['water', { src: '/water.svg', alt: 'water' }],
     ['waypoint', { src: '/compass.svg', alt: 'waypoint' }],

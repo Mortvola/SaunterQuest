@@ -54,7 +54,7 @@ export interface MapInterface {
 
   markers: MapMarkerInterface[];
 
-  addMarker(marker: MarkerInterface): void;
+  addMarker(marker: MarkerAttributeInterface): void;
 
   removeMarker(marker: MapMarker): void;
 
@@ -68,10 +68,10 @@ export interface MapMarkerInterface {
   delete(): void;
 }
 
-export type MarkerTypes = 'waypoint' | 'campsite' | 'day' | 'water' | 'resupply';
+export type MarkerAttributeTypes = 'waypoint' | 'campsite' | 'day' | 'water' | 'resupply';
 
-export interface MarkerInterface {
-  type: MarkerTypes;
+export interface MarkerAttributeInterface {
+  type: MarkerAttributeTypes;
   latLng: LatLng;
   label: string | null;
   mapMarker: MapMarkerInterface | null;
@@ -180,7 +180,7 @@ export interface PointOfInterestProps {
   id: number;
   lat: number;
   lng: number;
-  type: MarkerTypes;
+  type: MarkerAttributeTypes;
 }
 
 export interface ProfileProps {

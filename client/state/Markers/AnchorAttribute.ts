@@ -1,9 +1,9 @@
 import { makeObservable, observable } from 'mobx';
 import TrailMarker from '../TrailMarker';
 import {
-  AnchorProps, LatLng, MarkerInterface, RouteInterface, TrailPoint,
+  AnchorProps, LatLng, MarkerAttributeInterface, RouteInterface, TrailPoint,
 } from '../Types';
-import Marker from './Marker';
+import Marker from './MarkerAttribute';
 
 const wayPointUrl = 'compass.svg';
 
@@ -35,7 +35,7 @@ const getWaypointLabel = () => {
   return newLabel;
 };
 
-class Anchor extends Marker implements MarkerInterface {
+class AnchorAttribute extends Marker implements MarkerAttributeInterface {
   id: number;
 
   marker: TrailMarker;
@@ -86,5 +86,5 @@ class Anchor extends Marker implements MarkerInterface {
   }
 }
 
-export default Anchor;
+export default AnchorAttribute;
 export { resetWaypointLabel };

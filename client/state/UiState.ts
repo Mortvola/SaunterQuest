@@ -2,7 +2,7 @@ import { makeAutoObservable, runInAction } from 'mobx';
 import { VIEW_HIKES } from '../menuEvents';
 import GearConfiguration from './GearConfiguration';
 import Hike from './Hike';
-import { MarkerTypes } from './Types';
+import { MarkerAttributeTypes } from './Types';
 
 class UiState {
   view: string = VIEW_HIKES;
@@ -13,13 +13,13 @@ class UiState {
 
   gearConfigSort = 'System';
 
-  toggleMarker(marker: MarkerTypes): void {
+  toggleMarker(marker: MarkerAttributeTypes): void {
     runInAction(() => {
       this.showMarkers.set(marker, !this.showMarkers.get(marker));
     });
   }
 
-  showMarkers = new Map<MarkerTypes, boolean>([
+  showMarkers = new Map<MarkerAttributeTypes, boolean>([
     ['day', true],
     ['water', true],
     ['waypoint', true],
