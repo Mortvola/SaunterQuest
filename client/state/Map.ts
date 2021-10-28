@@ -1,5 +1,5 @@
 import { makeAutoObservable } from 'mobx';
-import MapMarker from './MapMarker';
+import Marker from './Marker';
 import {
   HikeInterface, LatLng, MapInterface, MarkerAttributeInterface,
 } from './Types';
@@ -7,7 +7,7 @@ import {
 class Map implements MapInterface {
   locationPopup: LatLng | null = null;
 
-  markers: MapMarker[] = [];
+  markers: Marker[] = [];
 
   #leafletMap: L.Map | null = null;
 
@@ -26,14 +26,14 @@ class Map implements MapInterface {
     ));
 
     if (!mapMarker) {
-      mapMarker = new MapMarker(marker.latLng, this);
+      mapMarker = new Marker(marker.latLng, this);
       this.markers.push(mapMarker);
     }
 
     mapMarker.addMarker(marker);
   }
 
-  removeMarker(marker: MapMarker): void {
+  removeMarker(marker: Marker): void {
     const index = this.markers.findIndex((m) => m === marker);
 
     if (index !== -1) {

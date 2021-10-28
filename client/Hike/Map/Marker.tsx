@@ -7,12 +7,12 @@ import useContextMenu, { MenuItems } from '@mortvola/leaflet-context-menu';
 // import Anchor from '../state/Markers/Anchor';
 import { DomEvent, LeafletEvent } from 'leaflet';
 import { createIcon } from '../mapUtils';
-import MapMarker from '../../state/MapMarker';
 import { useStores } from '../../state/store';
 import { useMarkerDialog } from './MarkerDialog';
+import { MarkerInterface } from '../../state/Types';
 
 type Props = {
-  marker: MapMarker;
+  marker: MarkerInterface;
 }
 
 const Marker = ({

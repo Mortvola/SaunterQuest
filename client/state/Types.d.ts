@@ -52,20 +52,27 @@ export interface HikeInterface {
 export interface MapInterface {
   hike: HikeInterface;
 
-  markers: MapMarkerInterface[];
+  markers: MarkerInterface[];
 
   addMarker(marker: MarkerAttributeInterface): void;
 
-  removeMarker(marker: MapMarker): void;
+  removeMarker(marker: Marker): void;
 
   getLeafLetMap(): L.Map | null;
 }
 
-export interface MapMarkerInterface {
+export interface MarkerInterface {
   latLng: LatLng;
+
   move(latLng: LatLng): void;
 
   delete(): void;
+
+  types(): MarkerAttributeTypes[];
+
+  popup(): string | null;
+
+  label(): string | null;
 }
 
 export type MarkerAttributeTypes = 'waypoint' | 'campsite' | 'day' | 'water' | 'resupply';
@@ -74,7 +81,7 @@ export interface MarkerAttributeInterface {
   type: MarkerAttributeTypes;
   latLng: LatLng;
   label: string | null;
-  mapMarker: MapMarkerInterface | null;
+  mapMarker: MarkerInterface | null;
   move(latLng: LatLng): Promise<LatLng>;
 }
 

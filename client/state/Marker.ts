@@ -1,11 +1,11 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import DayMarker from './Markers/DayAttribute';
 import {
-  LatLng, MapInterface, MapMarkerInterface, MarkerAttributeInterface, MarkerAttributeTypes,
+  LatLng, MapInterface, MarkerInterface, MarkerAttributeInterface, MarkerAttributeTypes,
 } from './Types';
 import Anchor from './Markers/AnchorAttribute';
 
-class MapMarker implements MapMarkerInterface {
+class Marker implements MarkerInterface {
   latLng: LatLng;
 
   #markers: MarkerAttributeInterface[] = [];
@@ -56,11 +56,11 @@ class MapMarker implements MapMarkerInterface {
     }
   }
 
-  types = (): Array<MarkerAttributeTypes> => (
-    this.#markers.map((m) => m.type)
-  )
+  types(): MarkerAttributeTypes[] {
+    return this.#markers.map((m) => m.type);
+  }
 
-  popup = (): string | null => {
+  popup(): string | null {
     const dayMarker = this.#markers.find((m) => m.type === 'day');
 
     if (dayMarker) {
@@ -70,7 +70,7 @@ class MapMarker implements MapMarkerInterface {
     return null;
   }
 
-  label = (): string | null => {
+  label(): string | null {
     const labeledMarker = this.#markers.find((m) => m.label !== null);
 
     if (labeledMarker) {
@@ -81,4 +81,4 @@ class MapMarker implements MapMarkerInterface {
   }
 }
 
-export default MapMarker;
+export default Marker;

@@ -1,5 +1,5 @@
 import { makeObservable, observable } from 'mobx';
-import { LatLng, MapMarkerInterface, MarkerAttributeTypes } from '../Types';
+import { LatLng, MarkerInterface, MarkerAttributeTypes } from '../Types';
 
 class MarkerAttribute {
   type: MarkerAttributeTypes;
@@ -10,7 +10,7 @@ class MarkerAttribute {
 
   moveable: boolean;
 
-  mapMarker: MapMarkerInterface | null = null;
+  mapMarker: MarkerInterface | null = null;
 
   constructor(type: MarkerAttributeTypes, latLng: LatLng, moveable: boolean) {
     this.type = type;

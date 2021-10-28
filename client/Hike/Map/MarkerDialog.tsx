@@ -3,10 +3,10 @@ import { FormikContextType, FormikErrors } from 'formik';
 import React from 'react';
 import { setFormErrors } from '../../Modal/Errors';
 import FormModal from '../../Modal/FormModal';
-import { MapMarkerInterface } from '../../state/Types';
+import { MarkerInterface } from '../../state/Types';
 
 type PropsType = {
-  marker: MapMarkerInterface,
+  marker: MarkerInterface,
 }
 
 const MarkerDialog: React.FC<ModalProps & PropsType> = ({
