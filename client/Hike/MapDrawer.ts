@@ -1,0 +1,74 @@
+/* eslint-disable no-underscore-dangle */
+import L, { DomEvent } from 'leaflet';
+import React, { ReactNode } from 'react';
+import ReactDOM from 'react-dom';
+import styles from './MapDrawer.module.css';
+
+class DrawerHandler extends L.Handler {
+  container: HTMLDivElement | null = null;
+
+  handle: HTMLDivElement | null = null;
+
+  open = true;
+
+  constructor(map: L.Map) {
+    super(map);
+
+    this.container = L.DomUtil.create('div', styles.drawer, map.getContainer());
+
+    const handleContainer = L.DomUtil.create('div', styles.handleContainer, this.container);
+    L.DomUtil.create('div', styles.handle, handleContainer);
+
+    const drawerContainer = L.DomUtil.create('div', styles.drawerContainer, this.container);
+    drawerContainer.setAttribute('id', 'leaflet-drawer');
+    DomEvent.disableClickPropagation(drawerContainer);
+
+    DomEvent.disableClickPropagation(handleContainer);
+    DomEvent.on(handleContainer, 'click', L.DomEvent.stop);
+    DomEvent.on(handleContainer, 'click', this.close, this);
+
+    DomEvent.on(handleContainer, 'mousedown', L.DomEvent.stopPropagation);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  addHooks() {
+    // no code
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  removeHooks() {
+    // no code
+  }
+
+  close() {
+    this.open = !this.open;
+
+    if (!this.open) {
+      if (this.container) {
+        this.container.setAttribute('class', `${styles.drawer} ${styles.closed}`);
+      }
+    }
+    else if (this.container) {
+      this.container.setAttribute('class', styles.drawer);
+    }
+  }
+}
+
+L.Map.addInitHook('addHandler', 'drawer', DrawerHandler);
+
+type PropsType = {
+  children?: ReactNode,
+}
+
+const MapDrawer: React.FC<PropsType> = ({
+  children,
+}) => {
+  const portal = document.querySelector('#leaflet-drawer');
+  if (portal) {
+    return ReactDOM.createPortal(children, portal);
+  }
+
+  return null;
+};
+
+export default MapDrawer;

@@ -1,0 +1,41 @@
+.drawer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: max-content minmax(0, 1fr);
+  /* background-color: #fff; */
+  grid-area: ele;
+  position: absolute;
+  z-index: 1000;
+  bottom: 0;
+  width: calc(100% - 0.5rem);
+  height: 25%;
+  left: 0.25rem;
+  transition: height 0.5s;
+}
+
+.drawer-container {
+	overflow: hidden;
+  background-color: #fff;
+}
+
+.drawer.closed {
+  height: 2rem;
+}
+
+.handle {
+	min-width: 5rem;
+	border: lightgray solid;
+	height: 0;
+	border-radius: 4px;
+}
+
+.handle-container {
+  display: flex;
+  justify-content: center;
+  background-color: #fff;
+	border-top-right-radius: 10px;
+	border-top-left-radius: 10px;
+	overflow: hidden;
+	height: 1rem;
+	align-items: center;
+}

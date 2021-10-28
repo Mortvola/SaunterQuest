@@ -1,9 +1,9 @@
 import React, { ReactElement } from 'react';
-// import PropTypes from 'prop-types';
 import { MapContainer } from 'react-leaflet';
 import Map from './Map';
 import Hike from '../state/Hike';
 import { LatLng } from '../state/Types';
+import './MapDrawer';
 
 type Props = {
   tileServerUrl: string;
@@ -33,15 +33,5 @@ const MyMapContainer = ({
     />
   </MapContainer>
 );
-
-// MyMapContainer.propTypes = {
-//   tileServerUrl: PropTypes.string.isRequired,
-//   hike: PropTypes.shape().isRequired,
-//   locationPopup: PropTypes.shape(),
-// };
-
-// MyMapContainer.defaultProps = {
-//   locationPopup: null,
-// };
 
 export default MyMapContainer;

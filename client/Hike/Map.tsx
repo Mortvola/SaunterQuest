@@ -21,6 +21,8 @@ import Marker from './Marker';
 import Gpx from './Gpx';
 import Campsites from './Campsites';
 import useMediaQuery from '../MediaQuery';
+import MapDrawer from './MapDrawer';
+import ElevationChart from './Elevation/ElevationChart';
 
 type Props = {
   tileServerUrl: string;
@@ -137,6 +139,9 @@ const Map = ({
           <Graticule />
         </LayersControl.Overlay>
       </LayersControl>
+      <MapDrawer>
+        <ElevationChart hike={hike} />
+      </MapDrawer>
       <Route route={hike.route} />
       {
         hike.map.markers.map((m) => (

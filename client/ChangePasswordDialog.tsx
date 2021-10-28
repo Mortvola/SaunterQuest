@@ -1,4 +1,3 @@
-/* eslint-disable react/require-default-props */
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import React, { ReactElement } from 'react';
 import { Modal } from 'react-bootstrap';

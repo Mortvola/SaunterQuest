@@ -1,10 +1,9 @@
 import React, {
-  useEffect, ReactElement,
+  useEffect, ReactElement, useState,
 } from 'react';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { matchPath, useHistory } from 'react-router-dom';
-import ElevationChart from './Elevation/ElevationChart';
 import Controls from './Controls';
 import { useStores } from '../state/store';
 import MapContainer from './MapContainer';
@@ -67,7 +66,6 @@ const Hike = ({
           hike={uiState.hike}
           locationPopup={locationPopup}
         />
-        <ElevationChart hike={uiState.hike} />
       </div>
     );
   }

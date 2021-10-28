@@ -1,4 +1,6 @@
-import React, { ReactElement, useState } from 'react';
+import React, {
+  ReactElement, useEffect, useRef, useState,
+} from 'react';
 import { observer } from 'mobx-react-lite';
 import Chart from 'react-google-charts';
 import { ReactGoogleChartEvent, GoogleChartWrapper, GoogleVizEventName } from 'react-google-charts/dist/types';
@@ -73,16 +75,36 @@ const ElevationChart = ({
     },
   ];
 
+  const divRef = useRef<HTMLDivElement | null>(null);
+
+  const [height, setHeight] = useState<number>(0);
+
+  useEffect(() => {
+    const element = divRef.current;
+    if (element) {
+      const rect = element.getBoundingClientRect();
+
+      setHeight(rect.height);
+    }
+  }, []);
+
   return (
-    <div className="ele-grid-item">
+    <div ref={divRef} style={{ height: '100%', width: '100%' }}>
       <Chart
         chartType="LineChart"
-        width="100%"
-        height="100%"
         data={elevationData}
+        height={height}
         options={{
           legend: { position: 'none' },
           focusTarget: 'datum',
+          chartArea: {
+            left: 60,
+            top: 20,
+            bottom: 30,
+            right: 10,
+            width: '100%',
+            height: '100%',
+          },
         }}
         chartWrapperParams={{ view: { columns: [0, 1] } }}
         chartEvents={chartEvents}

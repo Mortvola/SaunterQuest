@@ -1,5 +1,4 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-/* eslint-disable react/require-default-props */
 import React, { ReactElement } from 'react';
 import { Modal } from 'react-bootstrap';
 import { Formik, Form, Field } from 'formik';

@@ -1,4 +1,3 @@
-/* eslint-disable react/require-default-props */
 import React, { ReactElement } from 'react';
 import { Modal } from 'react-bootstrap';
 import { makeUseModal, ModalProps } from '@mortvola/usemodal';
