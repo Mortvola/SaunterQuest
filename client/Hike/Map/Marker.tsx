@@ -9,7 +9,7 @@ import { DomEvent, LeafletEvent } from 'leaflet';
 import { createIcon } from '../mapUtils';
 import MapMarker from '../../state/MapMarker';
 import { useStores } from '../../state/store';
-import { useWaypointDialog } from './WaypointDialog';
+import { useMarkerDialog } from './MarkerDialog';
 
 type Props = {
   marker: MapMarker;
@@ -20,7 +20,7 @@ const Marker = ({
 }: Props): ReactElement | null => {
   const { uiState } = useStores();
   const markerRef = useRef<L.Marker>(null);
-  const [WaypointDialog, showWaypointDialog] = useWaypointDialog();
+  const [MarkerDialog, showMarkerDialog] = useMarkerDialog();
 
   const handleDragEnd = () => {
     const leafletMarker = markerRef.current;
@@ -83,7 +83,7 @@ const Marker = ({
     return (
       <>
         <ContextMenu />
-        <WaypointDialog marker={marker} />
+        <MarkerDialog marker={marker} />
         <LeafletMarker
           ref={markerRef}
           position={marker.latLng}
@@ -91,7 +91,7 @@ const Marker = ({
           draggable={draggable}
           eventHandlers={{
             click: (event: LeafletEvent) => {
-              showWaypointDialog();
+              showMarkerDialog();
               DomEvent.stop(event);
             },
             dragend: handleDragEnd,

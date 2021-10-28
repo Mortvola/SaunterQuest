@@ -9,7 +9,7 @@ type PropsType = {
   marker: MapMarkerInterface,
 }
 
-const WaypointDialog: React.FC<ModalProps & PropsType> = ({
+const MarkerDialog: React.FC<ModalProps & PropsType> = ({
   marker,
   setShow,
 }) => {
@@ -42,7 +42,7 @@ const WaypointDialog: React.FC<ModalProps & PropsType> = ({
   return (
     <FormModal<FormValues>
       initialValues={{}}
-      title="Edit Waypoint"
+      title="Edit Marker"
       setShow={setShow}
       onSubmit={handleSubmit}
       validate={handleValidate}
@@ -53,6 +53,6 @@ const WaypointDialog: React.FC<ModalProps & PropsType> = ({
   );
 };
 
-export const useWaypointDialog = makeUseModal<PropsType>(WaypointDialog);
+export const useMarkerDialog = makeUseModal<PropsType>(MarkerDialog);
 
-export default WaypointDialog;
+export default MarkerDialog;
