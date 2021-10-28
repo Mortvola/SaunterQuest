@@ -3,12 +3,13 @@ import React, { ReactElement, useRef } from 'react';
 import { Marker as LeafletMarker, Popup } from 'react-leaflet';
 import { observer } from 'mobx-react-lite';
 import useContextMenu, { MenuItems } from '@mortvola/leaflet-context-menu';
-import Route from '../state/Route';
-import Anchor from '../state/Markers/Anchor';
-// import { useWaypointDialog } from './WaypointDialog';
-import { createIcon } from './mapUtils';
-import MapMarker from '../state/MapMarker';
-import { useStores } from '../state/store';
+// import Route from '../state/Route';
+// import Anchor from '../state/Markers/Anchor';
+import { DomEvent, LeafletEvent } from 'leaflet';
+import { createIcon } from '../mapUtils';
+import MapMarker from '../../state/MapMarker';
+import { useStores } from '../../state/store';
+import { useWaypointDialog } from './WaypointDialog';
 
 type Props = {
   marker: MapMarker;
@@ -19,7 +20,7 @@ const Marker = ({
 }: Props): ReactElement | null => {
   const { uiState } = useStores();
   const markerRef = useRef<L.Marker>(null);
-  // const [WaypointDialog, showWaypointDialog] = useWaypointDialog();
+  const [WaypointDialog, showWaypointDialog] = useWaypointDialog();
 
   const handleDragEnd = () => {
     const leafletMarker = markerRef.current;
@@ -82,12 +83,17 @@ const Marker = ({
     return (
       <>
         <ContextMenu />
+        <WaypointDialog marker={marker} />
         <LeafletMarker
           ref={markerRef}
           position={marker.latLng}
           icon={createIcon(icons, label)}
           draggable={draggable}
           eventHandlers={{
+            click: (event: LeafletEvent) => {
+              showWaypointDialog();
+              DomEvent.stop(event);
+            },
             dragend: handleDragEnd,
             contextmenu: showContextMenu,
           }}

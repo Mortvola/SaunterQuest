@@ -40,7 +40,7 @@ class Anchor extends Marker implements MarkerInterface {
 
   marker: TrailMarker;
 
-  trail: Array<TrailPoint>;
+  trail: TrailPoint[];
 
   trailLength: number;
 

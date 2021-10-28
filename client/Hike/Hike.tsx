@@ -6,7 +6,7 @@ import { observer } from 'mobx-react-lite';
 import { matchPath, useHistory } from 'react-router-dom';
 import Controls from './Controls';
 import { useStores } from '../state/store';
-import MapContainer from './MapContainer';
+import MapContainer from './Map/MapContainer';
 import HikeData from '../state/Hike';
 import Toolbar from './Toolbar';
 import styles from './Hike.module.css';

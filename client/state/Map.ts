@@ -1,15 +1,21 @@
 import { makeAutoObservable } from 'mobx';
 import MapMarker from './MapMarker';
-import { LatLng, MapInterface, MarkerInterface } from './Types';
+import {
+  HikeInterface, LatLng, MapInterface, MarkerInterface,
+} from './Types';
 
 class Map implements MapInterface {
   locationPopup: LatLng | null = null;
 
-  markers: Array<MapMarker> = [];
+  markers: MapMarker[] = [];
 
-  private leafletMap: L.Map | null = null;
+  #leafletMap: L.Map | null = null;
 
-  constructor() {
+  hike: HikeInterface;
+
+  constructor(hike: HikeInterface) {
+    this.hike = hike;
+
     makeAutoObservable(this);
   }
 
@@ -20,11 +26,22 @@ class Map implements MapInterface {
     ));
 
     if (!mapMarker) {
-      mapMarker = new MapMarker(marker.latLng);
+      mapMarker = new MapMarker(marker.latLng, this);
       this.markers.push(mapMarker);
     }
 
     mapMarker.addMarker(marker);
+  }
+
+  removeMarker(marker: MapMarker): void {
+    const index = this.markers.findIndex((m) => m === marker);
+
+    if (index !== -1) {
+      this.markers = [
+        ...this.markers.slice(0, index),
+        ...this.markers.slice(index + 1),
+      ];
+    }
   }
 
   showLocationPopup(latlng: LatLng | null): void {
@@ -32,11 +49,11 @@ class Map implements MapInterface {
   }
 
   setLeafletMap(leafletMap: L.Map): void {
-    this.leafletMap = leafletMap;
+    this.#leafletMap = leafletMap;
   }
 
   getLeafLetMap(): L.Map | null {
-    return this.leafletMap;
+    return this.#leafletMap;
   }
 }
 

@@ -65,6 +65,11 @@ class Route implements RouteInterface {
     // todo: handle error case
   }
 
+  updateRoute(updates: AnchorProps[]): void {
+    this.receiveWaypointUpdates(updates);
+    this.hike.requestSchedule();
+  }
+
   async addStartWaypoint(position: LatLng): Promise<void> {
     const response = await Http.post<LatLng, AnchorProps[]>(`/api/hike/${this.hike.id}/route/start-point`,
       position);
@@ -77,8 +82,7 @@ class Route implements RouteInterface {
           this.requestRoute();
         }
         else {
-          this.receiveWaypointUpdates(updates);
-          this.hike.requestSchedule();
+          this.updateRoute(updates);
         }
       });
     }
@@ -96,8 +100,7 @@ class Route implements RouteInterface {
           this.requestRoute();
         }
         else {
-          this.receiveWaypointUpdates(updates);
-          this.hike.requestSchedule();
+          this.updateRoute(updates);
         }
       });
     }
@@ -115,8 +118,7 @@ class Route implements RouteInterface {
           this.requestRoute();
         }
         else {
-          this.receiveWaypointUpdates(updates);
-          this.hike.requestSchedule();
+          this.updateRoute(updates);
         }
       });
     }
@@ -137,8 +139,7 @@ class Route implements RouteInterface {
 
       runInAction(() => {
         if (updates) {
-          this.receiveWaypointUpdates(updates);
-          this.hike.requestSchedule();
+          this.updateRoute(updates);
         }
       });
 
@@ -156,8 +157,7 @@ class Route implements RouteInterface {
 
       runInAction(() => {
         if (updates) {
-          this.receiveWaypointUpdates(updates);
-          this.hike.requestSchedule();
+          this.updateRoute(updates);
         }
       });
     }

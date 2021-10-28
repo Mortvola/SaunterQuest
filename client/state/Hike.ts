@@ -29,11 +29,11 @@ class Hike implements HikeInterface {
 
   route: Route = new Route(this);
 
-  camps: Array<CampsiteMarker> = [];
+  camps: CampsiteMarker[] = [];
 
   pointsOfInterest: Array<Marker> = [];
 
-  map = new Map();
+  map: Map;
 
   elevationMarkerIcon = createIcon('/red-circle.svg');
 
@@ -41,6 +41,8 @@ class Hike implements HikeInterface {
 
   constructor(hikeItem: HikeItemInterface) {
     makeAutoObservable(this);
+
+    this.map = new Map(this);
 
     this.id = hikeItem.id;
 

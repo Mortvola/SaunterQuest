@@ -11,18 +11,18 @@ import {
 } from 'react-leaflet';
 import { observer } from 'mobx-react-lite';
 import useContextMenu, { MenuItemTypes } from '@mortvola/leaflet-context-menu';
-import Route from './Route';
-import { useGotoLocationDialog } from './GotoLocationDialog';
-import { useTerrainDialog } from './TerrainDialog';
-import Graticule from './Graticule';
-import Hike from '../state/Hike';
-import { LatLng } from '../state/Types';
+import Route from '../Route';
+import { useGotoLocationDialog } from '../GotoLocationDialog';
+import { useTerrainDialog } from '../TerrainDialog';
+import Graticule from '../Graticule';
+import Hike from '../../state/Hike';
+import { LatLng } from '../../state/Types';
 import Marker from './Marker';
-import Gpx from './Gpx';
-import Campsites from './Campsites';
-import useMediaQuery from '../MediaQuery';
+import Gpx from '../Gpx';
+import Campsites from '../Campsites';
+import useMediaQuery from '../../MediaQuery';
 import MapDrawer from './MapDrawer';
-import ElevationChart from './Elevation/ElevationChart';
+import ElevationChart from '../Elevation/ElevationChart';
 
 type Props = {
   tileServerUrl: string;

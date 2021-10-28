@@ -50,9 +50,13 @@ export interface HikeInterface {
 }
 
 export interface MapInterface {
+  hike: HikeInterface;
+
   markers: MapMarkerInterface[];
 
   addMarker(marker: MarkerInterface): void;
+
+  removeMarker(marker: MapMarker): void;
 
   getLeafLetMap(): L.Map | null;
 }
@@ -60,6 +64,8 @@ export interface MapInterface {
 export interface MapMarkerInterface {
   latLng: LatLng;
   move(latLng: LatLng): void;
+
+  delete(): void;
 }
 
 export type MarkerTypes = 'waypoint' | 'campsite' | 'day' | 'water' | 'resupply';
@@ -141,6 +147,8 @@ export interface RouteInterface {
   anchors: Anchor[];
 
   moveWaypoint: (id: number, point: LatLng) => Promise<LatLng>;
+
+  deleteWaypoint(id: number): Promise<void>;
 }
 
 export interface GearConfigProps {

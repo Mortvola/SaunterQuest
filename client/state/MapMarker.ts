@@ -1,14 +1,20 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import DayMarker from './Markers/DayMarker';
-import { LatLng, MarkerInterface, MarkerTypes } from './Types';
+import {
+  LatLng, MapInterface, MapMarkerInterface, MarkerInterface, MarkerTypes,
+} from './Types';
+import Anchor from './Markers/Anchor';
 
-class MapMarker {
+class MapMarker implements MapMarkerInterface {
   latLng: LatLng;
 
-  #markers: Array<MarkerInterface> = [];
+  #markers: MarkerInterface[] = [];
 
-  constructor(latLng: LatLng) {
+  #map: MapInterface;
+
+  constructor(latLng: LatLng, map: MapInterface) {
     this.latLng = latLng;
+    this.#map = map;
 
     makeAutoObservable(this);
   }
@@ -16,6 +22,16 @@ class MapMarker {
   addMarker(marker: MarkerInterface): void {
     this.#markers.push(marker);
     marker.mapMarker = this;
+  }
+
+  async delete(): Promise<void> {
+    const marker = this.#markers.find((m) => m.type === 'waypoint');
+
+    if (marker) {
+      await this.#map.hike.route.deleteWaypoint((marker as Anchor).id);
+    }
+
+    this.#map.removeMarker(this);
   }
 
   move = async (latLng: LatLng): Promise<void> => {
