@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import 'regenerator-runtime/runtime';
-import 'leaflet-contextmenu';
 import Leaflet from 'leaflet';
 import { observer } from 'mobx-react-lite';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';

@@ -10,7 +10,7 @@ import {
   Marker as LeafletMarker,
 } from 'react-leaflet';
 import { observer } from 'mobx-react-lite';
-import useContextMenu, { MenuItemTypes } from '@mortvola/leaflet-context-menu';
+import ContextMenu, { MenuItem, showContextMenu, setMainContextMenu } from '@mortvola/leaflet-context-menu';
 import Route from '../Route';
 import { useGotoLocationDialog } from '../GotoLocationDialog';
 import { useTerrainDialog } from '../TerrainDialog';
@@ -24,7 +24,6 @@ import useMediaQuery from '../../MediaQuery';
 import MapDrawer from './MapDrawer';
 import ElevationChart from '../Elevation/ElevationChart';
 import DragToggleControl from './DragToggle';
-import { LeafletEvent } from 'leaflet';
 
 type Props = {
   tileServerUrl: string;
@@ -58,45 +57,44 @@ const Map = ({
     hike.route.addEndWaypoint(event.latlng);
   };
 
-  const makeContextMenu = useCallback((event: L.LeafletMouseEvent) => {
+  const makeContextMenu = useCallback((position: LatLng): MenuItem[] => {
     const findSteepestPoint = () => {
       const steepestPoint = hike.route.findSteepestPoint();
-      console.log(JSON.stringify(steepestPoint));
     };
 
-    const mapMenuItems: Array<MenuItemTypes> = [];
+    const mapMenuItems: MenuItem[] = [];
 
     if (hike.route.anchors.length === 0) {
       mapMenuItems.push({
-        label: 'Add Waypoint', callback: ({ latlng }: L.LeafletMouseEvent) => hike.route.addStartWaypoint(latlng),
+        label: 'Add Waypoint', callback: (latlng: LatLng) => hike.route.addStartWaypoint(latlng),
       });
     }
     else if (hike.route.anchors.length === 1) {
       mapMenuItems.splice(
         mapMenuItems.length, 0,
-        { label: 'Prepend Waypoint', callback: ({ latlng }: L.LeafletMouseEvent) => hike.route.addStartWaypoint(latlng) },
-        { label: 'Append Waypoint', callback: ({ latlng }: L.LeafletMouseEvent) => hike.route.addEndWaypoint(latlng) },
+        { label: 'Prepend Waypoint', callback: (latlng: LatLng) => hike.route.addStartWaypoint(latlng) },
+        { label: 'Append Waypoint', callback: (latlng: LatLng) => hike.route.addEndWaypoint(latlng) },
       );
     }
     else {
       mapMenuItems.splice(
         mapMenuItems.length, 0,
-        { label: 'Prepend Waypoint', callback: ({ latlng }: L.LeafletMouseEvent) => hike.route.addStartWaypoint(latlng) },
-        { label: 'Insert Waypoint', callback: ({ latlng }: L.LeafletMouseEvent) => hike.route.addWaypoint(latlng) },
-        { label: 'Append Waypoint', callback: ({ latlng }: L.LeafletMouseEvent) => hike.route.addEndWaypoint(latlng) },
+        { label: 'Prepend Waypoint', callback: (latlng: LatLng) => hike.route.addStartWaypoint(latlng) },
+        { label: 'Insert Waypoint', callback: (latlng: LatLng) => hike.route.addWaypoint(latlng) },
+        { label: 'Append Waypoint', callback: (latlng: LatLng) => hike.route.addEndWaypoint(latlng) },
       );
     }
 
     mapMenuItems.splice(
       mapMenuItems.length, 0,
-      { type: 'separator' },
-      { label: 'Add Camp', callback: ({ latlng }: L.LeafletMouseEvent) => hike.addCamp(latlng) },
-      { label: 'Add Water', callback: ({ latlng }: L.LeafletMouseEvent) => hike.addWater(latlng) },
-      { label: 'Add Resupply', callback: ({ latlng }: L.LeafletMouseEvent) => hike.addResupply(latlng) },
+      { type: 'separator', label: '', callback: () => null },
+      { label: 'Add Camp', callback: (latlng: LatLng) => hike.addCamp(latlng) },
+      { label: 'Add Water', callback: (latlng: LatLng) => hike.addWater(latlng) },
+      { label: 'Add Resupply', callback: (latlng: LatLng) => hike.addResupply(latlng) },
       {
         label: 'Show Location in 3D',
-        callback: (e: L.LeafletMouseEvent) => {
-          setLatLng(e.latlng);
+        callback: (latlng: LatLng) => {
+          setLatLng(latlng);
           showTerrainDialog();
         },
       },
@@ -107,7 +105,7 @@ const Map = ({
     return mapMenuItems;
   }, [hike, showGotoLocationDialog, showTerrainDialog]);
 
-  const [ContextMenu, showContextMenu] = useContextMenu('main', makeContextMenu);
+  setMainContextMenu(makeContextMenu);
 
   const handleLocationPopupClose = () => {
     if (hike.map === null) {
@@ -125,7 +123,7 @@ const Map = ({
         }
       }
       else {
-        showContextMenu(e);
+        showContextMenu()(e);
       }
     },
   });
