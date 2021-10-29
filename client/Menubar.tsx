@@ -59,30 +59,32 @@ const Menubar = ({
   };
 
   return (
-    <Navbar onSelect={handleSelect}>
-      <Container>
-        <Navbar.Brand href="/">SaunterQuest</Navbar.Brand>
-
-        <div className="collapse navbar-collapse">
-          <Nav className="mr-auto">
-            <Nav.Link as={Link} to="/">Hikes</Nav.Link>
-            <Nav.Link as={Link} to="/food">Food</Nav.Link>
-            <Nav.Link as={Link} to="/gear">Gear</Nav.Link>
-          </Nav>
-          <Nav className="ml-auto">
-            <NavDropdown id="dropdown" className="dropdown menubar-item" title={username}>
-              <Nav.Link eventKey={MENU_EVENT_KEY_ACCOUNT}>Account</Nav.Link>
-              <Nav.Link eventKey={MENU_EVENT_KEY_CHANGE_PASSWORD}>Change Password</Nav.Link>
-              <Nav.Link eventKey={MENU_EVENT_KEY_PROFILE}>Profile</Nav.Link>
-              <Nav.Link eventKey={MENU_EVENT_KEY_LOGOUT}>Logout</Nav.Link>
-            </NavDropdown>
-          </Nav>
-        </div>
-      </Container>
+    <>
+      <Navbar collapseOnSelect onSelect={handleSelect} expand="md">
+        <Container>
+          <Navbar.Brand href="/">SaunterQuest</Navbar.Brand>
+          <Navbar.Toggle />
+          <Navbar.Collapse style={{ justifyContent: 'space-between' }}>
+            <Nav className="mr-auto">
+              <Nav.Link as={Link} to="/">Hikes</Nav.Link>
+              <Nav.Link as={Link} to="/food">Food</Nav.Link>
+              <Nav.Link as={Link} to="/gear">Gear</Nav.Link>
+            </Nav>
+            <Nav className="ml-auto">
+              <NavDropdown id="dropdown" className="dropdown menubar-item" title={username}>
+                <Nav.Link eventKey={MENU_EVENT_KEY_ACCOUNT}>Account</Nav.Link>
+                <Nav.Link eventKey={MENU_EVENT_KEY_CHANGE_PASSWORD}>Change Password</Nav.Link>
+                <Nav.Link eventKey={MENU_EVENT_KEY_PROFILE}>Profile</Nav.Link>
+                <Nav.Link eventKey={MENU_EVENT_KEY_LOGOUT}>Logout</Nav.Link>
+              </NavDropdown>
+            </Nav>
+          </Navbar.Collapse>
+        </Container>
+      </Navbar>
       <AccountDialog />
       <ChangePasswordDialog />
       <ProfileDialog />
-    </Navbar>
+    </>
   );
 };
 
