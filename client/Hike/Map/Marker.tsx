@@ -8,9 +8,7 @@ import { createIcon } from '../mapUtils';
 import { useStores } from '../../state/store';
 import { useMarkerDialog } from './MarkerDialog';
 import { MarkerInterface } from '../../state/Types';
-import {
-  compass, campsite, water, resupply, moon,
-} from './Icons';
+import * as Icons from './Icons';
 
 type Props = {
   marker: MarkerInterface,
@@ -60,18 +58,18 @@ const Marker = ({
       switch (type) {
         case 'waypoint':
           draggable = true;
-          return compass;
+          return Icons.compass;
         case 'campsite':
           draggable = true;
-          return campsite;
+          return Icons.campsite;
         case 'day':
-          return moon;
+          return Icons.moon;
         case 'water':
           draggable = true;
-          return water;
+          return Icons.water;
         case 'resupply':
           draggable = true;
-          return resupply;
+          return Icons.resupply;
         default:
           return '';
       }
