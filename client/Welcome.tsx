@@ -72,7 +72,7 @@ const Welcome = () => {
       </div>
       <Login show={showLogin} onHide={handleLoginHide} />
       <Register show={showRegister} onHide={handleRegisterHide} />
-      <img src="/Forester.jpg" alt="" onLoad={handleLoad} style={{ display: 'none' }} />
+      <img src="/images/Forester.jpg" alt="" onLoad={handleLoad} style={{ display: 'none' }} />
     </div>
   );
 };
