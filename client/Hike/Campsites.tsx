@@ -11,6 +11,7 @@ import {
 import { Campsite, isCampsiteResponse } from '../ResponseTypes';
 import { createIcon } from './mapUtils';
 import ClusterableMarker from './ClusterableMarker';
+import campsite from '../images/campsite.svg';
 
 const createCluster = (props: unknown, context: LeafletContextInterface) => {
   const instance = markerClusterGroup({ maxClusterRadius: 60 });
@@ -59,7 +60,7 @@ const Campsites = (): ReactElement => {
           <ClusterableMarker
             key={c.id}
             position={{ lat: c.location[1], lng: c.location[0] }}
-            icon={createIcon('/campsite.svg')}
+            icon={createIcon(campsite)}
             title={c.name}
           />
         ))

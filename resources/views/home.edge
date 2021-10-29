@@ -35,12 +35,13 @@
           height: 100%;
           width: 100%;
           display: grid;
+          grid-template-columns: minmax(0, 1fr);
           grid-template-rows: max-content minmax(0, 1fr);
       }
 
       .background-picture {
           background-color: black;
-          background-image: url(/Forester.jpg);
+          background-image: url(/images/Forester.jpg);
           background-repeat: no-repeat;
           background-attachment: fixed;
           background-position: center;
@@ -125,7 +126,7 @@
           box-shadow: 0 2px 7px 1px rgba(0, 0, 0, 0.3);
       }
     </style>
-    <link rel="preload" href="/css/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="/main.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"

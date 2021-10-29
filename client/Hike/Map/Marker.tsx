@@ -10,13 +10,18 @@ import { createIcon } from '../mapUtils';
 import { useStores } from '../../state/store';
 import { useMarkerDialog } from './MarkerDialog';
 import { MarkerInterface } from '../../state/Types';
+import {
+  compass, campsite, water, resupply, moon,
+} from './Icons';
 
 type Props = {
-  marker: MarkerInterface;
+  marker: MarkerInterface,
+  draggingLocked: boolean,
 }
 
 const Marker = ({
   marker,
+  draggingLocked,
 }: Props): ReactElement | null => {
   const { uiState } = useStores();
   const markerRef = useRef<L.Marker>(null);
@@ -58,18 +63,18 @@ const Marker = ({
       switch (type) {
         case 'waypoint':
           draggable = true;
-          return '/compass.svg';
+          return compass;
         case 'campsite':
           draggable = true;
-          return '/campsite.svg';
+          return campsite;
         case 'day':
-          return '/moon.svg';
+          return moon;
         case 'water':
           draggable = true;
-          return '/water.svg';
+          return water;
         case 'resupply':
           draggable = true;
-          return '/resupply.svg';
+          return resupply;
         default:
           return '';
       }
@@ -88,7 +93,7 @@ const Marker = ({
           ref={markerRef}
           position={marker.latLng}
           icon={createIcon(icons, label)}
-          draggable={draggable}
+          draggable={draggingLocked ? false : draggable}
           eventHandlers={{
             click: (event: LeafletEvent) => {
               showMarkerDialog();

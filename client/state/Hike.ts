@@ -11,6 +11,7 @@ import { createIcon } from '../Hike/mapUtils';
 import CampsiteMarker from './Markers/CampsiteAttribute';
 import Marker from './Markers/MarkerAttribute';
 import DayMarker from './Markers/DayAttribute';
+import { redCircle } from '../Hike/Map/Icons';
 
 class Hike implements HikeInterface {
   id: number;
@@ -35,7 +36,7 @@ class Hike implements HikeInterface {
 
   map: Map;
 
-  elevationMarkerIcon = createIcon('/red-circle.svg');
+  elevationMarkerIcon = createIcon(redCircle);
 
   elevationMarkerPos: LatLng | null = null;
 

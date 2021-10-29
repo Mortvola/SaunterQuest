@@ -23,6 +23,8 @@ import Campsites from '../Campsites';
 import useMediaQuery from '../../MediaQuery';
 import MapDrawer from './MapDrawer';
 import ElevationChart from '../Elevation/ElevationChart';
+import DragToggleControl from './DragToggle';
+import { LeafletEvent } from 'leaflet';
 
 type Props = {
   tileServerUrl: string;
@@ -44,6 +46,7 @@ const Map = ({
   const [TerrainDialog, showTerrainDialog] = useTerrainDialog();
   const [latLng, setLatLng] = useState<LatLng | null>(null);
   const { isMobile } = useMediaQuery();
+  const [draggingLocked, setDraggingLocked] = useState<boolean>(false);
 
   useEffect(() => {
     if (hike.map) {
@@ -115,13 +118,21 @@ const Map = ({
   };
 
   useMapEvents({
-    contextmenu: isMobile ? dropWaypoint : showContextMenu,
+    contextmenu: (e: L.LeafletMouseEvent) => {
+      if (isMobile) {
+        if (!draggingLocked) {
+          dropWaypoint(e);
+        }
+      }
+      else {
+        showContextMenu(e);
+      }
+    },
   });
 
   return (
     <>
       <LayersControl position="topleft">
-        <ContextMenu />
         <LayersControl.Overlay checked name="Terrain">
           <TileLayer
             url={`${tileServerUrl}/tile/terrain/{z}/{x}/{y}`}
@@ -139,13 +150,15 @@ const Map = ({
           <Graticule />
         </LayersControl.Overlay>
       </LayersControl>
+      <DragToggleControl position="topright" defaultValue={draggingLocked} onLockToggle={setDraggingLocked} />
+      <ContextMenu />
       <MapDrawer>
         <ElevationChart hike={hike} />
       </MapDrawer>
       <Route route={hike.route} />
       {
         hike.map.markers.map((m) => (
-          <Marker key={`${m.latLng.lat},${m.latLng.lng}`} marker={m} />
+          <Marker key={`${m.latLng.lat},${m.latLng.lng}`} marker={m} draggingLocked={draggingLocked} />
         ))
       }
       <Gpx />

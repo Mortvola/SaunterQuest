@@ -7,6 +7,7 @@ import 'leaflet-contextmenu';
 import Leaflet from 'leaflet';
 import { observer } from 'mobx-react-lite';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import './style.css';
 import Hikes from './Hikes/Hikes';
 import Menubar from './Menubar';
 import Hike from './Hike/Hike';
