@@ -3,6 +3,7 @@ import { Marker as LeafletMarker, Popup } from 'react-leaflet';
 import { observer } from 'mobx-react-lite';
 import { MenuItems, showContextMenu } from '@mortvola/leaflet-context-menu';
 import { DomEvent, LeafletEvent, LeafletMouseEvent } from 'leaflet';
+import useMediaQuery from '../../MediaQuery';
 import { createIcon } from '../mapUtils';
 import { useStores } from '../../state/store';
 import { useMarkerDialog } from './MarkerDialog';
@@ -23,6 +24,7 @@ const Marker = ({
   const { uiState } = useStores();
   const markerRef = useRef<L.Marker>(null);
   const [MarkerDialog, showMarkerDialog] = useMarkerDialog();
+  const { isMobile } = useMediaQuery();
 
   const handleDragEnd = () => {
     const leafletMarker = markerRef.current;
@@ -94,7 +96,11 @@ const Marker = ({
               DomEvent.stop(event);
             },
             dragend: handleDragEnd,
-            contextmenu: (e: LeafletMouseEvent) => showContextMenu(makeContextMenu)(e),
+            contextmenu: (e: LeafletMouseEvent) => {
+              if (!isMobile) {
+                showContextMenu(makeContextMenu)(e);
+              }
+            },
           }}
         >
           {
