@@ -1,10 +1,10 @@
 import React, {
-  ReactElement, useEffect, useState,
+  useEffect, useState,
 } from 'react';
 import 'leaflet.markercluster';
-import { markerClusterGroup } from 'leaflet';
+import { LatLngBounds, markerClusterGroup } from 'leaflet';
 import Http from '@mortvola/http';
-import { useMapEvent } from 'react-leaflet';
+import { useMap, useMapEvent } from 'react-leaflet';
 import {
   createPathComponent, LeafletContextInterface,
 } from '@react-leaflet/core';
@@ -20,38 +20,40 @@ const createCluster = (props: unknown, context: LeafletContextInterface) => {
 
 const MarkerCluster = createPathComponent(createCluster);
 
-const Campsites = (): ReactElement => {
+const Campsites: React.FC = () => {
   const [campsites, setCampsites] = useState<Campsite[]>([]);
-  const [bounds, setBounds] = useState<{
-    east: number, west: number, north: number, south: number,
-  } | null>(null);
-
-  const map = useMapEvent(
-    'moveend', () => {
-      const b = map.getBounds();
-      setBounds({
-        east: b.getEast(), west: b.getWest(), north: b.getNorth(), south: b.getSouth(),
-      });
-    },
-  );
+  const [bounds, setBounds] = useState<LatLngBounds | null>(null);
+  const map = useMap();
 
   useEffect(() => {
-    (async () => {
-      if (!bounds || map.getZoom() < 8) {
-        setCampsites([]);
-      }
-      else {
-        const response = await Http.get(`/api/campsites?n=${bounds.north}&s=${bounds.south}&e=${bounds.east}&w=${bounds.west}`);
+    const queryCampsites = async (m: L.Map, b: LatLngBounds) => {
+      const b2 = {
+        east: b.getEast(), west: b.getWest(), north: b.getNorth(), south: b.getSouth(),
+      };
 
-        if (response.ok) {
-          const body = await response.body();
-          if (isCampsiteResponse(body)) {
-            setCampsites(body);
-          }
+      const response = await Http.get(`/api/campsites?n=${b2.north}&s=${b2.south}&e=${b2.east}&w=${b2.west}`);
+
+      if (response.ok) {
+        const body = await response.body();
+        if (isCampsiteResponse(body)) {
+          setCampsites(body);
         }
       }
-    })();
+    };
+
+    if (map.getZoom() < 8) {
+      setCampsites([]);
+    }
+    else if (bounds !== null) {
+      queryCampsites(map, bounds);
+    }
   }, [bounds, map]);
+
+  useMapEvent('moveend', () => setBounds(map.getBounds()));
+
+  useEffect(() => {
+    setBounds(map.getBounds());
+  }, [map]);
 
   return (
     <MarkerCluster>

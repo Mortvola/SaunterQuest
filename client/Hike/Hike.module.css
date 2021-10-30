@@ -1,12 +1,10 @@
 .hike-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
-  grid-template-rows: max-content minmax(0, 1fr);
-  grid-template-areas: "controls toolbar" "controls map" "controls ele";
+  grid-template-rows: minmax(0, 1fr);
   width: 100%;
 }
 
 :global(.mobile).hike-grid {
   grid-template-columns: minmax(0, 1fr);
-  grid-template-areas: "toolbar" "map" "ele";
 }

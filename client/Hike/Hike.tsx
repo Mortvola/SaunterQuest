@@ -59,7 +59,6 @@ const Hike = ({
             )
             : null
         }
-        <Toolbar hike={uiState.hike} />
         <MapContainer
           tileServerUrl={tileServerUrl}
           pathFinderUrl={pathFinderUrl}

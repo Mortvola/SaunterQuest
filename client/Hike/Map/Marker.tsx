@@ -9,15 +9,18 @@ import { useStores } from '../../state/store';
 import { useMarkerDialog } from './MarkerDialog';
 import { MarkerInterface } from '../../state/Types';
 import * as Icons from './Icons';
+import { PoiSelections } from './PoiSelector';
 
 type Props = {
   marker: MarkerInterface,
   draggingLocked: boolean,
+  selections: PoiSelections,
 }
 
 const Marker = ({
   marker,
   draggingLocked,
+  selections,
 }: Props): ReactElement | null => {
   const { uiState } = useStores();
   const markerRef = useRef<L.Marker>(null);
@@ -49,7 +52,7 @@ const Marker = ({
   const icons = marker.types()
     .filter((type) => (
       (type !== 'day' || uiState.showMarkers.get('day'))
-      && (type !== 'waypoint' || uiState.showMarkers.get('waypoint'))
+      && (type !== 'waypoint' || selections.waypoints)
       && (type !== 'water' || uiState.showMarkers.get('water'))
       && (type !== 'campsite' || uiState.showMarkers.get('campsite'))
       && (type !== 'resupply' || uiState.showMarkers.get('resupply'))

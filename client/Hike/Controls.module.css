@@ -1,5 +1,4 @@
 .controls-grid-item {
-  grid-area: controls;
   border-right-style: solid;
   border-right-width: thin;
   height: 100%;

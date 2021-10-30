@@ -32,7 +32,6 @@ const Toolbar = ({
         url={hike.id.toString()}
         prop="name"
       />
-      <UploadFileButton onFileSelection={handleFileSelection} label="Upload GPX" accept="*.gpx" />
       <div className="blog-controls">
         <POIToggle type="day" />
         <POIToggle type="waypoint" />

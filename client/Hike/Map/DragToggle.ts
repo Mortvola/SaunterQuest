@@ -1,5 +1,5 @@
 import { useLeafletContext } from '@react-leaflet/core';
-import L, { DomEvent } from 'leaflet';
+import L, { DomEvent, DomUtil } from 'leaflet';
 import { FC, useEffect } from 'react';
 import styles from './DragToggle.module.css';
 
@@ -23,9 +23,13 @@ class DragToggle extends L.Control {
   onAdd(map: L.Map) {
     this.container = L.DomUtil.create(
       'div',
-      this.#getStyle(styles.dragToggle),
+      styles.dragToggle,
       map.getContainer(),
     );
+
+    if (!this.locked) {
+      DomUtil.addClass(this.container, styles.unlocked);
+    }
 
     DomEvent.disableClickPropagation(this.container);
     DomEvent.on(this.container, 'click', L.DomEvent.stop);
@@ -45,24 +49,15 @@ class DragToggle extends L.Control {
     this.locked = !this.locked;
 
     if (this.container) {
-      const classes = this.container.getAttribute('class');
-      this.container.setAttribute('class', this.#getStyle(classes));
+      if (this.locked) {
+        DomUtil.removeClass(this.container, styles.unlocked);
+      }
+      else {
+        DomUtil.addClass(this.container, styles.unlocked);
+      }
     }
 
     this.#onToggle(this.locked);
-  }
-
-  #getStyle(classes: string | null): string {
-    let newClasses = classes ?? '';
-
-    if (this.locked) {
-      newClasses = newClasses.replace(styles.unlocked, '');
-    }
-    else if (!newClasses.includes(styles.unlocked)) {
-      newClasses += ` ${styles.unlocked}`;
-    }
-
-    return newClasses;
   }
 }
 
@@ -83,8 +78,15 @@ const DragToggleControl:FC<L.ControlOptions & PropsType> = ({
   useEffect(() => {
     if (!dragToggle) {
       dragToggle = new DragToggle(props, defaultValue, onLockToggle);
-      dragToggle.addTo(context.map);
     }
+
+    dragToggle.addTo(context.map);
+
+    return () => {
+      if (dragToggle) {
+        dragToggle.remove();
+      }
+    };
   });
 
   return null;

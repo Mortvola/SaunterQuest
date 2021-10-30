@@ -11,27 +11,6 @@ type PropsType = {
 const Route = ({
   route,
 }: PropsType) => {
-  const leafletMap = useMap();
-  const [initialized, setInitialized] = useState(false);
-
-  useEffect(() => {
-    if (route.bounds
-      && !initialized
-    ) {
-      try {
-        leafletMap.fitBounds(route.bounds);
-        const z = leafletMap.getZoom();
-        if (z > 13) {
-          leafletMap.setZoom(13);
-        }
-        setInitialized(true);
-      }
-      catch (error) {
-        console.log(error);
-      }
-    }
-  }, [route.bounds, initialized, leafletMap]);
-
   if (route.anchors) {
     return (
       <>

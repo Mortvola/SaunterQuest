@@ -3,7 +3,6 @@
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: max-content minmax(0, 1fr);
   /* background-color: #fff; */
-  grid-area: ele;
   position: absolute;
   z-index: 1000;
   bottom: 0;

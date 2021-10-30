@@ -1,4 +1,5 @@
 import React, { ReactElement } from 'react';
+import styles from './UploadFileButton.module.css';
 
 type PropsType = {
   onFileSelection: React.ChangeEventHandler<HTMLInputElement>,
@@ -13,7 +14,7 @@ const UploadFileButton = ({
   accept,
   label,
 }: PropsType): ReactElement => (
-  <label htmlFor="fileupload" className="btn btn-primary">
+  <label htmlFor="fileupload" className={styles.uploadButton}>
     {label}
     <input
       type="file"
@@ -25,11 +26,5 @@ const UploadFileButton = ({
     />
   </label>
 );
-
-UploadFileButton.defaultProps = {
-  multiple: false,
-  accept: '*',
-  label: '',
-};
 
 export default UploadFileButton;

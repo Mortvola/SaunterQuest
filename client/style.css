@@ -189,7 +189,6 @@ div.hike-card-header {
 }
 
 .map-grid-item {
-  grid-area: map;
   display: grid;
   grid: minmax(0, 1fr) / minmax(0, 1fr);
   width: 100%;
@@ -197,7 +196,6 @@ div.hike-card-header {
 }
 
 .controls-grid-item {
-  grid-area: controls;
   border-right-style: solid;
   border-right-width: thin;
   height: 100%;

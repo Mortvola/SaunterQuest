@@ -12,7 +12,7 @@ class Route implements RouteInterface {
 
   anchors: Anchor[] = [];
 
-  elevations: Array<[number, number, number, number]> = [];
+  elevations: [number, number, number, number][] = [];
 
   bounds: [L.LatLngTuple, L.LatLngTuple] | null = null;
 

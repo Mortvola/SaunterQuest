@@ -24,6 +24,7 @@ import useMediaQuery from '../../MediaQuery';
 import MapDrawer from './MapDrawer';
 import ElevationChart from '../Elevation/ElevationChart';
 import DragToggleControl from './DragToggle';
+import PoiSelectorControl, { PoiSelections } from './PoiSelector';
 
 type Props = {
   tileServerUrl: string;
@@ -46,6 +47,34 @@ const Map = ({
   const [latLng, setLatLng] = useState<LatLng | null>(null);
   const { isMobile } = useMediaQuery();
   const [draggingLocked, setDraggingLocked] = useState<boolean>(false);
+  const [poiSelections, setPoiSelections] = useState<PoiSelections>({
+    waypoints: true, campsites: true, water: true, resupply: true, day: true,
+  });
+
+  const handlePoiSelectionChange = (value: PoiSelections) => {
+    setPoiSelections(value);
+  };
+
+  const [initialized, setInitialized] = useState(false);
+
+  useEffect(() => {
+    if (hike.route.bounds
+      && !initialized
+    ) {
+      try {
+        leafletMap.fitBounds(hike.route.bounds);
+        const z = leafletMap.getZoom();
+        if (z > 13) {
+          leafletMap.setZoom(13);
+        }
+        setInitialized(true);
+        leafletMap.fireEvent('moveend');
+      }
+      catch (error) {
+        console.log(error);
+      }
+    }
+  }, [initialized, leafletMap, hike.route.bounds]);
 
   useEffect(() => {
     if (hike.map) {
@@ -149,6 +178,11 @@ const Map = ({
         </LayersControl.Overlay>
       </LayersControl>
       <DragToggleControl position="topright" defaultValue={draggingLocked} onLockToggle={setDraggingLocked} />
+      <PoiSelectorControl
+        position="topleft"
+        onChange={handlePoiSelectionChange}
+        selections={poiSelections}
+      />
       <ContextMenu />
       <MapDrawer>
         <ElevationChart hike={hike} />
@@ -156,7 +190,12 @@ const Map = ({
       <Route route={hike.route} />
       {
         hike.map.markers.map((m) => (
-          <Marker key={`${m.latLng.lat},${m.latLng.lng}`} marker={m} draggingLocked={draggingLocked} />
+          <Marker
+            key={`${m.latLng.lat},${m.latLng.lng}`}
+            marker={m}
+            draggingLocked={draggingLocked}
+            selections={poiSelections}
+          />
         ))
       }
       <Gpx />
@@ -170,7 +209,11 @@ const Map = ({
           )
           : null
       }
-      <Campsites />
+      {
+        poiSelections.campsites
+          ? <Campsites />
+          : null
+      }
       <GotoLocationDialog leafletMap={leafletMap} hike={hike} />
       {
         locationPopup
