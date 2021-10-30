@@ -1,38 +1,11 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import { useLeafletContext } from '@react-leaflet/core';
-import L, { DomEvent } from 'leaflet';
-import React, { FC, useEffect, useState } from 'react';
-import ReactDom from 'react-dom';
+import L from 'leaflet';
+import React, {
+  FC, useEffect, useState,
+} from 'react';
 import { useMap } from 'react-leaflet';
+import LeafletControl from './LeafletControl';
 import styles from './PoiSelector.module.css';
-
-class PoiSelector extends L.Control {
-  container: HTMLDivElement | null = null;
-
-  // eslint-disable-next-line class-methods-use-this
-  onAdd(map: L.Map) {
-    if (!this.container) {
-      this.container = L.DomUtil.create(
-        'div',
-        styles.container,
-        map.getContainer(),
-      );
-    }
-
-    DomEvent.disableClickPropagation(this.container);
-    DomEvent.on(this.container, 'click', L.DomEvent.stop);
-    DomEvent.on(this.container, 'mousedown', L.DomEvent.stopPropagation);
-
-    return this.container;
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  onRemove() {
-    // Nothing to do here
-  }
-}
-
-let selector: PoiSelector | null = null;
 
 type PoiItemProps = {
   name?: string,
@@ -118,40 +91,17 @@ const SelectList: FC<SelectListProps> = ({
 type PropsType = {
   onChange: OnSelectionCallback,
   selections: PoiSelections,
+  position: L.ControlPosition,
 }
 
-const PoiSelectorControl:FC<L.ControlOptions & PropsType> = ({
+const PoiSelector: FC<PropsType> = ({
   onChange,
   selections,
-  ...props
-}) => {
-  const context = useLeafletContext();
+  position,
+}) => (
+  <LeafletControl position={position}>
+    <SelectList selections={selections} onChange={onChange} />
+  </LeafletControl>
+);
 
-  useEffect(() => {
-    if (!selector) {
-      selector = new PoiSelector(props);
-    }
-
-    selector.addTo(context.map);
-
-    return () => {
-      if (selector) {
-        selector.remove();
-      }
-    };
-  }, [context.map, props]);
-
-  if (selector) {
-    const container = selector.getContainer();
-    if (container) {
-      return ReactDom.createPortal(
-        <SelectList selections={selections} onChange={onChange} />,
-        container,
-      );
-    }
-  }
-
-  return null;
-};
-
-export default PoiSelectorControl;
+export default PoiSelector;

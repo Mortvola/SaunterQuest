@@ -1,16 +1,10 @@
-.container {
+.control {
   background-color: #fff;
   border-radius: 5px;
-  width: max-content;
-  height: max-content;
-  border: 2px solid rgba(0, 0, 0, 0.2);
-  background-clip: padding-box;
-  overflow: hidden;
-}
-
-.control {
   width: 48px;
   height: 48px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  background-clip: padding-box;
   background-image: url(padlock-locked.svg);
   background-size: 26px 26px;
   background-repeat: no-repeat;
