@@ -8,6 +8,7 @@ uniform highp mat4 uProjectionMatrix;
 
 out highp float fLighting;
 out highp vec2 vTexCoord;
+out highp vec3 vPosition;
 
 void main() {
   gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
@@ -17,4 +18,5 @@ void main() {
 
   fLighting = 1.0 + min(dot(transformedNormal.xyz, directionalVector.xyz), 0.0);
   vTexCoord = aTexCoord;
+  vPosition = (uModelViewMatrix * aVertexPosition).xyz;
 }

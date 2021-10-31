@@ -47,7 +47,7 @@ class TerrainRenderer implements TerrainRendererInterface {
 
     // Only continue if WebGL is available and working
     // Set clear color to black, fully opaque
-    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    this.gl.clearColor(1.0, 1.0, 1.0, 1.0);
     this.gl.clearDepth(1.0); // Clear everything
     this.gl.enable(this.gl.DEPTH_TEST); // Enable depth testing
     this.gl.depthFunc(this.gl.LEQUAL); // Near things obscure far things

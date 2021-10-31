@@ -43,7 +43,16 @@ class TerrainTile {
   uniformLocations: {
     projectionMatrix: WebGLUniformLocation | null,
     modelViewMatrix: WebGLUniformLocation | null,
-  } = { projectionMatrix: null, modelViewMatrix: null };
+    fogColor: WebGLUniformLocation | null,
+    fogNear: WebGLUniformLocation | null,
+    fogFar: WebGLUniformLocation | null,
+  } = {
+    projectionMatrix: null,
+    modelViewMatrix: null,
+    fogColor: null,
+    fogNear: null,
+    fogFar: null,
+  };
 
   attribLocations: {
     vertexPosition: number | null,
@@ -481,6 +490,10 @@ class TerrainTile {
         modelViewMatrix,
       );
 
+      this.gl.uniform4fv(this.uniformLocations.fogColor, [1.0, 1.0, 1.0, 1.0]);
+      this.gl.uniform1f(this.uniformLocations.fogNear, 8000.0);
+      this.gl.uniform1f(this.uniformLocations.fogFar, 16000.0);
+
       this.gl.uniform1i(this.gl.getUniformLocation(this.shaderProgram, 'terrainTexture'), 0);
 
       this.gl.activeTexture(this.gl.TEXTURE0);
@@ -575,6 +588,24 @@ class TerrainTile {
 
     if (this.uniformLocations.modelViewMatrix === null) {
       throw new Error('modelViewMatrix is null');
+    }
+
+    this.uniformLocations.fogColor = this.gl.getUniformLocation(this.shaderProgram, 'uFogColor');
+
+    if (this.uniformLocations.fogColor === null) {
+      throw new Error('uFogColor is null');
+    }
+
+    this.uniformLocations.fogNear = this.gl.getUniformLocation(this.shaderProgram, 'uFogNear');
+
+    if (this.uniformLocations.fogNear === null) {
+      throw new Error('uFogNear is null');
+    }
+
+    this.uniformLocations.fogFar = this.gl.getUniformLocation(this.shaderProgram, 'uFogFar');
+
+    if (this.uniformLocations.fogFar === null) {
+      throw new Error('uFogFar is null');
     }
 
     this.attribLocations.vertexPosition = this.gl.getAttribLocation(this.shaderProgram, 'aVertexPosition');
