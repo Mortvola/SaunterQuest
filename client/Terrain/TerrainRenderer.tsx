@@ -56,17 +56,12 @@ class TerrainRenderer implements TerrainRendererInterface {
     const x = lng2tile(position.lng, zoom);
     const y = lat2tile(position.lat, zoom);
 
-    this.addTile({ x: x + 1, y, zoom });
-    this.addTile({ x, y, zoom }); // Center
-    this.addTile({ x: x - 1, y, zoom });
-
-    this.addTile({ x: x + 1, y: y + 1, zoom });
-    this.addTile({ x, y: y + 1, zoom }); // South
-    this.addTile({ x: x - 1, y: y + 1, zoom });
-
-    this.addTile({ x: x + 1, y: y - 1, zoom });
-    this.addTile({ x, y: y - 1, zoom }); // North
-    this.addTile({ x: x - 1, y: y - 1, zoom });
+    const tilePadding = 3;
+    for (let y2 = -tilePadding; y2 <= tilePadding; y2 += 1) {
+      for (let x2 = -tilePadding; x2 <= tilePadding; x2 += 1) {
+        this.addTile({ x: x + x2, y: y + y2, zoom });
+      }
+    }
 
     this.loadElevation();
   }
@@ -160,6 +155,8 @@ class TerrainRenderer implements TerrainRendererInterface {
 
       // this.checkPoints();
 
+      this.gl.enable(this.gl.CULL_FACE);
+
       this.tiles.forEach((tile) => {
         tile.drawTerrain(projectionMatrix, modelViewMatrix);
       });
@@ -171,7 +168,7 @@ class TerrainRenderer implements TerrainRendererInterface {
     const fieldOfView = (45 * Math.PI) / 180; // in radians
     const aspect = this.gl.canvas.clientWidth / this.gl.canvas.clientHeight;
     const zNear = 0.1;
-    const zFar = 8000.0;
+    const zFar = 32000.0;
     const projectionMatrix = mat4.create();
 
     mat4.perspective(projectionMatrix,

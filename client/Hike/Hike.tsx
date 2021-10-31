@@ -1,5 +1,5 @@
 import React, {
-  useEffect, ReactElement, useState,
+  useEffect, ReactElement,
 } from 'react';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
@@ -8,9 +8,9 @@ import Controls from './Controls';
 import { useStores } from '../state/store';
 import MapContainer from './Map/MapContainer';
 import HikeData from '../state/Hike';
-import Toolbar from './Toolbar';
 import styles from './Hike.module.css';
 import useMediaQuery from '../MediaQuery';
+import Terrain from '../Terrain/Terrain';
 
 type Props = {
   tileServerUrl: string;
@@ -59,12 +59,24 @@ const Hike = ({
             )
             : null
         }
-        <MapContainer
-          tileServerUrl={tileServerUrl}
-          pathFinderUrl={pathFinderUrl}
-          hike={uiState.hike}
-          locationPopup={locationPopup}
-        />
+        {
+          uiState.show3D && uiState.location3d
+            ? (
+              <Terrain
+                tileServerUrl={tileServerUrl}
+                pathFinderUrl={pathFinderUrl}
+                position={uiState.location3d}
+              />
+            )
+            : (
+              <MapContainer
+                tileServerUrl={tileServerUrl}
+                pathFinderUrl={pathFinderUrl}
+                hike={uiState.hike}
+                locationPopup={locationPopup}
+              />
+            )
+        }
       </div>
     );
   }

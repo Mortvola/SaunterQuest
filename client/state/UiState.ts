@@ -1,3 +1,4 @@
+import { LatLng } from 'leaflet';
 import { makeAutoObservable, runInAction } from 'mobx';
 import { VIEW_HIKES } from '../menuEvents';
 import GearConfiguration from './GearConfiguration';
@@ -12,6 +13,10 @@ class UiState {
   selectedGearConfiguration: GearConfiguration | null = null;
 
   gearConfigSort = 'System';
+
+  show3D = false;
+
+  location3d: LatLng | null = null;
 
   toggleMarker(marker: MarkerAttributeTypes): void {
     runInAction(() => {

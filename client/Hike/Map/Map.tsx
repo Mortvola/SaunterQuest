@@ -1,19 +1,15 @@
 import React, {
-  useState, useRef, ReactElement, useEffect, useCallback,
+  useState, useRef, ReactElement, useEffect, useCallback, FC,
 } from 'react';
 import {
-  TileLayer,
-  useMap,
-  Popup,
-  LayersControl,
-  useMapEvents,
+  TileLayer, useMap, Popup, LayersControl, useMapEvents,
   Marker as LeafletMarker,
 } from 'react-leaflet';
 import { observer } from 'mobx-react-lite';
 import ContextMenu, { MenuItem, showContextMenu, setMainContextMenu } from '@mortvola/leaflet-context-menu';
 import Route from '../Route';
 import { useGotoLocationDialog } from '../GotoLocationDialog';
-import { useTerrainDialog } from '../TerrainDialog';
+import { useTerrainDialog } from '../../Terrain/TerrainDialog';
 import Graticule from '../Graticule';
 import Hike from '../../state/Hike';
 import { LatLng } from '../../state/Types';
@@ -26,6 +22,8 @@ import ElevationChart from '../Elevation/ElevationChart';
 import DragToggleControl from './DragToggle';
 import PoiSelectorControl, { PoiSelections } from './PoiSelector';
 import PleaseWait from '../../Hikes/PleaseWait';
+import styles from './Map.module.css';
+import { useStores } from '../../state/store';
 
 type Props = {
   tileServerUrl: string;
@@ -34,12 +32,13 @@ type Props = {
   locationPopup?: LatLng | null,
 };
 
-const Map = ({
+const Map: FC<Props> = ({
   tileServerUrl,
   pathFinderUrl,
   hike,
   locationPopup,
-}: Props): ReactElement => {
+}) => {
+  const { uiState } = useStores();
   const leafletMap = useMap();
   const terrainLayer = useRef(null);
   const detailLayer = useRef(null);
@@ -51,6 +50,7 @@ const Map = ({
   const [poiSelections, setPoiSelections] = useState<PoiSelections>({
     waypoints: true, campsites: true, water: true, resupply: true, day: true,
   });
+  const [temporaryMarkerLocation, setTemporaryMarkerLocation] = useState<L.LatLng | null>(null);
 
   const handlePoiSelectionChange = (value: PoiSelections) => {
     setPoiSelections(value);
@@ -121,19 +121,12 @@ const Map = ({
       { label: 'Add Camp', callback: (latlng: LatLng) => hike.addCamp(latlng) },
       { label: 'Add Water', callback: (latlng: LatLng) => hike.addWater(latlng) },
       { label: 'Add Resupply', callback: (latlng: LatLng) => hike.addResupply(latlng) },
-      {
-        label: 'Show Location in 3D',
-        callback: (latlng: LatLng) => {
-          setLatLng(latlng);
-          showTerrainDialog();
-        },
-      },
       { label: 'Go to Location...', callback: showGotoLocationDialog },
       { label: 'Find Steepest Point', callback: findSteepestPoint },
     );
 
     return mapMenuItems;
-  }, [hike, showGotoLocationDialog, showTerrainDialog]);
+  }, [hike, showGotoLocationDialog]);
 
   setMainContextMenu(makeContextMenu);
 
@@ -145,7 +138,22 @@ const Map = ({
     hike.map.showLocationPopup(null);
   };
 
+  const temporaryMarker: L.LeafletMouseEventHandlerFn = (e) => {
+    setTemporaryMarkerLocation(e.latlng);
+  };
+
+  const handleKeyPress: L.LeafletKeyboardEventHandlerFn = (e) => {
+    console.log(e.type);
+  };
+
+  const showIn3D: React.MouseEventHandler = () => {
+    uiState.location3d = temporaryMarkerLocation;
+    uiState.show3D = true;
+  };
+
   useMapEvents({
+    click: temporaryMarker,
+    keypress: handleKeyPress,
     contextmenu: (e: L.LeafletMouseEvent) => {
       if (isMobile) {
         if (!draggingLocked) {
@@ -186,7 +194,19 @@ const Map = ({
       />
       <ContextMenu />
       <MapDrawer>
-        <ElevationChart hike={hike} />
+        <div className={styles.drawerContents}>
+          {
+            temporaryMarkerLocation
+              ? (
+                <div>
+                  <div>{`lat,lng: ${temporaryMarkerLocation.lat}, ${temporaryMarkerLocation.lng}`}</div>
+                  <button type="button" onClick={showIn3D}>Show in 3D</button>
+                </div>
+              )
+              : null
+          }
+          <ElevationChart hike={hike} />
+        </div>
       </MapDrawer>
       <Route route={hike.route} />
       {
@@ -233,6 +253,13 @@ const Map = ({
               tileServerUrl={tileServerUrl}
               pathFinderUrl={pathFinderUrl}
             />
+          )
+          : null
+      }
+      {
+        temporaryMarkerLocation
+          ? (
+            <LeafletMarker position={temporaryMarkerLocation} />
           )
           : null
       }

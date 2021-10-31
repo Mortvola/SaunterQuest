@@ -1,0 +1,6 @@
+.drawer-contents {
+  height: 100%;
+  overflow: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}

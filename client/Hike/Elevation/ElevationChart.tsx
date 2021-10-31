@@ -98,10 +98,10 @@ const ElevationChart = ({
           legend: { position: 'none' },
           focusTarget: 'datum',
           chartArea: {
-            left: 60,
+            left: 40,
             top: 20,
             bottom: 30,
-            right: 10,
+            right: 0,
             width: '100%',
             height: '100%',
           },
