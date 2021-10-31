@@ -1,16 +1,17 @@
-import React, { ReactElement } from 'react';
+import React, { FC } from 'react';
+import styles from './PleaseWait.module.css';
 
 type PropsType = {
   show: boolean;
 }
 
-const PleaseWait = ({
+const PleaseWait: FC<PropsType> = ({
   show,
-}: PropsType): ReactElement | null => {
+}) => {
   if (show) {
     return (
-      <div className="map-please-wait">
-        <div className="map-please-wait-spinner" />
+      <div className={styles.mapPleaseWait}>
+        <div className={styles.mapPleaseWaitSpinner} />
       </div>
     );
   }

@@ -38,9 +38,15 @@ class Marker implements MarkerInterface {
     const anchor = this.#markers.find((m) => m.type === 'waypoint');
 
     if (anchor) {
+      runInAction(() => {
+        this.#map.waiting = true;
+      });
+
       const newLatLng = await anchor.move(latLng);
 
       runInAction(() => {
+        this.#map.waiting = false;
+
         this.#markers.forEach((m) => {
           if (m !== anchor) {
             m.move(newLatLng);

@@ -13,6 +13,8 @@ class Map implements MapInterface {
 
   hike: HikeInterface;
 
+  waiting = false;
+
   constructor(hike: HikeInterface) {
     this.hike = hike;
 

@@ -25,6 +25,7 @@ import MapDrawer from './MapDrawer';
 import ElevationChart from '../Elevation/ElevationChart';
 import DragToggleControl from './DragToggle';
 import PoiSelectorControl, { PoiSelections } from './PoiSelector';
+import PleaseWait from '../../Hikes/PleaseWait';
 
 type Props = {
   tileServerUrl: string;
@@ -235,6 +236,7 @@ const Map = ({
           )
           : null
       }
+      <PleaseWait show={hike.map.waiting} />
     </>
   );
 };

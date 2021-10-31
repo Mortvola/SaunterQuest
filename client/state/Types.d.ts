@@ -54,6 +54,8 @@ export interface MapInterface {
 
   markers: MarkerInterface[];
 
+  waiting: boolean;
+
   addMarker(marker: MarkerAttributeInterface): void;
 
   removeMarker(marker: Marker): void;
