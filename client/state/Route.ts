@@ -183,7 +183,7 @@ class Route implements RouteInterface {
     })
   )
 
-  receiveWaypointUpdates(updates: Array<AnchorProps>): void {
+  receiveWaypointUpdates(updates: AnchorProps[]): void {
     if (this.anchors.length === 0) {
       this.anchors = this.processUpdates(updates, []);
       this.setElevations(this.computeElevations());
@@ -198,11 +198,25 @@ class Route implements RouteInterface {
         if (lastIndex === -1) {
           lastIndex = firstIndex;
         }
-        const newRoute = [
-          ...this.anchors.slice(0, firstIndex),
-          ...this.processUpdates(updates, this.anchors.slice(firstIndex, lastIndex + 1)),
-          ...this.anchors.slice(lastIndex + 1),
-        ];
+
+        let newRoute: Anchor[] = [];
+
+        if (firstIndex === lastIndex) {
+          // There was only one anchor entry in the update. Therfore,
+          // this must be the new last anchor in the route. Truncate the route
+          // from thsi new point.
+          newRoute = [
+            ...this.anchors.slice(0, firstIndex),
+            ...this.processUpdates(updates, this.anchors.slice(firstIndex, lastIndex + 1)),
+          ];
+        }
+        else {
+          newRoute = [
+            ...this.anchors.slice(0, firstIndex),
+            ...this.processUpdates(updates, this.anchors.slice(firstIndex, lastIndex + 1)),
+            ...this.anchors.slice(lastIndex + 1),
+          ];
+        }
 
         resetWaypointLabel();
         newRoute.forEach((a) => {

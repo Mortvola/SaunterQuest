@@ -971,6 +971,13 @@ export default class Hike extends BaseModel {
 
       this.routePoints.splice(prevAnchorIndex + 1);
 
+      // Update the pointers to the next anchor to null.
+      const lastAnchor = this.routePoints[prevAnchorIndex];
+      lastAnchor.nextFraction = null;
+      lastAnchor.nextLineId = null;
+
+      await lastAnchor.save();
+
       return this.prepareUpdates([prevAnchorIndex, -1]);
     }
 
