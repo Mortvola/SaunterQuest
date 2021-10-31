@@ -9,6 +9,7 @@
   background-size: 26px 26px;
   background-repeat: no-repeat;
   background-position: center;
+  cursor: pointer;
 }
 
 .control.expanded {
