@@ -1,5 +1,5 @@
 import React, {
-  useState, useRef, ReactElement, useEffect, useCallback, FC,
+  useState, useRef, useEffect, useCallback, FC,
 } from 'react';
 import {
   TileLayer, useMap, Popup, LayersControl, useMapEvents,
@@ -9,7 +9,6 @@ import { observer } from 'mobx-react-lite';
 import ContextMenu, { MenuItem, showContextMenu, setMainContextMenu } from '@mortvola/leaflet-context-menu';
 import Route from '../Route';
 import { useGotoLocationDialog } from '../GotoLocationDialog';
-import { useTerrainDialog } from '../Terrain/TerrainDialog';
 import Graticule from '../Graticule';
 import Hike from '../../state/Hike';
 import { LatLng } from '../../state/Types';
@@ -43,8 +42,6 @@ const Map: FC<Props> = ({
   const terrainLayer = useRef(null);
   const detailLayer = useRef(null);
   const [GotoLocationDialog, showGotoLocationDialog] = useGotoLocationDialog();
-  const [TerrainDialog, showTerrainDialog] = useTerrainDialog();
-  const [latLng, setLatLng] = useState<LatLng | null>(null);
   const { isMobile } = useMediaQuery();
   const [draggingLocked, setDraggingLocked] = useState<boolean>(false);
   const [poiSelections, setPoiSelections] = useState<PoiSelections>({
@@ -142,10 +139,6 @@ const Map: FC<Props> = ({
     setTemporaryMarkerLocation(e.latlng);
   };
 
-  const handleKeyPress: L.LeafletKeyboardEventHandlerFn = (e) => {
-    console.log(e.type);
-  };
-
   const showIn3D: React.MouseEventHandler = () => {
     uiState.location3d = temporaryMarkerLocation;
     uiState.show3D = true;
@@ -153,7 +146,6 @@ const Map: FC<Props> = ({
 
   useMapEvents({
     click: temporaryMarker,
-    keypress: handleKeyPress,
     contextmenu: (e: L.LeafletMouseEvent) => {
       if (isMobile) {
         if (!draggingLocked) {
@@ -242,17 +234,6 @@ const Map: FC<Props> = ({
             <Popup onClose={handleLocationPopupClose} position={locationPopup}>
               { `${locationPopup.lat}, ${locationPopup.lng}`}
             </Popup>
-          )
-          : null
-      }
-      {
-        latLng
-          ? (
-            <TerrainDialog
-              latLng={latLng}
-              tileServerUrl={tileServerUrl}
-              pathFinderUrl={pathFinderUrl}
-            />
           )
           : null
       }
