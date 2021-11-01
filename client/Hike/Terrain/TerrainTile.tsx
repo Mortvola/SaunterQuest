@@ -102,9 +102,9 @@ class TerrainTile {
           const numPointsX = body.points[0].length;
           const numPointsY = body.points.length;
 
-          const points = this.createTerrainData(body, numPointsX, numPointsY);
-          const indices = this.createTerrainIndices(numPointsX, numPointsY);
-          const normals = this.createTerrainNormals(points, indices, numPointsX, numPointsY);
+          const points = TerrainTile.createTerrainPoints(body, numPointsX, numPointsY);
+          const indices = TerrainTile.createTerrainIndices(numPointsX, numPointsY);
+          const normals = TerrainTile.createTerrainNormals(points, indices, numPointsX, numPointsY);
 
           data = { points, indices, normals };
 
@@ -138,8 +138,7 @@ class TerrainTile {
     };
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  createTerrainData(
+  static createTerrainPoints(
     terrain: Points,
     numPointsX: number,
     numPointsY: number,
@@ -213,8 +212,7 @@ class TerrainTile {
     return positionBuffer;
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  createTerrainIndices(
+  static createTerrainIndices(
     numPointsX: number,
     numPointsY: number,
   ): number[] {
@@ -304,8 +302,7 @@ class TerrainTile {
     return normal;
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  createTerrainNormals(
+  static createTerrainNormals(
     positions: number[],
     indices: number[],
     numPointsX: number,
