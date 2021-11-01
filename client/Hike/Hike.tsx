@@ -50,34 +50,43 @@ const Hike = ({
   }
 
   if (uiState.hike) {
+    const handleBackClick = () => {
+      uiState.show3D = false;
+      uiState.location3d = null;
+    };
+
     return (
-      <div className={addMediaClass(styles.hikeGrid)}>
-        {
-          !isMobile
-            ? (
-              <Controls hike={uiState.hike} />
-            )
-            : null
-        }
+      <>
+        <div className={addMediaClass(styles.hikeGrid)}>
+          {
+            !isMobile
+              ? (
+                <Controls hike={uiState.hike} />
+              )
+              : null
+          }
+          <MapContainer
+            tileServerUrl={tileServerUrl}
+            pathFinderUrl={pathFinderUrl}
+            hike={uiState.hike}
+            locationPopup={locationPopup}
+          />
+        </div>
         {
           uiState.show3D && uiState.location3d
             ? (
-              <Terrain
-                tileServerUrl={tileServerUrl}
-                pathFinderUrl={pathFinderUrl}
-                position={uiState.location3d}
-              />
+              <div className={styles.terrain}>
+                <div className={styles.button} onClick={handleBackClick}>X</div>
+                <Terrain
+                  tileServerUrl={tileServerUrl}
+                  pathFinderUrl={pathFinderUrl}
+                  position={uiState.location3d}
+                />
+              </div>
             )
-            : (
-              <MapContainer
-                tileServerUrl={tileServerUrl}
-                pathFinderUrl={pathFinderUrl}
-                hike={uiState.hike}
-                locationPopup={locationPopup}
-              />
-            )
+            : null
         }
-      </div>
+      </>
     );
   }
 

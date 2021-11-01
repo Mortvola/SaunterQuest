@@ -8,3 +8,25 @@
 :global(.mobile).hike-grid {
   grid-template-columns: minmax(0, 1fr);
 }
+
+.terrain {
+  position: absolute;
+  transform: translate3d(0,0,0);
+  z-index: 10000;
+  height: 100%;
+  width: 100%;
+}
+
+.button {
+  position: absolute;
+  margin: 0.5rem;
+  padding: 0;
+  right: 0;
+  background-color: #fff;
+  border-radius: 1rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: 1rem;
+  justify-content: center;
+  display: grid;
+}
