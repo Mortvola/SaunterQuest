@@ -1,7 +1,7 @@
 import React, {
   ReactElement, useEffect, useRef,
 } from 'react';
-import { LatLng } from '../state/Types';
+import { LatLng } from '../../state/Types';
 import TerrainRenderer from './TerrainRenderer';
 
 export type Location = {

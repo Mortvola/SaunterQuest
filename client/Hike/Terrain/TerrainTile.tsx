@@ -1,7 +1,7 @@
 import { vec3, mat4 } from 'gl-matrix';
 import Http from '@mortvola/http';
-import { lngDistance } from '../utilities';
-import { isPointsResponse, Points } from '../ResponseTypes';
+import { lngDistance } from '../../utilities';
+import { isPointsResponse, Points } from '../../ResponseTypes';
 import {
   compileProgram, getStartOffset, loadShader,
 } from './TerrainCommon';

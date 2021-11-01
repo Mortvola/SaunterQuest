@@ -2,9 +2,9 @@ import { vec3, mat4 } from 'gl-matrix';
 import Http from '@mortvola/http';
 import { getStartOffset } from './TerrainCommon';
 import TerrainTile, { TerrainRendererInterface } from './TerrainTile';
-import { LatLng } from '../state/Types';
+import { LatLng } from '../../state/Types';
 import { Location } from './Terrain';
-import { isElevationResponse } from '../ResponseTypes';
+import { isElevationResponse } from '../../ResponseTypes';
 
 const lng2tile = (lon:number, zoom: number) => (
   Math.floor(((lon + 180) / 360) * 2 ** zoom)

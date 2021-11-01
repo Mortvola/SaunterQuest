@@ -9,7 +9,7 @@ import { observer } from 'mobx-react-lite';
 import ContextMenu, { MenuItem, showContextMenu, setMainContextMenu } from '@mortvola/leaflet-context-menu';
 import Route from '../Route';
 import { useGotoLocationDialog } from '../GotoLocationDialog';
-import { useTerrainDialog } from '../../Terrain/TerrainDialog';
+import { useTerrainDialog } from '../Terrain/TerrainDialog';
 import Graticule from '../Graticule';
 import Hike from '../../state/Hike';
 import { LatLng } from '../../state/Types';

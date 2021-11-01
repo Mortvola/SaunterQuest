@@ -1,7 +1,7 @@
 import React, { ReactElement } from 'react';
 import { Modal } from 'react-bootstrap';
 import { makeUseModal, ModalProps } from '@mortvola/usemodal';
-import { LatLng } from '../state/Types';
+import { LatLng } from '../../state/Types';
 import Terrain from './Terrain';
 
 type PropsType = {
