@@ -1,16 +1,16 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import L from 'leaflet';
 import Http from '@mortvola/http';
-import Anchor, { resetWaypointLabel } from './Markers/AnchorAttribute';
+import AnchorAttribute, { resetWaypointLabel } from './Markers/AnchorAttribute';
 import { metersToMiles, metersToFeet } from '../utilities';
 import {
-  AnchorProps, HikeInterface, LatLng, RouteInterface, TrailPoint,
+  AnchorProps, HikeInterface, LatLng, MarkerAttributeTypes, RouteInterface, TrailPoint,
 } from './Types';
 
 class Route implements RouteInterface {
   hike: HikeInterface;
 
-  anchors: Anchor[] = [];
+  anchors: AnchorAttribute[] = [];
 
   elevations: [number, number, number, number][] = [];
 
@@ -39,8 +39,16 @@ class Route implements RouteInterface {
 
             resetWaypointLabel();
             if (route.length > 0) {
-              const newRoute = route.map((a: AnchorProps) => {
-                const anchor = new Anchor(a, this);
+              const newRoute = route.map((a: AnchorProps, index) => {
+                let type: MarkerAttributeTypes = 'waypoint';
+                if (index === 0) {
+                  type = 'start';
+                }
+                else if (index === route.length - 1) {
+                  type = 'finish';
+                }
+
+                const anchor = new AnchorAttribute(type, a, this);
 
                 if (a.type === 'waypoint') {
                   map.addMarker(anchor);
@@ -163,7 +171,7 @@ class Route implements RouteInterface {
     }
   }
 
-  processUpdates = (updates: Array<AnchorProps>, anchors: Array<Anchor>): Array<Anchor> => (
+  processUpdates = (updates: AnchorProps[], anchors: AnchorAttribute[]): AnchorAttribute[] => (
     updates.map((u) => {
       // Is this update for an existing anchor?
       const a = anchors.find((a2) => a2.id === u.id);
@@ -173,7 +181,7 @@ class Route implements RouteInterface {
         return a;
       }
 
-      const anchor = new Anchor(u, this);
+      const anchor = new AnchorAttribute('waypoint', u, this);
 
       if (u.type === 'waypoint') {
         this.hike.map.addMarker(anchor);
@@ -199,16 +207,43 @@ class Route implements RouteInterface {
           lastIndex = firstIndex;
         }
 
-        let newRoute: Anchor[] = [];
+        let newRoute: AnchorAttribute[] = [];
 
         if (firstIndex === lastIndex) {
-          // There was only one anchor entry in the update. Therfore,
-          // this must be the new last anchor in the route. Truncate the route
-          // from thsi new point.
-          newRoute = [
-            ...this.anchors.slice(0, firstIndex),
-            ...this.processUpdates(updates, this.anchors.slice(firstIndex, lastIndex + 1)),
-          ];
+          if (firstIndex === this.anchors.length - 1) {
+            // There was only one anchor entry in the update and it
+            // matched the last anchor. Therefore, this must be adding a new
+            // last anchor to the route. Truncate the route
+            // from thsi new point.
+            newRoute = [
+              ...this.anchors.slice(0, firstIndex),
+              ...this.processUpdates(updates, this.anchors.slice(firstIndex, lastIndex + 1)),
+            ];
+
+            runInAction(() => {
+              if (firstIndex !== newRoute.length - 1) {
+                // The list was added to. Mark what was the last anchor
+                // as a regular waypoint.
+                newRoute[firstIndex].type = 'waypoint';
+              }
+
+              newRoute[newRoute.length - 1].type = 'finish';
+            });
+          }
+          else {
+            // There was only one anchor entry in the update and it
+            // matched the second anchor. Therefore, this must be
+            // the new last anchor in the route. Remove the beginning
+            // of the route.
+            newRoute = [
+              ...this.processUpdates(updates, this.anchors),
+              ...this.anchors.slice(lastIndex + 1),
+            ];
+
+            runInAction(() => {
+              newRoute[0].type = 'start';
+            });
+          }
         }
         else {
           newRoute = [
@@ -263,7 +298,7 @@ class Route implements RouteInterface {
     return (
       this.anchors
         .filter((a) => a.trail)
-        .flatMap((a: Anchor) => {
+        .flatMap((a: AnchorAttribute) => {
           const elevations = a.trail
             .map((p: TrailPoint): [number, number, number, number] => ([
               metersToMiles(distance + p.dist),

@@ -1,7 +1,7 @@
 import { makeObservable, observable } from 'mobx';
 import TrailMarker from '../TrailMarker';
 import {
-  AnchorProps, LatLng, MarkerAttributeInterface, RouteInterface, TrailPoint,
+  AnchorProps, LatLng, MarkerAttributeInterface, MarkerAttributeTypes, RouteInterface, TrailPoint,
 } from '../Types';
 import Marker from './MarkerAttribute';
 
@@ -46,8 +46,8 @@ class AnchorAttribute extends Marker implements MarkerAttributeInterface {
 
   route: RouteInterface;
 
-  constructor(props: AnchorProps, route: RouteInterface) {
-    super('waypoint', { lat: props.lat, lng: props.lng }, true);
+  constructor(type: MarkerAttributeTypes, props: AnchorProps, route: RouteInterface) {
+    super(type, { lat: props.lat, lng: props.lng }, true);
 
     this.id = props.id;
     this.trail = props.trail;
@@ -62,6 +62,7 @@ class AnchorAttribute extends Marker implements MarkerAttributeInterface {
     makeObservable(this, {
       trail: observable,
       trailLength: observable,
+      type: observable,
     });
 
     this.marker = new TrailMarker(

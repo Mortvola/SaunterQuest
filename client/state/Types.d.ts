@@ -77,7 +77,7 @@ export interface MarkerInterface {
   label(): string | null;
 }
 
-export type MarkerAttributeTypes = 'waypoint' | 'campsite' | 'day' | 'water' | 'resupply';
+export type MarkerAttributeTypes = 'start' | 'finish' | 'waypoint' | 'campsite' | 'day' | 'water' | 'resupply';
 
 export interface MarkerAttributeInterface {
   type: MarkerAttributeTypes;

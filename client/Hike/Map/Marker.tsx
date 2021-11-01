@@ -59,6 +59,12 @@ const Marker = ({
     ))
     .map((type) => {
       switch (type) {
+        case 'start':
+          draggable = true;
+          return Icons.start;
+        case 'finish':
+          draggable = true;
+          return Icons.finish;
         case 'waypoint':
           draggable = true;
           return Icons.compass;

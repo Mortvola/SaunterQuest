@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { useMap } from 'react-leaflet';
+import React from 'react';
 import { observer } from 'mobx-react-lite';
 import Trail from './Trail';
 import RouteData from '../state/Route';

@@ -960,6 +960,10 @@ export default class Hike extends BaseModel {
 
       this.routePoints.splice(0, nextAnchorIndex);
 
+      this.routePoints[0].prevFraction = null;
+      this.routePoints[0].prevLineId = null;
+      await this.routePoints[0].save();
+
       return this.prepareUpdates([-1, 0]);
     }
 

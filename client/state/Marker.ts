@@ -25,7 +25,7 @@ class Marker implements MarkerInterface {
   }
 
   async delete(): Promise<void> {
-    const marker = this.#markers.find((m) => m.type === 'waypoint');
+    const marker = this.#markers.find((m) => ['waypoint', 'start', 'finish'].includes(m.type));
 
     if (marker) {
       await this.#map.hike.route.deleteWaypoint((marker as Anchor).id);
