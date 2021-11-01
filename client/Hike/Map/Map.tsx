@@ -23,6 +23,7 @@ import PoiSelectorControl, { PoiSelections } from './PoiSelector';
 import PleaseWait from '../../Hikes/PleaseWait';
 import styles from './Map.module.css';
 import { useStores } from '../../state/store';
+import { runInAction } from 'mobx';
 
 type Props = {
   tileServerUrl: string;
@@ -140,8 +141,10 @@ const Map: FC<Props> = ({
   };
 
   const showIn3D: React.MouseEventHandler = () => {
-    uiState.location3d = temporaryMarkerLocation;
-    uiState.show3D = true;
+    runInAction(() => {
+      uiState.location3d = temporaryMarkerLocation;
+      uiState.show3D = true;
+    });
   };
 
   useMapEvents({

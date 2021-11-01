@@ -73,6 +73,7 @@ class TerrainRenderer implements TerrainRendererInterface {
       const body = await response.body();
       if (isElevationResponse(body)) {
         this.elevation = body.ele;
+        this.requestRender();
       }
     }
     else {
@@ -98,51 +99,51 @@ class TerrainRenderer implements TerrainRendererInterface {
     this.drawScene();
   }
 
-  checkPoints(): void {
-    if (this.tiles[0] && this.tiles[0].positions.length > 0
-      && this.tiles[1] && this.tiles[1].positions.length > 0) {
-      const tile0 = this.tiles[0];
-      const tile1 = this.tiles[1];
+  // checkPoints(): void {
+  //   if (this.tiles[0] && this.tiles[0].positions.length > 0
+  //     && this.tiles[1] && this.tiles[1].positions.length > 0) {
+  //     const tile0 = this.tiles[0];
+  //     const tile1 = this.tiles[1];
 
-      if (tile0.numPointsX !== tile1.numPointsX) {
-        console.log('tile widths differ');
-      }
-      else {
-        for (let x = 0; x < tile0.numPointsX; x += 1) {
-          [0, 2, 4].forEach((j) => {
-            const tile1Value = tile1.positions[x * 5 + j];
-            const tile0Value = tile0.positions[
-              x * 2 * 5 + j
-                + (tile0.numPointsY - 3) * (2 * tile0.numPointsX - 1) * 5
-                + tile0.numPointsX * 5
-            ];
-            if (tile1Value !== tile0Value) {
-              console.log(`tile edges differ at ${x}, ${j}: ${tile1Value} ${tile0Value}`);
-            }
-          });
+  //     if (tile0.numPointsX !== tile1.numPointsX) {
+  //       console.log('tile widths differ');
+  //     }
+  //     else {
+  //       for (let x = 0; x < tile0.numPointsX; x += 1) {
+  //         [0, 2, 4].forEach((j) => {
+  //           const tile1Value = tile1.positions[x * 5 + j];
+  //           const tile0Value = tile0.positions[
+  //             x * 2 * 5 + j
+  //               + (tile0.numPointsY - 3) * (2 * tile0.numPointsX - 1) * 5
+  //               + tile0.numPointsX * 5
+  //           ];
+  //           if (tile1Value !== tile0Value) {
+  //             console.log(`tile edges differ at ${x}, ${j}: ${tile1Value} ${tile0Value}`);
+  //           }
+  //         });
 
-          [0, 2, 4].forEach((j) => {
-            const tile1Value = tile1.positions[
-              x * 2 * 5 + j + tile1.numPointsX * 5
-            ];
-            const tile0Value = tile0.positions[
-              x * 2 * 5 + j
-                + (tile0.numPointsY - 2) * (2 * tile0.numPointsX - 1) * 5
-                + tile0.numPointsX * 5
-            ];
-            if (tile0Value !== tile1Value) {
-              console.log(`tile edges differ at ${x}, ${j}: ${tile0Value} ${tile1Value}`);
-            }
-          });
-        }
-      }
-    }
-  }
+  //         [0, 2, 4].forEach((j) => {
+  //           const tile1Value = tile1.positions[
+  //             x * 2 * 5 + j + tile1.numPointsX * 5
+  //           ];
+  //           const tile0Value = tile0.positions[
+  //             x * 2 * 5 + j
+  //               + (tile0.numPointsY - 2) * (2 * tile0.numPointsX - 1) * 5
+  //               + tile0.numPointsX * 5
+  //           ];
+  //           if (tile0Value !== tile1Value) {
+  //             console.log(`tile edges differ at ${x}, ${j}: ${tile0Value} ${tile1Value}`);
+  //           }
+  //         });
+  //       }
+  //     }
+  //   }
+  // }
 
   drawScene(): void {
     if (this.elevation !== null) {
-    // Clear the canvas before we start drawing on it.
-    // eslint-disable-next-line no-bitwise
+      // Clear the canvas before we start drawing on it.
+      // eslint-disable-next-line no-bitwise
       this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
       const projectionMatrix = this.getProjectionMatrix();

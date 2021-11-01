@@ -8,6 +8,12 @@ import {
 import terrainVertex from './Terrain.vert';
 import terrainFragment from './Terrain.frag';
 
+type TerrainData = {
+  points: number[],
+  indices: number[],
+  normals: number[],
+}
+
 export type TerrainBuffers = {
   position: WebGLBuffer,
   indices: WebGLBuffer,
@@ -16,6 +22,12 @@ export type TerrainBuffers = {
 }
 
 type Location = { x: number, y: number, zoom: number };
+
+const locationHash = (location: Location): string => (
+  `${location.zoom}-${location.x}-${location.y}`
+);
+
+const terrainDataMap: Map<string, TerrainData> = new Map();
 
 const terrainVertexStride = 5;
 
@@ -60,9 +72,6 @@ class TerrainTile {
     vertexNormal: number | null,
   } = { vertexPosition: null, texCoord: null, vertexNormal: null }
 
-  // These members are only needed for debugging.
-  positions: number[] = [];
-
   numPointsX = 0;
 
   numPointsY = 0;
@@ -82,50 +91,59 @@ class TerrainTile {
   async loadTerrain(
     location: Location,
   ): Promise<void> {
-    const response = await Http.get(`${this.renderer.pathFinderUrl}/elevation/tile/${location.zoom}/${location.x}/${location.y}`);
+    let data = terrainDataMap.get(locationHash(location));
 
-    if (response.ok) {
-      const body = await response.body();
-      if (isPointsResponse(body)) {
-        this.initBuffers(body);
-        this.initTexture(location);
-        this.renderer.requestRender();
+    if (!data) {
+      const response = await Http.get(`${this.renderer.pathFinderUrl}/elevation/tile/${location.zoom}/${location.x}/${location.y}`);
+
+      if (response.ok) {
+        const body = await response.body();
+        if (isPointsResponse(body)) {
+          const numPointsX = body.points[0].length;
+          const numPointsY = body.points.length;
+
+          const points = this.createTerrainData(body, numPointsX, numPointsY);
+          const indices = this.createTerrainIndices(numPointsX, numPointsY);
+          const normals = this.createTerrainNormals(points, indices, numPointsX, numPointsY);
+
+          data = { points, indices, normals };
+
+          terrainDataMap.set(locationHash(location), data);
+        }
+      }
+      else {
+        throw new Error('invalid response');
       }
     }
-    else {
-      throw new Error('invalid response');
+
+    if (data) {
+      this.initBuffers(data);
+      this.initTexture(location);
+      this.renderer.requestRender();
     }
   }
 
   initBuffers(
-    terrain: Points,
+    data: TerrainData,
   ): void {
-    const numPointsX = terrain.points[0].length;
-    const numPointsY = terrain.points.length;
-
-    const { positionBuffer, positions } = this.createTerrainBuffer(terrain, numPointsX, numPointsY);
-    const { indexBuffer, indices } = this.createIndexBuffer(numPointsX, numPointsY);
-    const normalBuffer = this.createNormalBuffer(positions, indices, numPointsX, numPointsY);
+    const positionBuffer = this.createTerrainBuffer(data.points);
+    const indexBuffer = this.createIndexBuffer(data.indices);
+    const normalBuffer = this.createNormalBuffer(data.normals);
 
     this.buffers = {
       position: positionBuffer,
       indices: indexBuffer,
-      numVertices: indices.length,
+      numVertices: data.indices.length,
       normals: normalBuffer,
     };
   }
 
-  createTerrainBuffer(
+  // eslint-disable-next-line class-methods-use-this
+  createTerrainData(
     terrain: Points,
     numPointsX: number,
     numPointsY: number,
-  ): { positionBuffer: WebGLBuffer, positions: number[] } {
-    const positionBuffer = this.gl.createBuffer();
-
-    if (positionBuffer === null) {
-      throw new Error('positionBuffer is null');
-    }
-
+  ): number[] {
     const { startLatOffset, startLngOffset } = getStartOffset(terrain.sw);
 
     const sStep = (terrain.textureNE.s - terrain.textureSW.s) / (numPointsX - 1);
@@ -177,26 +195,29 @@ class TerrainTile {
       }
     }
 
+    return positions;
+  }
+
+  createTerrainBuffer(
+    positions: number[],
+  ): WebGLBuffer {
+    const positionBuffer = this.gl.createBuffer();
+
+    if (positionBuffer === null) {
+      throw new Error('positionBuffer is null');
+    }
+
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(positions), this.gl.STATIC_DRAW);
 
-    this.positions = positions;
-    this.numPointsX = numPointsX;
-    this.numPointsY = numPointsY;
-
-    return { positionBuffer, positions };
+    return positionBuffer;
   }
 
-  createIndexBuffer(
+  // eslint-disable-next-line class-methods-use-this
+  createTerrainIndices(
     numPointsX: number,
     numPointsY: number,
-  ): { indexBuffer: WebGLBuffer, indices: number[] } {
-    const indexBuffer = this.gl.createBuffer();
-
-    if (indexBuffer === null) {
-      throw new Error('indexBuffer is null');
-    }
-
+  ): number[] {
     const indices = [];
 
     for (let i = 0; i < numPointsX - 1; i += 1) {
@@ -239,10 +260,22 @@ class TerrainTile {
       }
     }
 
+    return indices;
+  }
+
+  createIndexBuffer(
+    indices: number[],
+  ): WebGLBuffer {
+    const indexBuffer = this.gl.createBuffer();
+
+    if (indexBuffer === null) {
+      throw new Error('indexBuffer is null');
+    }
+
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
     this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(indices), this.gl.STATIC_DRAW);
 
-    return { indexBuffer, indices };
+    return indexBuffer;
   }
 
   static computeNormal(positions: number[], indices: number[], index: number): vec3 {
@@ -271,18 +304,13 @@ class TerrainTile {
     return normal;
   }
 
-  createNormalBuffer(
+  // eslint-disable-next-line class-methods-use-this
+  createTerrainNormals(
     positions: number[],
     indices: number[],
     numPointsX: number,
     numPointsY: number,
-  ): WebGLBuffer {
-    const normalBuffer = this.gl.createBuffer();
-
-    if (normalBuffer === null) {
-      throw new Error('normalBuffer is null');
-    }
-
+  ): number[] {
     // Create a normal for each face
 
     const faceNormals: vec3[] = [];
@@ -392,6 +420,18 @@ class TerrainTile {
       (numPointsY - 2) * (numPointsX - 1) * 4 + ((numPointsX - 1) * 4) - 2,
       (numPointsY - 2) * (numPointsX - 1) * 4 + ((numPointsX - 1) * 4) - 3,
     ]));
+
+    return vertexNormals;
+  }
+
+  createNormalBuffer(
+    vertexNormals: number[],
+  ): WebGLBuffer {
+    const normalBuffer = this.gl.createBuffer();
+
+    if (normalBuffer === null) {
+      throw new Error('normalBuffer is null');
+    }
 
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, normalBuffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertexNormals), this.gl.STATIC_DRAW);

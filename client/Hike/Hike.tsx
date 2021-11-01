@@ -51,8 +51,10 @@ const Hike = ({
 
   if (uiState.hike) {
     const handleBackClick = () => {
-      uiState.show3D = false;
-      uiState.location3d = null;
+      runInAction(() => {
+        uiState.show3D = false;
+        uiState.location3d = null;
+      });
     };
 
     return (
