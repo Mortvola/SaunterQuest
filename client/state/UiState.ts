@@ -1,13 +1,10 @@
 import { LatLng } from 'leaflet';
 import { makeAutoObservable, runInAction } from 'mobx';
-import { VIEW_HIKES } from '../menuEvents';
 import GearConfiguration from './GearConfiguration';
 import Hike from './Hike';
 import { MarkerAttributeTypes } from './Types';
 
 class UiState {
-  view: string = VIEW_HIKES;
-
   hike: Hike | null = null;
 
   selectedGearConfiguration: GearConfiguration | null = null;
@@ -34,10 +31,6 @@ class UiState {
 
   constructor() {
     makeAutoObservable(this);
-  }
-
-  setView(view: string): void {
-    this.view = view;
   }
 
   setHike(hike: Hike): void {

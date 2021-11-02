@@ -3,7 +3,6 @@ import React, { useRef, ReactElement } from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import { makeUseModal, ModalProps } from '@mortvola/usemodal';
 import { useStores } from '../state/store';
-import { VIEW_HIKE } from '../menuEvents';
 
 type PropsType = {
 }
@@ -28,7 +27,7 @@ const HikeDialog = ({
     // const hike = await hikeManager.addHike(name);
 
     // uiState.hike = hike;
-    uiState.setView(VIEW_HIKE);
+    // uiState.setView(VIEW_HIKE);
 
     setShow(false);
   };

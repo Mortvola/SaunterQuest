@@ -1,13 +1,14 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
+import { useHistory } from 'react-router-dom';
 import Hike from './Hike';
 import PleaseWait from './PleaseWait';
 import { useStores } from '../state/store';
-import { VIEW_HIKE } from '../menuEvents';
 import HikeData from '../state/Hike';
 
 const Hikes = () => {
   const { uiState, hikeManager } = useStores();
+  const history = useHistory();
 
   const handleDelete = (id: number) => {
     hikeManager.deleteHike(id);
@@ -17,7 +18,7 @@ const Hikes = () => {
     const hike = await hikeManager.addHike();
 
     uiState.setHike(new HikeData(hike));
-    uiState.setView(VIEW_HIKE);
+    history.push(`/hike/${hike.id}`);
   };
 
   return (
