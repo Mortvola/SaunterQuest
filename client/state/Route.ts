@@ -4,8 +4,9 @@ import Http from '@mortvola/http';
 import AnchorAttribute, { resetWaypointLabel } from './Markers/AnchorAttribute';
 import { metersToMiles, metersToFeet } from '../utilities';
 import {
-  AnchorProps, HikeInterface, LatLng, MarkerAttributeTypes, RouteInterface, TrailPoint,
+  HikeInterface, LatLng, MarkerAttributeTypes, RouteInterface, TrailPoint,
 } from './Types';
+import { RouteUpdateResponse, AnchorProps } from '../../common/ResponseTypes';
 
 class Route implements RouteInterface {
   hike: HikeInterface;
@@ -73,13 +74,13 @@ class Route implements RouteInterface {
     // todo: handle error case
   }
 
-  updateRoute(updates: AnchorProps[]): void {
+  updateRoute(updates: RouteUpdateResponse): void {
     this.receiveWaypointUpdates(updates);
     this.hike.requestSchedule();
   }
 
   async addStartWaypoint(position: LatLng): Promise<void> {
-    const response = await Http.post<LatLng, AnchorProps[]>(`/api/hike/${this.hike.id}/route/start-point`,
+    const response = await Http.post<LatLng, RouteUpdateResponse>(`/api/hike/${this.hike.id}/route/start-point`,
       position);
 
     if (response.ok) {
@@ -97,7 +98,7 @@ class Route implements RouteInterface {
   }
 
   async addEndWaypoint(position: LatLng): Promise<void> {
-    const response = await Http.post<LatLng, AnchorProps[]>(`/api/hike/${this.hike.id}/route/end-point`,
+    const response = await Http.post<LatLng, RouteUpdateResponse>(`/api/hike/${this.hike.id}/route/end-point`,
       position);
 
     if (response.ok) {
@@ -114,8 +115,8 @@ class Route implements RouteInterface {
     }
   }
 
-  addWaypoint = async (position: LatLng): Promise<void> => {
-    const response = await Http.post<LatLng, AnchorProps[]>(`/api/hike/${this.hike.id}/route/waypoint`,
+  async addWaypoint(position: LatLng): Promise<void> {
+    const response = await Http.post<LatLng, RouteUpdateResponse>(`/api/hike/${this.hike.id}/route/waypoint`,
       position);
 
     if (response.ok) {
@@ -132,14 +133,14 @@ class Route implements RouteInterface {
     }
   }
 
-  moveWaypoint = async (id: number, point: LatLng): Promise<LatLng> => {
-    const response = await Http.put<LatLng, AnchorProps[]>(`/api/hike/${this.hike.id}/route/waypoint/${id}/position`,
+  async moveWaypoint(id: number, point: LatLng): Promise<LatLng> {
+    const response = await Http.put<LatLng, RouteUpdateResponse>(`/api/hike/${this.hike.id}/route/waypoint/${id}/position`,
       point);
 
     if (response.ok) {
       const updates = await response.body();
 
-      const waypoint = updates.find((a) => a.id === id);
+      const waypoint = updates.anchors.find((a) => a.id === id);
 
       if (!waypoint) {
         throw new Error('waypoint not found');
@@ -158,7 +159,7 @@ class Route implements RouteInterface {
   }
 
   async deleteWaypoint(id: number): Promise<void> {
-    const response = await Http.delete<AnchorProps[]>(`/api/hike/${this.hike.id}/route/waypoint/${id}`);
+    const response = await Http.delete<RouteUpdateResponse>(`/api/hike/${this.hike.id}/route/waypoint/${id}`);
 
     if (response.ok) {
       const updates = await response.body();
@@ -191,76 +192,85 @@ class Route implements RouteInterface {
     })
   )
 
-  receiveWaypointUpdates(updates: AnchorProps[]): void {
+  receiveWaypointUpdates(updates: RouteUpdateResponse): void {
     if (this.anchors.length === 0) {
-      this.anchors = this.processUpdates(updates, []);
+      this.anchors = this.processUpdates(updates.anchors, []);
       this.setElevations(this.computeElevations());
     }
     else {
-      const firstIndex = this.anchors.findIndex((a) => a.id === updates[0].id);
+      const firstIndex = this.anchors.findIndex((a) => a.id === updates.anchors[0].id);
       let lastIndex = this.anchors.findIndex(
-        (a) => a.id === updates[updates.length - 1].id,
+        (a) => a.id === updates.anchors[updates.anchors.length - 1].id,
       );
 
-      if (firstIndex !== -1) {
-        if (lastIndex === -1) {
-          lastIndex = firstIndex;
-        }
+      if (firstIndex === -1) {
+        throw Error('update anchor index not found');
+      }
 
-        let newRoute: AnchorAttribute[] = [];
+      if (lastIndex === -1) {
+        lastIndex = firstIndex;
+      }
 
-        if (firstIndex === lastIndex) {
-          if (firstIndex === this.anchors.length - 1) {
-            // There was only one anchor entry in the update and it
-            // matched the last anchor. Therefore, this must be adding a new
-            // last anchor to the route. Truncate the route
-            // from thsi new point.
-            newRoute = [
-              ...this.anchors.slice(0, firstIndex),
-              ...this.processUpdates(updates, this.anchors.slice(firstIndex, lastIndex + 1)),
-            ];
+      let newRoute: AnchorAttribute[] = [];
 
-            runInAction(() => {
-              if (firstIndex !== newRoute.length - 1) {
-                // The list was added to. Mark what was the last anchor
-                // as a regular waypoint.
-                newRoute[firstIndex].type = 'waypoint';
-              }
-
-              newRoute[newRoute.length - 1].type = 'finish';
-            });
-          }
-          else {
-            // There was only one anchor entry in the update and it
-            // matched the second anchor. Therefore, this must be
-            // the new last anchor in the route. Remove the beginning
-            // of the route.
-            newRoute = [
-              ...this.processUpdates(updates, this.anchors),
-              ...this.anchors.slice(lastIndex + 1),
-            ];
-
-            runInAction(() => {
-              newRoute[0].type = 'start';
-            });
-          }
-        }
-        else {
+      switch (updates.type) {
+        case 'end':
           newRoute = [
             ...this.anchors.slice(0, firstIndex),
-            ...this.processUpdates(updates, this.anchors.slice(firstIndex, lastIndex + 1)),
+            ...this.processUpdates(
+              updates.anchors, this.anchors.slice(firstIndex, lastIndex + 1),
+            ),
+          ];
+
+          runInAction(() => {
+            if (firstIndex !== 0) {
+              // The list was added to. Mark what was the last anchor
+              // as a regular waypoint.
+              newRoute[firstIndex].type = 'waypoint';
+            }
+
+            if (newRoute.length !== 1) {
+              newRoute[newRoute.length - 1].type = 'finish';
+            }
+          });
+          break;
+
+        case 'start':
+          // There was only one anchor entry in the update and it
+          // matched the second anchor. Therefore, this must be
+          // the new last anchor in the route. Remove the beginning
+          // of the route.
+          newRoute = [
+            ...this.processUpdates(updates.anchors, this.anchors),
             ...this.anchors.slice(lastIndex + 1),
           ];
-        }
 
-        resetWaypointLabel();
-        newRoute.forEach((a) => {
-          a.setLabel();
-        });
+          runInAction(() => {
+            newRoute[0].type = 'start';
+          });
+          break;
 
-        this.anchors = newRoute;
-        this.setElevations(this.computeElevations());
+        case 'middle':
+          newRoute = [
+            ...this.anchors.slice(0, firstIndex),
+            ...this.processUpdates(
+              updates.anchors, this.anchors.slice(firstIndex, lastIndex + 1),
+            ),
+            ...this.anchors.slice(lastIndex + 1),
+          ];
+          break;
+
+        default:
+          throw new Error('invalid update type');
       }
+
+      resetWaypointLabel();
+      newRoute.forEach((a) => {
+        a.setLabel();
+      });
+
+      this.anchors = newRoute;
+      this.setElevations(this.computeElevations());
     }
   }
 
@@ -288,11 +298,11 @@ class Route implements RouteInterface {
     throw new Error('cannot compute bounds from empty array');
   }
 
-  setElevations(elevations: Array<[number, number, number, number]>): void {
+  setElevations(elevations: [number, number, number, number][]): void {
     this.elevations = elevations;
   }
 
-  computeElevations(): Array<[number, number, number, number]> {
+  computeElevations(): [number, number, number, number][] {
     let distance = 0;
 
     return (

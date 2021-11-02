@@ -2,6 +2,7 @@ import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import Database from '@ioc:Adonis/Lucid/Database';
 import Hike from 'App/Models/Hike';
 import Point from 'App/Types/Point';
+import { RouteUpdateResponse } from 'common/ResponseTypes';
 
 export default class RouteController {
   // eslint-disable-next-line class-methods-use-this
@@ -85,7 +86,7 @@ export default class RouteController {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  public async deleteWaypoint({ params, response }: HttpContextContract): Promise<void> {
+  public async deleteWaypoint({ params }: HttpContextContract): Promise<RouteUpdateResponse> {
     const updates = await Database.transaction(async (trx) => {
       const hike = await Hike.findOrFail(parseInt(params.hikeId, 10));
       hike.useTransaction(trx);
@@ -94,7 +95,6 @@ export default class RouteController {
       return hike.deleteWaypoint(parseInt(params.waypointId, 10));
     });
 
-    response.header('content-type', 'application/json');
-    response.send(JSON.stringify(updates));
+    return updates;
   }
 }

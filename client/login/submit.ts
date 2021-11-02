@@ -1,5 +1,5 @@
 import Http from '@mortvola/http';
-import { isErrorResponse } from '../ResponseTypes';
+import { isErrorResponse } from '../../common/ResponseTypes';
 
 async function submitForm(
   event: MouseEvent,

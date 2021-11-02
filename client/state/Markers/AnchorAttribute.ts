@@ -1,8 +1,10 @@
 import { makeObservable, observable } from 'mobx';
 import TrailMarker from '../TrailMarker';
 import {
-  AnchorProps, LatLng, MarkerAttributeInterface, MarkerAttributeTypes, RouteInterface, TrailPoint,
+  LatLng, MarkerAttributeInterface, MarkerAttributeTypes, RouteInterface, TrailPoint,
 } from '../Types';
+import { AnchorProps } from '../../../common/ResponseTypes';
+
 import Marker from './MarkerAttribute';
 
 const wayPointUrl = 'compass.svg';
@@ -50,7 +52,7 @@ class AnchorAttribute extends Marker implements MarkerAttributeInterface {
     super(type, { lat: props.lat, lng: props.lng }, true);
 
     this.id = props.id;
-    this.trail = props.trail;
+    this.trail = props.trail ?? [];
     this.trailLength = props.trailLength;
 
     if (props.type === 'waypoint') {
@@ -76,7 +78,7 @@ class AnchorAttribute extends Marker implements MarkerAttributeInterface {
   )
 
   update(props: AnchorProps): void {
-    this.trail = props.trail;
+    this.trail = props.trail ?? [];
     this.trailLength = props.trailLength;
     this.latLng = { lat: props.lat, lng: props.lng };
   }

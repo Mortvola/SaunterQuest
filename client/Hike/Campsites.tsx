@@ -8,7 +8,7 @@ import { useMap, useMapEvent } from 'react-leaflet';
 import {
   createPathComponent, LeafletContextInterface,
 } from '@react-leaflet/core';
-import { Campsite, isCampsiteResponse } from '../ResponseTypes';
+import { Campsite, isCampsiteResponse } from '../../common/ResponseTypes';
 import { createIcon } from './mapUtils';
 import ClusterableMarker from './ClusterableMarker';
 import campsite from '../images/campsite.svg';

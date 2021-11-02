@@ -116,7 +116,7 @@ export default class RoutePoint extends BaseModel {
   }
 
   public static async getElevation(lat: number, lng: number) : Promise<number | null> {
-    const elevation = await fetch(`${Env.get('PATHFINDER_URL')}/elevation/point?lat=${lat}&lng=${lng}`)
+    const elevation = await fetch(`${Env.get('PATHFINDER_INTERNAL_URL')}/elevation/point?lat=${lat}&lng=${lng}`)
       .then((response) => {
         if (response.ok) {
           return response.json();

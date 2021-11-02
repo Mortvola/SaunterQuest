@@ -43,7 +43,7 @@ class Router {
   }
 
   public static async getTrailFromPoint(point: Point) : Promise<TrailInfo> {
-    const response = await fetch(`${Env.get('PATHFINDER_URL')}/map/trail-from-point/${point.lat}/${point.lng}`);
+    const response = await fetch(`${Env.get('PATHFINDER_INTERNAL_URL')}/map/trail-from-point/${point.lat}/${point.lng}`);
 
     if (response.ok) {
       const trailInfo = await response.json();

@@ -1,3 +1,27 @@
+export type TrailPointProps = {
+  lat: number;
+  lng: number;
+  dist: number;
+  ele: number;
+}
+
+export type AnchorProps = {
+  id: number;
+  type: string;
+  trail: TrailPointProps[] | null;
+  trailLength: number;
+  // latLng: LatLng;
+  lat: number;
+  lng: number;
+}
+
+export type RouteUpdateType = 'start' | 'end' | 'middle';
+
+export type RouteUpdateResponse = {
+  type: RouteUpdateType;
+  anchors: AnchorProps[],
+}
+
 export type Points = {
   ne: { lat: number, lng: number },
   sw: { lat: number, lng: number },

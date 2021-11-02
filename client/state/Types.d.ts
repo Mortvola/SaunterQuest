@@ -108,17 +108,6 @@ export interface TrailPoint extends LatLng {
   ele: number;
 }
 
-export interface AnchorProps {
-  id: number;
-  type: string;
-  marker: unknown;
-  trail: Array<TrailPoint>;
-  trailLength: number;
-  // latLng: LatLng;
-  lat: number;
-  lng: number;
-}
-
 export interface DayProps {
   id: number;
   day: number;
