@@ -37,26 +37,31 @@ class Marker implements MarkerInterface {
   async move(latLng: LatLng): Promise<void> {
     this.#map.setWaiting(true);
 
-    const anchor = this.#markers.find((m) => ['waypoint', 'start', 'finish'].includes(m.type));
+    try {
+      const anchor = this.#markers.find((m) => ['waypoint', 'start', 'finish'].includes(m.type));
 
-    if (anchor) {
-      const newLatLng = await anchor.move(latLng);
+      if (anchor) {
+        const newLatLng = await anchor.move(latLng);
 
-      runInAction(() => {
-        this.#markers.forEach((m) => {
-          if (m !== anchor) {
-            m.move(newLatLng);
-          }
+        runInAction(() => {
+          this.#markers.forEach((m) => {
+            if (m !== anchor) {
+              m.move(newLatLng);
+            }
+          });
+
+          this.latLng = newLatLng;
+
+          this.#map.setWaiting(false);
         });
-
-        this.latLng = newLatLng;
-
+      }
+      else {
+        this.#markers.forEach((m) => m.move(latLng));
+        this.latLng = latLng;
         this.#map.setWaiting(false);
-      });
+      }
     }
-    else {
-      this.#markers.forEach((m) => m.move(latLng));
-      this.latLng = latLng;
+    catch (error) {
       this.#map.setWaiting(false);
     }
   }
