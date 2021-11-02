@@ -1,0 +1,17 @@
+.hikes-wrapper {
+  display: grid;
+  grid-template-rows: max-content minmax(0, 1fr);
+  position: relative;
+}
+
+.hikes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  align-content: baseline;
+  justify-content: center;
+  overflow: auto;
+  padding-left: 14px;
+  padding-right: 14px;
+}
+

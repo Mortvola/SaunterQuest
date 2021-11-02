@@ -5,6 +5,7 @@ import Hike from './Hike';
 import PleaseWait from './PleaseWait';
 import { useStores } from '../state/store';
 import HikeData from '../state/Hike';
+import styles from './Hikes.module.css';
 
 const Hikes = () => {
   const { uiState, hikeManager } = useStores();
@@ -22,14 +23,14 @@ const Hikes = () => {
   };
 
   return (
-    <div className="hikes-wrapper">
+    <div className={styles.hikesWrapper}>
       <h4>
         Hikes
         <button type="button" className="btn btn-sm" onClick={handleAddHike}>
           <i className="fas fa-plus" />
         </button>
       </h4>
-      <div className="hikes">
+      <div className={styles.hikes}>
         {
           hikeManager.hikes.map((h) => (
             <Hike

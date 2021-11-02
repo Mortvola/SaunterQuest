@@ -52,22 +52,6 @@ html, body {
   color: white;
 }
 
-.hikes-wrapper {
-  display: grid;
-  grid-template-rows: max-content minmax(0, 1fr);
-  position: relative;
-}
-
-.hikes {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  align-content: baseline;
-  overflow: auto;
-  padding-left: 14px;
-  padding-right: 14px;
-}
-
 div.hike-card-header {
   background-color: #733700;
   color: white;
