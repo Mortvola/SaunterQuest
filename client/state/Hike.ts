@@ -28,7 +28,7 @@ class Hike implements HikeInterface {
 
   schedule: Day[] = [];
 
-  route: Route = new Route(this);
+  route: Route;
 
   camps: CampsiteMarker[] = [];
 
@@ -44,6 +44,7 @@ class Hike implements HikeInterface {
     makeAutoObservable(this);
 
     this.map = new Map(this);
+    this.route = new Route(this, this.map);
 
     this.id = hikeItem.id;
 

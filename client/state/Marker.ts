@@ -35,18 +35,14 @@ class Marker implements MarkerInterface {
   }
 
   async move(latLng: LatLng): Promise<void> {
+    this.#map.setWaiting(true);
+
     const anchor = this.#markers.find((m) => ['waypoint', 'start', 'finish'].includes(m.type));
 
     if (anchor) {
-      runInAction(() => {
-        this.#map.waiting = true;
-      });
-
       const newLatLng = await anchor.move(latLng);
 
       runInAction(() => {
-        this.#map.waiting = false;
-
         this.#markers.forEach((m) => {
           if (m !== anchor) {
             m.move(newLatLng);
@@ -54,11 +50,14 @@ class Marker implements MarkerInterface {
         });
 
         this.latLng = newLatLng;
+
+        this.#map.setWaiting(false);
       });
     }
     else {
       this.#markers.forEach((m) => m.move(latLng));
       this.latLng = latLng;
+      this.#map.setWaiting(false);
     }
   }
 

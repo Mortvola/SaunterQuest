@@ -247,7 +247,7 @@ const Map: FC<Props> = ({
           )
           : null
       }
-      <PleaseWait show={hike.map.waiting} />
+      <PleaseWait show={hike.map.getWaiting()} />
     </>
   );
 };

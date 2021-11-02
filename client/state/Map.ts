@@ -1,4 +1,4 @@
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, runInAction } from 'mobx';
 import Marker from './Marker';
 import {
   HikeInterface, LatLng, MapInterface, MarkerAttributeInterface,
@@ -19,6 +19,16 @@ class Map implements MapInterface {
     this.hike = hike;
 
     makeAutoObservable(this);
+  }
+
+  setWaiting(waiting: boolean): void {
+    runInAction(() => {
+      this.waiting = waiting;
+    });
+  }
+
+  getWaiting(): boolean {
+    return this.waiting;
   }
 
   addMarker(marker: MarkerAttributeInterface): void {

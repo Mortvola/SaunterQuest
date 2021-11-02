@@ -54,7 +54,7 @@ export interface MapInterface {
 
   markers: MarkerInterface[];
 
-  waiting: boolean;
+  setWaiting(waiting: boolean): void;
 
   addMarker(marker: MarkerAttributeInterface): void;
 
