@@ -18,12 +18,18 @@
 |
 */
 
+import HealthCheck from '@ioc:Adonis/Core/HealthCheck';
 import Route from '@ioc:Adonis/Core/Route';
 
 Route.get('/', 'HomeController.index');
 Route.get('/gear', 'HomeController.index');
 Route.get('/food', 'HomeController.index');
 Route.get('/hike/:id', 'HomeController.index');
+
+Route.get('/health', async ({ response }) => {
+  const report = await HealthCheck.getReport();
+  return response.ok(report);
+});
 
 Route.get('/signin', 'HomeController.index');
 
