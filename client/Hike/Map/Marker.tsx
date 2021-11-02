@@ -53,6 +53,8 @@ const Marker = ({
     .filter((type) => (
       (type !== 'day' || uiState.showMarkers.get('day'))
       && (type !== 'waypoint' || selections.waypoints)
+      && (type !== 'start' || selections.waypoints)
+      && (type !== 'finish' || selections.waypoints)
       && (type !== 'water' || uiState.showMarkers.get('water'))
       && (type !== 'campsite' || uiState.showMarkers.get('campsite'))
       && (type !== 'resupply' || uiState.showMarkers.get('resupply'))

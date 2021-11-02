@@ -725,8 +725,7 @@ class Route {
 
   static anchorIsWaypoint(anchor) {
     return (
-      anchor.type !== undefined
-            && (anchor.type === 'waypoint' || anchor.type === 'start' || anchor.type === 'end')
+      anchor.type !== undefined && (['waypoint', 'start', 'finish'].includes(anchor.type))
     );
   }
 

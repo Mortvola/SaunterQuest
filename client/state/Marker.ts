@@ -34,8 +34,8 @@ class Marker implements MarkerInterface {
     this.#map.removeMarker(this);
   }
 
-  move = async (latLng: LatLng): Promise<void> => {
-    const anchor = this.#markers.find((m) => m.type === 'waypoint');
+  async move(latLng: LatLng): Promise<void> {
+    const anchor = this.#markers.find((m) => ['waypoint', 'start', 'finish'].includes(m.type));
 
     if (anchor) {
       runInAction(() => {
