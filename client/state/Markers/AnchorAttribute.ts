@@ -4,8 +4,7 @@ import {
   LatLng, MarkerAttributeInterface, MarkerAttributeTypes, RouteInterface, TrailPoint,
 } from '../Types';
 import { AnchorProps } from '../../../common/ResponseTypes';
-
-import Marker from './MarkerAttribute';
+import MarkerAttribute from './MarkerAttribute';
 
 const wayPointUrl = 'compass.svg';
 
@@ -37,7 +36,7 @@ const getWaypointLabel = () => {
   return newLabel;
 };
 
-class AnchorAttribute extends Marker implements MarkerAttributeInterface {
+class AnchorAttribute extends MarkerAttribute implements MarkerAttributeInterface {
   id: number;
 
   marker: TrailMarker;

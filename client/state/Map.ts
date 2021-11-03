@@ -31,7 +31,7 @@ class Map implements MapInterface {
     return this.waiting;
   }
 
-  addMarker(marker: MarkerAttributeInterface): void {
+  addMarkerAttribute(marker: MarkerAttributeInterface): void {
     let mapMarker = this.markers.find((m) => (
       m.latLng.lat === marker.latLng.lat
       && m.latLng.lng === marker.latLng.lng
@@ -42,7 +42,7 @@ class Map implements MapInterface {
       this.markers.push(mapMarker);
     }
 
-    mapMarker.addMarker(marker);
+    mapMarker.addMarkerAttribute(marker);
   }
 
   removeMarker(marker: Marker): void {

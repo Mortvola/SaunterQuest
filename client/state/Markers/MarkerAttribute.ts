@@ -22,12 +22,18 @@ class MarkerAttribute {
     });
   }
 
-  move = async (latLng: LatLng): Promise<LatLng> => {
+  async move(latLng: LatLng): Promise<LatLng> {
     if (this.moveable) {
       this.latLng = latLng;
     }
 
     return latLng;
+  }
+
+  remove() {
+    if (this.mapMarker) {
+      this.mapMarker.removeMarkerAttribute(this);
+    }
   }
 }
 

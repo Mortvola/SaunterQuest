@@ -1,3 +1,4 @@
+import DayAttribute from './Markers/DayAttribute';
 import TrailMarker from './TrailMarker';
 
 export interface HikeManagerInterface {
@@ -56,7 +57,7 @@ export interface MapInterface {
 
   setWaiting(waiting: boolean): void;
 
-  addMarker(marker: MarkerAttributeInterface): void;
+  addMarkerAttribute(attribute: MarkerAttributeInterface): void;
 
   removeMarker(marker: Marker): void;
 
@@ -75,6 +76,8 @@ export interface MarkerInterface {
   popup(): string | null;
 
   label(): string | null;
+
+  removeMarkerAttribute(attribute: MarkerAttributeInterface): void;
 }
 
 export type MarkerAttributeTypes = 'start' | 'finish' | 'waypoint' | 'campsite' | 'day' | 'water' | 'resupply';
@@ -126,7 +129,7 @@ export interface DayProps {
   accumWeight: number;
 }
 
-export interface Day {
+export type Day = {
   id: number;
   day: number;
   latLng: LatLng;
@@ -139,6 +142,7 @@ export interface Day {
   gain: number;
   loss: number;
   accumWeight: number;
+  dayAttribute?: DayAttribute;
 }
 
 export interface RouteInterface {

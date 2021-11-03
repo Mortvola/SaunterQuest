@@ -1,7 +1,7 @@
 import { LatLng, MarkerAttributeInterface } from '../Types';
-import Marker from './MarkerAttribute';
+import MarkerAttribute from './MarkerAttribute';
 
-class CampsiteAttribute extends Marker implements MarkerAttributeInterface {
+class CampsiteAttribute extends MarkerAttribute implements MarkerAttributeInterface {
   constructor(latLng: LatLng) {
     super('campsite', latLng, true);
   }

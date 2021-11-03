@@ -9,8 +9,8 @@ import {
 } from './Types';
 import { createIcon } from '../Hike/mapUtils';
 import CampsiteMarker from './Markers/CampsiteAttribute';
-import Marker from './Markers/MarkerAttribute';
-import DayMarker from './Markers/DayAttribute';
+import MarkerAttribute from './Markers/MarkerAttribute';
+import DayAttribute from './Markers/DayAttribute';
 import { redCircle } from '../Hike/Map/Icons';
 
 class Hike implements HikeInterface {
@@ -32,7 +32,7 @@ class Hike implements HikeInterface {
 
   camps: CampsiteMarker[] = [];
 
-  pointsOfInterest: Array<Marker> = [];
+  pointsOfInterest: MarkerAttribute[] = [];
 
   map: Map;
 
@@ -154,6 +154,13 @@ class Hike implements HikeInterface {
         runInAction(() => {
           let meters = 0;
 
+          // Remove the current day attributes
+          this.schedule.forEach((d) => {
+            if (d.dayAttribute) {
+              d.dayAttribute.remove();
+            }
+          });
+
           this.schedule = schedule.map((d, index) => {
             const day: Day = {
               id: d.id,
@@ -170,8 +177,10 @@ class Hike implements HikeInterface {
               accumWeight: 0,
             };
 
+            day.dayAttribute = new DayAttribute(day, { lat: d.lat, lng: d.lng });
+
             if (index > 0) {
-              this.map.addMarker(new DayMarker(day, { lat: d.lat, lng: d.lng }));
+              this.map.addMarkerAttribute(day.dayAttribute);
             }
 
             meters += d.meters;
@@ -193,7 +202,7 @@ class Hike implements HikeInterface {
       const body = await response.body();
 
       runInAction(() => {
-        body.forEach((poi) => this.map.addMarker(new Marker(
+        body.forEach((poi) => this.map.addMarkerAttribute(new MarkerAttribute(
           poi.type,
           { lat: poi.lat, lng: poi.lng },
           true,
@@ -215,10 +224,10 @@ class Hike implements HikeInterface {
   addCamp(latLng: LatLng): void {
     const campsite = new CampsiteMarker(latLng);
     this.camps.push(campsite);
-    this.map.addMarker(campsite);
+    this.map.addMarkerAttribute(campsite);
   }
 
-  private addPOI = async (latLng: LatLng, type: MarkerAttributeTypes): Promise<void> => {
+  private async addPOI(latLng: LatLng, type: MarkerAttributeTypes): Promise<void> {
     const response = await Http.post(`/api/hike/${this.id}/poi`, {
       name: null,
       description: null,
@@ -228,8 +237,8 @@ class Hike implements HikeInterface {
     });
 
     if (response.ok) {
-      const poi = new Marker(type, latLng, true);
-      this.map.addMarker(poi);
+      const poi = new MarkerAttribute(type, latLng, true);
+      this.map.addMarkerAttribute(poi);
     }
   }
 

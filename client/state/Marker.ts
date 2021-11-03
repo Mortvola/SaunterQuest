@@ -1,5 +1,5 @@
 import { makeAutoObservable, runInAction } from 'mobx';
-import DayMarker from './Markers/DayAttribute';
+import DayAttribute from './Markers/DayAttribute';
 import {
   LatLng, MapInterface, MarkerInterface, MarkerAttributeInterface, MarkerAttributeTypes,
 } from './Types';
@@ -8,7 +8,7 @@ import Anchor from './Markers/AnchorAttribute';
 class Marker implements MarkerInterface {
   latLng: LatLng;
 
-  #markers: MarkerAttributeInterface[] = [];
+  #attributes: MarkerAttributeInterface[] = [];
 
   #map: MapInterface;
 
@@ -19,13 +19,29 @@ class Marker implements MarkerInterface {
     makeAutoObservable(this);
   }
 
-  addMarker(marker: MarkerAttributeInterface): void {
-    this.#markers.push(marker);
-    marker.mapMarker = this;
+  addMarkerAttribute(attribute: MarkerAttributeInterface): void {
+    this.#attributes.push(attribute);
+    attribute.mapMarker = this;
+  }
+
+  removeMarkerAttribute(attribute: MarkerAttributeInterface): void {
+    const index = this.#attributes.findIndex((a) => a === attribute);
+
+    if (index !== -1) {
+      this.#attributes = [
+        ...this.#attributes.slice(0, index),
+        ...this.#attributes.slice(index + 1),
+      ];
+
+      // Remove the marker if there are no more attributes.
+      if (this.#attributes.length === 0) {
+        this.#map.removeMarker(this);
+      }
+    }
   }
 
   async delete(): Promise<void> {
-    const marker = this.#markers.find((m) => ['waypoint', 'start', 'finish'].includes(m.type));
+    const marker = this.#attributes.find((m) => ['waypoint', 'start', 'finish'].includes(m.type));
 
     if (marker) {
       await this.#map.hike.route.deleteWaypoint((marker as Anchor).id);
@@ -38,13 +54,13 @@ class Marker implements MarkerInterface {
     this.#map.setWaiting(true);
 
     try {
-      const anchor = this.#markers.find((m) => ['waypoint', 'start', 'finish'].includes(m.type));
+      const anchor = this.#attributes.find((m) => ['waypoint', 'start', 'finish'].includes(m.type));
 
       if (anchor) {
         const newLatLng = await anchor.move(latLng);
 
         runInAction(() => {
-          this.#markers.forEach((m) => {
+          this.#attributes.forEach((m) => {
             if (m !== anchor) {
               m.move(newLatLng);
             }
@@ -56,7 +72,7 @@ class Marker implements MarkerInterface {
         });
       }
       else {
-        this.#markers.forEach((m) => m.move(latLng));
+        this.#attributes.forEach((m) => m.move(latLng));
         this.latLng = latLng;
         this.#map.setWaiting(false);
       }
@@ -67,21 +83,21 @@ class Marker implements MarkerInterface {
   }
 
   types(): MarkerAttributeTypes[] {
-    return this.#markers.map((m) => m.type);
+    return this.#attributes.map((m) => m.type);
   }
 
   popup(): string | null {
-    const dayMarker = this.#markers.find((m) => m.type === 'day');
+    const dayMarker = this.#attributes.find((m) => m.type === 'day');
 
     if (dayMarker) {
-      return `Day ${(dayMarker as DayMarker).day.day}`;
+      return `Day ${(dayMarker as DayAttribute).day.day}`;
     }
 
     return null;
   }
 
   label(): string | null {
-    const labeledMarker = this.#markers.find((m) => m.label !== null);
+    const labeledMarker = this.#attributes.find((m) => m.label !== null);
 
     if (labeledMarker) {
       return labeledMarker.label;

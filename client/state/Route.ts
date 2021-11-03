@@ -55,7 +55,7 @@ class Route implements RouteInterface {
                 const anchor = new AnchorAttribute(type, a, this);
 
                 if (a.type === 'waypoint') {
-                  map.addMarker(anchor);
+                  map.addMarkerAttribute(anchor);
                 }
 
                 return anchor;
@@ -216,7 +216,7 @@ class Route implements RouteInterface {
       const anchor = new AnchorAttribute('waypoint', u, this);
 
       if (u.type === 'waypoint') {
-        this.hike.map.addMarker(anchor);
+        this.hike.map.addMarkerAttribute(anchor);
       }
 
       return anchor;

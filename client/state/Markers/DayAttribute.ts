@@ -1,7 +1,7 @@
 import { Day, LatLng, MarkerAttributeInterface } from '../Types';
-import Marker from './MarkerAttribute';
+import MarkerAttribute from './MarkerAttribute';
 
-class DayAttribute extends Marker implements MarkerAttributeInterface {
+class DayAttribute extends MarkerAttribute implements MarkerAttributeInterface {
   day: Day;
 
   constructor(day: Day, latLng: LatLng) {
