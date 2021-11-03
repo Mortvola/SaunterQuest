@@ -17,6 +17,9 @@ const lat2tile = (lat: number, zoom: number) => (
   )
 );
 
+const zNear = 1;
+const zFar = 16000.0;
+
 class TerrainRenderer implements TerrainRendererInterface {
   gl: WebGL2RenderingContext;
 
@@ -168,8 +171,6 @@ class TerrainRenderer implements TerrainRendererInterface {
     // Set up the projection matrix
     const fieldOfView = (45 * Math.PI) / 180; // in radians
     const aspect = this.gl.canvas.clientWidth / this.gl.canvas.clientHeight;
-    const zNear = 0.1;
-    const zFar = 32000.0;
     const projectionMatrix = mat4.create();
 
     mat4.perspective(projectionMatrix,
