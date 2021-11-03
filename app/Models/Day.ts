@@ -31,7 +31,7 @@ export default class Day extends BaseModel {
   public loss = 0;
 
   @column()
-  private meters = 0;
+  public meters = 0;
 
   @column()
   public lat = 0;
@@ -40,14 +40,14 @@ export default class Day extends BaseModel {
   public lng = 0;
 
   @computed()
-  private startMeters = 0;
+  public startMeters = 0;
 
   @computed()
   public ele = 0;
 
   // in minutes
   @column({ serializeAs: 'startTime' })
-  private startTime: number | null = null;
+  public startTime: number | null = null;
 
   // in minutes from midnight
   @column({ serializeAs: 'endTime' })

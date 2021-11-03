@@ -18,7 +18,7 @@ const ElevationDayMarker = ({
 
   return (
     <img
-      src="/moon_pin.png"
+      src="/images/moon_pin.png"
       alt=""
       className="elevation-day-marker"
       style={{ top: `${y}px`, left: `${x}px` }}

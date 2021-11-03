@@ -80,3 +80,18 @@ export const isCampsiteResponse = (r: unknown): r is Campsite[] => (
     )
   )
 );
+
+export type DayProps = {
+  gain: number,
+  loss: number,
+  meters: number,
+  lat: number,
+  lng: number,
+  startTime: number | null,
+  endTime: number | null,
+  id: number,
+  startMeters: number,
+  ele: number,
+};
+
+export type ScheduleResponse = DayProps[];

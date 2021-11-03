@@ -3,9 +3,9 @@ class Point {
 
   public lng: number;
 
-  public ele: number = 0;
+  public ele = 0;
 
-  public dist: number = 0;
+  public dist = 0;
 }
 
 export default Point;
