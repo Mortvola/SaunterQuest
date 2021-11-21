@@ -15,7 +15,7 @@ export default class HikerProfilesController {
 
   // eslint-disable-next-line class-methods-use-this
   public async addProfile({ params, request, response }: HttpContextContract) : Promise<void> {
-    const hikerProfile = request.post();
+    const hikerProfile = request.body();
 
     const profile = await HikerProfile.create({
       startDay: hikerProfile.startDay,
@@ -36,7 +36,7 @@ export default class HikerProfilesController {
   // eslint-disable-next-line class-methods-use-this
   public async updateProfile({ params, request, response }: HttpContextContract) : Promise<void> {
     const hikerProfile = await HikerProfile.findOrFail(params.profileId);
-    const update = request.post();
+    const update = request.body();
 
     hikerProfile.startDay = update.startDay;
     hikerProfile.endDay = update.endDay;

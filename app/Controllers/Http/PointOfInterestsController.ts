@@ -19,12 +19,12 @@ export default class PointsOfInterestsController {
   }: HttpContextContract) : Promise<void> {
     if (auth.user) {
       const poi = await PointOfInterest.create({
-        name: request.post().name,
-        description: request.post().description,
+        name: request.body().name,
+        description: request.body().description,
         hikeId: params.hikeId,
-        type: request.post().type,
-        lat: request.post().lat,
-        lng: request.post().lng,
+        type: request.body().type,
+        lat: request.body().lat,
+        lng: request.body().lng,
       });
 
       response.send(poi);

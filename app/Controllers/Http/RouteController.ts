@@ -21,7 +21,7 @@ export default class RouteController {
     params,
     response,
   }: HttpContextContract) : Promise<void> {
-    const point = request.post() as Point;
+    const point = request.body() as Point;
 
     const updates = await Database.transaction(async (trx) => {
       const hike = await Hike.findOrFail(params.hikeId);
@@ -41,7 +41,7 @@ export default class RouteController {
     params,
     response,
   }: HttpContextContract) : Promise<void> {
-    const point = request.post() as Point;
+    const point = request.body() as Point;
 
     const updates = await Database.transaction(async (trx) => {
       const hike = await Hike.findOrFail(parseInt(params.hikeId, 10));
@@ -62,7 +62,7 @@ export default class RouteController {
     params,
     response,
   }: HttpContextContract) : Promise<void> {
-    const point = request.post() as Point;
+    const point = request.body() as Point;
 
     const updates = await Database.transaction(async (trx) => {
       const hike = await Hike.findOrFail(parseInt(params.hikeId, 10));

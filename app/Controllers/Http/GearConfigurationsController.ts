@@ -83,9 +83,9 @@ export default class GearConfigurationsController {
     if (auth.user) {
       const item = await GearConfigurationItem.create({
         gearConfigurationId: params.configId,
-        gearItemId: request.post().gearItemId,
-        quantity: request.post().quantity,
-        worn: request.post().worn,
+        gearItemId: request.body().gearItemId,
+        quantity: request.body().quantity,
+        worn: request.body().worn,
       });
 
       await item.load('gearItem');
@@ -101,8 +101,8 @@ export default class GearConfigurationsController {
     if (auth.user) {
       const item = await GearConfigurationItem.findOrFail(params.itemId);
 
-      item.worn = request.post().worn;
-      item.quantity = request.post().quantity;
+      item.worn = request.body().worn;
+      item.quantity = request.body().quantity;
 
       item.save();
 
@@ -117,7 +117,7 @@ export default class GearConfigurationsController {
     if (auth.user) {
       const config = await GearConfiguration.findOrFail(params.configId);
 
-      config.name = request.post().name;
+      config.name = request.body().name;
       config.save();
 
       response.send(config);

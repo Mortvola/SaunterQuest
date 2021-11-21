@@ -18,12 +18,12 @@ export default class GearItemsController {
     if (auth.user) {
       const item = await GearItem.findOrFail(params.itemId);
 
-      item.system = request.post().system;
-      item.name = request.post().name;
-      item.description = request.post().description;
-      item.consumable = request.post().consumable;
-      item.unitOfMeasure = request.post().unitOfMeasure;
-      item.weight = request.post().weight;
+      item.system = request.body().system;
+      item.name = request.body().name;
+      item.description = request.body().description;
+      item.consumable = request.body().consumable;
+      item.unitOfMeasure = request.body().unitOfMeasure;
+      item.weight = request.body().weight;
 
       item.save();
 
@@ -37,12 +37,12 @@ export default class GearItemsController {
   }: HttpContextContract) : Promise<void> {
     if (auth.user) {
       const item = await GearItem.create({
-        name: request.post().name,
-        description: request.post().description,
-        weight: request.post().weight,
-        unitOfMeasure: request.post().unitOfMeasure,
-        system: request.post().system,
-        consumable: request.post().consumable,
+        name: request.body().name,
+        description: request.body().description,
+        weight: request.body().weight,
+        unitOfMeasure: request.body().unitOfMeasure,
+        system: request.body().system,
+        consumable: request.body().consumable,
         userId: auth.user.id,
       });
 

@@ -21,7 +21,7 @@ export default class UsersController {
   // eslint-disable-next-line class-methods-use-this
   public async putProfile({ auth, request }: HttpContextContract): Promise<void> {
     if (auth.user) {
-      const profile = request.post();
+      const profile = request.body();
 
       auth.user.endHikeDayExtension = profile.endHikeDayExtension;
       auth.user.paceFactor = profile.paceFactor;

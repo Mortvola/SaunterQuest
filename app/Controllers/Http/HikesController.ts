@@ -54,7 +54,7 @@ export default class HikesController {
       const hike = await Hike.findByOrFail('id', params.hikeId);
 
       if (hike) {
-        const update = request.post();
+        const update = request.body();
 
         hike.name = update.name;
         hike.save();
