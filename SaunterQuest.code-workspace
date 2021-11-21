@@ -90,7 +90,10 @@
       "typeinfo": "cpp",
       "valarray": "cpp",
       "*.ipp": "cpp",
-      "dense_hash_map": "cpp"
+      "dense_hash_map": "cpp",
+      "bit": "cpp",
+      "random": "cpp",
+      "variant": "cpp"
     },
     "C_Cpp.formatting": "vcFormat",
     "C_Cpp.vcFormat.newLine.beforeOpenBrace.block": "newLine",

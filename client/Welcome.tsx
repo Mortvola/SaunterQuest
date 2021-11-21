@@ -5,6 +5,7 @@ import ReactDOM from 'react-dom';
 import 'regenerator-runtime/runtime';
 import Login from './login/Login';
 import Register from './login/Register';
+import './welcome.css';
 
 const Welcome = () => {
   const [showLogin, setShowLogin] = useState(false);
