@@ -4,7 +4,7 @@ import HikerProfile from './HikerProfile';
 import Map from './Map';
 import Route from './Route';
 import {
-  Day, DayProps, HikeInterface, HikeItemInterface, LatLng, MarkerAttributeTypes,
+  Day, DayProps, HikeInterface, LatLng, MarkerAttributeTypes,
   PointOfInterestProps, ProfileProps,
 } from './Types';
 import { createIcon } from '../Hike/mapUtils';
@@ -12,6 +12,7 @@ import CampsiteMarker from './Markers/CampsiteAttribute';
 import MarkerAttribute from './Markers/MarkerAttribute';
 import DayAttribute from './Markers/DayAttribute';
 import { redCircle } from '../Hike/Map/Icons';
+import { HikeProps } from '../../common/ResponseTypes';
 
 class Hike implements HikeInterface {
   id: number;
@@ -21,6 +22,8 @@ class Hike implements HikeInterface {
   duration: number | null = null;
 
   distance: number | null = null;
+
+  routeGroupId: number | null = null;
 
   requesting = false;
 
@@ -40,7 +43,7 @@ class Hike implements HikeInterface {
 
   elevationMarkerPos: LatLng | null = null;
 
-  constructor(hikeItem: HikeItemInterface) {
+  constructor(hikeItem: HikeProps) {
     makeAutoObservable(this);
 
     this.map = new Map(this);
@@ -50,9 +53,20 @@ class Hike implements HikeInterface {
 
     this.name = hikeItem.name;
 
+    this.routeGroupId = hikeItem.routeGroupId;
+
     this.route.requestRoute();
 
     this.requestPointsOfInterest();
+  }
+
+  async updateSettings(name: string, routeGroupId: number | null): Promise<void> {
+    const response = await Http.patch(`/api/hike/${this.id}`, { name, routeGroupId });
+
+    if (response.ok) {
+      this.name = name;
+      this.routeGroupId = routeGroupId;
+    }
   }
 
   async requestHikerProfiles(): Promise<void> {

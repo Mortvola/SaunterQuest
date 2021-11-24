@@ -33,8 +33,10 @@ class UiState {
     makeAutoObservable(this);
   }
 
-  setHike(hike: Hike): void {
-    this.hike = hike;
+  setHike(hike: Hike | null): void {
+    runInAction(() => {
+      this.hike = hike;
+    });
   }
 }
 

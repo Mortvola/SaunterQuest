@@ -7,7 +7,8 @@ import {
 } from 'react-leaflet';
 import { observer } from 'mobx-react-lite';
 import ContextMenu, { MenuItem, showContextMenu, setMainContextMenu } from '@mortvola/leaflet-context-menu';
-import Route from '../Route';
+import { runInAction } from 'mobx';
+import Route from './Route';
 import { useGotoLocationDialog } from '../GotoLocationDialog';
 import Graticule from '../Graticule';
 import Hike from '../../state/Hike';
@@ -19,11 +20,11 @@ import useMediaQuery from '../../MediaQuery';
 import MapDrawer from './MapDrawer';
 import ElevationChart from '../Elevation/ElevationChart';
 import DragToggleControl from './DragToggle';
-import PoiSelectorControl, { PoiSelections } from './PoiSelector';
+import { PoiSelections } from './More/PoiSelector';
+import MoreControl from './More/MoreControl';
 import PleaseWait from '../../Hikes/PleaseWait';
 import styles from './Map.module.css';
 import { useStores } from '../../state/store';
-import { runInAction } from 'mobx';
 
 type Props = {
   tileServerUrl: string;
@@ -182,10 +183,11 @@ const Map: FC<Props> = ({
         </LayersControl.Overlay>
       </LayersControl>
       <DragToggleControl position="topright" defaultValue={draggingLocked} onLockToggle={setDraggingLocked} />
-      <PoiSelectorControl
+      <MoreControl
         position="topleft"
         onChange={handlePoiSelectionChange}
         selections={poiSelections}
+        hike={hike}
       />
       <ContextMenu />
       <MapDrawer>

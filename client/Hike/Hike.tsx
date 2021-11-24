@@ -4,6 +4,7 @@ import React, {
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { matchPath, useHistory } from 'react-router-dom';
+import Http from '@mortvola/http';
 import Controls from './Controls';
 import { useStores } from '../state/store';
 import MapContainer from './Map/MapContainer';
@@ -11,6 +12,7 @@ import HikeData from '../state/Hike';
 import styles from './Hike.module.css';
 import useMediaQuery from '../MediaQuery';
 import Terrain from './Terrain/Terrain';
+import { HikeProps } from '../../common/ResponseTypes';
 
 type Props = {
   tileServerUrl: string;
@@ -28,19 +30,23 @@ const Hike = ({
   const { isMobile, addMediaClass } = useMediaQuery();
 
   useEffect(() => {
-    runInAction(() => {
+    (async () => {
       if (uiState.hike === null) {
         const match = matchPath<{ id: string }>(history.location.pathname, { path: '/hike/:id', exact: true });
         if (match) {
-          uiState.hike = new HikeData({ id: parseInt(match.params.id, 10), name: 'test' });
+          const response = await Http.get<HikeProps>(`/api/hike/${parseInt(match.params.id, 10)}`);
+
+          if (response.ok) {
+            const body = await response.body();
+
+            uiState.setHike(new HikeData(body));
+          }
         }
       }
-    });
+    })();
 
     return (() => {
-      runInAction(() => {
-        uiState.hike = null;
-      });
+      uiState.setHike(null);
     });
   }, [history.location.pathname, uiState]);
 

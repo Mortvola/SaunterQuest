@@ -62,6 +62,9 @@ export default class Hike extends BaseModel {
   @column()
   public name: string;
 
+  @column({ serializeAs: 'routeGroupId' })
+  public routeGroupId: number | null;
+
   @hasMany(() => RoutePoint)
   public routePoints: HasMany<typeof RoutePoint>;
 
@@ -467,19 +470,21 @@ export default class Hike extends BaseModel {
     return order;
   }
 
-  private static async findPath(anchors: RoutePoint[]) {
+  private async findPath(this: Hike, anchors: RoutePoint[]) {
     const points = anchors.map((anchor) => ({ lat: anchor.lat, lng: anchor.lng }));
 
     const encodedPoints = encodeURIComponent(JSON.stringify(points));
+    const options = encodeURIComponent(JSON.stringify({
+      preferredTrailId: this.routeGroupId !== -1 ? this.routeGroupId : undefined,
+    }));
 
-    const path = await fetch(`${Env.get('PATHFINDER_INTERNAL_URL')}/map/find-route?p=${encodedPoints}`)
-      .then((response: any) => {
-        if (response.ok) {
-          return response.json();
-        }
+    const response = await fetch(`${Env.get('PATHFINDER_INTERNAL_URL')}/map/find-route?p=${encodedPoints}&o=${options}`);
 
-        throw (new Error(`Fetch from pathFinder failed: ${response.statusText}`));
-      });
+    if (!response.ok) {
+      throw (new Error(`Fetch from pathFinder failed: ${response.statusText}`));
+    }
+
+    const path = response.json();
 
     if (path === null) {
       throw (new Error(`Path could not be determined from points: ${JSON.stringify(points)}`));
@@ -491,7 +496,7 @@ export default class Hike extends BaseModel {
   private async findRouteBetweenWaypoints(this: Hike, anchorIndexes: number[]): Promise<void> {
     const anchors = anchorIndexes.map((a) => this.routePoints[a]);
 
-    const newAnchorsArray = await Hike.findPath(anchors);
+    const newAnchorsArray = await this.findPath(anchors);
 
     if (newAnchorsArray) {
       for (let a = 0; a < anchors.length - 1; a += 1) {

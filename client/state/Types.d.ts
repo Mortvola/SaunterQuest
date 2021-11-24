@@ -2,7 +2,7 @@ import DayAttribute from './Markers/DayAttribute';
 import TrailMarker from './TrailMarker';
 
 export interface HikeManagerInterface {
-  hikes: Array<HikeItemInterface>;
+  hikes: HikeItemInterface[];
 }
 
 export interface HikeItemInterface {
@@ -33,6 +33,10 @@ export interface HikerProfileInterface {
 export interface HikeInterface {
   id: number;
 
+  name: string;
+
+  routeGroupId: number | null;
+
   map: MapInterface;
 
   schedule: Day[];
@@ -40,6 +44,8 @@ export interface HikeInterface {
   route: RouteInterface;
 
   hikerProfiles: HikerProfileInterface[];
+
+  updateSettings(name: string, routeGroupId: number | null): Promise<void>;
 
   requestSchedule(): Promise<void>;
 
@@ -145,12 +151,18 @@ export type Day = {
   dayAttribute?: DayAttribute;
 }
 
+export type Grade = L.LatLng[][][];
+
 export interface RouteInterface {
   anchors: Anchor[];
+
+  grade: Grade;
 
   moveWaypoint: (id: number, point: LatLng) => Promise<LatLng>;
 
   deleteWaypoint(id: number): Promise<void>;
+
+  generateGradeSegments(): void;
 }
 
 export interface GearConfigProps {

@@ -57,13 +57,13 @@ class Scheduler {
 
     const activeHikerProfile: ActiveHikerProfile = this.user.hikerProfile
       ? {
-        speedFactor: this.user.hikerProfile.speedFactor ?? 50,
+        speedFactor: this.user.hikerProfile.speedFactor ?? 100,
         startTime: (this.user.hikerProfile.startTime ?? 8) * 60,
         endTime: (this.user.hikerProfile.endTime ?? 18) * 60,
         breakDuration: this.user.hikerProfile.breakDuration ?? 60,
       }
       : {
-        speedFactor: 50,
+        speedFactor: 70,
         startTime: 8 * 60,
         endTime: 18 * 60,
         breakDuration: 60,
@@ -546,10 +546,9 @@ class Scheduler {
     let segmentMeters = initialSegmentMeters;
     let lastEle = initialEle;
     const restart = false;
-    const metersPerMinute = Scheduler.metersPerHourGet(
-      Scheduler.elevationChange(point1, point2),
-      Scheduler.segmentLength(point1, point2),
-    ) / 60.0;
+    const elevationChange = Scheduler.elevationChange(point1, point2);
+    const segmentLength = Scheduler.segmentLength(point1, point2);
+    const metersPerMinute = Scheduler.metersPerHourGet(elevationChange, segmentLength) / 60.0;
 
     if (this.activeHikerProfile === null) {
       throw new Error('active hiker profile is null');

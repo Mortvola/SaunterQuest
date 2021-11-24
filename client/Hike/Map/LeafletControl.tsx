@@ -19,7 +19,7 @@ class LeafletControl extends L.Control {
     }
 
     DomEvent.disableClickPropagation(this.container);
-    DomEvent.on(this.container, 'click', L.DomEvent.stop);
+    DomEvent.on(this.container, 'click', L.DomEvent.stopPropagation);
     DomEvent.on(this.container, 'mousedown', L.DomEvent.stopPropagation);
 
     return this.container;

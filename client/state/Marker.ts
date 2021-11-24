@@ -4,6 +4,7 @@ import {
   LatLng, MapInterface, MarkerInterface, MarkerAttributeInterface, MarkerAttributeTypes,
 } from './Types';
 import Anchor from './Markers/AnchorAttribute';
+import { metersToMiles, metersToMilesRounded } from '../utilities';
 
 class Marker implements MarkerInterface {
   latLng: LatLng;
@@ -87,10 +88,10 @@ class Marker implements MarkerInterface {
   }
 
   popup(): string | null {
-    const dayMarker = this.#attributes.find((m) => m.type === 'day');
+    const dayMarker = this.#attributes.find((m) => m.type === 'day') as DayAttribute;
 
     if (dayMarker) {
-      return `Day ${(dayMarker as DayAttribute).day.day}`;
+      return `Day ${dayMarker.day.day}\nMiles: ${metersToMilesRounded(dayMarker.day.startMeters)}`;
     }
 
     return null;

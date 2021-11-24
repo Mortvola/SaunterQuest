@@ -1,7 +1,8 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
 import Trail from './Trail';
-import RouteData from '../state/Route';
+import RouteData from '../../state/Route';
+import Grade from './Grade';
 
 type PropsType = {
   route: RouteData;
@@ -21,6 +22,7 @@ const Route = ({
             />
           ))
         }
+        <Grade route={route} />
       </>
     );
   }

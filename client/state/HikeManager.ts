@@ -3,9 +3,10 @@ import Http from '@mortvola/http';
 import HikeItem from './HikeItem';
 import { BaseHikeProps, HikeManagerInterface } from './Types';
 import { Store } from './store';
+import { HikeProps } from '../../common/ResponseTypes';
 
 class HikeManager implements HikeManagerInterface {
-  hikes: Array<HikeItem> = [];
+  hikes: HikeItem[] = [];
 
   requesting = false;
 
@@ -56,14 +57,14 @@ class HikeManager implements HikeManagerInterface {
     this.requesting = requesting;
   }
 
-  setHikes(hikes: Array<HikeItem>): void {
+  setHikes(hikes: HikeItem[]): void {
     this.hikes = hikes.map((h) => (
       new HikeItem(h)
     ));
   }
 
-  async addHike(): Promise<HikeItem> {
-    const response = await Http.post<void, BaseHikeProps>('/api/hike');
+  async addHike(): Promise<HikeProps> {
+    const response = await Http.post<void, HikeProps>('/api/hike');
 
     if (response.ok) {
       const body = await response.body();
@@ -80,7 +81,7 @@ class HikeManager implements HikeManagerInterface {
         }
       });
 
-      return newHike;
+      return body;
     }
 
     throw new Error('invalid response');

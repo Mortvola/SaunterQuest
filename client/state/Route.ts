@@ -4,7 +4,7 @@ import Http from '@mortvola/http';
 import AnchorAttribute, { resetWaypointLabel } from './Markers/AnchorAttribute';
 import { metersToMiles, metersToFeet } from '../utilities';
 import {
-  HikeInterface, LatLng, MapInterface, MarkerAttributeTypes, RouteInterface, TrailPoint,
+  Grade, HikeInterface, LatLng, MapInterface, MarkerAttributeTypes, RouteInterface, TrailPoint,
 } from './Types';
 import { RouteUpdateResponse, AnchorProps } from '../../common/ResponseTypes';
 
@@ -12,6 +12,8 @@ class Route implements RouteInterface {
   hike: HikeInterface;
 
   anchors: AnchorAttribute[] = [];
+
+  grade: Grade = [[], [], [], [], []];
 
   elevations: [number, number, number, number][] = [];
 
@@ -203,8 +205,8 @@ class Route implements RouteInterface {
     }
   }
 
-  processUpdates = (updates: AnchorProps[], anchors: AnchorAttribute[]): AnchorAttribute[] => (
-    updates.map((u) => {
+  processUpdates(updates: AnchorProps[], anchors: AnchorAttribute[]): AnchorAttribute[] {
+    return updates.map((u) => {
       // Is this update for an existing anchor?
       const a = anchors.find((a2) => a2.id === u.id);
 
@@ -220,8 +222,8 @@ class Route implements RouteInterface {
       }
 
       return anchor;
-    })
-  )
+    });
+  }
 
   receiveWaypointUpdates(updates: RouteUpdateResponse): void {
     if (this.anchors.length === 0) {
@@ -391,6 +393,46 @@ class Route implements RouteInterface {
 
     console.log(`rate: ${slowestRate}`);
     return steepestPoint;
+  }
+
+  generateGradeSegments(): void {
+    const grade: Grade = [[], [], [], [], []];
+    let current: null | number = null;
+    const gradeValues: number[] = [1609 * 1, 1609 * 2, 1609 * 3, 1609 * 4, 1609 * 10];
+
+    this.anchors.forEach((a) => {
+      if (a.trail) {
+        let prevPoint: TrailPoint | null = null;
+
+        a.trail.forEach((t: TrailPoint) => {
+          if (prevPoint !== null) {
+            const metersPerHour = Route.metersPerHourGet(
+              t.ele - prevPoint.ele, t.dist - prevPoint.dist,
+            );
+
+            // eslint-disable-next-line no-restricted-syntax
+            for (let g = 0; g < gradeValues.length; g += 1) {
+              if (metersPerHour < gradeValues[g]) {
+                if (current !== g) {
+                  current = g;
+                  grade[current].push([new L.LatLng(prevPoint.lat, prevPoint.lng)]);
+                }
+
+                grade[current][grade[current].length - 1].push(new L.LatLng(t.lat, t.lng));
+
+                break;
+              }
+            }
+          }
+
+          prevPoint = t;
+        });
+      }
+    });
+
+    runInAction(() => {
+      this.grade = grade;
+    });
   }
 }
 

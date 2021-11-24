@@ -9,7 +9,7 @@ import { useStores } from '../../state/store';
 import { useMarkerDialog } from './MarkerDialog';
 import { MarkerInterface } from '../../state/Types';
 import * as Icons from './Icons';
-import { PoiSelections } from './PoiSelector';
+import { PoiSelections } from './More/PoiSelector';
 
 type Props = {
   marker: MarkerInterface,

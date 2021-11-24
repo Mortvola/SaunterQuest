@@ -52,7 +52,9 @@ Route.group(() => {
     Route.post('/', 'HikesController.addHike');
 
     Route.group(() => {
+      Route.get('', 'HikesController.getHike');
       Route.put('/', 'HikesController.update');
+      Route.patch('/', 'HikesController.update');
       Route.delete('/', 'HikesController.delete');
       Route.get('/details', 'HikesController.getDetails');
       Route.get('/route', 'RouteController.get');
@@ -98,6 +100,8 @@ Route.group(() => {
     .prefix('/gear');
 
   Route.get('/campsites', 'CampsitesController.get');
+
+  Route.get('route-groups', 'RouteGroupsController.get');
 })
   .prefix('/api')
   .middleware('auth');

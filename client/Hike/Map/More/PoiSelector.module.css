@@ -5,27 +5,29 @@
   height: 48px;
   border: 2px solid rgba(0, 0, 0, 0.2);
   background-clip: padding-box;
-  background-image: url(padlock-locked.svg);
+  background-image: url(more.svg);
   background-size: 26px 26px;
   background-repeat: no-repeat;
   background-position: center;
   cursor: pointer;
 }
 
-.control.expanded {
+/* .control.expanded {
   background-image: none;
   width: max-content;
   height: max-content;
-}
+} */
 
 .selector {
   display: flex;
   flex-direction: column;
   background-color: #fff;
+  border: black thin solid;
+  border-radius: 5px;
   padding: 0.45rem;
   padding-bottom: 0;
-}
-
-.selector input {
-  margin-right: 0.25rem;
+  position: absolute;
+  width: max-content;
+  left: 100%;
+  top: 0;
 }

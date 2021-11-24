@@ -1,3 +1,9 @@
+export type HikeProps = {
+  id: number,
+  name: string,
+  routeGroupId: number | null,
+}
+
 export type TrailPointProps = {
   lat: number;
   lng: number;
