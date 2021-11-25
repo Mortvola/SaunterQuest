@@ -1,109 +1,102 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import React, { ReactElement } from 'react';
-import { Formik, Form, Field } from 'formik';
-import { Modal } from 'react-bootstrap';
+import React, { useEffect, useState } from 'react';
+import { FormikErrors } from 'formik';
 import { makeUseModal, ModalProps } from '@mortvola/usemodal';
 import Http from '@mortvola/http';
-import { toTimeFloat, toTimeString } from './utilities';
+import { metersToMiles, milesToMeters, toTimeFloat, toTimeString } from './utilities';
+import FormModal from './Modal/FormModal';
+import FormField from './Modal/FormField';
+import styles from './ProfileDialog.module.css';
 
-export type PropsType = {
-  values?: {
-    paceFactor: number,
-    startTime: number,
-    endTime: number,
+type Profile = {
+  metersPerHour: number | null,
+  startTime: number | null,
+  endTime: number | null,
+  breakDuration: number | null,
+  endDayExtension: number | null,
+  endHikeDayExtension: number | null,
+};
+
+const ProfileDialog: React.FC<ModalProps> = ({
+  setShow,
+}) => {
+  type FormValues = {
+    milesPerHour: string,
+    startTime: string,
+    endTime: string,
     breakDuration: number,
     endDayExtension: number,
     endHikeDayExtension: number,
-  },
-};
-
-const ProfileDialog = ({
-  values = {
-    paceFactor: 100,
-    startTime: 7.0,
-    endTime: 18.0,
-    breakDuration: 60,
-    endDayExtension: 60,
-    endHikeDayExtension: 60,
-  },
-  onHide,
-}: PropsType & ModalProps): ReactElement => {
-  type ValuesType = {
-    startTime: string,
-    endTime: string,
   }
 
-  const handleSubmit = async (vals: ValuesType) => {
+  const flatGroundSpeed = 3.12968585912282;
+
+  const [profile, setProfile] = useState<Profile | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const response = await Http.get<Profile>('/user/profile');
+
+      if (response.ok) {
+        setProfile(await response.body());
+      }
+    })();
+  }, []);
+
+  const handleSubmit = async (vals: FormValues) => {
     const response = await Http.put('/user/profile', {
-      ...vals,
+      metersPerHour: milesToMeters(vals.milesPerHour),
       startTime: toTimeFloat(vals.startTime),
       endTime: toTimeFloat(vals.endTime),
+      breakDuration: vals.breakDuration,
+      endDayExtension: vals.endDayExtension,
+      endHikeDayExtension: vals.endHikeDayExtension,
     });
 
     if (response.ok) {
-      if (onHide) {
-        onHide();
-      }
+      setShow(false);
     }
   };
 
-  return (
-    <Formik<ValuesType>
-      initialValues={{
-        ...values,
-        startTime: toTimeString(values.startTime) ?? '',
-        endTime: toTimeString(values.endTime) ?? '',
-      }}
-      onSubmit={handleSubmit}
-    >
-      <Form>
-        <Modal.Header closeButton>
-          <h4 id="modalTitle" className="modal-title">Profile</h4>
-        </Modal.Header>
-        <Modal.Body>
-          <div className="two-column">
-            <label>
-              Pace Factor (%):
-              <Field type="number" className="form-control" name="paceFactor" />
-            </label>
-            <br />
+  const handleValidate = (v: FormValues): FormikErrors<FormValues> => {
+    const errors: FormikErrors<FormValues> = {};
 
-            <label>
-              Daily Start Time:
-              <Field type="time" className="form-control" name="startTime" />
-            </label>
+    return errors;
+  };
 
-            <label>
-              Daily End Time:
-              <Field type="time" className="form-control" name="endTime" />
-            </label>
+  if (profile !== null) {
+    return (
+      <FormModal<FormValues>
+        initialValues={{
+          milesPerHour: metersToMiles(profile.metersPerHour ?? 5036.74271751148).toFixed(2),
+          startTime: toTimeString(profile.startTime ?? 8) ?? '',
+          endTime: toTimeString(profile.endTime ?? 18) ?? '',
+          breakDuration: profile.breakDuration ?? 60,
+          endDayExtension: profile.endDayExtension ?? 60,
+          endHikeDayExtension: profile.endHikeDayExtension ?? 60,
+        }}
+        title="Profile"
+        onSubmit={handleSubmit}
+        validate={handleValidate}
+        setShow={setShow}
+      >
+        <div className={styles.twoColumn}>
+          <FormField type="text" name="milesPerHour" label="Average Flat Ground Speed (mph):" />
+          <div />
+          <FormField type="time" name="startTime" label="Daily Start Time:" />
+          <FormField type="time" name="endTime" label="Daily End Time:" />
+          <FormField type="number" name="breakDuration" label="Daily Break Duration (minutes):" />
+          <div />
+          <FormField type="number" name="endDayExtension" label="End of Day Extension (minutes):" />
+          <FormField type="number" name="endHikeDayExtension" label="End of Hike Extension:" />
+        </div>
+      </FormModal>
+    );
+  }
 
-            <label>
-              Daily Break Duration (minutes):
-              <Field type="number" className="form-control" name="breakDuration" />
-            </label>
-            <br />
-
-            <label>
-              End of Day Extension (minutes)
-              <Field type="number" className="form-control" name="endDayExtension" />
-            </label>
-
-            <label>
-              End of Hike Extension (minutes)
-              <Field type="number" className="form-control" name="endHikeDayExtension" />
-            </label>
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <button type="button" className="btn" onClick={onHide}>Cancel</button>
-          <button type="submit" className="btn btn-default">Save</button>
-        </Modal.Footer>
-      </Form>
-    </Formik>
-  );
+  return null;
 };
 
-export const useProfileDialog = makeUseModal<PropsType>(ProfileDialog);
+export const useProfileDialog = makeUseModal(ProfileDialog);
 
 export default ProfileDialog;

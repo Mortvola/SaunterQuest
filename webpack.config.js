@@ -29,6 +29,15 @@ const config = (name, env) => ({
             },
           },
         ],
+        include: /\.module\.css$/,
+      },
+      {
+        test: /\.css$/,
+        use: [
+          MiniCssExtractPlugin.loader,
+          'css-loader',
+        ],
+        exclude: /\.module\.css$/,
       },
       {
         test: /\.(png|svg|jpg|jpeg|gif|ico)$/i,

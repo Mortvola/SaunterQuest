@@ -22,8 +22,8 @@ export default class HikerProfile extends BaseModel {
   @column({ serializeAs: 'endDay' })
   public endDay: number | null;
 
-  @column({ serializeAs: 'speedFactor' })
-  public speedFactor: number | null;
+  @column({ serializeAs: 'metersPerHour' })
+  public metersPerHour: number | null;
 
   @column({ serializeAs: 'startTime' })
   public startTime: number | null;
@@ -37,15 +37,19 @@ export default class HikerProfile extends BaseModel {
   @column({ serializeAs: 'endDayExtension' })
   public endDayExtension: number | null;
 
+  @column({ serializeAs: 'endHikeDayExtension' })
+  public endHikeDayExtension: number | null;
+
   @beforeSave()
   public static async translateToNull(profile: HikerProfile): Promise<void> {
     profile.convertStringToNull('startDay');
     profile.convertStringToNull('endDay');
-    profile.convertStringToNull('speedFactor');
+    profile.convertStringToNull('metersPerHour');
     profile.convertStringToNull('startTime');
     profile.convertStringToNull('endTime');
     profile.convertStringToNull('breakDuration');
     profile.convertStringToNull('endDayExtension');
+    profile.convertStringToNull('endHikeDayExtension');
   }
 
   // eslint-disable-next-line class-methods-use-this

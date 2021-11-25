@@ -5,7 +5,7 @@ import {
   column,
   beforeSave,
   BaseModel,
-  hasMany, HasMany, hasOne, HasOne,
+  hasMany, HasMany, hasOne, HasOne, belongsTo, BelongsTo,
 // eslint-disable-next-line import/no-unresolved
 } from '@ioc:Adonis/Lucid/Orm';
 import Hike from 'App/Models/Hike';
@@ -38,26 +38,8 @@ export default class User extends BaseModel {
   @column()
   public admin: boolean;
 
-  @column({ serializeAs: 'paceFactor' })
-  public paceFactor: number;
-
-  @column({ serializeAs: 'startTime' })
-  public startTime: number;
-
-  @column({ serializeAs: 'endTime' })
-  public endTime: number;
-
-  @column({ serializeAs: 'breakDuration' })
-  public breakDuration: number;
-
-  @column({ serializeAs: 'endDayExtension' })
-  public endDayExtension: number;
-
-  @column({ serializeAs: 'endHikeDayExtension' })
-  public endHikeDayExtension: number;
-
   @column()
-  public hikerProfileIsd: number;
+  public hikerProfileId: number;
 
   @column()
   public hikeCounter: number;
@@ -65,8 +47,8 @@ export default class User extends BaseModel {
   @column()
   public gearConfigCounter: number;
 
-  @hasOne(() => HikerProfile)
-  public hikerProfile: HasOne<typeof HikerProfile>;
+  @belongsTo(() => HikerProfile)
+  public hikerProfile: BelongsTo<typeof HikerProfile>;
 
   @beforeSave()
   public static async hashPassword(user: User): Promise<void> {

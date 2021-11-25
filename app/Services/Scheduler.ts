@@ -8,6 +8,8 @@ import TrailCondition from 'App/Models/TrailCondition';
 import { ActiveHikerProfile } from './ActiveHikerProfile';
 import { Camp } from './Camp';
 
+const MetersPerHour = 5036.74271751148;
+
 type TimeConstraint = {
   type: 'camp' | 'startTime' | 'delay';
   time: number;
@@ -24,11 +26,17 @@ class Scheduler {
 
   trailConditions: Array<TrailCondition> | null = null;
 
+  userHikerProfile: HikerProfile | null;
+
   hikerProfiles: Array<HikerProfile> | null = null;
 
-  public createSchedule(routePoints: RoutePoint[], user: User, profiles: HikerProfile[]) : void {
+  public async createSchedule(
+    routePoints: RoutePoint[],
+    user: User,
+    profiles: HikerProfile[],
+  ) : Promise<void> {
+    this.userHikerProfile = await user.related('hikerProfile').query().first();
     this.hikerProfiles = profiles;
-    this.user = user;
     if (routePoints && routePoints.length > 0 && routePoints[0].trail !== null) {
       this.dayStart(routePoints[0].trail[0]);
       this.traverseRoute(routePoints);
@@ -51,22 +59,20 @@ class Scheduler {
   }
 
   private activeHikerProfileGet(): ActiveHikerProfile {
-    if (this.user === null) {
-      throw (new Error('User is null'));
-    }
-
-    const activeHikerProfile: ActiveHikerProfile = this.user.hikerProfile
+    const activeHikerProfile: ActiveHikerProfile = this.userHikerProfile
       ? {
-        speedFactor: this.user.hikerProfile.speedFactor ?? 100,
-        startTime: (this.user.hikerProfile.startTime ?? 8) * 60,
-        endTime: (this.user.hikerProfile.endTime ?? 18) * 60,
-        breakDuration: this.user.hikerProfile.breakDuration ?? 60,
+        metersPerHour: this.userHikerProfile.metersPerHour ?? MetersPerHour,
+        startTime: (this.userHikerProfile.startTime ?? 8) * 60,
+        endTime: (this.userHikerProfile.endTime ?? 18) * 60,
+        breakDuration: this.userHikerProfile.breakDuration ?? 60,
+        endHikeDayExtension: this.userHikerProfile.endDayExtension ?? 60,
       }
       : {
-        speedFactor: 70,
+        metersPerHour: MetersPerHour,
         startTime: 8 * 60,
         endTime: 18 * 60,
         breakDuration: 60,
+        endHikeDayExtension: 60,
       };
 
     // const hikerProfile = {
@@ -82,8 +88,8 @@ class Scheduler {
           (!profile.startDay || this.currentDay >= profile.startDay)
           && (!profile.endDay || this.currentDay <= profile.endDay)
         ) {
-          if (profile.speedFactor !== null) {
-            activeHikerProfile.speedFactor = profile.speedFactor;
+          if (profile.metersPerHour !== null) {
+            activeHikerProfile.metersPerHour = profile.metersPerHour;
           }
 
           if (profile.startTime !== null) {
@@ -145,10 +151,6 @@ class Scheduler {
   }
 
   private traverseRoute(route: RoutePoint[]) {
-    if (this.user === null) {
-      throw (new Error('User is null'));
-    }
-
     let restart = false;
     let prevPoint: Point | null = null;
     let point: Point | null = null;
@@ -213,7 +215,9 @@ class Scheduler {
     // reach the end then delete today and
     // add today's elapsed time to the previous day.
     // TODO: This does't take into account any change in hiker profiles
-    const dayExtension = this.user.endHikeDayExtension;
+    const dayExtension = this.activeHikerProfile === null
+      ? 60
+      : this.activeHikerProfile.endHikeDayExtension ?? 60;
 
     if (
       dayExtension !== undefined
@@ -554,12 +558,12 @@ class Scheduler {
       throw new Error('active hiker profile is null');
     }
 
-    if (this.activeHikerProfile.speedFactor === null) {
-      throw new Error('active hiker profile speed factor is null');
+    if (this.activeHikerProfile.metersPerHour === null) {
+      throw new Error('active hiker profile meters per hour is null');
     }
 
     if (this.activeHikerProfile.breakDuration === null) {
-      throw new Error('active hiker profile speed factor is null');
+      throw new Error('active hiker profile break duration is null');
     }
 
     // todo: do we need to call this per segment or should the results just be
@@ -571,7 +575,7 @@ class Scheduler {
     );
 
     const currentMetersPerMinute = metersPerMinute * trailConditionsSpeedFactor
-      * (this.activeHikerProfile.speedFactor / 100.0);
+      * (this.activeHikerProfile.metersPerHour / MetersPerHour);
     let metersToEndOfSegment = Scheduler.segmentLength(point1, point2) - segmentMeters;
     let minutesToEndOfSegment = metersToEndOfSegment / currentMetersPerMinute;
 

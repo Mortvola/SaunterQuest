@@ -36,6 +36,14 @@ function metersToMiles(meters: number | string): number {
   return meters / 1609.34;
 }
 
+export const milesToMeters = (miles: number | string): number => {
+  if (typeof miles === 'string') {
+    return parseFloat(miles) * 1609.34;
+  }
+
+  return miles * 1609.34;
+};
+
 function metersToFeet(meters: number | string): number {
   if (typeof meters === 'string') {
     return Math.round(parseFloat(meters) * 3.281);

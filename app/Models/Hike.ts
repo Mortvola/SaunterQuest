@@ -133,7 +133,7 @@ export default class Hike extends BaseModel {
         return a.startDay - b.startDay;
       });
 
-      scheduler.createSchedule(this.routePoints, user, this.hikerProfiles);
+      await scheduler.createSchedule(this.routePoints, user, this.hikerProfiles);
 
       if (Number.isNaN(scheduler.days[0].loss)) {
         throw (new Error('loss is NaN'));
