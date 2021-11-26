@@ -100,10 +100,10 @@ const Marker = ({
           icon={createIcon(icons, label)}
           draggable={draggingLocked ? false : draggable}
           eventHandlers={{
-            click: (event: LeafletEvent) => {
-              showMarkerDialog();
-              DomEvent.stop(event);
-            },
+            // click: (event: LeafletEvent) => {
+            //   showMarkerDialog();
+            //   DomEvent.stop(event);
+            // },
             dragend: handleDragEnd,
             contextmenu: (e: LeafletMouseEvent) => {
               if (!isMobile) {
@@ -115,7 +115,7 @@ const Marker = ({
           {
             popup
               ? (
-                <Popup offset={[0, -12]}>
+                <Popup offset={[0, 24]}>
                   { popup }
                 </Popup>
               )

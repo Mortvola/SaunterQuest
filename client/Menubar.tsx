@@ -7,6 +7,7 @@ import Http from '@mortvola/http';
 import { useProfileDialog } from './ProfileDialog';
 import { useAccountDialog } from './AccountDialog';
 import { useChangePasswordDialog } from './ChangePasswordDialog';
+import styles from './Menubar.module.css';
 
 const MENU_EVENT_KEY_PROFILE = 'MENU_EVENT_KEY_PROFILE';
 const MENU_EVENT_KEY_ACCOUNT = 'MENU_EVENT_KEY_ACCOUNT';
@@ -67,7 +68,7 @@ const Menubar = ({
             <Nav.Link as={Link} to="/gear">Gear</Nav.Link>
           </Nav>
           <Nav>
-            <NavDropdown id="dropdown" className="dropdown menubar-item" title={username}>
+            <NavDropdown id="dropdown" className={styles.menubarZIndex} title={username} align="end">
               <Nav.Link eventKey={MENU_EVENT_KEY_ACCOUNT}>Account</Nav.Link>
               <Nav.Link eventKey={MENU_EVENT_KEY_CHANGE_PASSWORD}>Change Password</Nav.Link>
               <Nav.Link eventKey={MENU_EVENT_KEY_PROFILE}>Profile</Nav.Link>

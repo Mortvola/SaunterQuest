@@ -5,6 +5,7 @@ import ReactDOM from 'react-dom';
 import 'regenerator-runtime/runtime';
 import '@mortvola/usemodal/dist/main.css';
 import '@mortvola/forms/dist/main.css';
+import 'bootstrap/dist/css/bootstrap.css';
 import Login from './login/Login';
 import Register from './login/Register';
 import './welcome.css';

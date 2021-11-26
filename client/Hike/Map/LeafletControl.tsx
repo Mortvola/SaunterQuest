@@ -1,7 +1,7 @@
 import { useLeafletContext } from '@react-leaflet/core';
 import L, { DomEvent } from 'leaflet';
 import {
-  FC, ReactNode, useEffect, useRef, useState,
+  FC, ReactNode, useEffect, useRef,
 } from 'react';
 import ReactDom from 'react-dom';
 import styles from './LeafletControl.module.css';
