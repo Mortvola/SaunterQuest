@@ -20,7 +20,7 @@ export default class HikerProfilesController {
     const profile = await HikerProfile.create({
       startDay: hikerProfile.startDay,
       endDay: hikerProfile.endDay,
-      speedFactor: hikerProfile.speedFactor,
+      metersPerHour: hikerProfile.metersPerHour,
       startTime: hikerProfile.startTime,
       endTime: hikerProfile.endTime,
       breakDuration: hikerProfile.breakDuration,
@@ -40,7 +40,7 @@ export default class HikerProfilesController {
 
     hikerProfile.startDay = update.startDay;
     hikerProfile.endDay = update.endDay;
-    hikerProfile.speedFactor = update.speedFactor;
+    hikerProfile.metersPerHour = update.metersPerHour;
     hikerProfile.startTime = update.startTime;
     hikerProfile.endTime = update.endTime;
     hikerProfile.breakDuration = update.breakDuration;

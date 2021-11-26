@@ -5,7 +5,7 @@ import {
   column,
   beforeSave,
   BaseModel,
-  hasMany, HasMany, hasOne, HasOne, belongsTo, BelongsTo,
+  hasMany, HasMany, belongsTo, BelongsTo,
 // eslint-disable-next-line import/no-unresolved
 } from '@ioc:Adonis/Lucid/Orm';
 import Hike from 'App/Models/Hike';
