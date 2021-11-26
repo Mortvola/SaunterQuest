@@ -6,6 +6,8 @@ import 'regenerator-runtime/runtime';
 import Leaflet from 'leaflet';
 import { observer } from 'mobx-react-lite';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import '@mortvola/usemodal/dist/main.css';
+import '@mortvola/forms/dist/main.css';
 import './style.css';
 import Hikes from './Hikes/Hikes';
 import Menubar from './Menubar';

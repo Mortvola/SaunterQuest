@@ -1,8 +1,7 @@
 import { makeUseModal, ModalProps } from '@mortvola/usemodal';
 import { FormikContextType, FormikErrors } from 'formik';
 import React from 'react';
-import { setFormErrors } from '../../Modal/Errors';
-import FormModal from '../../Modal/FormModal';
+import { setFormErrors, FormModal } from '@mortvola/forms';
 import { MarkerInterface } from '../../state/Types';
 
 type PropsType = {

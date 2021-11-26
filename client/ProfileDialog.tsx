@@ -3,9 +3,10 @@ import React, { useEffect, useState } from 'react';
 import { FormikErrors } from 'formik';
 import { makeUseModal, ModalProps } from '@mortvola/usemodal';
 import Http from '@mortvola/http';
-import { metersToMiles, milesToMeters, toTimeFloat, toTimeString } from './utilities';
-import FormModal from './Modal/FormModal';
-import FormField from './Modal/FormField';
+import { FormModal, FormField } from '@mortvola/forms';
+import {
+  metersToMiles, milesToMeters, toTimeFloat, toTimeString,
+} from './utilities';
 import styles from './ProfileDialog.module.css';
 
 type Profile = {

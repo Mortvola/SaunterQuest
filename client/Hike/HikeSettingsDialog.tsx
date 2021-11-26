@@ -1,13 +1,12 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import React, {
-  useRef, ReactElement, useEffect, useState,
+  ReactElement, useEffect, useState,
 } from 'react';
 import { makeUseModal, ModalProps } from '@mortvola/usemodal';
 import Http from '@mortvola/http';
+import { FormModal, FormField } from '@mortvola/forms';
 import { FormikErrors } from 'formik';
-import FormModal from '../Modal/FormModal';
 import { HikeInterface } from '../state/Types';
-import FormField from '../Modal/FormField';
 
 type PropsType = {
   hike: HikeInterface,
