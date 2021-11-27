@@ -1,4 +1,5 @@
 .attribute {
   display: flex;
   align-items: end;
+  column-gap: 0.5rem;
 }
