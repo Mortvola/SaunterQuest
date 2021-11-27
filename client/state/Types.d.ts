@@ -75,8 +75,6 @@ export interface MarkerInterface {
 
   move(latLng: LatLng): void;
 
-  delete(): void;
-
   types(): MarkerAttributeTypes[];
 
   popup(): string | null;
@@ -84,6 +82,8 @@ export interface MarkerInterface {
   label(): string | null;
 
   removeMarkerAttribute(attribute: MarkerAttributeInterface): void;
+
+  markerAttributes(): MarkerAttributeInterface[];
 }
 
 export type MarkerAttributeTypes = 'start' | 'finish' | 'waypoint' | 'campsite' | 'day' | 'water' | 'resupply';
@@ -93,7 +93,11 @@ export interface MarkerAttributeInterface {
   latLng: LatLng;
   label: string | null;
   mapMarker: MarkerInterface | null;
+  deletable: boolean;
+
   move(latLng: LatLng): Promise<LatLng>;
+
+  delete(): void;
 }
 
 export interface BaseHikeProps {
@@ -158,11 +162,15 @@ export interface RouteInterface {
 
   grade: Grade;
 
+  hike: HikeInterface;
+
+  map: MapInterface;
+
   moveWaypoint: (id: number, point: LatLng) => Promise<LatLng>;
 
-  deleteWaypoint(id: number): Promise<void>;
-
   generateGradeSegments(): void;
+
+  updateRoute(updates: RouteUpdateResponse): void;
 }
 
 export interface GearConfigProps {

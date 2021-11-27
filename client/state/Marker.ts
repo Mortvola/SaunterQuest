@@ -4,7 +4,7 @@ import {
   LatLng, MapInterface, MarkerInterface, MarkerAttributeInterface, MarkerAttributeTypes,
 } from './Types';
 import Anchor from './Markers/AnchorAttribute';
-import { metersToMiles, metersToMilesRounded } from '../utilities';
+import { metersToMilesRounded } from '../utilities';
 
 class Marker implements MarkerInterface {
   latLng: LatLng;
@@ -39,16 +39,6 @@ class Marker implements MarkerInterface {
         this.#map.removeMarker(this);
       }
     }
-  }
-
-  async delete(): Promise<void> {
-    const marker = this.#attributes.find((m) => ['waypoint', 'start', 'finish'].includes(m.type));
-
-    if (marker) {
-      await this.#map.hike.route.deleteWaypoint((marker as Anchor).id);
-    }
-
-    this.#map.removeMarker(this);
   }
 
   async move(latLng: LatLng): Promise<void> {
@@ -105,6 +95,10 @@ class Marker implements MarkerInterface {
     }
 
     return null;
+  }
+
+  markerAttributes(): MarkerAttributeInterface[] {
+    return this.#attributes;
   }
 }
 

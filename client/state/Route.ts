@@ -19,10 +19,10 @@ class Route implements RouteInterface {
 
   bounds: [L.LatLngTuple, L.LatLngTuple] | null = null;
 
-  #map: MapInterface;
+  map: MapInterface;
 
   constructor(hike: HikeInterface, map: MapInterface) {
-    this.#map = map;
+    this.map = map;
     this.hike = hike;
 
     makeAutoObservable(this);
@@ -85,7 +85,7 @@ class Route implements RouteInterface {
   }
 
   async addStartWaypoint(position: LatLng): Promise<void> {
-    this.#map.setWaiting(true);
+    this.map.setWaiting(true);
 
     const response = await Http.post<LatLng, RouteUpdateResponse>(`/api/hike/${this.hike.id}/route/start-point`,
       position);
@@ -101,16 +101,16 @@ class Route implements RouteInterface {
           this.updateRoute(updates);
         }
 
-        this.#map.setWaiting(false);
+        this.map.setWaiting(false);
       });
     }
     else {
-      this.#map.setWaiting(false);
+      this.map.setWaiting(false);
     }
   }
 
   async addEndWaypoint(position: LatLng): Promise<void> {
-    this.#map.setWaiting(true);
+    this.map.setWaiting(true);
 
     const response = await Http.post<LatLng, RouteUpdateResponse>(`/api/hike/${this.hike.id}/route/end-point`,
       position);
@@ -126,16 +126,16 @@ class Route implements RouteInterface {
           this.updateRoute(updates);
         }
 
-        this.#map.setWaiting(false);
+        this.map.setWaiting(false);
       });
     }
     else {
-      this.#map.setWaiting(false);
+      this.map.setWaiting(false);
     }
   }
 
   async addWaypoint(position: LatLng): Promise<void> {
-    this.#map.setWaiting(true);
+    this.map.setWaiting(true);
 
     const response = await Http.post<LatLng, RouteUpdateResponse>(`/api/hike/${this.hike.id}/route/waypoint`,
       position);
@@ -151,11 +151,11 @@ class Route implements RouteInterface {
           this.updateRoute(updates);
         }
 
-        this.#map.setWaiting(false);
+        this.map.setWaiting(false);
       });
     }
     else {
-      this.#map.setWaiting(false);
+      this.map.setWaiting(false);
     }
   }
 
@@ -182,27 +182,6 @@ class Route implements RouteInterface {
     }
 
     return Promise.reject();
-  }
-
-  async deleteWaypoint(id: number): Promise<void> {
-    this.#map.setWaiting(true);
-
-    const response = await Http.delete<RouteUpdateResponse>(`/api/hike/${this.hike.id}/route/waypoint/${id}`);
-
-    if (response.ok) {
-      const updates = await response.body();
-
-      runInAction(() => {
-        if (updates) {
-          this.updateRoute(updates);
-        }
-
-        this.#map.setWaiting(false);
-      });
-    }
-    else {
-      this.#map.setWaiting(false);
-    }
   }
 
   processUpdates(updates: AnchorProps[], anchors: AnchorAttribute[]): AnchorAttribute[] {

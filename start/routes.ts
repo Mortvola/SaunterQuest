@@ -101,7 +101,7 @@ Route.group(() => {
 
   Route.get('/campsites', 'CampsitesController.get');
 
-  Route.get('route-groups', 'RouteGroupsController.get');
+  Route.get('/route-groups', 'RouteGroupsController.get');
 })
   .prefix('/api')
   .middleware('auth');

@@ -3,7 +3,7 @@ import MarkerAttribute from './MarkerAttribute';
 
 class CampsiteAttribute extends MarkerAttribute implements MarkerAttributeInterface {
   constructor(latLng: LatLng) {
-    super('campsite', latLng, true);
+    super('campsite', latLng, true, false);
   }
 }
 

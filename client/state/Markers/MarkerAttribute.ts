@@ -1,7 +1,9 @@
 import { makeObservable, observable } from 'mobx';
-import { LatLng, MarkerInterface, MarkerAttributeTypes } from '../Types';
+import {
+  LatLng, MarkerInterface, MarkerAttributeTypes, MarkerAttributeInterface,
+} from '../Types';
 
-class MarkerAttribute {
+class MarkerAttribute implements MarkerAttributeInterface {
   type: MarkerAttributeTypes;
 
   latLng: LatLng;
@@ -10,12 +12,15 @@ class MarkerAttribute {
 
   moveable: boolean;
 
+  deletable: boolean;
+
   mapMarker: MarkerInterface | null = null;
 
-  constructor(type: MarkerAttributeTypes, latLng: LatLng, moveable: boolean) {
+  constructor(type: MarkerAttributeTypes, latLng: LatLng, moveable: boolean, deletable: boolean) {
     this.type = type;
     this.latLng = latLng;
     this.moveable = moveable;
+    this.deletable = deletable;
 
     makeObservable(this, {
       latLng: observable,
@@ -30,10 +35,14 @@ class MarkerAttribute {
     return latLng;
   }
 
-  remove() {
+  remove(): void {
     if (this.mapMarker) {
       this.mapMarker.removeMarkerAttribute(this);
     }
+  }
+
+  async delete(): Promise<void> {
+    this.remove();
   }
 }
 

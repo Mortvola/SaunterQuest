@@ -10,7 +10,7 @@ type Props = {
 const Trail: React.FC<Props> = ({ trail }): ReactElement | null => {
   const routeStrokeWeight = 6;
 
-  if (trail && trail.length > 0) {
+  if (trail && trail.length > 1) {
     return (
       <Polyline
         positions={trail}

@@ -1,9 +1,10 @@
-import { makeObservable, observable } from 'mobx';
+import { makeObservable, observable, runInAction } from 'mobx';
+import Http from '@mortvola/http';
 import TrailMarker from '../TrailMarker';
 import {
   LatLng, MarkerAttributeInterface, MarkerAttributeTypes, RouteInterface, TrailPoint,
 } from '../Types';
-import { AnchorProps } from '../../../common/ResponseTypes';
+import { AnchorProps, RouteUpdateResponse } from '../../../common/ResponseTypes';
 import MarkerAttribute from './MarkerAttribute';
 
 const wayPointUrl = 'compass.svg';
@@ -48,7 +49,7 @@ class AnchorAttribute extends MarkerAttribute implements MarkerAttributeInterfac
   route: RouteInterface;
 
   constructor(type: MarkerAttributeTypes, props: AnchorProps, route: RouteInterface) {
-    super(type, { lat: props.lat, lng: props.lng }, true);
+    super(type, { lat: props.lat, lng: props.lng }, true, true);
 
     this.id = props.id;
     this.trail = props.trail ?? [];
@@ -85,6 +86,29 @@ class AnchorAttribute extends MarkerAttribute implements MarkerAttributeInterfac
   setLabel(): void {
     this.label = getWaypointLabel();
     this.marker.setLabel(this.label);
+  }
+
+  async delete(): Promise<void> {
+    this.route.map.setWaiting(true);
+
+    const response = await Http.delete<RouteUpdateResponse>(`/api/hike/${this.route.hike.id}/route/waypoint/${this.id}`);
+
+    if (response.ok) {
+      const updates = await response.body();
+
+      runInAction(() => {
+        if (updates) {
+          this.route.updateRoute(updates);
+        }
+
+        super.delete();
+
+        this.route.map.setWaiting(false);
+      });
+    }
+    else {
+      this.route.map.setWaiting(false);
+    }
   }
 }
 

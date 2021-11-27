@@ -6,7 +6,6 @@ import { DomEvent, LeafletEvent, LeafletMouseEvent } from 'leaflet';
 import useMediaQuery from '../../MediaQuery';
 import { createIcon } from '../mapUtils';
 import { useStores } from '../../state/store';
-import { useMarkerDialog } from './MarkerDialog';
 import { MarkerInterface } from '../../state/Types';
 import * as Icons from './Icons';
 import { PoiSelections } from './More/PoiSelector';
@@ -24,7 +23,6 @@ const Marker = ({
 }: Props): ReactElement | null => {
   const { uiState } = useStores();
   const markerRef = useRef<L.Marker>(null);
-  const [MarkerDialog, showMarkerDialog] = useMarkerDialog();
   const { isMobile } = useMediaQuery();
 
   const handleDragEnd = () => {
@@ -92,37 +90,34 @@ const Marker = ({
 
   if (icons.length !== 0) {
     return (
-      <>
-        <MarkerDialog marker={marker} />
-        <LeafletMarker
-          ref={markerRef}
-          position={marker.latLng}
-          icon={createIcon(icons, label)}
-          draggable={draggingLocked ? false : draggable}
-          eventHandlers={{
-            // click: (event: LeafletEvent) => {
-            //   showMarkerDialog();
-            //   DomEvent.stop(event);
-            // },
-            dragend: handleDragEnd,
-            contextmenu: (e: LeafletMouseEvent) => {
-              if (!isMobile) {
-                showContextMenu(makeContextMenu)(e);
-              }
-            },
-          }}
-        >
-          {
-            popup
-              ? (
-                <Popup offset={[0, 24]}>
-                  { popup }
-                </Popup>
-              )
-              : null
-          }
-        </LeafletMarker>
-      </>
+      <LeafletMarker
+        ref={markerRef}
+        position={marker.latLng}
+        icon={createIcon(icons, label)}
+        draggable={draggingLocked ? false : draggable}
+        eventHandlers={{
+          click: (event: LeafletEvent) => {
+            uiState.setSelectedMarker(marker);
+            DomEvent.stop(event);
+          },
+          dragend: handleDragEnd,
+          contextmenu: (e: LeafletMouseEvent) => {
+            if (!isMobile) {
+              showContextMenu(makeContextMenu)(e);
+            }
+          },
+        }}
+      >
+        {
+          popup
+            ? (
+              <Popup offset={[0, 24]}>
+                { popup }
+              </Popup>
+            )
+            : null
+        }
+      </LeafletMarker>
     );
   }
 

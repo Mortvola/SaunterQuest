@@ -5,7 +5,7 @@ class DayAttribute extends MarkerAttribute implements MarkerAttributeInterface {
   day: Day;
 
   constructor(day: Day, latLng: LatLng) {
-    super('day', latLng, false);
+    super('day', latLng, false, false);
 
     this.day = day;
   }

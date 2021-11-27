@@ -220,6 +220,7 @@ class Hike implements HikeInterface {
           poi.type,
           { lat: poi.lat, lng: poi.lng },
           true,
+          false,
         )));
       });
     }
@@ -251,7 +252,7 @@ class Hike implements HikeInterface {
     });
 
     if (response.ok) {
-      const poi = new MarkerAttribute(type, latLng, true);
+      const poi = new MarkerAttribute(type, latLng, true, false);
       this.map.addMarkerAttribute(poi);
     }
   }

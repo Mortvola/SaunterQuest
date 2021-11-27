@@ -9,7 +9,7 @@ const Gpx = () => {
   return (
     <>
       {
-        gpx.tracks.length > 0
+        gpx.tracks.length > 1
           ? (
             <Polyline
               positions={gpx.tracks}

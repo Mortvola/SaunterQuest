@@ -2,7 +2,7 @@ import { LatLng } from 'leaflet';
 import { makeAutoObservable, runInAction } from 'mobx';
 import GearConfiguration from './GearConfiguration';
 import Hike from './Hike';
-import { MarkerAttributeTypes } from './Types';
+import { MarkerAttributeTypes, MarkerInterface } from './Types';
 
 class UiState {
   hike: Hike | null = null;
@@ -15,9 +15,11 @@ class UiState {
 
   location3d: LatLng | null = null;
 
-  toggleMarker(marker: MarkerAttributeTypes): void {
+  selectedMarker: MarkerInterface | null = null;
+
+  toggleMarker(markerTypes: MarkerAttributeTypes): void {
     runInAction(() => {
-      this.showMarkers.set(marker, !this.showMarkers.get(marker));
+      this.showMarkers.set(markerTypes, !this.showMarkers.get(markerTypes));
     });
   }
 
@@ -36,6 +38,12 @@ class UiState {
   setHike(hike: Hike | null): void {
     runInAction(() => {
       this.hike = hike;
+    });
+  }
+
+  setSelectedMarker(marker: MarkerInterface | null): void {
+    runInAction(() => {
+      this.selectedMarker = marker;
     });
   }
 }

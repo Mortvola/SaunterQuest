@@ -25,6 +25,8 @@ import MoreControl from './More/MoreControl';
 import PleaseWait from '../../Hikes/PleaseWait';
 import styles from './Map.module.css';
 import { useStores } from '../../state/store';
+import IconButton from '../../IconButton';
+import MarkerAttributes from './MarkerAttributes/MarkerAttributes';
 
 type Props = {
   tileServerUrl: string;
@@ -137,8 +139,9 @@ const Map: FC<Props> = ({
     hike.map.showLocationPopup(null);
   };
 
-  const temporaryMarker: L.LeafletMouseEventHandlerFn = (e) => {
+  const handleMapClick: L.LeafletMouseEventHandlerFn = (e) => {
     setTemporaryMarkerLocation(e.latlng);
+    uiState.setSelectedMarker(null);
   };
 
   const showIn3D: React.MouseEventHandler = () => {
@@ -149,7 +152,7 @@ const Map: FC<Props> = ({
   };
 
   useMapEvents({
-    click: temporaryMarker,
+    click: handleMapClick,
     contextmenu: (e: L.LeafletMouseEvent) => {
       if (isMobile) {
         if (!draggingLocked) {
@@ -202,6 +205,7 @@ const Map: FC<Props> = ({
               )
               : null
           }
+          <MarkerAttributes marker={uiState.selectedMarker} />
           <ElevationChart hike={hike} />
         </div>
       </MapDrawer>

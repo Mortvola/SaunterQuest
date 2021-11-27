@@ -21,13 +21,12 @@ class DrawerHandler extends L.Handler {
 
     const drawerContainer = L.DomUtil.create('div', styles.drawerContainer, this.container);
     drawerContainer.setAttribute('id', 'leaflet-drawer');
-    DomEvent.disableClickPropagation(drawerContainer);
 
-    DomEvent.disableClickPropagation(handleContainer);
-    DomEvent.on(handleContainer, 'click', L.DomEvent.stop);
+    DomEvent.disableClickPropagation(this.container);
+    DomEvent.on(this.container, 'wheel', L.DomEvent.stopPropagation);
+    DomEvent.on(this.container, 'mousedown', L.DomEvent.stopPropagation);
+
     DomEvent.on(handleContainer, 'click', this.close, this);
-
-    DomEvent.on(handleContainer, 'mousedown', L.DomEvent.stopPropagation);
   }
 
   // eslint-disable-next-line class-methods-use-this
