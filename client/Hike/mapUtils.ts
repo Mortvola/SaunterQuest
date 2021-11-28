@@ -32,8 +32,8 @@ export function positionMapToBounds(map: L.Map, p1: LatLng, p2: LatLng): void {
   map.fitBounds([[bounds.south, bounds.west], [bounds.north, bounds.east]]);
 }
 
-export function createIcon(iconUrl: string | Array<string>, label?: string | null): L.DivIcon {
-  let html = '<div style="display: flex;flex-direction: column; width: max-content; height: max-content; background: #263a7a; border-radius: 12px;">';
+export function createIcon(iconUrl: string | string[], label?: string | null): L.DivIcon {
+  let html = ''; // '<div style="display: flex;flex-direction: column; width: max-content; height: max-content; background: #263a7a; border-radius: 12px;">';
 
   let iconCount = 1;
 
@@ -45,7 +45,7 @@ export function createIcon(iconUrl: string | Array<string>, label?: string | nul
     iconCount = iconUrl.length;
   }
   else {
-    html += `<img src="${iconUrl}" style="z-index:297">`;
+    html += `<img src="${iconUrl}">`;
   }
 
   // html += '</div>'
@@ -59,7 +59,7 @@ export function createIcon(iconUrl: string | Array<string>, label?: string | nul
   //   labelHeight = 16;
   // }
 
-  html = `<div style="display:flex;flex-direction:column;align-items:center">${html}</div>`;
+  // html = `<div style="display:flex;flex-direction:column;align-items:center">${html}</div>`;
 
   return L.divIcon({
     className: 'trail-marker',

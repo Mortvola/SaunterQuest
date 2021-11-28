@@ -27,6 +27,7 @@ import styles from './Map.module.css';
 import { useStores } from '../../state/store';
 import IconButton from '../../IconButton';
 import MarkerAttributes from './MarkerAttributes/MarkerAttributes';
+import MarkerCluster from '../MarkerCluster';
 
 type Props = {
   tileServerUrl: string;
@@ -210,16 +211,6 @@ const Map: FC<Props> = ({
         </div>
       </MapDrawer>
       <Route route={hike.route} />
-      {
-        hike.map.markers.map((m) => (
-          <Marker
-            key={`${m.latLng.lat},${m.latLng.lng}`}
-            marker={m}
-            draggingLocked={draggingLocked}
-            selections={poiSelections}
-          />
-        ))
-      }
       <Gpx />
       {
         hike.elevationMarkerPos
@@ -231,10 +222,22 @@ const Map: FC<Props> = ({
           )
           : null
       }
+      <MarkerCluster>
+        {
+          poiSelections.campsites
+            ? <Campsites />
+            : null
+        }
+      </MarkerCluster>
       {
-        poiSelections.campsites
-          ? <Campsites />
-          : null
+        hike.map.markers.map((m) => (
+          <Marker
+            key={`${m.latLng.lat},${m.latLng.lng}`}
+            marker={m}
+            draggingLocked={draggingLocked}
+            selections={poiSelections}
+          />
+        ))
       }
       <GotoLocationDialog leafletMap={leafletMap} hike={hike} />
       {
