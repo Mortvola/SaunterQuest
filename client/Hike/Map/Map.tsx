@@ -27,7 +27,6 @@ import MoreControl from './More/MoreControl';
 import PleaseWait from '../../Hikes/PleaseWait';
 import styles from './Map.module.css';
 import { useStores } from '../../state/store';
-import IconButton from '../../IconButton';
 import MarkerAttributes from './MarkerAttributes/MarkerAttributes';
 import MarkerCluster from '../MarkerCluster';
 
@@ -52,7 +51,13 @@ const Map: FC<Props> = ({
   const { isMobile } = useMediaQuery();
   const [draggingLocked, setDraggingLocked] = useState<boolean>(false);
   const [poiSelections, setPoiSelections] = useState<PoiSelections>({
-    waypoints: true, campsites: true, water: true, resupply: true, day: true,
+    waypoints: true,
+    campsites: true,
+    water: true,
+    resupply: true,
+    day: true,
+    postOffices: true,
+    cities: true,
   });
   const [temporaryMarkerLocation, setTemporaryMarkerLocation] = useState<L.LatLng | null>(null);
 
@@ -225,13 +230,9 @@ const Map: FC<Props> = ({
           : null
       }
       <MarkerCluster>
-        {
-          poiSelections.campsites
-            ? <Campsites />
-            : null
-        }
-        <PostOffices />
-        <Cities />
+        <Campsites show={poiSelections.campsites} />
+        <PostOffices show={poiSelections.postOffices} />
+        <Cities show={poiSelections.cities} />
       </MarkerCluster>
       {
         hike.map.markers.map((m) => (

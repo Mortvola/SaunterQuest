@@ -9,7 +9,11 @@ import { Campsite, isCampsiteResponse } from '../../../common/ResponseTypes';
 import { createIcon } from '../mapUtils';
 import campsite from '../../images/campsite.svg';
 
-const Campsites: React.FC = () => {
+type PropsType = {
+  show: boolean,
+}
+
+const Campsites: React.FC<PropsType> = ({ show }) => {
   const [campsites, setCampsites] = useState<Campsite[]>([]);
   const [bounds, setBounds] = useState<LatLngBounds | null>(null);
   const map = useMap();
@@ -30,13 +34,13 @@ const Campsites: React.FC = () => {
       }
     };
 
-    if (map.getZoom() < 8) {
+    if (map.getZoom() < 8 || !show) {
       setCampsites([]);
     }
     else if (bounds !== null) {
       queryCampsites(map, bounds);
     }
-  }, [bounds, map]);
+  }, [bounds, map, show]);
 
   useMapEvent('moveend', () => setBounds(map.getBounds()));
 

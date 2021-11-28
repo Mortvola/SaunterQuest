@@ -6,21 +6,11 @@ import React, {
 import { useMap } from 'react-leaflet';
 import LeafletControl from '../LeafletControl';
 import MoreItem from './MoreItem';
-import PoiSelector from './PoiSelector';
+import PoiSelector, { PoiSelections, OnSelectionCallback } from './PoiSelector';
 import styles from './MoreControl.module.css';
 import { useHikeDialog } from '../../HikeSettingsDialog';
 import { HikeInterface } from '../../../state/Types';
 import Checkbox from './Checkbox';
-
-export type PoiSelections = {
-  waypoints: boolean,
-  campsites: boolean,
-  water: boolean,
-  resupply: boolean,
-  day: boolean,
-}
-
-type OnSelectionCallback = (selections: PoiSelections) => void;
 
 type PropsType = {
   hike: HikeInterface,

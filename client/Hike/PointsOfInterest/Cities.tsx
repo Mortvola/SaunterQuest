@@ -9,7 +9,11 @@ import { City } from '../../../common/ResponseTypes';
 import { createIcon } from '../mapUtils';
 import city from '../../images/city.svg';
 
-const Cities: React.FC = () => {
+type PropsType = {
+  show: boolean,
+}
+
+const Cities: React.FC<PropsType> = ({ show }) => {
   const [cities, setCities] = useState<City[]>([]);
   const [bounds, setBounds] = useState<LatLngBounds | null>(null);
   const map = useMap();
@@ -28,13 +32,13 @@ const Cities: React.FC = () => {
       }
     };
 
-    if (map.getZoom() < 8) {
+    if (map.getZoom() < 8 || !show) {
       setCities([]);
     }
     else if (bounds !== null) {
       queryCities(map, bounds);
     }
-  }, [bounds, map]);
+  }, [bounds, map, show]);
 
   useMapEvent('moveend', () => setBounds(map.getBounds()));
 

@@ -9,7 +9,11 @@ import { PostOffice } from '../../../common/ResponseTypes';
 import { createIcon } from '../mapUtils';
 import postoffice from '../../images/postoffice.svg';
 
-const PostOffices: React.FC = () => {
+type PropsType = {
+  show: boolean,
+}
+
+const PostOffices: React.FC<PropsType> = ({ show }) => {
   const [postOffices, setPostOffices] = useState<PostOffice[]>([]);
   const [bounds, setBounds] = useState<LatLngBounds | null>(null);
   const map = useMap();
@@ -28,13 +32,13 @@ const PostOffices: React.FC = () => {
       }
     };
 
-    if (map.getZoom() < 8) {
+    if (map.getZoom() < 8 || !show) {
       setPostOffices([]);
     }
     else if (bounds !== null) {
       queryPostOffices(map, bounds);
     }
-  }, [bounds, map]);
+  }, [bounds, map, show]);
 
   useMapEvent('moveend', () => setBounds(map.getBounds()));
 
