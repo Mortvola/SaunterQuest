@@ -5,9 +5,9 @@ import 'leaflet.markercluster';
 import { LatLngBounds } from 'leaflet';
 import Http from '@mortvola/http';
 import { useMap, useMapEvent, Marker as LeafletMarker } from 'react-leaflet';
-import { Campsite, isCampsiteResponse } from '../../common/ResponseTypes';
-import { createIcon } from './mapUtils';
-import campsite from '../images/campsite.svg';
+import { Campsite, isCampsiteResponse } from '../../../common/ResponseTypes';
+import { createIcon } from '../mapUtils';
+import campsite from '../../images/campsite.svg';
 
 const Campsites: React.FC = () => {
   const [campsites, setCampsites] = useState<Campsite[]>([]);

@@ -69,6 +69,12 @@ export const isElevationResponse = (r: unknown): r is ElevationResponse => (
   (r as ElevationResponse).ele !== undefined
 );
 
+export interface City {
+  id: number;
+  name: string;
+  location: [number, number];
+}
+
 export interface Campsite {
   id: number;
   name: string;
@@ -86,6 +92,11 @@ export const isCampsiteResponse = (r: unknown): r is Campsite[] => (
     )
   )
 );
+
+export interface PostOffice {
+  id: number;
+  location: [number, number];
+}
 
 export type DayProps = {
   gain: number,

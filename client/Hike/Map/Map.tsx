@@ -15,7 +15,9 @@ import Hike from '../../state/Hike';
 import { LatLng } from '../../state/Types';
 import Marker from './Marker';
 import Gpx from '../Gpx';
-import Campsites from '../Campsites';
+import Campsites from '../PointsOfInterest/Campsites';
+import PostOffices from '../PointsOfInterest/PostOffices';
+import Cities from '../PointsOfInterest/Cities';
 import useMediaQuery from '../../MediaQuery';
 import MapDrawer from './MapDrawer';
 import ElevationChart from '../Elevation/ElevationChart';
@@ -228,6 +230,8 @@ const Map: FC<Props> = ({
             ? <Campsites />
             : null
         }
+        <PostOffices />
+        <Cities />
       </MarkerCluster>
       {
         hike.map.markers.map((m) => (
