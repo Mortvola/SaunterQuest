@@ -40,7 +40,12 @@ const PostOffices: React.FC<PropsType> = ({ show }) => {
     }
   }, [bounds, map, show]);
 
-  useMapEvent('moveend', () => setBounds(map.getBounds()));
+  useMapEvent('moveend', () => {
+    const newBounds = map.getBounds();
+    if (bounds === null || !bounds.contains(newBounds)) {
+      setBounds(newBounds);
+    }
+  });
 
   useEffect(() => {
     setBounds(map.getBounds());
