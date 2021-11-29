@@ -4,7 +4,6 @@ import React, {
 import { observer } from 'mobx-react-lite';
 import Chart from 'react-google-charts';
 import { ReactGoogleChartEvent, GoogleChartWrapper, GoogleVizEventName } from 'react-google-charts/dist/types';
-import ElevationDayMarkers from './ElevationDayMarkers';
 import Hike from '../../state/Hike';
 import { GoogleChart } from './GoogleChart';
 
@@ -109,7 +108,6 @@ const ElevationChart = ({
         chartWrapperParams={{ view: { columns: [0, 1] } }}
         chartEvents={chartEvents}
       />
-      <ElevationDayMarkers days={hike.schedule} chart={chart} />
     </div>
   );
 };
