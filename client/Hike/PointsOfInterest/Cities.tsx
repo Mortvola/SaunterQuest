@@ -7,7 +7,7 @@ import Http from '@mortvola/http';
 import { useMap, useMapEvent, Marker as LeafletMarker } from 'react-leaflet';
 import { City } from '../../../common/ResponseTypes';
 import { createIcon } from '../mapUtils';
-import city from '../../images/city.svg';
+import { city } from '../Map/Icons';
 
 type PropsType = {
   show: boolean,

@@ -7,7 +7,7 @@ import Http from '@mortvola/http';
 import { useMap, useMapEvent, Marker as LeafletMarker } from 'react-leaflet';
 import { PostOffice } from '../../../common/ResponseTypes';
 import { createIcon } from '../mapUtils';
-import postoffice from '../../images/postoffice.svg';
+import { postoffice } from '../Map/Icons';
 
 type PropsType = {
   show: boolean,
