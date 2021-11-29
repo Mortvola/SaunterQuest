@@ -90,11 +90,14 @@ export default class RoutePoint extends BaseModel {
         .first();
 
       if (line) {
-        const { coordinates } = JSON.parse(line.linestring);
+        type DatabasePoint = [number, number, number];
+        const { coordinates } = JSON.parse(line.linestring) as {
+          coordinates: DatabasePoint[],
+        };
 
         let distance = 0;
-        this.trail = await Promise.all(coordinates
-          .map(async (c: Array<number>, index: number) => {
+        this.trail = coordinates
+          .map((c: DatabasePoint, index: number) => {
             if (index > 0) {
               distance += Router.haversineGreatCircleDistance(
                 coordinates[index - 1][1], coordinates[index - 1][0],
@@ -107,8 +110,8 @@ export default class RoutePoint extends BaseModel {
               lng: c[0],
               dist: distance,
               ele: c[2],
-            } as Point;
-          }));
+            };
+          });
 
         this.trailLength = distance;
       }

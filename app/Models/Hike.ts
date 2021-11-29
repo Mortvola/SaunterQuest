@@ -162,17 +162,17 @@ export default class Hike extends BaseModel {
     }
 
     const routePoint = this.routePoints[anchorIndex];
-    const n = this.routePoints[anchorIndex + 1];
+    const nextRoutePoint = this.routePoints[anchorIndex + 1];
 
-    if (n.prevLineId === null || n.prevFraction === null) {
+    if (nextRoutePoint.prevLineId === null || nextRoutePoint.prevFraction === null) {
       throw (new Error(`prevLineId or prevFraction is null: ${JSON.stringify(routePoint)}, index: ${anchorIndex + 1}`));
     }
 
-    if (routePoint.nextLineId !== n.prevLineId) {
-      throw (new Error(`Previous and next IDs do not match: ${routePoint.nextLineId}, ${n.prevLineId}, ${JSON.stringify(routePoint)}, ${JSON.stringify(n)}`));
+    if (routePoint.nextLineId !== nextRoutePoint.prevLineId) {
+      throw (new Error(`Previous and next IDs do not match: ${routePoint.nextLineId}, ${nextRoutePoint.prevLineId}, ${JSON.stringify(routePoint)}, ${JSON.stringify(nextRoutePoint)}`));
     }
 
-    return routePoint.loadTrail(n.prevFraction);
+    return routePoint.loadTrail(nextRoutePoint.prevFraction);
   }
 
   public async getAnchor(anchorIndex: number, includeTrail = true): Promise<RoutePoint> {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import { useHistory } from 'react-router-dom';
 import Hike from './Hike';
@@ -10,6 +10,10 @@ import styles from './Hikes.module.css';
 const Hikes = () => {
   const { uiState, hikeManager } = useStores();
   const history = useHistory();
+
+  useEffect(() => {
+    hikeManager.requestHikes();
+  }, [hikeManager]);
 
   const handleDelete = (id: number) => {
     hikeManager.deleteHike(id);

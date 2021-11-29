@@ -1,18 +1,16 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import Database from '@ioc:Adonis/Lucid/Database';
 import Hike from 'App/Models/Hike';
+import RoutePoint from 'App/Models/RoutePoint';
 import Point from 'App/Types/Point';
 import { RouteUpdateResponse } from 'common/ResponseTypes';
 
 export default class RouteController {
   // eslint-disable-next-line class-methods-use-this
-  public async get({ params, response }: HttpContextContract) : Promise<void> {
+  public async get({ params }: HttpContextContract) : Promise<RoutePoint[]> {
     const hike = await Hike.findOrFail(params.hikeId);
 
-    const routePoints = await hike.getFullRoute();
-
-    response.header('content-type', 'application/json');
-    response.send(JSON.stringify(routePoints));
+    return hike.getFullRoute();
   }
 
   // eslint-disable-next-line class-methods-use-this

@@ -75,8 +75,8 @@ Route.group(() => {
 
       Route.get('/schedule', 'SchedulesController.get');
 
-      Route.get('/poi', 'PointOfInterestsController.get');
-      Route.post('/poi', 'PointOfInterestsController.add');
+      Route.get('/poi', 'PointsOfInterestController.get');
+      Route.post('/poi', 'PointsOfInterestController.add');
     })
       .prefix('/:hikeId');
   })

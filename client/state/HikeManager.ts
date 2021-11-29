@@ -1,7 +1,7 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import Http from '@mortvola/http';
 import HikeItem from './HikeItem';
-import { BaseHikeProps, HikeManagerInterface } from './Types';
+import { HikeManagerInterface } from './Types';
 import { Store } from './store';
 import { HikeProps } from '../../common/ResponseTypes';
 
@@ -16,8 +16,6 @@ class HikeManager implements HikeManagerInterface {
     makeAutoObservable(this);
 
     this.store = store;
-
-    this.requestHikes();
   }
 
   async requestHikes(): Promise<void> {
