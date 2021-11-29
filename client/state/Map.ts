@@ -1,13 +1,13 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import Marker from './Marker';
 import {
-  HikeInterface, LatLng, MapInterface, MarkerAttributeInterface,
+  HikeInterface, LatLng, MapInterface, MarkerInterface,
 } from './Types';
 
 class Map implements MapInterface {
   locationPopup: LatLng | null = null;
 
-  markers: Marker[] = [];
+  markers: MarkerInterface[] = [];
 
   #leafletMap: L.Map | null = null;
 
@@ -31,18 +31,8 @@ class Map implements MapInterface {
     return this.waiting;
   }
 
-  addMarkerAttribute(marker: MarkerAttributeInterface): void {
-    let mapMarker = this.markers.find((m) => (
-      m.latLng.lat === marker.latLng.lat
-      && m.latLng.lng === marker.latLng.lng
-    ));
-
-    if (!mapMarker) {
-      mapMarker = new Marker(marker.latLng, this);
-      this.markers.push(mapMarker);
-    }
-
-    mapMarker.addMarkerAttribute(marker);
+  addMarker(marker: MarkerInterface): void {
+    this.markers.push(marker);
   }
 
   removeMarker(marker: Marker): void {

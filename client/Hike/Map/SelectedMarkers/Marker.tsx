@@ -1,19 +1,19 @@
 import React from 'react';
 import IconButton from '../../../IconButton';
-import { MarkerAttributeInterface } from '../../../state/Types';
-import styles from './MarkerAttribute.module.css';
+import { MarkerInterface } from '../../../state/Types';
+import styles from './Marker.module.css';
 
 type PropsType = {
-  attribute: MarkerAttributeInterface,
+  marker: MarkerInterface,
 }
 
-const MarkerAttribute: React.FC<PropsType> = ({ attribute }) => {
+const Marker: React.FC<PropsType> = ({ marker }) => {
   const handleClick = () => {
-    attribute.delete();
+    marker.delete();
   };
 
   const getTypeString = () => {
-    switch (attribute.type) {
+    switch (marker.type) {
       case 'campsite':
         return 'Campsite';
 
@@ -35,6 +35,12 @@ const MarkerAttribute: React.FC<PropsType> = ({ attribute }) => {
       case 'waypoint':
         return 'Waypoint';
 
+      case 'city':
+        return 'City';
+
+      case 'postoffice':
+        return 'Post Office';
+
       default:
         return 'Unknown';
     }
@@ -43,9 +49,9 @@ const MarkerAttribute: React.FC<PropsType> = ({ attribute }) => {
   return (
     <div className={styles.attribute}>
       <div>{getTypeString()}</div>
-      <div>{`lat,lng: ${attribute.latLng.lat}, ${attribute.latLng.lng}`}</div>
+      <div>{`lat,lng: ${marker.latLng.lat}, ${marker.latLng.lng}`}</div>
       {
-        attribute.deletable
+        marker.deletable
           ? <IconButton icon="trash" onClick={handleClick} />
           : null
       }
@@ -53,4 +59,4 @@ const MarkerAttribute: React.FC<PropsType> = ({ attribute }) => {
   );
 };
 
-export default MarkerAttribute;
+export default Marker;

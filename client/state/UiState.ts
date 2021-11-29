@@ -2,7 +2,7 @@ import { LatLng } from 'leaflet';
 import { makeAutoObservable, runInAction } from 'mobx';
 import GearConfiguration from './GearConfiguration';
 import Hike from './Hike';
-import { MarkerAttributeTypes, MarkerInterface } from './Types';
+import { MarkerType, MarkerInterface } from './Types';
 
 class UiState {
   hike: Hike | null = null;
@@ -15,15 +15,15 @@ class UiState {
 
   location3d: LatLng | null = null;
 
-  selectedMarker: MarkerInterface | null = null;
+  selectedMarkers: MarkerInterface[] = [];
 
-  toggleMarker(markerTypes: MarkerAttributeTypes): void {
+  toggleMarker(markerTypes: MarkerType): void {
     runInAction(() => {
       this.showMarkers.set(markerTypes, !this.showMarkers.get(markerTypes));
     });
   }
 
-  showMarkers = new Map<MarkerAttributeTypes, boolean>([
+  showMarkers = new Map<MarkerType, boolean>([
     ['day', true],
     ['water', true],
     ['waypoint', true],
@@ -43,7 +43,12 @@ class UiState {
 
   setSelectedMarker(marker: MarkerInterface | null): void {
     runInAction(() => {
-      this.selectedMarker = marker;
+      if (marker === null) {
+        this.selectedMarkers = [];
+      }
+      else {
+        this.selectedMarkers = [marker];
+      }
     });
   }
 }

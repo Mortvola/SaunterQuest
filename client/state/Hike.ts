@@ -4,15 +4,13 @@ import HikerProfile from './HikerProfile';
 import Map from './Map';
 import Route from './Route';
 import {
-  Day, DayProps, HikeInterface, LatLng, MarkerAttributeTypes,
+  Day, DayProps, HikeInterface, LatLng, MarkerType,
   PointOfInterestProps, ProfileProps,
 } from './Types';
 import { createIcon } from '../Hike/mapUtils';
-import CampsiteMarker from './Markers/CampsiteAttribute';
-import MarkerAttribute from './Markers/MarkerAttribute';
-import DayAttribute from './Markers/DayAttribute';
 import { redCircle } from '../Hike/Map/Icons';
 import { HikeProps } from '../../common/ResponseTypes';
+import Marker from './Marker';
 
 class Hike implements HikeInterface {
   id: number;
@@ -33,9 +31,9 @@ class Hike implements HikeInterface {
 
   route: Route;
 
-  camps: CampsiteMarker[] = [];
+  camps: Marker[] = [];
 
-  pointsOfInterest: MarkerAttribute[] = [];
+  pointsOfInterest: Marker[] = [];
 
   map: Map;
 
@@ -170,8 +168,8 @@ class Hike implements HikeInterface {
 
           // Remove the current day attributes
           this.schedule.forEach((d) => {
-            if (d.dayAttribute) {
-              d.dayAttribute.remove();
+            if (d.marker) {
+              d.marker.remove();
             }
           });
 
@@ -191,10 +189,9 @@ class Hike implements HikeInterface {
               accumWeight: 0,
             };
 
-            day.dayAttribute = new DayAttribute(day, { lat: d.lat, lng: d.lng });
-
             if (index > 0) {
-              this.map.addMarkerAttribute(day.dayAttribute);
+              day.marker = new Marker('day', { lat: d.lat, lng: d.lng }, false, false, this.map);
+              this.map.addMarker(day.marker);
             }
 
             meters += d.meters;
@@ -216,11 +213,12 @@ class Hike implements HikeInterface {
       const body = await response.body();
 
       runInAction(() => {
-        body.forEach((poi) => this.map.addMarkerAttribute(new MarkerAttribute(
+        body.forEach((poi) => this.map.addMarker(new Marker(
           poi.type,
           { lat: poi.lat, lng: poi.lng },
           true,
           false,
+          this.map,
         )));
       });
     }
@@ -237,12 +235,12 @@ class Hike implements HikeInterface {
   }
 
   addCamp(latLng: LatLng): void {
-    const campsite = new CampsiteMarker(latLng);
+    const campsite = new Marker('campsite', latLng, true, true, this.map);
     this.camps.push(campsite);
-    this.map.addMarkerAttribute(campsite);
+    this.map.addMarker(campsite);
   }
 
-  private async addPOI(latLng: LatLng, type: MarkerAttributeTypes): Promise<void> {
+  private async addPOI(latLng: LatLng, type: MarkerType): Promise<void> {
     const response = await Http.post(`/api/hike/${this.id}/poi`, {
       name: null,
       description: null,
@@ -252,8 +250,8 @@ class Hike implements HikeInterface {
     });
 
     if (response.ok) {
-      const poi = new MarkerAttribute(type, latLng, true, false);
-      this.map.addMarkerAttribute(poi);
+      const poi = new Marker(type, latLng, true, false, this.map);
+      this.map.addMarker(poi);
     }
   }
 

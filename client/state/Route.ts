@@ -1,17 +1,17 @@
 import { makeAutoObservable, runInAction } from 'mobx';
-import L from 'leaflet';
 import Http from '@mortvola/http';
-import AnchorAttribute, { resetWaypointLabel } from './Markers/AnchorAttribute';
+import L from 'leaflet';
 import { metersToMiles, metersToFeet } from '../utilities';
 import {
-  Grade, HikeInterface, LatLng, MapInterface, MarkerAttributeTypes, RouteInterface, TrailPoint,
+  Grade, HikeInterface, LatLng, MapInterface, MarkerType, RouteInterface, TrailPoint,
 } from './Types';
 import { RouteUpdateResponse, AnchorProps } from '../../common/ResponseTypes';
+import Anchor, { resetWaypointLabel } from './Anchor';
 
 class Route implements RouteInterface {
   hike: HikeInterface;
 
-  anchors: AnchorAttribute[] = [];
+  anchors: Anchor[] = [];
 
   grade: Grade = [[], [], [], [], []];
 
@@ -46,7 +46,7 @@ class Route implements RouteInterface {
             resetWaypointLabel();
             if (route.length > 0) {
               const newRoute = route.map((a: AnchorProps, index) => {
-                let type: MarkerAttributeTypes = 'waypoint';
+                let type: MarkerType = 'waypoint';
                 if (index === 0) {
                   type = 'start';
                 }
@@ -54,10 +54,10 @@ class Route implements RouteInterface {
                   type = 'finish';
                 }
 
-                const anchor = new AnchorAttribute(type, a, this);
+                const anchor = new Anchor(type, a, this, this.map);
 
                 if (a.type === 'waypoint') {
-                  map.addMarkerAttribute(anchor);
+                  map.addMarker(anchor);
                 }
 
                 return anchor;
@@ -184,7 +184,7 @@ class Route implements RouteInterface {
     return Promise.reject();
   }
 
-  processUpdates(updates: AnchorProps[], anchors: AnchorAttribute[]): AnchorAttribute[] {
+  processUpdates(updates: AnchorProps[], anchors: Anchor[]): Anchor[] {
     return updates.map((u) => {
       // Is this update for an existing anchor?
       const a = anchors.find((a2) => a2.id === u.id);
@@ -194,10 +194,10 @@ class Route implements RouteInterface {
         return a;
       }
 
-      const anchor = new AnchorAttribute('waypoint', u, this);
+      const anchor = new Anchor('waypoint', u, this, this.map);
 
       if (u.type === 'waypoint') {
-        this.hike.map.addMarkerAttribute(anchor);
+        this.hike.map.addMarker(anchor);
       }
 
       return anchor;
@@ -223,7 +223,7 @@ class Route implements RouteInterface {
         lastIndex = firstIndex;
       }
 
-      let newRoute: AnchorAttribute[] = [];
+      let newRoute: Anchor[] = [];
 
       switch (updates.type) {
         case 'end':
@@ -320,7 +320,7 @@ class Route implements RouteInterface {
     return (
       this.anchors
         .filter((a) => a.trail)
-        .flatMap((a: AnchorAttribute) => {
+        .flatMap((a: Anchor) => {
           const elevations = a.trail
             .map((p: TrailPoint): [number, number, number, number] => ([
               metersToMiles(distance + p.dist),

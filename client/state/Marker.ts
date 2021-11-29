@@ -1,47 +1,50 @@
-import { makeAutoObservable, runInAction } from 'mobx';
-import DayAttribute from './Markers/DayAttribute';
+import { makeObservable, observable, runInAction } from 'mobx';
 import {
-  LatLng, MapInterface, MarkerInterface, MarkerAttributeInterface, MarkerAttributeTypes,
+  LatLng, MapInterface, MarkerInterface, MarkerAttributeInterface, MarkerType,
 } from './Types';
-import Anchor from './Markers/AnchorAttribute';
-import { metersToMilesRounded } from '../utilities';
 
 class Marker implements MarkerInterface {
   latLng: LatLng;
+
+  type: MarkerType;
+
+  moveable: boolean;
+
+  deletable: boolean;
+
+  label: string | null = null;
 
   #attributes: MarkerAttributeInterface[] = [];
 
   #map: MapInterface;
 
-  constructor(latLng: LatLng, map: MapInterface) {
+  constructor(
+    type: MarkerType,
+    latLng: LatLng,
+    moveable: boolean,
+    deletable: boolean,
+    map: MapInterface,
+  ) {
+    this.type = type;
     this.latLng = latLng;
+    this.moveable = moveable;
+    this.deletable = deletable;
     this.#map = map;
 
-    makeAutoObservable(this);
+    makeObservable(this, {
+      latLng: observable,
+    });
   }
 
-  addMarkerAttribute(attribute: MarkerAttributeInterface): void {
-    this.#attributes.push(attribute);
-    attribute.mapMarker = this;
+  delete(): void {
+
   }
 
-  removeMarkerAttribute(attribute: MarkerAttributeInterface): void {
-    const index = this.#attributes.findIndex((a) => a === attribute);
-
-    if (index !== -1) {
-      this.#attributes = [
-        ...this.#attributes.slice(0, index),
-        ...this.#attributes.slice(index + 1),
-      ];
-
-      // Remove the marker if there are no more attributes.
-      if (this.#attributes.length === 0) {
-        this.#map.removeMarker(this);
-      }
-    }
+  remove(): void {
+    this.#map.removeMarker(this);
   }
 
-  async move(latLng: LatLng): Promise<void> {
+  async move(latLng: LatLng): Promise<LatLng> {
     this.#map.setWaiting(true);
 
     try {
@@ -71,34 +74,20 @@ class Marker implements MarkerInterface {
     catch (error) {
       this.#map.setWaiting(false);
     }
+
+    return latLng;
   }
 
-  types(): MarkerAttributeTypes[] {
-    return this.#attributes.map((m) => m.type);
+  types(): MarkerType[] {
+    return [this.type];
   }
 
   popup(): string | null {
-    const dayMarker = this.#attributes.find((m) => m.type === 'day') as DayAttribute;
-
-    if (dayMarker) {
-      return `Day ${dayMarker.day.day}\nMiles: ${metersToMilesRounded(dayMarker.day.startMeters)}`;
-    }
-
-    return null;
+    return this.label;
   }
 
-  label(): string | null {
-    const labeledMarker = this.#attributes.find((m) => m.label !== null);
-
-    if (labeledMarker) {
-      return labeledMarker.label;
-    }
-
-    return null;
-  }
-
-  markerAttributes(): MarkerAttributeInterface[] {
-    return this.#attributes;
+  getLabel(): string | null {
+    return this.label;
   }
 }
 

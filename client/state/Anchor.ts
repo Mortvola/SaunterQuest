@@ -1,11 +1,12 @@
 import { makeObservable, observable, runInAction } from 'mobx';
 import Http from '@mortvola/http';
-import TrailMarker from '../TrailMarker';
+import TrailMarker from './TrailMarker';
 import {
-  LatLng, MarkerAttributeInterface, MarkerAttributeTypes, RouteInterface, TrailPoint,
-} from '../Types';
-import { AnchorProps, RouteUpdateResponse } from '../../../common/ResponseTypes';
-import MarkerAttribute from './MarkerAttribute';
+  LatLng, MapInterface, MarkerType, MarkerInterface, RouteInterface, TrailPoint,
+} from './Types';
+import { AnchorProps, RouteUpdateResponse } from '../../common/ResponseTypes';
+import Marker from './Marker';
+import Map from './Map';
 
 const wayPointUrl = 'compass.svg';
 
@@ -37,10 +38,10 @@ const getWaypointLabel = () => {
   return newLabel;
 };
 
-class AnchorAttribute extends MarkerAttribute implements MarkerAttributeInterface {
+class Anchor extends Marker implements MarkerInterface {
   id: number;
 
-  marker: TrailMarker;
+  trailMarker: TrailMarker | null;
 
   trail: TrailPoint[];
 
@@ -48,34 +49,34 @@ class AnchorAttribute extends MarkerAttribute implements MarkerAttributeInterfac
 
   route: RouteInterface;
 
-  constructor(type: MarkerAttributeTypes, props: AnchorProps, route: RouteInterface) {
-    super(type, { lat: props.lat, lng: props.lng }, true, true);
+  constructor(
+    type: MarkerType, props: AnchorProps, route: RouteInterface, map: MapInterface,
+  ) {
+    super(type, { lat: props.lat, lng: props.lng }, true, true, map);
 
     this.id = props.id;
     this.trail = props.trail ?? [];
     this.trailLength = props.trailLength;
 
-    if (props.type === 'waypoint') {
-      this.label = getWaypointLabel() ?? null;
-    }
+    // if (props.type === 'waypoint') {
+    //   this.label = getWaypointLabel() ?? null;
+    // }
 
     this.route = route;
 
     makeObservable(this, {
       trail: observable,
       trailLength: observable,
-      type: observable,
     });
 
-    this.marker = new TrailMarker(
+    this.trailMarker = new TrailMarker(
       wayPointUrl,
-      this.label,
     );
   }
 
-  move = async (latLng: LatLng): Promise<LatLng> => (
-    this.route.moveWaypoint(this.id, latLng)
-  )
+  async move(latLng: LatLng): Promise<LatLng> {
+    return this.route.moveWaypoint(this.id, latLng);
+  }
 
   update(props: AnchorProps): void {
     this.trail = props.trail ?? [];
@@ -85,7 +86,6 @@ class AnchorAttribute extends MarkerAttribute implements MarkerAttributeInterfac
 
   setLabel(): void {
     this.label = getWaypointLabel();
-    this.marker.setLabel(this.label);
   }
 
   async delete(): Promise<void> {
@@ -101,7 +101,7 @@ class AnchorAttribute extends MarkerAttribute implements MarkerAttributeInterfac
           this.route.updateRoute(updates);
         }
 
-        super.delete();
+        this.remove();
 
         this.route.map.setWaiting(false);
       });
@@ -112,5 +112,5 @@ class AnchorAttribute extends MarkerAttribute implements MarkerAttributeInterfac
   }
 }
 
-export default AnchorAttribute;
+export default Anchor;
 export { resetWaypointLabel };

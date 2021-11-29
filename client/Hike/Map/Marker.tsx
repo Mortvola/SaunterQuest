@@ -86,7 +86,7 @@ const Marker = ({
 
   const popup = marker.popup();
 
-  const label = marker.label();
+  const label = marker.getLabel();
 
   if (icons.length !== 0) {
     return (
@@ -107,17 +107,7 @@ const Marker = ({
             }
           },
         }}
-      >
-        {
-          popup
-            ? (
-              <Popup offset={[0, 24]}>
-                { popup }
-              </Popup>
-            )
-            : null
-        }
-      </LeafletMarker>
+      />
     );
   }
 

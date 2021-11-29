@@ -27,8 +27,8 @@ import MoreControl from './More/MoreControl';
 import PleaseWait from '../../Hikes/PleaseWait';
 import styles from './Map.module.css';
 import { useStores } from '../../state/store';
-import MarkerAttributes from './MarkerAttributes/MarkerAttributes';
 import MarkerCluster from '../MarkerCluster';
+import SelectedMarkers from './SelectedMarkers/Markers';
 
 type Props = {
   tileServerUrl: string;
@@ -213,7 +213,7 @@ const Map: FC<Props> = ({
               )
               : null
           }
-          <MarkerAttributes marker={uiState.selectedMarker} />
+          <SelectedMarkers markers={uiState.selectedMarkers} />
           <ElevationChart hike={hike} />
         </div>
       </MapDrawer>

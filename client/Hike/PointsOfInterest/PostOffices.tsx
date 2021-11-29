@@ -2,18 +2,23 @@ import React, {
   useEffect, useState,
 } from 'react';
 import 'leaflet.markercluster';
-import { LatLngBounds } from 'leaflet';
+import {
+  DomEvent, LatLng, LatLngBounds, LeafletEvent,
+} from 'leaflet';
 import Http from '@mortvola/http';
 import { useMap, useMapEvent, Marker as LeafletMarker } from 'react-leaflet';
 import { PostOffice } from '../../../common/ResponseTypes';
 import { createIcon } from '../mapUtils';
 import { postoffice } from '../Map/Icons';
+import { useStores } from '../../state/store';
+import Marker from '../../state/Marker';
 
 type PropsType = {
   show: boolean,
 }
 
 const PostOffices: React.FC<PropsType> = ({ show }) => {
+  const { uiState } = useStores();
   const [postOffices, setPostOffices] = useState<PostOffice[]>([]);
   const [bounds, setBounds] = useState<LatLngBounds | null>(null);
   const map = useMap();
@@ -59,6 +64,18 @@ const PostOffices: React.FC<PropsType> = ({ show }) => {
             key={c.id}
             position={{ lat: c.location[1], lng: c.location[0] }}
             icon={createIcon(postoffice)}
+            eventHandlers={{
+              click: (event: LeafletEvent) => {
+                if (!uiState.hike) {
+                  throw new Error('hike is null');
+                }
+
+                uiState.setSelectedMarker(
+                  new Marker('postoffice', new LatLng(c.location[0], c.location[1]), false, false, uiState.hike.map),
+                );
+                DomEvent.stop(event);
+              },
+            }}
           />
         ))
       }

@@ -1,4 +1,3 @@
-import DayAttribute from './Markers/DayAttribute';
 import TrailMarker from './TrailMarker';
 
 export interface HikeManagerInterface {
@@ -63,7 +62,7 @@ export interface MapInterface {
 
   setWaiting(waiting: boolean): void;
 
-  addMarkerAttribute(attribute: MarkerAttributeInterface): void;
+  addMarker(marker: MarkerInterface): void;
 
   removeMarker(marker: Marker): void;
 
@@ -73,23 +72,27 @@ export interface MapInterface {
 export interface MarkerInterface {
   latLng: LatLng;
 
+  type: MarkerType;
+
+  deletable: boolean;
+
+  remove(): void;
+
+  delete(): void;
+
   move(latLng: LatLng): void;
 
-  types(): MarkerAttributeTypes[];
+  types(): MarkerType[];
 
   popup(): string | null;
 
-  label(): string | null;
-
-  removeMarkerAttribute(attribute: MarkerAttributeInterface): void;
-
-  markerAttributes(): MarkerAttributeInterface[];
+  getLabel(): string | null;
 }
 
-export type MarkerAttributeTypes = 'start' | 'finish' | 'waypoint' | 'campsite' | 'day' | 'water' | 'resupply';
+export type MarkerType = 'start' | 'finish' | 'waypoint' | 'campsite' | 'day' | 'water' | 'resupply' | 'city' | 'postoffice';
 
 export interface MarkerAttributeInterface {
-  type: MarkerAttributeTypes;
+  type: MarkerType;
   latLng: LatLng;
   label: string | null;
   mapMarker: MarkerInterface | null;
@@ -152,7 +155,7 @@ export type Day = {
   gain: number;
   loss: number;
   accumWeight: number;
-  dayAttribute?: DayAttribute;
+  marker?: MarkerInterface;
 }
 
 export type Grade = L.LatLng[][][];
@@ -202,7 +205,7 @@ export interface PointOfInterestProps {
   id: number;
   lat: number;
   lng: number;
-  type: MarkerAttributeTypes;
+  type: MarkerType;
 }
 
 export interface ProfileProps {
