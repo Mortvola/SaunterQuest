@@ -97,7 +97,7 @@ const Marker = ({
         draggable={draggingLocked ? false : draggable}
         eventHandlers={{
           click: (event: LeafletEvent) => {
-            uiState.setSelectedMarker(marker);
+            marker.toggleSelection();
             DomEvent.stop(event);
           },
           dragend: handleDragEnd,

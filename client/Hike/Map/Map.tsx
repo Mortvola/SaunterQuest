@@ -1,6 +1,7 @@
 import React, {
   useState, useRef, useEffect, useCallback, FC,
 } from 'react';
+import 'leaflet.markercluster';
 import {
   TileLayer, useMap, Popup, LayersControl, useMapEvents,
   Marker as LeafletMarker,
@@ -15,9 +16,6 @@ import Hike from '../../state/Hike';
 import { LatLng } from '../../state/Types';
 import Marker from './Marker';
 import Gpx from '../Gpx';
-import Campsites from '../PointsOfInterest/Campsites';
-import PostOffices from '../PointsOfInterest/PostOffices';
-import Cities from '../PointsOfInterest/Cities';
 import useMediaQuery from '../../MediaQuery';
 import MapDrawer from './MapDrawer';
 import ElevationChart from '../Elevation/ElevationChart';
@@ -27,8 +25,8 @@ import MoreControl from './More/MoreControl';
 import PleaseWait from '../../Hikes/PleaseWait';
 import styles from './Map.module.css';
 import { useStores } from '../../state/store';
-import MarkerCluster from '../MarkerCluster';
 import SelectedMarkers from './SelectedMarkers/Markers';
+import Poi from './PointsOfInterest/Poi';
 
 type Props = {
   tileServerUrl: string;
@@ -149,7 +147,7 @@ const Map: FC<Props> = ({
 
   const handleMapClick: L.LeafletMouseEventHandlerFn = (e) => {
     setTemporaryMarkerLocation(e.latlng);
-    uiState.setSelectedMarker(null);
+    hike.map.clearSelectedMarkers();
   };
 
   const showIn3D: React.MouseEventHandler = () => {
@@ -213,7 +211,7 @@ const Map: FC<Props> = ({
               )
               : null
           }
-          <SelectedMarkers markers={uiState.selectedMarkers} />
+          <SelectedMarkers markers={hike.map.selectedMarkers} />
           <ElevationChart hike={hike} />
         </div>
       </MapDrawer>
@@ -229,11 +227,7 @@ const Map: FC<Props> = ({
           )
           : null
       }
-      <MarkerCluster>
-        <Campsites show={poiSelections.campsites} />
-        <PostOffices show={poiSelections.postOffices} />
-        <Cities show={poiSelections.cities} />
-      </MarkerCluster>
+      <Poi selections={poiSelections} />
       {
         hike.map.markers.map((m) => (
           <Marker

@@ -14,6 +14,8 @@ class Marker implements MarkerInterface {
 
   label: string | null = null;
 
+  selected = false;
+
   #attributes: MarkerAttributeInterface[] = [];
 
   #map: MapInterface;
@@ -34,6 +36,12 @@ class Marker implements MarkerInterface {
     makeObservable(this, {
       latLng: observable,
     });
+  }
+
+  toggleSelection(): void {
+    this.selected = !this.selected;
+
+    this.#map.changeMarkerSelection(this);
   }
 
   delete(): void {

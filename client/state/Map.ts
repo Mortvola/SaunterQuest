@@ -9,6 +9,8 @@ class Map implements MapInterface {
 
   markers: MarkerInterface[] = [];
 
+  selectedMarkers: MarkerInterface[] = [];
+
   #leafletMap: L.Map | null = null;
 
   hike: HikeInterface;
@@ -29,6 +31,29 @@ class Map implements MapInterface {
 
   getWaiting(): boolean {
     return this.waiting;
+  }
+
+  changeMarkerSelection(marker: MarkerInterface): void {
+    const index = this.selectedMarkers.findIndex((m) => m === marker);
+
+    if (index === -1) {
+      this.selectedMarkers = [
+        ...this.selectedMarkers,
+        marker,
+      ];
+    }
+    else {
+      this.selectedMarkers = [
+        ...this.selectedMarkers.slice(0, index),
+        ...this.selectedMarkers.slice(index + 1),
+      ];
+    }
+  }
+
+  clearSelectedMarkers(): void {
+    this.selectedMarkers.forEach((m) => m.toggleSelection());
+
+    this.selectedMarkers = [];
   }
 
   addMarker(marker: MarkerInterface): void {

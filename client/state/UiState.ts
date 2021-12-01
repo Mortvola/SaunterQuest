@@ -15,8 +15,6 @@ class UiState {
 
   location3d: LatLng | null = null;
 
-  selectedMarkers: MarkerInterface[] = [];
-
   toggleMarker(markerTypes: MarkerType): void {
     runInAction(() => {
       this.showMarkers.set(markerTypes, !this.showMarkers.get(markerTypes));
@@ -38,17 +36,6 @@ class UiState {
   setHike(hike: Hike | null): void {
     runInAction(() => {
       this.hike = hike;
-    });
-  }
-
-  setSelectedMarker(marker: MarkerInterface | null): void {
-    runInAction(() => {
-      if (marker === null) {
-        this.selectedMarkers = [];
-      }
-      else {
-        this.selectedMarkers = [marker];
-      }
     });
   }
 }

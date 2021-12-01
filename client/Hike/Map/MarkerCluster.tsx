@@ -1,6 +1,8 @@
 import { createPathComponent, LeafletContextInterface } from '@react-leaflet/core';
-import L, { MarkerCluster as LeafletMarkerCluster, markerClusterGroup } from 'leaflet';
+import L, { LeafletEvent, MarkerCluster as LeafletMarkerCluster, markerClusterGroup } from 'leaflet';
+import { MarkerInterface } from '../../state/Types';
 import styles from './MarkerCluster.module.css';
+import { Poi } from './PointsOfInterest/PoiMarker';
 
 const createCluster = (props: unknown, context: LeafletContextInterface) => {
   const createIcon = (cluster: LeafletMarkerCluster) => {
@@ -25,7 +27,21 @@ const createCluster = (props: unknown, context: LeafletContextInterface) => {
     );
   };
 
-  const instance = markerClusterGroup({ maxClusterRadius: 60, iconCreateFunction: createIcon });
+  const instance = markerClusterGroup({
+    maxClusterRadius: 60,
+    zoomToBoundsOnClick: false,
+    iconCreateFunction: createIcon,
+  });
+
+  instance.on('clusterclick', (event: LeafletEvent) => {
+    const cluster = event.propagatedFrom as LeafletMarkerCluster;
+    cluster.getAllChildMarkers().forEach((m) => {
+      const marker = (m as Poi).data as MarkerInterface;
+      marker.toggleSelection();
+    });
+    L.DomEvent.stop(event);
+  });
+
   return { instance, context: { ...context, layerContainer: instance } };
 };
 
