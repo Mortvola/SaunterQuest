@@ -68,7 +68,9 @@ export interface MapInterface {
 
   getLeafLetMap(): L.Map | null;
 
-  changeMarkerSelection(marker: MarkerInterface): void;
+  addMarkerSelection(marker: MarkerInterface): void
+
+  removeMarkerSelection(marker: MarkerInterface): void;
 
   clearSelectedMarkers(): void;
 }
@@ -79,6 +81,8 @@ export interface MarkerInterface {
   type: MarkerType;
 
   deletable: boolean;
+
+  setSelected(selected: boolean): void;
 
   toggleSelection(): void;
 

@@ -38,10 +38,25 @@ class Marker implements MarkerInterface {
     });
   }
 
+  setSelected(selected: boolean): void {
+    this.selected = selected;
+    if (this.selected) {
+      this.#map.addMarkerSelection(this);
+    }
+    else {
+      this.#map.removeMarkerSelection(this);
+    }
+  }
+
   toggleSelection(): void {
     this.selected = !this.selected;
 
-    this.#map.changeMarkerSelection(this);
+    if (this.selected) {
+      this.#map.addMarkerSelection(this);
+    }
+    else {
+      this.#map.removeMarkerSelection(this);
+    }
   }
 
   delete(): void {

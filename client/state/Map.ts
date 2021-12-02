@@ -33,7 +33,7 @@ class Map implements MapInterface {
     return this.waiting;
   }
 
-  changeMarkerSelection(marker: MarkerInterface): void {
+  addMarkerSelection(marker: MarkerInterface): void {
     const index = this.selectedMarkers.findIndex((m) => m === marker);
 
     if (index === -1) {
@@ -42,7 +42,12 @@ class Map implements MapInterface {
         marker,
       ];
     }
-    else {
+  }
+
+  removeMarkerSelection(marker: MarkerInterface): void {
+    const index = this.selectedMarkers.findIndex((m) => m === marker);
+
+    if (index !== -1) {
       this.selectedMarkers = [
         ...this.selectedMarkers.slice(0, index),
         ...this.selectedMarkers.slice(index + 1),
@@ -51,9 +56,7 @@ class Map implements MapInterface {
   }
 
   clearSelectedMarkers(): void {
-    this.selectedMarkers.forEach((m) => m.toggleSelection());
-
-    this.selectedMarkers = [];
+    this.selectedMarkers.slice().forEach((m) => m.setSelected(false));
   }
 
   addMarker(marker: MarkerInterface): void {
