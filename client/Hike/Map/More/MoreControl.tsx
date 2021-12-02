@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import L from 'leaflet';
+import L, { DomEvent } from 'leaflet';
 import React, {
   FC, useEffect, useState,
 } from 'react';
@@ -68,10 +68,15 @@ const MoreControl: FC<PropsType> = ({
   };
 
   useEffect(() => {
-    map.on('click', collapse);
+    const handleClickEvent = (event: L.LeafletEvent) => {
+      collapse();
+      DomEvent.stop(event);
+    };
+
+    map.on('click', handleClickEvent);
 
     return () => {
-      map.off('click', collapse);
+      map.off('click', handleClickEvent);
     };
   }, [map]);
 

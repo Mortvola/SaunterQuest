@@ -25,9 +25,11 @@ class LeafletControl extends L.Control {
     return this.container;
   }
 
-  // eslint-disable-next-line class-methods-use-this
   onRemove() {
-    // Nothing to do here?
+    if (this.container) {
+      DomEvent.off(this.container, 'click', L.DomEvent.stopPropagation);
+      DomEvent.off(this.container, 'mousedown', L.DomEvent.stopPropagation);
+    }
   }
 }
 
