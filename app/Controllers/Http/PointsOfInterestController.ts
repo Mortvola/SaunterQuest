@@ -58,7 +58,22 @@ export default class PointsOfInterestController {
           ), 3857),
           way)`, [w, n, e, s]);
 
-    return items;
+    const polyItems = await Database.query()
+      .select(
+        'osm_id as id',
+        'name',
+        Database.raw('ST_AsGeoJSON(ST_Transform(ST_PointOnSurface(way), 4326))::json->\'coordinates\' as location'),
+      )
+      .from('planet_osm_polygon')
+      .where('tourism', 'camp_site')
+      .andWhereRaw(`ST_Intersects(
+          ST_SetSRID(ST_MakeBox2D(
+            ST_Transform(ST_SetSRID(ST_MakePoint(?, ?), 4326), 3857),
+            ST_Transform(ST_SetSRID(ST_MakePoint(?, ?), 4326), 3857)
+          ), 3857),
+          way)`, [w, n, e, s]);
+
+    return items.concat(polyItems);
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -80,13 +95,28 @@ export default class PointsOfInterestController {
       .from('planet_osm_point')
       .where('tourism', 'caravan_site')
       .andWhereRaw(`ST_Intersects(
-          ST_SetSRID(ST_MakeBox2D(
-            ST_Transform(ST_SetSRID(ST_MakePoint(?, ?), 4326), 3857),
-            ST_Transform(ST_SetSRID(ST_MakePoint(?, ?), 4326), 3857)
-          ), 3857),
-          way)`, [w, n, e, s]);
+        ST_SetSRID(ST_MakeBox2D(
+          ST_Transform(ST_SetSRID(ST_MakePoint(?, ?), 4326), 3857),
+          ST_Transform(ST_SetSRID(ST_MakePoint(?, ?), 4326), 3857)
+        ), 3857),
+        way)`, [w, n, e, s]);
 
-    return items;
+    const polyItems = await Database.query()
+      .select(
+        'osm_id as id',
+        'name',
+        Database.raw('ST_AsGeoJSON(ST_Transform(ST_PointOnSurface(way), 4326))::json->\'coordinates\' as location'),
+      )
+      .from('planet_osm_polygon')
+      .where('tourism', 'caravan_site')
+      .andWhereRaw(`ST_Intersects(
+        ST_SetSRID(ST_MakeBox2D(
+          ST_Transform(ST_SetSRID(ST_MakePoint(?, ?), 4326), 3857),
+          ST_Transform(ST_SetSRID(ST_MakePoint(?, ?), 4326), 3857)
+        ), 3857),
+        way)`, [w, n, e, s]);
+
+    return items.concat(polyItems);
   }
 
   // eslint-disable-next-line class-methods-use-this
