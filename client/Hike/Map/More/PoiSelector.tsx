@@ -5,6 +5,7 @@ import styles from './PoiSelector.module.css';
 export type PoiSelections = {
   waypoints: boolean,
   campsites: boolean,
+  rvSites: boolean,
   water: boolean,
   resupply: boolean,
   day: boolean,
@@ -35,6 +36,7 @@ const PoiSelector: React.FC<SelectListProps> = ({
     <div className={styles.selector} onClick={stopPropagation}>
       <Checkbox name="waypoints" label="Waypoints" checked={selections.waypoints} onChange={handleChange} />
       <Checkbox name="campsites" label="Campsites" checked={selections.campsites} onChange={handleChange} />
+      <Checkbox name="rvSites" label="RV Sites" checked={selections.rvSites} onChange={handleChange} />
       <Checkbox name="water" label="Water" checked={selections.water} onChange={handleChange} />
       <Checkbox name="resupply" label="Resupply" checked={selections.resupply} onChange={handleChange} />
       <Checkbox name="day" label="Day" checked={selections.day} onChange={handleChange} />

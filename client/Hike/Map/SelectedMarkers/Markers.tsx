@@ -1,9 +1,9 @@
 import React from 'react';
-import { MarkerInterface } from '../../../state/Types';
+import { PointOfInterestInterface } from '../../../state/Types';
 import Marker from './Marker';
 
 type PropsType = {
-  markers: MarkerInterface[] | null
+  markers: PointOfInterestInterface[] | null
 }
 
 const SelectedMarkers: React.FC<PropsType> = ({ markers }) => (

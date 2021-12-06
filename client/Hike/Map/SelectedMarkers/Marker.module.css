@@ -1,5 +1,8 @@
 .attribute {
   display: flex;
-  align-items: end;
+  align-items: center;
   column-gap: 0.5rem;
+  margin-bottom: 0.25rem;
+  padding-bottom: 0.25rem;
+  border-bottom: thin #e0e0e0 solid;
 }

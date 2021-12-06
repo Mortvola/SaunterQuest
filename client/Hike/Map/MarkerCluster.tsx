@@ -1,7 +1,7 @@
 import { createPathComponent, LeafletContextInterface } from '@react-leaflet/core';
 import L, { LeafletEvent, MarkerCluster as LeafletMarkerCluster, markerClusterGroup } from 'leaflet';
 import { useStores } from '../../state/store';
-import { MarkerInterface } from '../../state/Types';
+import { MarkerInterface, PointOfInterestInterface } from '../../state/Types';
 import styles from './MarkerCluster.module.css';
 import { Poi } from './PointsOfInterest/PoiMarker';
 
@@ -44,7 +44,7 @@ const createCluster = (props: unknown, context: LeafletContextInterface) => {
     }
 
     cluster.getAllChildMarkers().forEach((m) => {
-      const marker = (m as Poi).data as MarkerInterface;
+      const marker = (m as Poi).data as PointOfInterestInterface;
       marker.setSelected(true);
     });
     L.DomEvent.stop(event);

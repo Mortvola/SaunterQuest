@@ -2,7 +2,6 @@ import React, { ReactElement } from 'react';
 import { MapContainer } from 'react-leaflet';
 import Map from './Map';
 import Hike from '../../state/Hike';
-import { LatLng } from '../../state/Types';
 import './MapDrawer';
 import useMediaQuery from '../../MediaQuery';
 
@@ -10,7 +9,7 @@ type Props = {
   tileServerUrl: string;
   pathFinderUrl: string;
   hike: Hike;
-  locationPopup: LatLng | null;
+  locationPopup: L.LatLng | null;
 }
 
 const MyMapContainer = ({

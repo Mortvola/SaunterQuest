@@ -1,17 +1,10 @@
 import L from 'leaflet';
-import Marker from '../Marker';
-import { MapInterface } from '../Types';
+import { MapInterface, PointOfInterestInterface } from '../Types';
+import PointOfInterest from './PointOfInterset';
 
-class PostOffice {
-  id: number;
-
-  marker: Marker;
-
+class PostOffice extends PointOfInterest implements PointOfInterestInterface {
   constructor(id: number, position: L.LatLng, map: MapInterface) {
-    this.id = id;
-    this.marker = new Marker(
-      'postoffice', position, false, false, map,
-    );
+    super(id, null, 'postoffice', position, false, false, map);
   }
 }
 

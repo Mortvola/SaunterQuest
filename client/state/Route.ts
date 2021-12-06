@@ -6,7 +6,7 @@ import {
   Grade, HikeInterface, LatLng, MapInterface, MarkerType, RouteInterface, TrailPoint,
 } from './Types';
 import { RouteUpdateResponse, AnchorProps } from '../../common/ResponseTypes';
-import Anchor, { resetWaypointLabel } from './Anchor';
+import Anchor, { resetWaypointLabel } from './PointsOfInterest/Anchor';
 
 class Route implements RouteInterface {
   hike: HikeInterface;
@@ -238,11 +238,11 @@ class Route implements RouteInterface {
             if (firstIndex !== 0) {
               // The list was added to. Mark what was the last anchor
               // as a regular waypoint.
-              newRoute[firstIndex].type = 'waypoint';
+              newRoute[firstIndex].marker.type = 'waypoint';
             }
 
             if (newRoute.length !== 1) {
-              newRoute[newRoute.length - 1].type = 'finish';
+              newRoute[newRoute.length - 1].marker.type = 'finish';
             }
           });
           break;
@@ -258,7 +258,7 @@ class Route implements RouteInterface {
           ];
 
           runInAction(() => {
-            newRoute[0].type = 'start';
+            newRoute[0].marker.type = 'start';
           });
           break;
 
@@ -293,15 +293,15 @@ class Route implements RouteInterface {
           return accum.extend(anc.trail.reduce((a: L.LatLngBounds, point: TrailPoint) => (
             a.extend(point)
           ), L.latLngBounds([
-            anc.latLng,
-            anc.latLng,
+            anc.marker.latLng,
+            anc.marker.latLng,
           ])));
         }
 
         return accum;
       }, L.latLngBounds([
-        this.anchors[0].latLng,
-        this.anchors[0].latLng,
+        this.anchors[0].marker.latLng,
+        this.anchors[0].marker.latLng,
       ]));
 
       return [[result.getSouth(), result.getWest()], [result.getNorth(), result.getEast()]];

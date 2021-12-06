@@ -1,15 +1,15 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import Marker from './Marker';
 import {
-  HikeInterface, LatLng, MapInterface, MarkerInterface,
+  HikeInterface, MapInterface, MarkerInterface, PointOfInterestInterface,
 } from './Types';
 
 class Map implements MapInterface {
-  locationPopup: LatLng | null = null;
+  locationPopup: L.LatLng | null = null;
 
-  markers: MarkerInterface[] = [];
+  markers: PointOfInterestInterface[] = [];
 
-  selectedMarkers: MarkerInterface[] = [];
+  selectedMarkers: PointOfInterestInterface[] = [];
 
   #leafletMap: L.Map | null = null;
 
@@ -33,7 +33,7 @@ class Map implements MapInterface {
     return this.waiting;
   }
 
-  addMarkerSelection(marker: MarkerInterface): void {
+  addMarkerSelection(marker: PointOfInterestInterface): void {
     const index = this.selectedMarkers.findIndex((m) => m === marker);
 
     if (index === -1) {
@@ -44,7 +44,7 @@ class Map implements MapInterface {
     }
   }
 
-  removeMarkerSelection(marker: MarkerInterface): void {
+  removeMarkerSelection(marker: PointOfInterestInterface): void {
     const index = this.selectedMarkers.findIndex((m) => m === marker);
 
     if (index !== -1) {
@@ -59,11 +59,11 @@ class Map implements MapInterface {
     this.selectedMarkers.slice().forEach((m) => m.setSelected(false));
   }
 
-  addMarker(marker: MarkerInterface): void {
+  addMarker(marker: PointOfInterestInterface): void {
     this.markers.push(marker);
   }
 
-  removeMarker(marker: Marker): void {
+  removeMarker(marker: PointOfInterestInterface): void {
     const index = this.markers.findIndex((m) => m === marker);
 
     if (index !== -1) {
@@ -74,7 +74,7 @@ class Map implements MapInterface {
     }
   }
 
-  showLocationPopup(latlng: LatLng | null): void {
+  showLocationPopup(latlng: L.LatLng | null): void {
     this.locationPopup = latlng;
   }
 

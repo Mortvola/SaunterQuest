@@ -99,6 +99,7 @@ Route.group(() => {
   })
     .prefix('/gear');
 
+  Route.get('/poi/rv', 'PointsOfInterestController.getRvSites');
   Route.get('/campsites', 'PointsOfInterestController.getCampsites');
   Route.get('/post-offices', 'PointsOfInterestController.getPostOffices');
   Route.get('/cities', 'PointsOfInterestController.getCities');

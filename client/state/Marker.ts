@@ -14,8 +14,6 @@ class Marker implements MarkerInterface {
 
   label: string | null = null;
 
-  selected = false;
-
   #attributes: MarkerAttributeInterface[] = [];
 
   #map: MapInterface;
@@ -38,33 +36,18 @@ class Marker implements MarkerInterface {
     });
   }
 
-  setSelected(selected: boolean): void {
-    this.selected = selected;
-    if (this.selected) {
-      this.#map.addMarkerSelection(this);
-    }
-    else {
-      this.#map.removeMarkerSelection(this);
-    }
+  // eslint-disable-next-line class-methods-use-this
+  getName(): string {
+    return '';
   }
 
-  toggleSelection(): void {
-    this.selected = !this.selected;
-
-    if (this.selected) {
-      this.#map.addMarkerSelection(this);
-    }
-    else {
-      this.#map.removeMarkerSelection(this);
-    }
-  }
-
+  // eslint-disable-next-line class-methods-use-this
   delete(): void {
-
+    // todo
   }
 
   remove(): void {
-    this.#map.removeMarker(this);
+    // this.#map.removeMarker(this);
   }
 
   async move(latLng: LatLng): Promise<LatLng> {

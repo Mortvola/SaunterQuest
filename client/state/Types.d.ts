@@ -58,19 +58,19 @@ export interface HikeInterface {
 export interface MapInterface {
   hike: HikeInterface;
 
-  markers: MarkerInterface[];
+  markers: PointOfInterestInterface[];
 
   setWaiting(waiting: boolean): void;
 
-  addMarker(marker: MarkerInterface): void;
+  addMarker(marker: PointOfInterestInterface): void;
 
-  removeMarker(marker: Marker): void;
+  removeMarker(marker: PointOfInterestInterface): void;
 
   getLeafLetMap(): L.Map | null;
 
-  addMarkerSelection(marker: MarkerInterface): void
+  addMarkerSelection(marker: PointOfInterestInterface): void
 
-  removeMarkerSelection(marker: MarkerInterface): void;
+  removeMarkerSelection(marker: PointOfInterestInterface): void;
 
   clearSelectedMarkers(): void;
 }
@@ -82,9 +82,11 @@ export interface MarkerInterface {
 
   deletable: boolean;
 
-  setSelected(selected: boolean): void;
+  getName(): string;
 
-  toggleSelection(): void;
+  // setSelected(selected: boolean): void;
+
+  // toggleSelection(): void;
 
   remove(): void;
 
@@ -99,7 +101,21 @@ export interface MarkerInterface {
   getLabel(): string | null;
 }
 
-export type MarkerType = 'start' | 'finish' | 'waypoint' | 'campsite' | 'day' | 'water' | 'resupply' | 'city' | 'postoffice';
+export interface PointOfInterestInterface {
+  id: number;
+
+  name: string | null;
+
+  marker: MarkerInterface;
+
+  setSelected(selected: boolean): void;
+
+  getTypeString(): string;
+
+  getIcon(): string | null;
+}
+
+export type MarkerType = 'start' | 'finish' | 'waypoint' | 'campsite' | 'day' | 'water' | 'resupply' | 'city' | 'postoffice' | 'rv';
 
 export interface MarkerAttributeInterface {
   type: MarkerType;
@@ -165,7 +181,7 @@ export type Day = {
   gain: number;
   loss: number;
   accumWeight: number;
-  marker?: MarkerInterface;
+  endOfDayPOI?: PointOfInterestInterface;
 }
 
 export type Grade = L.LatLng[][][];

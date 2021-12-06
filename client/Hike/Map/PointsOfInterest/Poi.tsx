@@ -4,6 +4,7 @@ import MarkerCluster from '../MarkerCluster';
 import Campsites from './Campsites';
 import PostOffices from './PostOffices';
 import Cities from './Cities';
+import RvSites from './RvSites';
 import { PoiSelections } from '../More/PoiSelector';
 
 type PropsType = {
@@ -33,6 +34,7 @@ const Poi: React.FC<PropsType> = ({ selections }) => {
   return (
     <MarkerCluster>
       <Campsites bounds={bounds} show={selections.campsites} />
+      <RvSites bounds={bounds} show={selections.rvSites} />
       <PostOffices bounds={bounds} show={selections.postOffices} />
       <Cities bounds={bounds} show={selections.cities} />
     </MarkerCluster>

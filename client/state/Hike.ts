@@ -1,16 +1,18 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import Http from '@mortvola/http';
+import L from 'leaflet';
 import HikerProfile from './HikerProfile';
 import Map from './Map';
 import Route from './Route';
 import {
-  Day, DayProps, HikeInterface, LatLng, MarkerType,
+  Day, DayProps, HikeInterface, MarkerType,
   PointOfInterestProps, ProfileProps,
 } from './Types';
 import { createIcon } from '../Hike/mapUtils';
-import { redCircle } from '../Hike/Map/Icons';
+import { redCircle } from './PointsOfInterest/Icons';
 import { HikeProps } from '../../common/ResponseTypes';
 import Marker from './Marker';
+import DayPoi from './PointsOfInterest/Day';
 
 class Hike implements HikeInterface {
   id: number;
@@ -39,7 +41,7 @@ class Hike implements HikeInterface {
 
   elevationMarkerIcon = createIcon(redCircle);
 
-  elevationMarkerPos: LatLng | null = null;
+  elevationMarkerPos: L.LatLng | null = null;
 
   constructor(hikeItem: HikeProps) {
     makeAutoObservable(this);
@@ -166,10 +168,10 @@ class Hike implements HikeInterface {
         runInAction(() => {
           let meters = 0;
 
-          // Remove the current day attributes
+          // Remove the current day markers
           this.schedule.forEach((d) => {
-            if (d.marker) {
-              d.marker.remove();
+            if (d.endOfDayPOI) {
+              d.endOfDayPOI.marker.remove();
             }
           });
 
@@ -190,8 +192,10 @@ class Hike implements HikeInterface {
             };
 
             if (index > 0) {
-              day.marker = new Marker('day', { lat: d.lat, lng: d.lng }, false, false, this.map);
-              this.map.addMarker(day.marker);
+              day.endOfDayPOI = new DayPoi(
+                d.id, `End of Day ${index}`, new L.LatLng(d.lat, d.lng), this.map,
+              );
+              this.map.addMarker(day.endOfDayPOI);
             }
 
             meters += d.meters;
@@ -207,59 +211,61 @@ class Hike implements HikeInterface {
   }
 
   requestPointsOfInterest = async (): Promise<void> => {
-    const response = await Http.get<PointOfInterestProps[]>(`/api/hike/${this.id}/poi`);
+    // const response = await Http.get<PointOfInterestProps[]>(`/api/hike/${this.id}/poi`);
 
-    if (response.ok) {
-      const body = await response.body();
+    // if (response.ok) {
+    //   const body = await response.body();
 
-      runInAction(() => {
-        body.forEach((poi) => this.map.addMarker(new Marker(
-          poi.type,
-          { lat: poi.lat, lng: poi.lng },
-          true,
-          false,
-          this.map,
-        )));
-      });
-    }
+    //   runInAction(() => {
+    //     body.forEach((poi) => this.map.addMarker(new Marker(
+    //       poi.type,
+    //       { lat: poi.lat, lng: poi.lng },
+    //       true,
+    //       false,
+    //       this.map,
+    //     )));
+    //   });
+    // }
   }
 
-  setSchedule(schedule: Array<Day>): void {
+  setSchedule(schedule: Day[]): void {
     this.schedule = schedule;
   }
 
-  setElevationMarker(latLng: LatLng | null): void {
+  setElevationMarker(latLng: L.LatLng | null): void {
     runInAction(() => {
       this.elevationMarkerPos = latLng;
     });
   }
 
-  addCamp(latLng: LatLng): void {
-    const campsite = new Marker('campsite', latLng, true, true, this.map);
-    this.camps.push(campsite);
-    this.map.addMarker(campsite);
+  // eslint-disable-next-line class-methods-use-this
+  addCamp(latLng: L.LatLng): void {
+    // const campsite = new Marker('campsite', latLng, true, true, this.map);
+    // this.camps.push(campsite);
+    // this.map.addMarker(campsite);
   }
 
-  private async addPOI(latLng: LatLng, type: MarkerType): Promise<void> {
-    const response = await Http.post(`/api/hike/${this.id}/poi`, {
-      name: null,
-      description: null,
-      lat: latLng.lat,
-      lng: latLng.lng,
-      type,
-    });
+  // eslint-disable-next-line class-methods-use-this
+  private async addPOI(latLng: L.LatLng, type: MarkerType): Promise<void> {
+    // const response = await Http.post(`/api/hike/${this.id}/poi`, {
+    //   name: null,
+    //   description: null,
+    //   lat: latLng.lat,
+    //   lng: latLng.lng,
+    //   type,
+    // });
 
-    if (response.ok) {
-      const poi = new Marker(type, latLng, true, false, this.map);
-      this.map.addMarker(poi);
-    }
+    // if (response.ok) {
+    //   const poi = new Marker(type, latLng, true, false, this.map);
+    //   this.map.addMarker(poi);
+    // }
   }
 
-  addWater = async (latLng: LatLng): Promise<void> => {
+  addWater = async (latLng: L.LatLng): Promise<void> => {
     this.addPOI(latLng, 'water');
   }
 
-  addResupply = async (latLng: LatLng): Promise<void> => {
+  addResupply = async (latLng: L.LatLng): Promise<void> => {
     this.addPOI(latLng, 'resupply');
   }
 }

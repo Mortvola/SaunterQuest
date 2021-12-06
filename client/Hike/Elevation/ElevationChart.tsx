@@ -1,6 +1,7 @@
 import React, {
   ReactElement, useEffect, useRef, useState,
 } from 'react';
+import L from 'leaflet';
 import { observer } from 'mobx-react-lite';
 import Chart from 'react-google-charts';
 import { ReactGoogleChartEvent, GoogleChartWrapper, GoogleVizEventName } from 'react-google-charts/dist/types';
@@ -39,10 +40,10 @@ const ElevationChart = ({
           if (elevationData[point.row + 1] !== undefined) {
             if (typeof elevationData[point.row + 1][2] === 'number'
             && typeof elevationData[point.row + 1][3] === 'number') {
-              hike.setElevationMarker({
-                lat: elevationData[point.row + 1][2] as number,
-                lng: elevationData[point.row + 1][3] as number,
-              });
+              hike.setElevationMarker(new L.LatLng(
+                elevationData[point.row + 1][2] as number,
+                elevationData[point.row + 1][3] as number,
+              ));
             }
           }
         };

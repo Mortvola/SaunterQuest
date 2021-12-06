@@ -1,12 +1,13 @@
 import { makeObservable, observable, runInAction } from 'mobx';
+import L from 'leaflet';
 import Http from '@mortvola/http';
-import TrailMarker from './TrailMarker';
+import TrailMarker from '../TrailMarker';
 import {
-  LatLng, MapInterface, MarkerType, MarkerInterface, RouteInterface, TrailPoint,
-} from './Types';
-import { AnchorProps, RouteUpdateResponse } from '../../common/ResponseTypes';
-import Marker from './Marker';
-import Map from './Map';
+  LatLng, MapInterface, MarkerType, RouteInterface,
+  TrailPoint, PointOfInterestInterface,
+} from '../Types';
+import { AnchorProps, RouteUpdateResponse } from '../../../common/ResponseTypes';
+import PointOfInterest from './PointOfInterset';
 
 const wayPointUrl = 'compass.svg';
 
@@ -38,9 +39,7 @@ const getWaypointLabel = () => {
   return newLabel;
 };
 
-class Anchor extends Marker implements MarkerInterface {
-  id: number;
-
+class Anchor extends PointOfInterest implements PointOfInterestInterface {
   trailMarker: TrailMarker | null;
 
   trail: TrailPoint[];
@@ -52,7 +51,7 @@ class Anchor extends Marker implements MarkerInterface {
   constructor(
     type: MarkerType, props: AnchorProps, route: RouteInterface, map: MapInterface,
   ) {
-    super(type, { lat: props.lat, lng: props.lng }, true, true, map);
+    super(props.id, null, 'waypoint', new L.LatLng(props.lat, props.lng), true, true, map);
 
     this.id = props.id;
     this.trail = props.trail ?? [];
@@ -81,11 +80,11 @@ class Anchor extends Marker implements MarkerInterface {
   update(props: AnchorProps): void {
     this.trail = props.trail ?? [];
     this.trailLength = props.trailLength;
-    this.latLng = { lat: props.lat, lng: props.lng };
+    this.marker.latLng = { lat: props.lat, lng: props.lng };
   }
 
   setLabel(): void {
-    this.label = getWaypointLabel();
+    this.marker.label = getWaypointLabel();
   }
 
   async delete(): Promise<void> {
@@ -101,7 +100,7 @@ class Anchor extends Marker implements MarkerInterface {
           this.route.updateRoute(updates);
         }
 
-        this.remove();
+        this.marker.remove();
 
         this.route.map.setWaiting(false);
       });

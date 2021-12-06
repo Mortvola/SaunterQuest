@@ -1,18 +1,10 @@
 import L from 'leaflet';
-import Marker from '../Marker';
-import { MapInterface } from '../Types';
+import { MapInterface, PointOfInterestInterface } from '../Types';
+import PointOfInterest from './PointOfInterset';
 
-class City {
-  id: number;
-
-  name: string;
-
-  marker: Marker;
-
+class City extends PointOfInterest implements PointOfInterestInterface {
   constructor(id: number, name: string, position: L.LatLng, map: MapInterface) {
-    this.id = id;
-    this.name = name;
-    this.marker = new Marker('city', position, false, false, map);
+    super(id, name, 'city', position, false, false, map);
   }
 }
 

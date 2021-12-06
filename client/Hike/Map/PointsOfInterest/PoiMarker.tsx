@@ -2,16 +2,16 @@ import L from 'leaflet';
 import React, { useEffect, useRef } from 'react';
 import { Marker as LeafletMarker } from 'react-leaflet';
 import { useStores } from '../../../state/store';
-import { MarkerInterface } from '../../../state/Types';
+import { MarkerInterface, PointOfInterestInterface } from '../../../state/Types';
 
 type PropsType = {
-  marker: MarkerInterface,
+  marker: PointOfInterestInterface,
   icon: L.DivIcon,
-  title?: string,
+  title?: string | null,
 }
 
 export class Poi extends L.Marker {
-  data: MarkerInterface | null = null;
+  data: PointOfInterestInterface | null = null;
 }
 
 const PoiMarker: React.FC<PropsType> = ({
@@ -33,9 +33,9 @@ const PoiMarker: React.FC<PropsType> = ({
   return (
     <LeafletMarker
       ref={ref}
-      position={marker.latLng}
+      position={marker.marker.latLng}
       icon={icon}
-      title={title}
+      title={title ?? undefined}
       eventHandlers={{
         click: (event: L.LeafletEvent) => {
           if (!uiState.hike) {

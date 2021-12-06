@@ -4,6 +4,7 @@ import React, { ReactElement } from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import { Formik, Form, Field } from 'formik';
 import { makeUseModal, ModalProps } from '@mortvola/usemodal';
+import L from 'leaflet';
 import Hike from '../state/Hike';
 
 type PropsType = {
@@ -26,10 +27,10 @@ const GotoLocationDialog = ({
       throw new Error('map is null');
     }
 
-    const latLng = {
-      lat: parseFloat(vals.lat),
-      lng: parseFloat(vals.lng),
-    };
+    const latLng = new L.LatLng(
+      parseFloat(vals.lat),
+      parseFloat(vals.lng),
+    );
 
     leafletMap.panTo(latLng);
     hike.map.showLocationPopup(latLng);

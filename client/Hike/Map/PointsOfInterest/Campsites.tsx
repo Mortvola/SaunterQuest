@@ -6,7 +6,6 @@ import Http from '@mortvola/http';
 import { useMap } from 'react-leaflet';
 import { Campsite as CampsiteResponse } from '../../../../common/ResponseTypes';
 import { createIcon } from '../../mapUtils';
-import { campsite } from '../Icons';
 import PoiMarker from './PoiMarker';
 import { useStores } from '../../../state/store';
 import Campsite from '../../../state/PointsOfInterest/Campsite';
@@ -58,9 +57,9 @@ const Campsites: React.FC<PropsType> = ({ show, bounds }) => {
       {
         campsites.map((c) => (
           <PoiMarker
-            marker={c.marker}
+            marker={c}
             key={c.id}
-            icon={createIcon(campsite)}
+            icon={createIcon(c.getIcon())}
             title={c.name}
           />
         ))

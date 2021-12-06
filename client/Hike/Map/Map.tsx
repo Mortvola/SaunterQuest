@@ -13,7 +13,6 @@ import Route from './Route';
 import { useGotoLocationDialog } from '../GotoLocationDialog';
 import Graticule from '../Graticule';
 import Hike from '../../state/Hike';
-import { LatLng } from '../../state/Types';
 import Marker from './Marker';
 import Gpx from '../Gpx';
 import useMediaQuery from '../../MediaQuery';
@@ -32,7 +31,7 @@ type Props = {
   tileServerUrl: string;
   pathFinderUrl: string;
   hike: Hike,
-  locationPopup?: LatLng | null,
+  locationPopup?: L.LatLng | null,
 };
 
 const Map: FC<Props> = ({
@@ -51,6 +50,7 @@ const Map: FC<Props> = ({
   const [poiSelections, setPoiSelections] = useState<PoiSelections>({
     waypoints: true,
     campsites: true,
+    rvSites: true,
     water: true,
     resupply: true,
     day: true,
@@ -94,7 +94,7 @@ const Map: FC<Props> = ({
     hike.route.addEndWaypoint(event.latlng);
   };
 
-  const makeContextMenu = useCallback((position: LatLng): MenuItem[] => {
+  const makeContextMenu = useCallback((position: L.LatLng): MenuItem[] => {
     const findSteepestPoint = () => {
       const steepestPoint = hike.route.findSteepestPoint();
     };
@@ -103,31 +103,31 @@ const Map: FC<Props> = ({
 
     if (hike.route.anchors.length === 0) {
       mapMenuItems.push({
-        label: 'Add Waypoint', callback: (latlng: LatLng) => hike.route.addStartWaypoint(latlng),
+        label: 'Add Waypoint', callback: (latlng: L.LatLng) => hike.route.addStartWaypoint(latlng),
       });
     }
     else if (hike.route.anchors.length === 1) {
       mapMenuItems.splice(
         mapMenuItems.length, 0,
-        { label: 'Prepend Waypoint', callback: (latlng: LatLng) => hike.route.addStartWaypoint(latlng) },
-        { label: 'Append Waypoint', callback: (latlng: LatLng) => hike.route.addEndWaypoint(latlng) },
+        { label: 'Prepend Waypoint', callback: (latlng: L.LatLng) => hike.route.addStartWaypoint(latlng) },
+        { label: 'Append Waypoint', callback: (latlng: L.LatLng) => hike.route.addEndWaypoint(latlng) },
       );
     }
     else {
       mapMenuItems.splice(
         mapMenuItems.length, 0,
-        { label: 'Prepend Waypoint', callback: (latlng: LatLng) => hike.route.addStartWaypoint(latlng) },
-        { label: 'Insert Waypoint', callback: (latlng: LatLng) => hike.route.addWaypoint(latlng) },
-        { label: 'Append Waypoint', callback: (latlng: LatLng) => hike.route.addEndWaypoint(latlng) },
+        { label: 'Prepend Waypoint', callback: (latlng: L.LatLng) => hike.route.addStartWaypoint(latlng) },
+        { label: 'Insert Waypoint', callback: (latlng: L.LatLng) => hike.route.addWaypoint(latlng) },
+        { label: 'Append Waypoint', callback: (latlng: L.LatLng) => hike.route.addEndWaypoint(latlng) },
       );
     }
 
     mapMenuItems.splice(
       mapMenuItems.length, 0,
       { type: 'separator', label: '', callback: () => null },
-      { label: 'Add Camp', callback: (latlng: LatLng) => hike.addCamp(latlng) },
-      { label: 'Add Water', callback: (latlng: LatLng) => hike.addWater(latlng) },
-      { label: 'Add Resupply', callback: (latlng: LatLng) => hike.addResupply(latlng) },
+      { label: 'Add Camp', callback: (latlng: L.LatLng) => hike.addCamp(latlng) },
+      { label: 'Add Water', callback: (latlng: L.LatLng) => hike.addWater(latlng) },
+      { label: 'Add Resupply', callback: (latlng: L.LatLng) => hike.addResupply(latlng) },
       { label: 'Go to Location...', callback: showGotoLocationDialog },
       { label: 'Find Steepest Point', callback: findSteepestPoint },
     );
@@ -231,7 +231,7 @@ const Map: FC<Props> = ({
       {
         hike.map.markers.map((m) => (
           <Marker
-            key={`${m.latLng.lat},${m.latLng.lng}`}
+            key={`${m.marker.latLng.lat},${m.marker.latLng.lng}`}
             marker={m}
             draggingLocked={draggingLocked}
             selections={poiSelections}

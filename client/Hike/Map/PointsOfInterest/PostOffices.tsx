@@ -6,7 +6,6 @@ import Http from '@mortvola/http';
 import { useMap } from 'react-leaflet';
 import { PostOffice as PostOfficeResponse } from '../../../../common/ResponseTypes';
 import { createIcon } from '../../mapUtils';
-import { postoffice } from '../Icons';
 import PoiMarker from './PoiMarker';
 import PostOffice from '../../../state/PointsOfInterest/PostOffice';
 import { useStores } from '../../../state/store';
@@ -59,9 +58,9 @@ const PostOffices: React.FC<PropsType> = ({ show, bounds }) => {
       {
         postOffices.map((c) => (
           <PoiMarker
-            marker={c.marker}
+            marker={c}
             key={c.id}
-            icon={createIcon(postoffice)}
+            icon={createIcon(c.getIcon())}
           />
         ))
       }

@@ -6,12 +6,11 @@ import { DomEvent, LeafletEvent, LeafletMouseEvent } from 'leaflet';
 import useMediaQuery from '../../MediaQuery';
 import { createIcon } from '../mapUtils';
 import { useStores } from '../../state/store';
-import { MarkerInterface } from '../../state/Types';
-import * as Icons from './Icons';
+import { PointOfInterestInterface } from '../../state/Types';
 import { PoiSelections } from './More/PoiSelector';
 
 type Props = {
-  marker: MarkerInterface,
+  marker: PointOfInterestInterface,
   draggingLocked: boolean,
   selections: PoiSelections,
 }
@@ -28,7 +27,7 @@ const Marker = ({
   const handleDragEnd = () => {
     const leafletMarker = markerRef.current;
     if (leafletMarker !== null) {
-      marker.move(leafletMarker.getLatLng());
+      marker.marker.move(leafletMarker.getLatLng());
     }
   };
 
@@ -47,7 +46,7 @@ const Marker = ({
 
   let draggable = false;
 
-  const icons = marker.types()
+  const icons = marker.marker.types()
     .filter((type) => (
       (type !== 'day' || selections.day)
       && (type !== 'waypoint' || selections.waypoints)
@@ -61,38 +60,40 @@ const Marker = ({
       switch (type) {
         case 'start':
           draggable = true;
-          return Icons.start;
+          break;
         case 'finish':
           draggable = true;
-          return Icons.finish;
+          break;
         case 'waypoint':
           draggable = true;
-          return Icons.compass;
+          break;
         case 'campsite':
           draggable = true;
-          return Icons.campsite;
+          break;
         case 'day':
-          return Icons.moon;
+          break;
         case 'water':
           draggable = true;
-          return Icons.water;
+          break;
         case 'resupply':
           draggable = true;
-          return Icons.resupply;
+          break;
         default:
-          return '';
+          break;
       }
+
+      return marker.getIcon();
     });
 
-  const popup = marker.popup();
+  const popup = marker.marker.popup();
 
-  const label = marker.getLabel();
+  const label = marker.marker.getLabel();
 
   if (icons.length !== 0) {
     return (
       <LeafletMarker
         ref={markerRef}
-        position={marker.latLng}
+        position={marker.marker.latLng}
         icon={createIcon(icons, label)}
         draggable={draggingLocked ? false : draggable}
         eventHandlers={{

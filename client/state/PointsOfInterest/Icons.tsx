@@ -8,7 +8,8 @@ import resupply from '../../images/resupply.svg';
 import redCircle from '../../images/red-circle.svg';
 import city from '../../images/city.svg';
 import postoffice from '../../images/postoffice.svg';
+import rv from '../../images/rv.svg';
 
 export {
-  start, finish, compass, campsite, moon, water, resupply, redCircle, city, postoffice,
+  start, finish, compass, campsite, moon, water, resupply, redCircle, city, postoffice, rv,
 };

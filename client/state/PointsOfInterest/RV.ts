@@ -4,7 +4,7 @@ import PointOfInterest from './PointOfInterset';
 
 class Campsite extends PointOfInterest implements PointOfInterestInterface {
   constructor(id: number, name: string, position: L.LatLng, map: MapInterface) {
-    super(id, name, 'campsite', position, false, false, map);
+    super(id, name, 'rv', position, false, false, map);
   }
 }
 
