@@ -59,7 +59,7 @@ const Terrain = ({
     event.preventDefault();
   };
 
-  const handlePointerMove = (event: React.PointerEvent) => {
+  const handlePointerMove: React.PointerEventHandler = (event) => {
     if (mouseRef.current) {
       const canvas = canvasRef.current;
 
@@ -78,17 +78,25 @@ const Terrain = ({
     }
   };
 
-  const handlePointerUp = (event: React.MouseEvent) => {
+  const handleKeyPress: React.KeyboardEventHandler = (event) => {
+    console.log(event.key);
+  };
+
+  const handlePointerUp: React.MouseEventHandler = (event) => {
     mouseRef.current = null;
     event.stopPropagation();
     event.preventDefault();
   };
 
-  const handlePointerCapture = (event: React.MouseEvent) => {
+  const handlePointerCapture: React.MouseEventHandler = (event) => {
     // console.log('got pointer capture');
   };
 
-  const handlePointerRelease = (event: React.MouseEvent) => {
+  const handlePointerRelease: React.MouseEventHandler = (event) => {
+    // console.log('released pointer capture');
+  };
+
+  const handleKeyDownCapture: React.KeyboardEventHandler = (event) => {
     // console.log('released pointer capture');
   };
 
@@ -106,6 +114,8 @@ const Terrain = ({
       onPointerUp={handlePointerUp}
       onGotPointerCapture={handlePointerCapture}
       onLostPointerCapture={handlePointerRelease}
+      onKeyDownCapture={handleKeyDownCapture}
+      onKeyDown={handleKeyPress}
     />
   );
 };

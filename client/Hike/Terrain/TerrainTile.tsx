@@ -2,16 +2,14 @@ import { vec3, mat4 } from 'gl-matrix';
 import Http from '@mortvola/http';
 import { lngDistance } from '../../utilities';
 import { isPointsResponse, Points } from '../../../common/ResponseTypes';
-import {
-  compileProgram, getStartOffset, loadShader,
-} from './TerrainCommon';
-import terrainVertex from './Terrain.vert';
-import terrainFragment from './Terrain.frag';
+import Shader from './Shader';
 
 type TerrainData = {
   points: number[],
   indices: number[],
   normals: number[],
+  xLength: number,
+  yLength: number,
 }
 
 export type TerrainBuffers = {
@@ -23,7 +21,7 @@ export type TerrainBuffers = {
 
 type Location = { x: number, y: number, zoom: number };
 
-const locationHash = (location: Location): string => (
+const locationKey = (location: Location): string => (
   `${location.zoom}-${location.x}-${location.y}`
 );
 
@@ -42,6 +40,12 @@ export interface TerrainRendererInterface {
 }
 
 class TerrainTile {
+  location: Location;
+
+  xLength = 0;
+
+  yLength = 0;
+
   renderer: TerrainRendererInterface;
 
   gl: WebGL2RenderingContext;
@@ -49,28 +53,6 @@ class TerrainTile {
   texture: WebGLTexture | null = null;
 
   buffers: TerrainBuffers | null = null;
-
-  shaderProgram: WebGLProgram | null = null;
-
-  uniformLocations: {
-    projectionMatrix: WebGLUniformLocation | null,
-    modelViewMatrix: WebGLUniformLocation | null,
-    fogColor: WebGLUniformLocation | null,
-    fogNear: WebGLUniformLocation | null,
-    fogFar: WebGLUniformLocation | null,
-  } = {
-    projectionMatrix: null,
-    modelViewMatrix: null,
-    fogColor: null,
-    fogNear: null,
-    fogFar: null,
-  };
-
-  attribLocations: {
-    vertexPosition: number | null,
-    texCoord: number | null,
-    vertexNormal: number | null,
-  } = { vertexPosition: null, texCoord: null, vertexNormal: null }
 
   numPointsX = 0;
 
@@ -80,21 +62,16 @@ class TerrainTile {
     renderer: TerrainRendererInterface,
     location: Location,
   ) {
+    this.location = location;
     this.renderer = renderer;
     this.gl = renderer.gl;
-
-    this.initTerrainProgram();
-
-    this.loadTerrain(location);
   }
 
-  async loadTerrain(
-    location: Location,
-  ): Promise<void> {
-    let data = terrainDataMap.get(locationHash(location));
+  async loadTerrain(): Promise<void> {
+    let data = terrainDataMap.get(locationKey(this.location));
 
     if (!data) {
-      const response = await Http.get(`${this.renderer.pathFinderUrl}/elevation/tile/${location.zoom}/${location.x}/${location.y}`);
+      const response = await Http.get(`${this.renderer.pathFinderUrl}/elevation/tile/${this.location.zoom}/${this.location.x}/${this.location.y}`);
 
       if (response.ok) {
         const body = await response.body();
@@ -102,13 +79,17 @@ class TerrainTile {
           const numPointsX = body.points[0].length;
           const numPointsY = body.points.length;
 
-          const points = TerrainTile.createTerrainPoints(body, numPointsX, numPointsY);
+          const { points, xLength, yLength } = TerrainTile.createTerrainPoints(
+            body, numPointsX, numPointsY,
+          );
           const indices = TerrainTile.createTerrainIndices(numPointsX, numPointsY);
           const normals = TerrainTile.createTerrainNormals(points, indices, numPointsX, numPointsY);
 
-          data = { points, indices, normals };
+          data = {
+            points, indices, normals, xLength, yLength,
+          };
 
-          terrainDataMap.set(locationHash(location), data);
+          terrainDataMap.set(locationKey(this.location), data);
         }
       }
       else {
@@ -118,7 +99,7 @@ class TerrainTile {
 
     if (data) {
       this.initBuffers(data);
-      this.initTexture(location);
+      // this.initTexture(location);
       this.renderer.requestRender();
     }
   }
@@ -136,29 +117,39 @@ class TerrainTile {
       numVertices: data.indices.length,
       normals: normalBuffer,
     };
+
+    this.xLength = data.xLength;
+    this.yLength = data.yLength;
   }
 
   static createTerrainPoints(
     terrain: Points,
     numPointsX: number,
     numPointsY: number,
-  ): number[] {
-    const { startLatOffset, startLngOffset } = getStartOffset(terrain.sw);
+  ): { points: number[], xLength: number, yLength: number } {
+    // const { startLatOffset, startLngOffset } = getStartOffset(terrain.sw);
+
+    // Center the tile around the origin.
+    // const startLatOffset = -(terrain.ne.lat - terrain.sw.lat) / 2;
+    // const startLngOffset = -(terrain.ne.lng - terrain.sw.lng) / 2;
 
     const sStep = (terrain.textureNE.s - terrain.textureSW.s) / (numPointsX - 1);
     const tStep = (terrain.textureNE.t - terrain.textureSW.t) / (numPointsY - 1);
 
     const positions = [];
 
-    const latDist = lngDistance(terrain.ne.lat, terrain.sw.lat);
-    const latStep = latDist / (numPointsY - 1);
+    // we are purposefully using lngDistance here to create a square tile (at least for now).
+    const yLength = lngDistance(terrain.ne.lat, terrain.sw.lat);
+    const yStep = yLength / (numPointsY - 1);
+    const startYOffset = -yLength / 2;
 
-    const lngDist = lngDistance(terrain.ne.lng, terrain.sw.lng);
-    const lngStep = lngDist / (numPointsX - 1);
+    const xLength = lngDistance(terrain.ne.lng, terrain.sw.lng);
+    const xStep = xLength / (numPointsX - 1);
+    const startXOffset = -xLength / 2;
 
     for (let i = 0; i < numPointsX; i += 1) {
-      positions.push(startLngOffset + i * lngStep);
-      positions.push(startLatOffset);
+      positions.push(startXOffset + i * xStep);
+      positions.push(startYOffset);
       positions.push(terrain.points[0][i]);
 
       // texture coordinates
@@ -167,8 +158,8 @@ class TerrainTile {
     }
 
     for (let j = 1; j < numPointsY; j += 1) {
-      positions.push(startLngOffset);
-      positions.push(startLatOffset + j * latStep);
+      positions.push(startXOffset);
+      positions.push(startYOffset + j * yStep);
       positions.push(terrain.points[j][0]);
 
       // texture coordinates
@@ -176,16 +167,16 @@ class TerrainTile {
       positions.push(terrain.textureSW.t + j * tStep);
 
       for (let i = 1; i < numPointsX; i += 1) {
-        positions.push(startLngOffset + (i - 0.5) * lngStep);
-        positions.push(startLatOffset + (j - 0.5) * latStep);
+        positions.push(startXOffset + (i - 0.5) * xStep);
+        positions.push(startYOffset + (j - 0.5) * yStep);
         positions.push(terrain.centers[j - 1][i - 1]);
 
         // texture coordinates
         positions.push(terrain.textureSW.s + (i - 0.5) * sStep);
         positions.push(terrain.textureSW.t + (j - 0.5) * tStep);
 
-        positions.push(startLngOffset + i * lngStep);
-        positions.push(startLatOffset + j * latStep);
+        positions.push(startXOffset + i * xStep);
+        positions.push(startYOffset + j * yStep);
         positions.push(terrain.points[j][i]);
 
         // texture coordinates
@@ -194,7 +185,7 @@ class TerrainTile {
       }
     }
 
-    return positions;
+    return { points: positions, xLength, yLength };
   }
 
   createTerrainBuffer(
@@ -436,24 +427,26 @@ class TerrainTile {
     return normalBuffer;
   }
 
-  drawTerrain(
-    projectionMatrix: mat4,
-    modelViewMatrix: mat4,
+  draw(
+    modelMatrix: mat4,
+    shader: Shader,
   ): void {
     if (this.buffers !== null) {
-      if (this.shaderProgram === null) {
-        throw new Error('this.shaderProgram is null');
-      }
-
-      if (this.attribLocations.vertexPosition === null) {
+      if (shader.attribLocations.vertexPosition === null) {
         throw new Error('this.attribLocations.vertexPosition is null');
       }
+
+      this.gl.uniformMatrix4fv(
+        shader.uniformLocations.modelMatrix,
+        false,
+        modelMatrix,
+      );
 
       // Tell WebGL how to pull out the positions from the position
       // buffer into the vertexPosition attribute.
       this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.position);
       this.gl.vertexAttribPointer(
-        this.attribLocations.vertexPosition,
+        shader.attribLocations.vertexPosition,
         3, // Number of components
         this.gl.FLOAT,
         false, // normalize
@@ -461,28 +454,28 @@ class TerrainTile {
         0, // offset
       );
       this.gl.enableVertexAttribArray(
-        this.attribLocations.vertexPosition,
+        shader.attribLocations.vertexPosition,
       );
 
-      if (this.attribLocations.texCoord === null) {
-        throw new Error('this.attribLocations.texCoord is null');
-      }
+      // if (shader.attribLocations.texCoord === null) {
+      //   throw new Error('this.attribLocations.texCoord is null');
+      // }
 
-      this.gl.vertexAttribPointer(
-        this.attribLocations.texCoord,
-        2, // Number of components
-        this.gl.FLOAT,
-        false, // normalize
-        terrainVertexStride * 4, // stride
-        3 * 4, // offset
-      );
-      this.gl.enableVertexAttribArray(
-        this.attribLocations.texCoord,
-      );
+      // this.gl.vertexAttribPointer(
+      //   shader.attribLocations.texCoord,
+      //   2, // Number of components
+      //   this.gl.FLOAT,
+      //   false, // normalize
+      //   terrainVertexStride * 4, // stride
+      //   3 * 4, // offset
+      // );
+      // this.gl.enableVertexAttribArray(
+      //   shader.attribLocations.texCoord,
+      // );
 
       // Tell WebGL how to pull out the normals from
       // the normal buffer into the vertexNormal attribute.
-      if (this.attribLocations.vertexNormal === null) {
+      if (shader.attribLocations.vertexNormal === null) {
         throw new Error('this.attribLocations.vertexNormal is null');
       }
 
@@ -494,7 +487,7 @@ class TerrainTile {
         const offset = 0;
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.normals);
         this.gl.vertexAttribPointer(
-          this.attribLocations.vertexNormal,
+          shader.attribLocations.vertexNormal,
           numComponents,
           type,
           normalize,
@@ -502,7 +495,7 @@ class TerrainTile {
           offset,
         );
         this.gl.enableVertexAttribArray(
-          this.attribLocations.vertexNormal,
+          shader.attribLocations.vertexNormal,
         );
       }
 
@@ -511,30 +504,16 @@ class TerrainTile {
 
       // Tell WebGL to use our program when drawing
 
-      this.gl.useProgram(this.shaderProgram);
-
       // Set the shader uniforms
 
-      this.gl.uniformMatrix4fv(
-        this.uniformLocations.projectionMatrix,
-        false,
-        projectionMatrix,
-      );
+      // if (shader.shaderProgram === null) {
+      //   throw new Error('shader program is null');
+      // }
 
-      this.gl.uniformMatrix4fv(
-        this.uniformLocations.modelViewMatrix,
-        false,
-        modelViewMatrix,
-      );
+      // this.gl.uniform1i(this.gl.getUniformLocation(shader.shaderProgram, 'terrainTexture'), 0);
 
-      this.gl.uniform4fv(this.uniformLocations.fogColor, [1.0, 1.0, 1.0, 1.0]);
-      this.gl.uniform1f(this.uniformLocations.fogNear, 8000.0);
-      this.gl.uniform1f(this.uniformLocations.fogFar, 16000.0);
-
-      this.gl.uniform1i(this.gl.getUniformLocation(this.shaderProgram, 'terrainTexture'), 0);
-
-      this.gl.activeTexture(this.gl.TEXTURE0);
-      this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
+      // this.gl.activeTexture(this.gl.TEXTURE0);
+      // this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
 
       // this.gl.enable(this.gl.BLEND);
       // this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
@@ -594,60 +573,6 @@ class TerrainTile {
       image.crossOrigin = 'anonymous';
       image.src = `${this.renderer.tileServerUrl}/tile/detail/${location.zoom}/${location.x}/${location.y}`;
     }
-  }
-
-  initTerrainProgram(): void {
-    const vertexShader = loadShader(this.gl, this.gl.VERTEX_SHADER, terrainVertex);
-
-    if (vertexShader === null) {
-      throw new Error('vertexShader is null');
-    }
-
-    const fragmentShader = loadShader(this.gl, this.gl.FRAGMENT_SHADER, terrainFragment);
-
-    if (fragmentShader === null) {
-      throw new Error('fragmentShader is null');
-    }
-
-    this.shaderProgram = compileProgram(this.gl, vertexShader, fragmentShader);
-
-    if (this.shaderProgram === null) {
-      throw new Error('shaderProgram is null');
-    }
-
-    this.uniformLocations.projectionMatrix = this.gl.getUniformLocation(this.shaderProgram, 'uProjectionMatrix');
-
-    if (this.uniformLocations.projectionMatrix === null) {
-      throw new Error('projectionMatrix is null');
-    }
-
-    this.uniformLocations.modelViewMatrix = this.gl.getUniformLocation(this.shaderProgram, 'uModelViewMatrix');
-
-    if (this.uniformLocations.modelViewMatrix === null) {
-      throw new Error('modelViewMatrix is null');
-    }
-
-    this.uniformLocations.fogColor = this.gl.getUniformLocation(this.shaderProgram, 'uFogColor');
-
-    if (this.uniformLocations.fogColor === null) {
-      throw new Error('uFogColor is null');
-    }
-
-    this.uniformLocations.fogNear = this.gl.getUniformLocation(this.shaderProgram, 'uFogNear');
-
-    if (this.uniformLocations.fogNear === null) {
-      throw new Error('uFogNear is null');
-    }
-
-    this.uniformLocations.fogFar = this.gl.getUniformLocation(this.shaderProgram, 'uFogFar');
-
-    if (this.uniformLocations.fogFar === null) {
-      throw new Error('uFogFar is null');
-    }
-
-    this.attribLocations.vertexPosition = this.gl.getAttribLocation(this.shaderProgram, 'aVertexPosition');
-    this.attribLocations.texCoord = this.gl.getAttribLocation(this.shaderProgram, 'aTexCoord');
-    this.attribLocations.vertexNormal = this.gl.getAttribLocation(this.shaderProgram, 'aVertexNormal');
   }
 }
 

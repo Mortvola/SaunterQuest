@@ -11,12 +11,12 @@ uniform highp float uFogNear;
 uniform highp float uFogFar;
 
 void main() {
-  if (vTexCoord[0] < 0.0 || vTexCoord[0] > 1.0 || vTexCoord[1] < 0.0 || vTexCoord[1] > 1.0) {
-    discard;
-  }
+  // if (vTexCoord[0] < 0.0 || vTexCoord[0] > 1.0 || vTexCoord[1] < 0.0 || vTexCoord[1] > 1.0) {
+  //   discard;
+  // }
 
   highp vec4 color = mix(
-    texture(terrainTexture, vTexCoord) * vec4(0.7, 0.7, 0.7, 1.0), // darken the detail texture a bit.
+    vec4(0.7, 0.7, 0.7, 1.0), // darken the detail texture a bit.
     vec4(0.3, 0.3, 0.3, 1.0), // Use a low ambient light level.
     fLighting);
 

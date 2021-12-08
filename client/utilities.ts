@@ -181,7 +181,6 @@ export const lat2tile = (lat: number, zoom: number): number => (
       / 2) * 2 ** zoom,
   )
 );
-
 export {
   objectifyForm,
   metersToMilesRounded,
