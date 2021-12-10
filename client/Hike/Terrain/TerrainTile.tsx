@@ -454,25 +454,6 @@ class TerrainTile {
         terrainVertexStride * 4, // stride
         0, // offset
       );
-      this.gl.enableVertexAttribArray(
-        shader.attribLocations.vertexPosition,
-      );
-
-      // if (shader.attribLocations.texCoord === null) {
-      //   throw new Error('this.attribLocations.texCoord is null');
-      // }
-
-      // this.gl.vertexAttribPointer(
-      //   shader.attribLocations.texCoord,
-      //   2, // Number of components
-      //   this.gl.FLOAT,
-      //   false, // normalize
-      //   terrainVertexStride * 4, // stride
-      //   3 * 4, // offset
-      // );
-      // this.gl.enableVertexAttribArray(
-      //   shader.attribLocations.texCoord,
-      // );
 
       // Tell WebGL how to pull out the normals from
       // the normal buffer into the vertexNormal attribute.
@@ -480,51 +461,25 @@ class TerrainTile {
         throw new Error('this.attribLocations.vertexNormal is null');
       }
 
-      {
-        const numComponents = 3;
-        const type = this.gl.FLOAT;
-        const normalize = false;
-        const stride = 0;
-        const offset = 0;
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.normals);
-        this.gl.vertexAttribPointer(
-          shader.attribLocations.vertexNormal,
-          numComponents,
-          type,
-          normalize,
-          stride,
-          offset,
-        );
-        this.gl.enableVertexAttribArray(
-          shader.attribLocations.vertexNormal,
-        );
-      }
+      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.normals);
+      this.gl.vertexAttribPointer(
+        shader.attribLocations.vertexNormal,
+        3, // Number of components
+        this.gl.FLOAT, // type
+        false, // normalize
+        0, // stride
+        0, // offset
+      );
 
       // Tell WebGL which indices to use to index the vertices
       this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.buffers.indices);
 
-      // Tell WebGL to use our program when drawing
-
-      // Set the shader uniforms
-
-      // if (shader.shaderProgram === null) {
-      //   throw new Error('shader program is null');
-      // }
-
-      // this.gl.uniform1i(this.gl.getUniformLocation(shader.shaderProgram, 'terrainTexture'), 0);
-
-      // this.gl.activeTexture(this.gl.TEXTURE0);
-      // this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
-
-      // this.gl.enable(this.gl.BLEND);
-      // this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
-
-      {
-        const vertexCount = this.buffers.numVertices;
-        const type = this.gl.UNSIGNED_INT;
-        const offset = 0;
-        this.gl.drawElements(this.gl.TRIANGLES, vertexCount, type, offset);
-      }
+      this.gl.drawElements(
+        this.gl.TRIANGLES,
+        this.buffers.numVertices, // vertex count
+        this.gl.UNSIGNED_INT, // unsigned int
+        0, // offset
+      );
     }
   }
 

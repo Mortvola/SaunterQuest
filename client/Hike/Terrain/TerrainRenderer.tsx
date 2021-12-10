@@ -16,6 +16,12 @@ type Tile = {
   order: number,
 }
 
+const requestPostAnimationFrame = (task: any) => {
+  requestAnimationFrame(() => {
+    setTimeout(task, 0);
+  });
+};
+
 const tilePadding = 2;
 
 class TerrainRenderer implements TerrainRendererInterface {
@@ -73,7 +79,12 @@ class TerrainRenderer implements TerrainRendererInterface {
 
     this.loadElevation();
 
-    requestAnimationFrame(this.drawScene.bind(this));
+    const draw = () => {
+      this.drawScene();
+      requestPostAnimationFrame(draw);
+    };
+
+    requestPostAnimationFrame(draw);
   }
 
   async loadTiles(): Promise<void> {
@@ -294,6 +305,22 @@ class TerrainRenderer implements TerrainRendererInterface {
         this.shader.uniformLocations.fogNormalizationFactor, this.fogNormalizationFactor,
       );
 
+      if (this.shader.attribLocations.vertexPosition === null) {
+        throw new Error('vertexPosition is null');
+      }
+
+      this.gl.enableVertexAttribArray(
+        this.shader.attribLocations.vertexPosition,
+      );
+
+      if (this.shader.attribLocations.vertexNormal === null) {
+        throw new Error('vertexNormal is null');
+      }
+
+      this.gl.enableVertexAttribArray(
+        this.shader.attribLocations.vertexNormal,
+      );
+
       let cameraOffset: {
         x: number,
         y: number,
@@ -316,8 +343,6 @@ class TerrainRenderer implements TerrainRendererInterface {
         tile.tile.draw(modelMatrix, this.shader);
       });
     }
-
-    requestAnimationFrame(this.drawScene.bind(this));
   }
 
   getProjectionMatrix(): mat4 {
