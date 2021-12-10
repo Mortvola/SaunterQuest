@@ -4,7 +4,7 @@ import TerrainTile, { TerrainRendererInterface } from './TerrainTile';
 import { LatLng } from '../../state/Types';
 import { Location } from './Terrain';
 import { isElevationResponse } from '../../../common/ResponseTypes';
-import { lat2tile, lng2tile } from '../../utilities';
+import { latLng2terrainTile, latOffset, terrainTile2LatLng } from '../../utilities';
 import Shader from './Shader';
 
 const zNear = 1;
@@ -16,7 +16,7 @@ type Tile = {
   order: number,
 }
 
-const tilePadding = 3;
+const tilePadding = 2;
 
 class TerrainRenderer implements TerrainRendererInterface {
   gl: WebGL2RenderingContext;
@@ -29,7 +29,7 @@ class TerrainRenderer implements TerrainRendererInterface {
 
   tiles: Tile[] = [];
 
-  tilePadding = 3;
+  tileCenter: LatLng | null = null;
 
   position: LatLng;
 
@@ -38,6 +38,8 @@ class TerrainRenderer implements TerrainRendererInterface {
   pitch = 0;
 
   yaw = 90;
+
+  fogNormalizationFactor = 0;
 
   shader: Shader;
 
@@ -70,26 +72,35 @@ class TerrainRenderer implements TerrainRendererInterface {
     this.loadTiles();
 
     this.loadElevation();
+
+    requestAnimationFrame(this.drawScene.bind(this));
   }
 
   async loadTiles(): Promise<void> {
-    const zoom = 13;
-    const x = lng2tile(this.position.lng, zoom);
-    const y = lat2tile(this.position.lat, zoom);
+    const zoom = 4;
+    const [x, y] = latLng2terrainTile(this.position.lat, this.position.lng, zoom);
 
     const promises: Promise<void>[] = [];
 
     for (let y2 = -tilePadding; y2 <= tilePadding; y2 += 1) {
       for (let x2 = -tilePadding; x2 <= tilePadding; x2 += 1) {
         promises.push(
-          this.addTile(x2 + tilePadding, y2 + tilePadding, { x: x + x2, y: y + y2, zoom }),
+          this.addTile(x2 + tilePadding, y2 + tilePadding, { x: x + x2, y: y - y2, zoom }),
         );
       }
     }
 
+    this.tileCenter = terrainTile2LatLng(x, y, zoom);
+
     await Promise.all(promises);
 
     this.tiles.push(this.tilesMatrix[tilePadding][tilePadding]);
+
+    // Use the padding width to set the fog normalization factor
+    // so that the far edge of the tiled area is completely occluded by
+    // the fog.
+    const fogFar = this.tilesMatrix[tilePadding][tilePadding].tile.xLength * tilePadding;
+    this.fogNormalizationFactor = 1 / (2 ** (fogFar * (Math.LOG2E / 4096.0)) - 1.0);
 
     // Set offsets
     for (let x2 = 1; x2 <= tilePadding; x2 += 1) {
@@ -189,7 +200,7 @@ class TerrainRenderer implements TerrainRendererInterface {
   }
 
   requestRender(): void {
-    this.drawScene();
+    // this.drawScene();
   }
 
   async addTile(x: number, y: number, location: Location): Promise<void> {
@@ -204,7 +215,7 @@ class TerrainRenderer implements TerrainRendererInterface {
 
     this.pitch = Math.max(Math.min(this.pitch, 89), -89);
 
-    this.drawScene();
+    // this.drawScene();
   }
 
   // checkPoints(): void {
@@ -279,14 +290,34 @@ class TerrainRenderer implements TerrainRendererInterface {
       );
 
       this.gl.uniform4fv(this.shader.uniformLocations.fogColor, [1.0, 1.0, 1.0, 1.0]);
-      this.gl.uniform1f(this.shader.uniformLocations.fogNear, 8000.0);
-      this.gl.uniform1f(this.shader.uniformLocations.fogFar, 16000.0);
+      this.gl.uniform1f(
+        this.shader.uniformLocations.fogNormalizationFactor, this.fogNormalizationFactor,
+      );
+
+      let cameraOffset: {
+        x: number,
+        y: number,
+      } = {
+        x: 0,
+        y: 0,
+      };
+
+      if (this.tileCenter !== null) {
+        cameraOffset = {
+          x: latOffset(this.position.lng, this.tileCenter.lng),
+          y: latOffset(this.position.lat, this.tileCenter.lat),
+        };
+      }
 
       this.tiles.forEach((tile) => {
-        const modelMatrix = TerrainRenderer.getModelMatrix(tile.offset.x, tile.offset.y);
+        const modelMatrix = TerrainRenderer.getModelMatrix(
+          tile.offset.x + cameraOffset.x, tile.offset.y + cameraOffset.y,
+        );
         tile.tile.draw(modelMatrix, this.shader);
       });
     }
+
+    requestAnimationFrame(this.drawScene.bind(this));
   }
 
   getProjectionMatrix(): mat4 {
@@ -313,7 +344,7 @@ class TerrainRenderer implements TerrainRendererInterface {
     // const { startLatOffset, startLngOffset } = getStartOffset(this.position);
 
     const viewMatrix = mat4.create();
-    const cameraPos = vec3.fromValues(0, 0, this.elevation + 100);
+    const cameraPos = vec3.fromValues(0, 0, this.elevation + 2);
 
     const x = Math.cos((this.yaw * Math.PI) / 180.0) * Math.cos((this.pitch * Math.PI) / 180.0);
     const y = Math.sin((this.yaw * Math.PI) / 180.0) * Math.cos((this.pitch * Math.PI) / 180.0);

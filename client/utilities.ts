@@ -1,3 +1,5 @@
+import L from 'leaflet';
+
 function nvl<T1, T2>(value: T1, replacement: T2): T1 | T2 {
   if (value == null) {
     return replacement;
@@ -158,6 +160,14 @@ export const latDistance = (fromLat: number, toLat: number): number => (
   )
 );
 
+export const latOffset = (fromLat: number, toLat: number): number => (
+  latDistance(fromLat, toLat) * (fromLat < toLat ? 1 : -1)
+);
+
+export const lngOffset = (fromLng: number, toLng: number): number => (
+  lngDistance(fromLng, toLng) * (fromLng < toLng ? 1 : -1)
+);
+
 function sleep(ms: number): Promise<number> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -181,6 +191,34 @@ export const lat2tile = (lat: number, zoom: number): number => (
       / 2) * 2 ** zoom,
   )
 );
+
+export const latLng2terrainTile = (lat: number, lng:number, zoom: number): [number, number] => {
+  const zoomFactor = 2 ** zoom;
+
+  const x = Math.floor((lng + 180) * zoomFactor);
+  const y = Math.floor((lat + 180) * zoomFactor);
+
+  return [x, y];
+};
+
+export const terrainTile2LatLng = (x: number, y: number, zoom: number): L.LatLng => {
+  const zoomFactor = 2 ** zoom;
+
+  const tmpX = x / zoomFactor - 180.0;
+  const tmpY = y / zoomFactor - 180.0;
+
+  let lng = Math.floor(tmpX);
+  let lat = Math.floor(tmpY);
+
+  const tileX = (tmpX - lng) * zoomFactor;
+  const tileY = (tmpY - lat) * zoomFactor;
+
+  lng += tileX / zoomFactor + (1 / zoomFactor) / 2;
+  lat += tileY / zoomFactor + (1 / zoomFactor) / 2;
+
+  return new L.LatLng(lat, lng);
+};
+
 export {
   objectifyForm,
   metersToMilesRounded,

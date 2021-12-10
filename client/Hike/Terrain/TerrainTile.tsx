@@ -1,6 +1,6 @@
 import { vec3, mat4 } from 'gl-matrix';
 import Http from '@mortvola/http';
-import { lngDistance } from '../../utilities';
+import { latDistance } from '../../utilities';
 import { isPointsResponse, Points } from '../../../common/ResponseTypes';
 import Shader from './Shader';
 
@@ -138,12 +138,13 @@ class TerrainTile {
 
     const positions = [];
 
-    // we are purposefully using lngDistance here to create a square tile (at least for now).
-    const yLength = lngDistance(terrain.ne.lat, terrain.sw.lat);
+    // we are purposefully using latDistance for both dimensions
+    // here to create a square tile (at least for now).
+    const yLength = latDistance(-104, -103) / 16.0;
     const yStep = yLength / (numPointsY - 1);
     const startYOffset = -yLength / 2;
 
-    const xLength = lngDistance(terrain.ne.lng, terrain.sw.lng);
+    const xLength = yLength;
     const xStep = xLength / (numPointsX - 1);
     const startXOffset = -xLength / 2;
 
