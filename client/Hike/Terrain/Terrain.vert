@@ -1,4 +1,5 @@
 #version 300 es
+
 in vec4 aVertexPosition;
 in vec2 aTexCoord;
 in vec3 aVertexNormal;

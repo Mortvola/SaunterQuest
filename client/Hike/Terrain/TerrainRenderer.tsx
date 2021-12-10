@@ -217,7 +217,7 @@ class TerrainRenderer implements TerrainRendererInterface {
   async addTile(x: number, y: number, location: Location): Promise<void> {
     const tile = new TerrainTile(this, location);
     this.tilesMatrix[y][x] = { offset: { x: 0, y: 0 }, tile, order: 0 };
-    return tile.loadTerrain();
+    return tile.loadTerrain(this.shader);
   }
 
   updateLookAt(yawChange: number, pitchChange: number): void {
@@ -303,22 +303,6 @@ class TerrainRenderer implements TerrainRendererInterface {
       this.gl.uniform4fv(this.shader.uniformLocations.fogColor, [1.0, 1.0, 1.0, 1.0]);
       this.gl.uniform1f(
         this.shader.uniformLocations.fogNormalizationFactor, this.fogNormalizationFactor,
-      );
-
-      if (this.shader.attribLocations.vertexPosition === null) {
-        throw new Error('vertexPosition is null');
-      }
-
-      this.gl.enableVertexAttribArray(
-        this.shader.attribLocations.vertexPosition,
-      );
-
-      if (this.shader.attribLocations.vertexNormal === null) {
-        throw new Error('vertexNormal is null');
-      }
-
-      this.gl.enableVertexAttribArray(
-        this.shader.attribLocations.vertexNormal,
       );
 
       let cameraOffset: {

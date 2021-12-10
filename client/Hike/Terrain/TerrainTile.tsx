@@ -12,13 +12,6 @@ type TerrainData = {
   yLength: number,
 }
 
-export type TerrainBuffers = {
-  position: WebGLBuffer,
-  indices: WebGLBuffer,
-  numVertices: number,
-  normals: WebGLBuffer,
-}
-
 type Location = { x: number, y: number, zoom: number };
 
 const locationKey = (location: Location): string => (
@@ -48,11 +41,13 @@ class TerrainTile {
 
   renderer: TerrainRendererInterface;
 
+  vao: WebGLVertexArrayObject | null;
+
   gl: WebGL2RenderingContext;
 
   texture: WebGLTexture | null = null;
 
-  buffers: TerrainBuffers | null = null;
+  numIndices = 0;
 
   numPointsX = 0;
 
@@ -65,9 +60,11 @@ class TerrainTile {
     this.location = location;
     this.renderer = renderer;
     this.gl = renderer.gl;
+
+    this.vao = this.gl.createVertexArray();
   }
 
-  async loadTerrain(): Promise<void> {
+  async loadTerrain(shader: Shader): Promise<void> {
     let data = terrainDataMap.get(locationKey(this.location));
 
     if (!data) {
@@ -98,7 +95,7 @@ class TerrainTile {
     }
 
     if (data) {
-      this.initBuffers(data);
+      this.initBuffers(data, shader);
       // this.initTexture(location);
       this.renderer.requestRender();
     }
@@ -106,20 +103,62 @@ class TerrainTile {
 
   initBuffers(
     data: TerrainData,
+    shader: Shader,
   ): void {
-    const positionBuffer = this.createTerrainBuffer(data.points);
-    const indexBuffer = this.createIndexBuffer(data.indices);
-    const normalBuffer = this.createNormalBuffer(data.normals);
+    this.gl.bindVertexArray(this.vao);
+    this.createVertexBuffer(data.points, shader);
+    this.createIndexBuffer(data.indices);
+    this.createNormalBuffer(data.normals, shader);
+    this.gl.bindVertexArray(null);
 
-    this.buffers = {
-      position: positionBuffer,
-      indices: indexBuffer,
-      numVertices: data.indices.length,
-      normals: normalBuffer,
-    };
+    this.numIndices = data.indices.length;
 
     this.xLength = data.xLength;
     this.yLength = data.yLength;
+  }
+
+  createVertexBuffer(
+    positions: number[],
+    shader: Shader,
+  ): void {
+    const positionBuffer = this.gl.createBuffer();
+
+    if (positionBuffer === null) {
+      throw new Error('positionBuffer is null');
+    }
+
+    if (shader.attribLocations.vertexPosition === null) {
+      throw new Error('this.attribLocations.vertexPosition is null');
+    }
+
+    if (shader.attribLocations.vertexPosition === null) {
+      throw new Error('vertexPosition is null');
+    }
+
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(positions), this.gl.STATIC_DRAW);
+    this.gl.enableVertexAttribArray(shader.attribLocations.vertexPosition);
+    this.gl.vertexAttribPointer(
+      shader.attribLocations.vertexPosition,
+      3, // Number of components
+      this.gl.FLOAT,
+      false, // normalize
+      terrainVertexStride * 4, // stride
+      0, // offset
+    );
+  }
+
+  createIndexBuffer(
+    indices: number[],
+  ): void {
+    const indexBuffer = this.gl.createBuffer();
+
+    if (indexBuffer === null) {
+      throw new Error('indexBuffer is null');
+    }
+
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(indices), this.gl.STATIC_DRAW);
   }
 
   static createTerrainPoints(
@@ -189,21 +228,6 @@ class TerrainTile {
     return { points: positions, xLength, yLength };
   }
 
-  createTerrainBuffer(
-    positions: number[],
-  ): WebGLBuffer {
-    const positionBuffer = this.gl.createBuffer();
-
-    if (positionBuffer === null) {
-      throw new Error('positionBuffer is null');
-    }
-
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(positions), this.gl.STATIC_DRAW);
-
-    return positionBuffer;
-  }
-
   static createTerrainIndices(
     numPointsX: number,
     numPointsY: number,
@@ -251,21 +275,6 @@ class TerrainTile {
     }
 
     return indices;
-  }
-
-  createIndexBuffer(
-    indices: number[],
-  ): WebGLBuffer {
-    const indexBuffer = this.gl.createBuffer();
-
-    if (indexBuffer === null) {
-      throw new Error('indexBuffer is null');
-    }
-
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(indices), this.gl.STATIC_DRAW);
-
-    return indexBuffer;
   }
 
   static computeNormal(positions: number[], indices: number[], index: number): vec3 {
@@ -415,68 +424,53 @@ class TerrainTile {
 
   createNormalBuffer(
     vertexNormals: number[],
-  ): WebGLBuffer {
+    shader: Shader,
+  ): void {
     const normalBuffer = this.gl.createBuffer();
 
     if (normalBuffer === null) {
       throw new Error('normalBuffer is null');
     }
 
+    // Tell WebGL how to pull out the normals from
+    // the normal buffer into the vertexNormal attribute.
+    if (shader.attribLocations.vertexNormal === null) {
+      throw new Error('this.attribLocations.vertexNormal is null');
+    }
+
+    if (shader.attribLocations.vertexNormal === null) {
+      throw new Error('vertexNormal is null');
+    }
+
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, normalBuffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertexNormals), this.gl.STATIC_DRAW);
-
-    return normalBuffer;
+    this.gl.enableVertexAttribArray(shader.attribLocations.vertexNormal);
+    this.gl.vertexAttribPointer(
+      shader.attribLocations.vertexNormal,
+      3, // Number of components
+      this.gl.FLOAT, // type
+      false, // normalize
+      0, // stride
+      0, // offset
+    );
   }
 
   draw(
     modelMatrix: mat4,
     shader: Shader,
   ): void {
-    if (this.buffers !== null) {
-      if (shader.attribLocations.vertexPosition === null) {
-        throw new Error('this.attribLocations.vertexPosition is null');
-      }
-
+    if (this.numIndices !== 0) {
       this.gl.uniformMatrix4fv(
         shader.uniformLocations.modelMatrix,
         false,
         modelMatrix,
       );
 
-      // Tell WebGL how to pull out the positions from the position
-      // buffer into the vertexPosition attribute.
-      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.position);
-      this.gl.vertexAttribPointer(
-        shader.attribLocations.vertexPosition,
-        3, // Number of components
-        this.gl.FLOAT,
-        false, // normalize
-        terrainVertexStride * 4, // stride
-        0, // offset
-      );
-
-      // Tell WebGL how to pull out the normals from
-      // the normal buffer into the vertexNormal attribute.
-      if (shader.attribLocations.vertexNormal === null) {
-        throw new Error('this.attribLocations.vertexNormal is null');
-      }
-
-      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.normals);
-      this.gl.vertexAttribPointer(
-        shader.attribLocations.vertexNormal,
-        3, // Number of components
-        this.gl.FLOAT, // type
-        false, // normalize
-        0, // stride
-        0, // offset
-      );
-
-      // Tell WebGL which indices to use to index the vertices
-      this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.buffers.indices);
+      this.gl.bindVertexArray(this.vao);
 
       this.gl.drawElements(
         this.gl.TRIANGLES,
-        this.buffers.numVertices, // vertex count
+        this.numIndices, // vertex count
         this.gl.UNSIGNED_INT, // unsigned int
         0, // offset
       );
