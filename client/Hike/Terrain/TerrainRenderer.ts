@@ -17,8 +17,10 @@ type Tile = {
 }
 
 const requestPostAnimationFrame = (task: any) => {
-  requestAnimationFrame(() => {
-    setTimeout(task, 0);
+  requestAnimationFrame((timestamp: number) => {
+    setTimeout(() => {
+      task(timestamp);
+    }, 0);
   });
 };
 
@@ -49,16 +51,26 @@ class TerrainRenderer implements TerrainRendererInterface {
 
   shader: Shader;
 
+  startFpsTime: number | null = null;
+
+  framesRendered = 0;
+
+  #render = false;
+
+  onFpsChange: (fps: number) => void;
+
   constructor(
     gl: WebGL2RenderingContext,
     position: LatLng,
     tileServerUrl: string,
     pathFinderUrl: string,
+    onFpsChange: (fps: number) => void,
   ) {
     this.gl = gl;
     this.pathFinderUrl = pathFinderUrl;
     this.tileServerUrl = tileServerUrl;
     this.position = position;
+    this.onFpsChange = onFpsChange;
 
     // Only continue if WebGL is available and working
     // Set clear color to black, fully opaque
@@ -78,13 +90,39 @@ class TerrainRenderer implements TerrainRendererInterface {
     this.loadTiles();
 
     this.loadElevation();
+  }
 
-    const draw = () => {
-      this.drawScene();
-      requestPostAnimationFrame(draw);
+  start(): void {
+    const draw = (timestamp: number) => {
+      if (this.#render) {
+        if (this.startFpsTime === null) {
+          this.startFpsTime = timestamp;
+        }
+
+        const elapsedTime = timestamp - this.startFpsTime;
+
+        if (elapsedTime > 1000) {
+          const fps = this.framesRendered / (elapsedTime * 0.001);
+          this.onFpsChange(fps);
+          this.framesRendered = 0;
+          this.startFpsTime = timestamp;
+        }
+
+        this.drawScene();
+        requestPostAnimationFrame(draw);
+
+        this.framesRendered += 1;
+      }
     };
 
-    requestPostAnimationFrame(draw);
+    if (!this.#render) {
+      requestPostAnimationFrame(draw);
+      this.#render = true;
+    }
+  }
+
+  stop(): void {
+    this.#render = false;
   }
 
   async loadTiles(): Promise<void> {

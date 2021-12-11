@@ -14,12 +14,14 @@ type PropsType = {
   position: LatLng,
   tileServerUrl: string,
   pathFinderUrl: string,
+  onFpsChange: (fps: number) => void,
 }
 
 const Terrain = ({
   position,
   tileServerUrl,
   pathFinderUrl,
+  onFpsChange,
 }: PropsType): ReactElement => {
   const rendererRef = useRef<TerrainRenderer | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -38,10 +40,19 @@ const Terrain = ({
 
       if (rendererRef.current === null) {
         rendererRef.current = new TerrainRenderer(
-          gl, position, tileServerUrl, pathFinderUrl,
+          gl, position, tileServerUrl, pathFinderUrl, onFpsChange,
         );
+
+        rendererRef.current.start();
       }
     }
+
+    const renderer = rendererRef.current;
+    return () => {
+      if (renderer) {
+        renderer.stop();
+      }
+    };
   }, [pathFinderUrl, position, tileServerUrl]);
 
   const handlePointerDown = (

@@ -1,5 +1,5 @@
 import React, {
-  useEffect, ReactElement,
+  useEffect, ReactElement, useState,
 } from 'react';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
@@ -28,6 +28,7 @@ const Hike = ({
   const { uiState } = useStores();
   const history = useHistory();
   const { isMobile, addMediaClass } = useMediaQuery();
+  const [fps, setFps] = useState<number>(0);
 
   useEffect(() => {
     (async () => {
@@ -84,11 +85,13 @@ const Hike = ({
           uiState.show3D && uiState.location3d
             ? (
               <div className={styles.terrain}>
+                <div className={styles.frameRate}>{`${fps.toFixed(2)} fps`}</div>
                 <div className={styles.button} onClick={handleBackClick}>X</div>
                 <Terrain
                   tileServerUrl={tileServerUrl}
                   pathFinderUrl={pathFinderUrl}
                   position={uiState.location3d}
+                  onFpsChange={setFps}
                 />
               </div>
             )
