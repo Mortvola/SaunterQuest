@@ -15,6 +15,7 @@ type PropsType = {
   tileServerUrl: string,
   pathFinderUrl: string,
   onFpsChange: (fps: number) => void,
+  onLoadChange: (percentComplete: number) => void,
 }
 
 const Terrain = ({
@@ -22,6 +23,7 @@ const Terrain = ({
   tileServerUrl,
   pathFinderUrl,
   onFpsChange,
+  onLoadChange,
 }: PropsType): ReactElement => {
   const rendererRef = useRef<TerrainRenderer | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -40,7 +42,7 @@ const Terrain = ({
 
       if (rendererRef.current === null) {
         rendererRef.current = new TerrainRenderer(
-          gl, position, tileServerUrl, pathFinderUrl, onFpsChange,
+          gl, position, tileServerUrl, pathFinderUrl, onFpsChange, onLoadChange,
         );
 
         rendererRef.current.start();

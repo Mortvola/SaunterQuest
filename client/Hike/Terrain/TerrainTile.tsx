@@ -62,7 +62,7 @@ class TerrainTile {
     this.vao = this.gl.createVertexArray();
   }
 
-  async loadTerrain(shader: Shader): Promise<void> {
+  async load(shader: Shader, onTileLoaded: () => void): Promise<void> {
     let data = terrainDataMap.get(locationKey(this.location));
 
     if (!data) {
@@ -78,7 +78,9 @@ class TerrainTile {
             body, numPointsX, numPointsY,
           );
           const indices = TerrainTile.createTerrainIndices(numPointsX, numPointsY);
-          const normals = TerrainTile.createTerrainNormals(points, indices, numPointsX, numPointsY);
+          const normals = TerrainTile.createTerrainNormals(
+            points, indices, numPointsX, numPointsY,
+          );
 
           data = {
             points, indices, normals, xLength, yLength,
@@ -96,6 +98,8 @@ class TerrainTile {
       this.initBuffers(data, shader);
       // this.initTexture(location);
     }
+
+    onTileLoaded();
   }
 
   initBuffers(

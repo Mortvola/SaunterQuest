@@ -29,6 +29,7 @@ const Hike = ({
   const history = useHistory();
   const { isMobile, addMediaClass } = useMediaQuery();
   const [fps, setFps] = useState<number>(0);
+  const [percentComplete, setPercentComplete] = useState<number>(0);
 
   useEffect(() => {
     (async () => {
@@ -85,13 +86,18 @@ const Hike = ({
           uiState.show3D && uiState.location3d
             ? (
               <div className={styles.terrain}>
-                <div className={styles.frameRate}>{`${fps.toFixed(2)} fps`}</div>
+                {
+                  percentComplete === 1
+                    ? <div className={styles.frameRate}>{`${fps.toFixed(2)} fps`}</div>
+                    : <div className={styles.loading}>{`Loading: ${(percentComplete * 100).toFixed(1)}% complete`}</div>
+                }
                 <div className={styles.button} onClick={handleBackClick}>X</div>
                 <Terrain
                   tileServerUrl={tileServerUrl}
                   pathFinderUrl={pathFinderUrl}
                   position={uiState.location3d}
                   onFpsChange={setFps}
+                  onLoadChange={setPercentComplete}
                 />
               </div>
             )

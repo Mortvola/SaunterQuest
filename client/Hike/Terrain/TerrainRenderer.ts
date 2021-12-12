@@ -65,18 +65,22 @@ class TerrainRenderer implements TerrainRendererInterface {
 
   onFpsChange: (fps: number) => void;
 
+  onLoadChange: (percentComplete: number) => void;
+
   constructor(
     gl: WebGL2RenderingContext,
     position: LatLng,
     tileServerUrl: string,
     pathFinderUrl: string,
     onFpsChange: (fps: number) => void,
+    onLoadChange: (percentComplete: number) => void,
   ) {
     this.gl = gl;
     this.pathFinderUrl = pathFinderUrl;
     this.tileServerUrl = tileServerUrl;
     this.position = position;
     this.onFpsChange = onFpsChange;
+    this.onLoadChange = onLoadChange;
 
     // Only continue if WebGL is available and working
     // Set clear color to black, fully opaque
@@ -152,13 +156,24 @@ class TerrainRenderer implements TerrainRendererInterface {
   async loadTiles(): Promise<void> {
     const zoom = 4;
     const [x, y] = latLng2terrainTile(this.position.lat, this.position.lng, zoom);
-
+    const totalTiles = (tilePadding * 2 + 1) ** 2;
+    let tilesLoaded = 0;
     const promises: Promise<void>[] = [];
+
+    const handleTileLoaded = () => {
+      tilesLoaded += 1;
+      this.onLoadChange(tilesLoaded / totalTiles);
+    };
 
     for (let y2 = -tilePadding; y2 <= tilePadding; y2 += 1) {
       for (let x2 = -tilePadding; x2 <= tilePadding; x2 += 1) {
         promises.push(
-          this.addTile(x2 + tilePadding, y2 + tilePadding, { x: x + x2, y: y - y2, zoom }),
+          this.addTile(
+            x2 + tilePadding,
+            y2 + tilePadding,
+            { x: x + x2, y: y - y2, zoom },
+            handleTileLoaded,
+          ),
         );
       }
     }
@@ -279,10 +294,10 @@ class TerrainRenderer implements TerrainRendererInterface {
     }
   }
 
-  async addTile(x: number, y: number, location: Location): Promise<void> {
+  async addTile(x: number, y: number, location: Location, onTileLoaded: () => void): Promise<void> {
     const tile = new TerrainTile(this, location);
     this.tilesMatrix[y][x] = { offset: { x: 0, y: 0 }, tile, order: 0 };
-    return tile.loadTerrain(this.shader);
+    return tile.load(this.shader, onTileLoaded);
   }
 
   updateLookAt(yawChange: number, pitchChange: number): void {

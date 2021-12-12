@@ -34,3 +34,7 @@
 .frame-rate {
   position: absolute;
 }
+
+.loading {
+  position: absolute;
+}
