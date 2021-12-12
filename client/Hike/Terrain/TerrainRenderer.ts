@@ -41,7 +41,13 @@ class TerrainRenderer implements TerrainRendererInterface {
 
   position: LatLng;
 
-  elevation: number | null = null;
+  cameraOffset: vec3 = [0, 0, 0];
+
+  cameraFront: vec3 = [0, 1, 0];
+
+  velocity = 0;
+
+  previousTimestamp: number | null = null;
 
   pitch = 0;
 
@@ -95,23 +101,41 @@ class TerrainRenderer implements TerrainRendererInterface {
   start(): void {
     const draw = (timestamp: number) => {
       if (this.#render) {
-        if (this.startFpsTime === null) {
-          this.startFpsTime = timestamp;
+        if (timestamp !== this.previousTimestamp) {
+          if (this.startFpsTime === null) {
+            this.startFpsTime = timestamp;
+          }
+
+          // Update the fps display every second.
+          const fpsElapsedTime = timestamp - this.startFpsTime;
+
+          if (fpsElapsedTime > 1000) {
+            const fps = this.framesRendered / (fpsElapsedTime * 0.001);
+            this.onFpsChange(fps);
+            this.framesRendered = 0;
+            this.startFpsTime = timestamp;
+          }
+
+          // Move the camera using the set velocity.
+          if (this.previousTimestamp !== null) {
+            const elapsedTime = (timestamp - this.previousTimestamp) * 0.001;
+
+            vec3.scaleAndAdd(
+              this.cameraOffset,
+              this.cameraOffset,
+              this.cameraFront,
+              this.velocity / elapsedTime,
+            );
+          }
+
+          this.previousTimestamp = timestamp;
+
+          this.drawScene();
+
+          this.framesRendered += 1;
         }
 
-        const elapsedTime = timestamp - this.startFpsTime;
-
-        if (elapsedTime > 1000) {
-          const fps = this.framesRendered / (elapsedTime * 0.001);
-          this.onFpsChange(fps);
-          this.framesRendered = 0;
-          this.startFpsTime = timestamp;
-        }
-
-        this.drawScene();
         requestPostAnimationFrame(draw);
-
-        this.framesRendered += 1;
       }
     };
 
@@ -140,6 +164,14 @@ class TerrainRenderer implements TerrainRendererInterface {
     }
 
     this.tileCenter = terrainTile2LatLng(x, y, zoom);
+
+    if (this.tileCenter !== null) {
+      this.cameraOffset = [
+        -latOffset(this.position.lng, this.tileCenter.lng),
+        -latOffset(this.position.lat, this.tileCenter.lat),
+        0,
+      ];
+    }
 
     await Promise.all(promises);
 
@@ -239,17 +271,12 @@ class TerrainRenderer implements TerrainRendererInterface {
     if (response.ok) {
       const body = await response.body();
       if (isElevationResponse(body)) {
-        this.elevation = body.ele;
-        this.requestRender();
+        this.cameraOffset[2] = body.ele + 2;
       }
     }
     else {
       throw new Error('invalid response');
     }
-  }
-
-  requestRender(): void {
-    // this.drawScene();
   }
 
   async addTile(x: number, y: number, location: Location): Promise<void> {
@@ -264,7 +291,17 @@ class TerrainRenderer implements TerrainRendererInterface {
 
     this.pitch = Math.max(Math.min(this.pitch, 89), -89);
 
-    // this.drawScene();
+    const x = Math.cos((this.yaw * Math.PI) / 180.0) * Math.cos((this.pitch * Math.PI) / 180.0);
+    const y = Math.sin((this.yaw * Math.PI) / 180.0) * Math.cos((this.pitch * Math.PI) / 180.0);
+    const z = Math.sin((this.pitch * Math.PI) / 180.0);
+
+    const cameraFront = vec3.fromValues(x, y, z);
+
+    vec3.normalize(this.cameraFront, cameraFront);
+  }
+
+  setVelocity(velocity: number): void {
+    this.velocity = velocity;
   }
 
   // checkPoints(): void {
@@ -309,17 +346,10 @@ class TerrainRenderer implements TerrainRendererInterface {
   // }
 
   drawScene(): void {
-    if (this.elevation !== null) {
+    if (this.cameraOffset[2] !== 0) {
       // Clear the canvas before we start drawing on it.
       // eslint-disable-next-line no-bitwise
       this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-
-      // Set up the normal matrix
-      // const normalMatrix = mat4.create();
-      // mat4.invert(normalMatrix, modelViewMatrix);
-      // mat4.transpose(normalMatrix, normalMatrix);
-
-      // this.checkPoints();
 
       this.gl.useProgram(this.shader.shaderProgram);
 
@@ -343,24 +373,11 @@ class TerrainRenderer implements TerrainRendererInterface {
         this.shader.uniformLocations.fogNormalizationFactor, this.fogNormalizationFactor,
       );
 
-      let cameraOffset: {
-        x: number,
-        y: number,
-      } = {
-        x: 0,
-        y: 0,
-      };
-
-      if (this.tileCenter !== null) {
-        cameraOffset = {
-          x: latOffset(this.position.lng, this.tileCenter.lng),
-          y: latOffset(this.position.lat, this.tileCenter.lat),
-        };
-      }
-
       this.tiles.forEach((tile) => {
         const modelMatrix = TerrainRenderer.getModelMatrix(
-          tile.offset.x + cameraOffset.x, tile.offset.y + cameraOffset.y,
+          tile.offset.x,
+          tile.offset.y,
+          0,
         );
         tile.tile.draw(modelMatrix, this.shader);
       });
@@ -383,41 +400,26 @@ class TerrainRenderer implements TerrainRendererInterface {
   }
 
   getViewMatrix(): mat4 {
-    // Set up the view matrix
-    if (this.elevation === null) {
-      throw new Error('elevation is null');
-    }
-
-    // const { startLatOffset, startLngOffset } = getStartOffset(this.position);
-
-    const viewMatrix = mat4.create();
-    const cameraPos = vec3.fromValues(0, 0, this.elevation + 2);
-
-    const x = Math.cos((this.yaw * Math.PI) / 180.0) * Math.cos((this.pitch * Math.PI) / 180.0);
-    const y = Math.sin((this.yaw * Math.PI) / 180.0) * Math.cos((this.pitch * Math.PI) / 180.0);
-    const z = Math.sin((this.pitch * Math.PI) / 180.0);
-
-    const cameraTarget = vec3.fromValues(x, y, z);
-
-    vec3.normalize(cameraTarget, cameraTarget);
-
-    cameraTarget[0] += cameraPos[0];
-    cameraTarget[1] += cameraPos[1];
-    cameraTarget[2] += cameraPos[2];
+    const cameraTarget = vec3.fromValues(
+      this.cameraFront[0] + this.cameraOffset[0],
+      this.cameraFront[1] + this.cameraOffset[1],
+      this.cameraFront[2] + this.cameraOffset[2],
+    );
 
     const cameraUp = vec3.fromValues(0.0, 0.0, 1.0);
 
-    mat4.lookAt(viewMatrix, cameraPos, cameraTarget, cameraUp);
+    const viewMatrix = mat4.create();
+    mat4.lookAt(viewMatrix, this.cameraOffset, cameraTarget, cameraUp);
 
     return viewMatrix;
   }
 
-  static getModelMatrix(xOffset: number, yOffset: number): mat4 {
+  static getModelMatrix(xOffset: number, yOffset: number, zOffset: number): mat4 {
     // const { startLatOffset, startLngOffset } = getStartOffset(this.position);
 
     const modelMatrix = mat4.create();
     mat4.identity(modelMatrix);
-    mat4.translate(modelMatrix, modelMatrix, vec3.fromValues(xOffset, yOffset, 0));
+    mat4.translate(modelMatrix, modelMatrix, vec3.fromValues(xOffset, yOffset, zOffset));
 
     return modelMatrix;
   }

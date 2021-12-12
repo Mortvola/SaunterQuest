@@ -55,7 +55,7 @@ const Terrain = ({
     };
   }, [pathFinderUrl, position, tileServerUrl]);
 
-  const handlePointerDown = (
+  const handlePointerDown: React.PointerEventHandler<HTMLCanvasElement> = (
     event: React.PointerEvent<HTMLCanvasElement> & {
       target: {
         setPointerCapture?: (id: number) => void,
@@ -66,6 +66,11 @@ const Terrain = ({
     if (event.target.setPointerCapture) {
       event.target.setPointerCapture(event.pointerId);
     }
+
+    if (canvasRef.current) {
+      canvasRef.current.focus();
+    }
+
     event.stopPropagation();
     event.preventDefault();
   };
@@ -78,19 +83,17 @@ const Terrain = ({
         const xOffset = event.clientX - mouseRef.current.x;
         const yOffset = event.clientY - mouseRef.current.y;
 
-        if (rendererRef.current !== null) {
-          rendererRef.current.updateLookAt(xOffset * 0.1, yOffset * 0.1);
+        const renderer = rendererRef.current;
+        if (renderer !== null) {
+          renderer.updateLookAt(xOffset * 0.1, yOffset * 0.1);
         }
 
         mouseRef.current = { x: event.clientX, y: event.clientY };
+
         event.stopPropagation();
         event.preventDefault();
       }
     }
-  };
-
-  const handleKeyPress: React.KeyboardEventHandler = (event) => {
-    console.log(event.key);
   };
 
   const handlePointerUp: React.MouseEventHandler = (event) => {
@@ -107,8 +110,43 @@ const Terrain = ({
     // console.log('released pointer capture');
   };
 
-  const handleKeyDownCapture: React.KeyboardEventHandler = (event) => {
-    // console.log('released pointer capture');
+  const handleKeyDown: React.KeyboardEventHandler = (event) => {
+    const renderer = rendererRef.current;
+    if (renderer) {
+      switch (event.key) {
+        case 'ArrowUp':
+          renderer.setVelocity(1);
+          break;
+
+        case 'ArrowDown':
+          renderer.setVelocity(-1);
+          break;
+
+        case 'ArrowLeft':
+          renderer.setVelocity(0);
+          break;
+
+        case 'ArrowRight':
+          renderer.setVelocity(0);
+          break;
+
+        default:
+          break;
+      }
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  const handleKeyUp: React.KeyboardEventHandler = (event) => {
+    const renderer = rendererRef.current;
+    if (renderer) {
+      renderer.setVelocity(0);
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
   };
 
   return (
@@ -120,13 +158,14 @@ const Terrain = ({
       }}
       width="853"
       height="480"
+      tabIndex={0}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onGotPointerCapture={handlePointerCapture}
       onLostPointerCapture={handlePointerRelease}
-      onKeyDownCapture={handleKeyDownCapture}
-      onKeyDown={handleKeyPress}
+      onKeyDown={handleKeyDown}
+      onKeyUp={handleKeyUp}
     />
   );
 };

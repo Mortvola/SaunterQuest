@@ -28,8 +28,6 @@ export interface TerrainRendererInterface {
   tileServerUrl: string;
 
   pathFinderUrl: string;
-
-  requestRender(): void;
 }
 
 class TerrainTile {
@@ -97,7 +95,6 @@ class TerrainTile {
     if (data) {
       this.initBuffers(data, shader);
       // this.initTexture(location);
-      this.renderer.requestRender();
     }
   }
 
@@ -516,8 +513,6 @@ class TerrainTile {
           this.gl.TEXTURE_2D, level, internalFormat, 256, 256, 0, srcFormat, srcType, image,
         );
         this.gl.generateMipmap(this.gl.TEXTURE_2D);
-
-        this.renderer.requestRender();
       };
 
       image.crossOrigin = 'anonymous';
