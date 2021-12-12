@@ -7,18 +7,17 @@ in vec3 aVertexNormal;
 uniform highp mat4 uModelMatrix;
 uniform highp mat4 uViewMatrix;
 uniform highp mat4 uProjectionMatrix;
+uniform highp vec3 uLightVector;
 
 out highp float fLighting;
 out highp vec2 vTexCoord;
 out highp vec3 vPosition;
 
 void main() {
-  gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * aVertexPosition;
+  highp vec4 position = uViewMatrix * uModelMatrix * aVertexPosition;
 
-  highp vec4 directionalVector = normalize(vec4(0, -1, -1, 1.0));
-  highp vec4 transformedNormal = vec4(aVertexNormal, 1.0);
-
-  fLighting = 1.0 + min(dot(transformedNormal.xyz, directionalVector.xyz), 0.0);
+  gl_Position = uProjectionMatrix * position;
+  fLighting = 1.0 + min(dot(aVertexNormal, uLightVector), 0.0);
   vTexCoord = aTexCoord;
-  vPosition = (uViewMatrix * uModelMatrix * aVertexPosition).xyz;
+  vPosition = position.xyz;
 }

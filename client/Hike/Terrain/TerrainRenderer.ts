@@ -368,6 +368,10 @@ class TerrainRenderer implements TerrainRendererInterface {
         viewMatrix,
       );
 
+      const lightVector = vec3.fromValues(0, -1, -1);
+      vec3.normalize(lightVector, lightVector);
+      this.gl.uniform3fv(this.shader.uniformLocations.lightVector, lightVector);
+
       this.gl.uniform4fv(this.shader.uniformLocations.fogColor, [1.0, 1.0, 1.0, 1.0]);
       this.gl.uniform1f(
         this.shader.uniformLocations.fogNormalizationFactor, this.fogNormalizationFactor,

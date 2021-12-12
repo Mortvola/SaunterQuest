@@ -14,17 +14,15 @@ class Shader {
     viewMatrix: WebGLUniformLocation | null,
     modelMatrix: WebGLUniformLocation | null,
     fogColor: WebGLUniformLocation | null,
-    fogNear: WebGLUniformLocation | null,
-    fogFar: WebGLUniformLocation | null,
     fogNormalizationFactor: WebGLUniformLocation | null,
+    lightVector: WebGLUniformLocation | null,
   } = {
     projectionMatrix: null,
     viewMatrix: null,
     modelMatrix: null,
     fogColor: null,
-    fogNear: null,
-    fogFar: null,
     fogNormalizationFactor: null,
+    lightVector: null,
   };
 
   attribLocations: {
@@ -82,6 +80,12 @@ class Shader {
 
     if (this.uniformLocations.fogNormalizationFactor === null) {
       throw new Error('uFogNormalizationFactor is null');
+    }
+
+    this.uniformLocations.lightVector = this.gl.getUniformLocation(this.shaderProgram, 'uLightVector');
+
+    if (this.uniformLocations.lightVector === null) {
+      throw new Error('lightVector is null');
     }
 
     this.attribLocations.vertexPosition = this.gl.getAttribLocation(this.shaderProgram, 'aVertexPosition');
