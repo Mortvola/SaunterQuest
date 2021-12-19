@@ -13,8 +13,7 @@ type TerrainData = {
   points: number[],
   indices: number[],
   normals: number[],
-  xLength: number,
-  yLength: number,
+  dimension: number,
 }
 
 type Location = { x: number, y: number, zoom: number };
@@ -38,9 +37,7 @@ export interface TerrainRendererInterface {
 class TerrainTile {
   location: Location;
 
-  xLength = 0;
-
-  yLength = 0;
+  static dimension = latDistance(-104, -103) / (2 ** 4);
 
   renderer: TerrainRendererInterface;
 
@@ -66,8 +63,6 @@ class TerrainTile {
 
   latLngCenter: L.LatLng;
 
-  tileDimension: number;
-
   numPointsX = 0;
 
   numPointsY = 0;
@@ -89,7 +84,6 @@ class TerrainTile {
     );
 
     const zoomFactor = 2 ** this.location.zoom;
-    this.tileDimension = latDistance(-104, -103) / zoomFactor;
 
     const latlngDimension = 1 / zoomFactor;
     const halfDimension = latlngDimension / 2;
@@ -122,7 +116,7 @@ class TerrainTile {
           // Store a copy of the points for elevation determination.
           this.points = body.points;
 
-          const { points, xLength, yLength } = this.createTerrainPoints(
+          const points = this.createTerrainPoints(
             body, this.numPointsX, this.numPointsY,
           );
           const indices = TerrainTile.createTerrainIndices(this.numPointsX, this.numPointsY);
@@ -131,7 +125,7 @@ class TerrainTile {
           );
 
           data = {
-            points, indices, normals, xLength, yLength,
+            points, indices, normals, dimension: TerrainTile.dimension,
           };
 
           terrainDataMap.set(locationKey(this.location), data);
@@ -151,8 +145,8 @@ class TerrainTile {
   }
 
   getElevation(x: number, y: number): number {
-    const pointX = (x / this.tileDimension + 0.5) * (this.numPointsX - 1);
-    const pointY = (y / this.tileDimension + 0.5) * (this.numPointsY - 1);
+    const pointX = (x / TerrainTile.dimension + 0.5) * (this.numPointsX - 1);
+    const pointY = (y / TerrainTile.dimension + 0.5) * (this.numPointsY - 1);
 
     const x1 = Math.floor(pointX);
     const y1 = Math.floor(pointY);
@@ -204,9 +198,6 @@ class TerrainTile {
     this.gl.bindVertexArray(null);
 
     this.numIndices = data.indices.length;
-
-    this.xLength = data.xLength;
-    this.yLength = data.yLength;
   }
 
   createVertexBuffer(
@@ -253,11 +244,12 @@ class TerrainTile {
     this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(indices), this.gl.STATIC_DRAW);
   }
 
+  // eslint-disable-next-line class-methods-use-this
   createTerrainPoints(
     terrain: Points,
     numPointsX: number,
     numPointsY: number,
-  ): { points: number[], xLength: number, yLength: number } {
+  ): number[] {
     // const { startLatOffset, startLngOffset } = getStartOffset(terrain.sw);
 
     // Center the tile around the origin.
@@ -271,11 +263,11 @@ class TerrainTile {
 
     // we are purposefully using latDistance for both dimensions
     // here to create a square tile (at least for now).
-    const yStep = this.tileDimension / (numPointsY - 1);
-    const startYOffset = -this.tileDimension / 2;
+    const yStep = TerrainTile.dimension / (numPointsY - 1);
+    const startYOffset = -TerrainTile.dimension / 2;
 
-    const xStep = this.tileDimension / (numPointsX - 1);
-    const startXOffset = -this.tileDimension / 2;
+    const xStep = TerrainTile.dimension / (numPointsX - 1);
+    const startXOffset = -TerrainTile.dimension / 2;
 
     for (let i = 0; i < numPointsX; i += 1) {
       positions.push(startXOffset + i * xStep);
@@ -315,7 +307,7 @@ class TerrainTile {
       }
     }
 
-    return { points: positions, xLength: this.tileDimension, yLength: this.tileDimension };
+    return positions;
   }
 
   static createTerrainIndices(

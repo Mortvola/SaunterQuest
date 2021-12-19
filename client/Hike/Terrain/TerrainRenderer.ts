@@ -71,6 +71,8 @@ class TerrainRenderer implements TerrainRendererInterface {
 
   hike: HikeInterface;
 
+  enableRendering = false;
+
   constructor(
     gl: WebGL2RenderingContext,
     position: LatLng,
@@ -194,6 +196,9 @@ class TerrainRenderer implements TerrainRendererInterface {
             x2 + tilePadding,
             y2 + tilePadding,
             { x: x + x2, y: y - y2, zoom },
+            x2 * TerrainTile.dimension,
+            -y2 * TerrainTile.dimension,
+            Math.abs(x2) + Math.abs(y2),
             handleTileLoaded,
           ),
         );
@@ -201,93 +206,6 @@ class TerrainRenderer implements TerrainRendererInterface {
     }
 
     await Promise.all(promises);
-
-    this.tiles.push(this.tilesMatrix[tilePadding][tilePadding]);
-
-    // Use the padding width to set the fog normalization factor
-    // so that the far edge of the tiled area is completely occluded by
-    // the fog.
-    const fogFar = this.tilesMatrix[tilePadding][tilePadding].tile.xLength * tilePadding;
-    this.fogNormalizationFactor = 1 / (2 ** (fogFar * (Math.LOG2E / 4096.0)) - 1.0);
-
-    // Set offsets
-    for (let x2 = 1; x2 <= tilePadding; x2 += 1) {
-      let prevTile = this.tilesMatrix[tilePadding][tilePadding + x2 - 1];
-      let tile = this.tilesMatrix[tilePadding][tilePadding + x2];
-      tile.offset = {
-        x: prevTile.offset.x + (prevTile.tile.xLength / 2) + (tile.tile.xLength / 2),
-        y: prevTile.offset.y,
-      };
-      tile.order = x2;
-      this.tiles.push(tile);
-
-      prevTile = this.tilesMatrix[tilePadding][tilePadding - x2 + 1];
-      tile = this.tilesMatrix[tilePadding][tilePadding - x2];
-      tile.offset = {
-        x: prevTile.offset.x - (prevTile.tile.xLength / 2) - (tile.tile.xLength / 2),
-        y: prevTile.offset.y,
-      };
-      tile.order = x2;
-      this.tiles.push(tile);
-    }
-
-    for (let y2 = 1; y2 <= tilePadding; y2 += 1) {
-      let prevTile = this.tilesMatrix[tilePadding + y2 - 1][tilePadding];
-      let tile = this.tilesMatrix[tilePadding + y2][tilePadding];
-      tile.offset = {
-        x: prevTile.offset.x,
-        y: prevTile.offset.y - (prevTile.tile.yLength / 2) - (tile.tile.yLength / 2),
-      };
-      tile.order = y2;
-      this.tiles.push(tile);
-
-      prevTile = this.tilesMatrix[tilePadding - y2 + 1][tilePadding];
-      tile = this.tilesMatrix[tilePadding - y2][tilePadding];
-      tile.offset = {
-        x: prevTile.offset.x,
-        y: prevTile.offset.y + (prevTile.tile.yLength / 2) + (tile.tile.yLength / 2),
-      };
-      tile.order = y2;
-      this.tiles.push(tile);
-
-      for (let x2 = 1; x2 <= tilePadding; x2 += 1) {
-        prevTile = this.tilesMatrix[tilePadding + y2][tilePadding + x2 - 1];
-        tile = this.tilesMatrix[tilePadding + y2][tilePadding + x2];
-        tile.offset = {
-          x: prevTile.offset.x + (prevTile.tile.xLength / 2) + (tile.tile.xLength / 2),
-          y: prevTile.offset.y,
-        };
-        tile.order = x2 + y2;
-        this.tiles.push(tile);
-
-        prevTile = this.tilesMatrix[tilePadding + y2][tilePadding - x2 + 1];
-        tile = this.tilesMatrix[tilePadding + y2][tilePadding - x2];
-        tile.offset = {
-          x: prevTile.offset.x - (prevTile.tile.xLength / 2) - (tile.tile.xLength / 2),
-          y: prevTile.offset.y,
-        };
-        tile.order = x2 + y2;
-        this.tiles.push(tile);
-
-        prevTile = this.tilesMatrix[tilePadding - y2][tilePadding + x2 - 1];
-        tile = this.tilesMatrix[tilePadding - y2][tilePadding + x2];
-        tile.offset = {
-          x: prevTile.offset.x + (prevTile.tile.xLength / 2) + (tile.tile.xLength / 2),
-          y: prevTile.offset.y,
-        };
-        tile.order = x2 + y2;
-        this.tiles.push(tile);
-
-        prevTile = this.tilesMatrix[tilePadding - y2][tilePadding - x2 + 1];
-        tile = this.tilesMatrix[tilePadding - y2][tilePadding - x2];
-        tile.offset = {
-          x: prevTile.offset.x - (prevTile.tile.xLength / 2) - (tile.tile.xLength / 2),
-          y: prevTile.offset.y,
-        };
-        tile.order = x2 + y2;
-        this.tiles.push(tile);
-      }
-    }
 
     this.tiles.sort((a, b) => a.order - b.order);
 
@@ -299,11 +217,29 @@ class TerrainRenderer implements TerrainRendererInterface {
       yOffset,
       this.tiles[0].tile.getElevation(xOffset, yOffset) + cameraZOffset,
     ];
+
+    this.enableRendering = true;
   }
 
-  async addTile(x: number, y: number, location: Location, onTileLoaded: () => void): Promise<void> {
+  async addTile(
+    x: number,
+    y: number,
+    location: Location,
+    xOffset: number,
+    yOffset: number,
+    renderOrder: number,
+    onTileLoaded: () => void,
+  ): Promise<void> {
     const tile = new TerrainTile(this, this.hike.id, location, this.photoShader);
-    this.tilesMatrix[y][x] = { offset: { x: 0, y: 0 }, tile, order: 0 };
+    this.tilesMatrix[y][x] = {
+      offset: {
+        x: xOffset,
+        y: yOffset,
+      },
+      tile,
+      order: renderOrder,
+    };
+    this.tiles.push(this.tilesMatrix[y][x]);
     return tile.load(this.terrainShader, onTileLoaded);
   }
 
@@ -330,49 +266,8 @@ class TerrainRenderer implements TerrainRendererInterface {
     this.upVelocity = velocity;
   }
 
-  // checkPoints(): void {
-  //   if (this.tiles[0] && this.tiles[0].positions.length > 0
-  //     && this.tiles[1] && this.tiles[1].positions.length > 0) {
-  //     const tile0 = this.tiles[0];
-  //     const tile1 = this.tiles[1];
-
-  //     if (tile0.numPointsX !== tile1.numPointsX) {
-  //       console.log('tile widths differ');
-  //     }
-  //     else {
-  //       for (let x = 0; x < tile0.numPointsX; x += 1) {
-  //         [0, 2, 4].forEach((j) => {
-  //           const tile1Value = tile1.positions[x * 5 + j];
-  //           const tile0Value = tile0.positions[
-  //             x * 2 * 5 + j
-  //               + (tile0.numPointsY - 3) * (2 * tile0.numPointsX - 1) * 5
-  //               + tile0.numPointsX * 5
-  //           ];
-  //           if (tile1Value !== tile0Value) {
-  //             console.log(`tile edges differ at ${x}, ${j}: ${tile1Value} ${tile0Value}`);
-  //           }
-  //         });
-
-  //         [0, 2, 4].forEach((j) => {
-  //           const tile1Value = tile1.positions[
-  //             x * 2 * 5 + j + tile1.numPointsX * 5
-  //           ];
-  //           const tile0Value = tile0.positions[
-  //             x * 2 * 5 + j
-  //               + (tile0.numPointsY - 2) * (2 * tile0.numPointsX - 1) * 5
-  //               + tile0.numPointsX * 5
-  //           ];
-  //           if (tile0Value !== tile1Value) {
-  //             console.log(`tile edges differ at ${x}, ${j}: ${tile0Value} ${tile1Value}`);
-  //           }
-  //         });
-  //       }
-  //     }
-  //   }
-  // }
-
   drawScene(): void {
-    if (this.tiles[0]) {
+    if (this.enableRendering) {
       // Clear the canvas before we start drawing on it.
       // eslint-disable-next-line no-bitwise
       this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
