@@ -73,6 +73,8 @@ export interface MapInterface {
   removeMarkerSelection(marker: PointOfInterestInterface): void;
 
   clearSelectedMarkers(): void;
+
+  setTemporaryMarkerLocation(latlng: L.LatLng): void;
 }
 
 export interface MarkerInterface {
@@ -115,7 +117,10 @@ export interface PointOfInterestInterface {
   getIcon(): string | null;
 }
 
-export type MarkerType = 'start' | 'finish' | 'waypoint' | 'campsite' | 'day' | 'water' | 'resupply' | 'city' | 'postoffice' | 'rv';
+export type MarkerType = 'start'
+  | 'finish' | 'waypoint' | 'campsite' | 'day'
+  | 'water' | 'resupply' | 'city' | 'postoffice'
+  | 'rv' | 'photo';
 
 export interface MarkerAttributeInterface {
   type: MarkerType;

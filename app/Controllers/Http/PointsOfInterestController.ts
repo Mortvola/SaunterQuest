@@ -174,4 +174,38 @@ export default class PointsOfInterestController {
 
     return items;
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async getPhotos({ auth, request }: HttpContextContract) : Promise<unknown> {
+    if (!auth.user) {
+      throw new Exception('invalid user');
+    }
+
+    const {
+      n, s, e, w,
+    } = request.qs();
+
+    const items = await Database.query()
+      .select(
+        'id',
+        'transforms',
+        Database.raw('ST_AsGeoJSON(ST_Transform(way, 4326))::json->\'coordinates\' as location'),
+      )
+      .from('hike_photos')
+      .andWhereRaw(`ST_Intersects(
+          ST_SetSRID(ST_MakeBox2D(
+            ST_Transform(ST_SetSRID(ST_MakePoint(?, ?), 4326), 3857),
+            ST_Transform(ST_SetSRID(ST_MakePoint(?, ?), 4326), 3857)
+          ), 3857),
+          way)`, [w, n, e, s]);
+
+    items.forEach((i) => {
+      if (i.transforms !== null) {
+        console.log(i.transforms);
+        i.transforms = JSON.parse(i.transforms);
+      }
+    });
+
+    return items;
+  }
 }

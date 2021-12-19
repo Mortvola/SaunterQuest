@@ -80,6 +80,9 @@ class PointOfInterest implements PointOfInterestInterface {
       case 'postoffice':
         return 'Post Office';
 
+      case 'photo':
+        return 'Photo';
+
       default:
         return 'Unknown';
     }
@@ -107,6 +110,8 @@ class PointOfInterest implements PointOfInterestInterface {
         return Icons.postoffice;
       case 'rv':
         return Icons.rv;
+      case 'photo':
+        return Icons.photo;
       default:
         return null;
     }

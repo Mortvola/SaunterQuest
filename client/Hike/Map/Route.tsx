@@ -8,9 +8,9 @@ type PropsType = {
   route: RouteData;
 }
 
-const Route = ({
+const Route: React.FC<PropsType> = observer(({
   route,
-}: PropsType) => {
+}) => {
   if (route.anchors) {
     return (
       <>
@@ -28,6 +28,6 @@ const Route = ({
   }
 
   return null;
-};
+});
 
-export default observer(Route);
+export default Route;

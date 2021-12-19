@@ -120,9 +120,9 @@ function toTimeFloat(time: string): number {
   return parseInt(time.substring(0, 2), 10) + parseInt(time.substring(3), 10) / 60.0;
 }
 
-function degToRad(degrees: number): number {
-  return degrees * (Math.PI / 180);
-}
+export const degToRad = (degrees: number): number => (
+  degrees * (Math.PI / 180)
+);
 
 function haversineGreatCircleDistance(
   latitudeFrom: number,
@@ -192,7 +192,7 @@ export const lat2tile = (lat: number, zoom: number): number => (
   )
 );
 
-export const latLng2terrainTile = (lat: number, lng:number, zoom: number): [number, number] => {
+export const latLngToTerrainTile = (lat: number, lng:number, zoom: number): [number, number] => {
   const zoomFactor = 2 ** zoom;
 
   const x = Math.floor((lng + 180) * zoomFactor);
@@ -201,8 +201,9 @@ export const latLng2terrainTile = (lat: number, lng:number, zoom: number): [numb
   return [x, y];
 };
 
-export const terrainTile2LatLng = (x: number, y: number, zoom: number): L.LatLng => {
+export const terrainTileToLatLng = (x: number, y: number, zoom: number): L.LatLng => {
   const zoomFactor = 2 ** zoom;
+  const tileDimension = 1 / zoomFactor;
 
   const tmpX = x / zoomFactor - 180.0;
   const tmpY = y / zoomFactor - 180.0;
@@ -213,10 +214,18 @@ export const terrainTile2LatLng = (x: number, y: number, zoom: number): L.LatLng
   const tileX = (tmpX - lng) * zoomFactor;
   const tileY = (tmpY - lat) * zoomFactor;
 
-  lng += tileX / zoomFactor + (1 / zoomFactor) / 2;
-  lat += tileY / zoomFactor + (1 / zoomFactor) / 2;
+  lng += tileX / zoomFactor + tileDimension / 2;
+  lat += tileY / zoomFactor + tileDimension / 2;
 
   return new L.LatLng(lat, lng);
+};
+
+export const bilinearInterpolation = (
+  f00: number, f10: number, f01: number, f11: number, x: number, y: number,
+): number => {
+  const oneMinusX = 1 - x;
+  const oneMinusY = 1 - y;
+  return (f00 * oneMinusX * oneMinusY + f10 * x * oneMinusY + f01 * oneMinusX * y + f11 * x * y);
 };
 
 export {

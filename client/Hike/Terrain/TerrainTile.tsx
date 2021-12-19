@@ -1,8 +1,13 @@
 import { vec3, mat4 } from 'gl-matrix';
 import Http from '@mortvola/http';
-import { latDistance } from '../../utilities';
-import { isPointsResponse, Points } from '../../../common/ResponseTypes';
-import Shader from './Shader';
+import L from 'leaflet';
+import {
+  bilinearInterpolation, latDistance, latOffset, terrainTileToLatLng,
+} from '../../utilities';
+import { isPointsResponse, PhotoProps, Points } from '../../../common/ResponseTypes';
+import Shader from './Shaders/TerrainShader';
+import Frame from './Frame';
+import PhotoShader from './Shaders/PhotoShader';
 
 type TerrainData = {
   points: number[],
@@ -47,17 +52,57 @@ class TerrainTile {
 
   numIndices = 0;
 
+  frames: Frame[] = [];
+
+  photoShader: PhotoShader;
+
+  hikeId: number;
+
+  points: number[][] = [];
+
+  sw: L.LatLng;
+
+  ne: L.LatLng;
+
+  latLngCenter: L.LatLng;
+
+  tileDimension: number;
+
   numPointsX = 0;
 
   numPointsY = 0;
 
   constructor(
     renderer: TerrainRendererInterface,
+    hikeId: number,
     location: Location,
+    photoShader: PhotoShader,
   ) {
     this.location = location;
     this.renderer = renderer;
     this.gl = renderer.gl;
+    this.photoShader = photoShader;
+    this.hikeId = hikeId;
+
+    this.latLngCenter = terrainTileToLatLng(
+      this.location.x, this.location.y, this.location.zoom,
+    );
+
+    const zoomFactor = 2 ** this.location.zoom;
+    this.tileDimension = latDistance(-104, -103) / zoomFactor;
+
+    const latlngDimension = 1 / zoomFactor;
+    const halfDimension = latlngDimension / 2;
+
+    this.sw = new L.LatLng(
+      this.latLngCenter.lat - halfDimension,
+      this.latLngCenter.lng - halfDimension,
+    );
+
+    this.ne = new L.LatLng(
+      this.latLngCenter.lat + halfDimension,
+      this.latLngCenter.lng + halfDimension,
+    );
 
     this.vao = this.gl.createVertexArray();
   }
@@ -71,15 +116,18 @@ class TerrainTile {
       if (response.ok) {
         const body = await response.body();
         if (isPointsResponse(body)) {
-          const numPointsX = body.points[0].length;
-          const numPointsY = body.points.length;
+          this.numPointsX = body.points[0].length;
+          this.numPointsY = body.points.length;
 
-          const { points, xLength, yLength } = TerrainTile.createTerrainPoints(
-            body, numPointsX, numPointsY,
+          // Store a copy of the points for elevation determination.
+          this.points = body.points;
+
+          const { points, xLength, yLength } = this.createTerrainPoints(
+            body, this.numPointsX, this.numPointsY,
           );
-          const indices = TerrainTile.createTerrainIndices(numPointsX, numPointsY);
+          const indices = TerrainTile.createTerrainIndices(this.numPointsX, this.numPointsY);
           const normals = TerrainTile.createTerrainNormals(
-            points, indices, numPointsX, numPointsY,
+            points, indices, this.numPointsX, this.numPointsY,
           );
 
           data = {
@@ -96,10 +144,53 @@ class TerrainTile {
 
     if (data) {
       this.initBuffers(data, shader);
-      // this.initTexture(location);
+      this.loadPhotos();
     }
 
     onTileLoaded();
+  }
+
+  getElevation(x: number, y: number): number {
+    const pointX = (x / this.tileDimension + 0.5) * (this.numPointsX - 1);
+    const pointY = (y / this.tileDimension + 0.5) * (this.numPointsY - 1);
+
+    const x1 = Math.floor(pointX);
+    const y1 = Math.floor(pointY);
+
+    const x2 = pointX - x1;
+    const y2 = pointY - y1;
+
+    return bilinearInterpolation(
+      this.points[y1][x1],
+      this.points[y1][x1 + 1],
+      this.points[y1 + 1][x1],
+      this.points[y1 + 1][x1 + 1],
+      x2,
+      y2,
+    );
+  }
+
+  async loadPhotos(): Promise<void> {
+    const response = await Http.get<PhotoProps[]>(`/api/poi/photos?n=${this.ne.lat}&s=${this.sw.lat}&e=${this.ne.lng}&w=${this.sw.lng}`);
+
+    if (response.ok) {
+      const body = await response.body();
+
+      body.forEach((p) => {
+        const xOffset = -latOffset(p.location[0], this.latLngCenter.lng);
+        const yOffset = -latOffset(p.location[1], this.latLngCenter.lat);
+        const zOffset = this.getElevation(xOffset, yOffset) + 2;
+        this.frames.push(new Frame(
+          this.gl,
+          this.photoShader,
+          `/api/hike/${this.hikeId}/photo/${p.id}`,
+          xOffset,
+          yOffset,
+          zOffset,
+          p.transforms,
+        ));
+      });
+    }
   }
 
   initBuffers(
@@ -162,7 +253,7 @@ class TerrainTile {
     this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(indices), this.gl.STATIC_DRAW);
   }
 
-  static createTerrainPoints(
+  createTerrainPoints(
     terrain: Points,
     numPointsX: number,
     numPointsY: number,
@@ -180,13 +271,11 @@ class TerrainTile {
 
     // we are purposefully using latDistance for both dimensions
     // here to create a square tile (at least for now).
-    const yLength = latDistance(-104, -103) / 16.0;
-    const yStep = yLength / (numPointsY - 1);
-    const startYOffset = -yLength / 2;
+    const yStep = this.tileDimension / (numPointsY - 1);
+    const startYOffset = -this.tileDimension / 2;
 
-    const xLength = yLength;
-    const xStep = xLength / (numPointsX - 1);
-    const startXOffset = -xLength / 2;
+    const xStep = this.tileDimension / (numPointsX - 1);
+    const startXOffset = -this.tileDimension / 2;
 
     for (let i = 0; i < numPointsX; i += 1) {
       positions.push(startXOffset + i * xStep);
@@ -226,7 +315,7 @@ class TerrainTile {
       }
     }
 
-    return { points: positions, xLength, yLength };
+    return { points: positions, xLength: this.tileDimension, yLength: this.tileDimension };
   }
 
   static createTerrainIndices(
@@ -457,6 +546,8 @@ class TerrainTile {
   }
 
   draw(
+    projectionMatrix: mat4,
+    viewMatrix: mat4,
     modelMatrix: mat4,
     shader: Shader,
   ): void {
@@ -478,49 +569,44 @@ class TerrainTile {
     }
   }
 
-  initTexture(location: Location): void {
-    const image = new Image();
+  drawTransparent(
+    projectionMatrix: mat4,
+    viewMatrix: mat4,
+    modelMatrix: mat4,
+    shader: Shader,
+  ): void {
+    if (this.numIndices !== 0) {
+      if (this.frames.length > 0) {
+        this.gl.useProgram(this.photoShader.shaderProgram);
 
-    if (this.texture === null) {
-      this.texture = this.gl.createTexture();
-      if (this.texture === null) {
-        throw new Error('this.texture is null');
-      }
-
-      this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
-
-      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
-      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
-      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
-      this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
-
-      const level = 0;
-      const internalFormat = this.gl.RGBA;
-      const width = 1;
-      const height = 1;
-      const border = 0;
-      const srcFormat = this.gl.RGBA;
-      const srcType = this.gl.UNSIGNED_BYTE;
-
-      const pixel = new Uint8Array([255, 255, 255, 255]);
-      this.gl.texImage2D(this.gl.TEXTURE_2D, level, internalFormat,
-        width, height, border, srcFormat, srcType,
-        pixel);
-
-      image.onload = () => {
-        if (this === null || this.gl === null) {
-          throw new Error('this or this.gl is null');
-        }
-
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.texture);
-        this.gl.texImage2D(
-          this.gl.TEXTURE_2D, level, internalFormat, 256, 256, 0, srcFormat, srcType, image,
+        this.gl.uniformMatrix4fv(
+          this.photoShader.uniformLocations.projectionMatrix,
+          false,
+          projectionMatrix,
         );
-        this.gl.generateMipmap(this.gl.TEXTURE_2D);
-      };
 
-      image.crossOrigin = 'anonymous';
-      image.src = `${this.renderer.tileServerUrl}/tile/detail/${location.zoom}/${location.x}/${location.y}`;
+        this.gl.uniformMatrix4fv(
+          this.photoShader.uniformLocations.viewMatrix,
+          false,
+          viewMatrix,
+        );
+
+        this.gl.uniformMatrix4fv(
+          this.photoShader.uniformLocations.modelMatrix,
+          false,
+          modelMatrix,
+        );
+
+        this.gl.blendColor(1, 1, 1, 0.5);
+        this.gl.blendFunc(this.gl.CONSTANT_ALPHA, this.gl.ONE_MINUS_CONSTANT_ALPHA);
+        this.gl.enable(this.gl.BLEND);
+
+        this.frames.forEach((f) => {
+          f.draw();
+        });
+
+        this.gl.disable(this.gl.BLEND);
+      }
     }
   }
 }

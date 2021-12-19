@@ -14,8 +14,10 @@ const Grade: React.FC<PropsType> = observer(({ route }) => {
     <>
       {
         route.grade.map((g, index) => (
-          // eslint-disable-next-line react/no-array-index-key
-          <Polyline key={index} positions={g} color={colors[index] ?? '#00f'} weight={12} />
+          g.length > 1
+            // eslint-disable-next-line react/no-array-index-key
+            ? <Polyline key={index} positions={g} color={colors[index] ?? '#00f'} weight={12} />
+            : null
         ))
       }
     </>

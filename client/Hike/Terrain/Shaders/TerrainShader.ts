@@ -1,10 +1,8 @@
-import {
-  compileProgram, loadShader,
-} from './TerrainCommon';
+import { compileProgram, loadShader } from './Common';
 import terrainVertex from './Terrain.vert';
 import terrainFragment from './Terrain.frag';
 
-class Shader {
+class TerrainShader {
   gl: WebGL2RenderingContext;
 
   shaderProgram: WebGLProgram | null = null;
@@ -94,4 +92,4 @@ class Shader {
   }
 }
 
-export default Shader;
+export default TerrainShader;

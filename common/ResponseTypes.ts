@@ -75,6 +75,12 @@ export interface City {
   location: [number, number];
 }
 
+export interface PhotoProps {
+  id: number,
+  location: [number, number],
+  transforms: [],
+}
+
 export interface Campsite {
   id: number;
   name: string;

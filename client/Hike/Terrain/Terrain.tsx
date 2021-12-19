@@ -1,7 +1,7 @@
 import React, {
   ReactElement, useEffect, useRef,
 } from 'react';
-import { LatLng } from '../../state/Types';
+import { HikeInterface, LatLng } from '../../state/Types';
 import TerrainRenderer from './TerrainRenderer';
 
 export type Location = {
@@ -11,6 +11,7 @@ export type Location = {
 };
 
 type PropsType = {
+  hike: HikeInterface,
   position: LatLng,
   tileServerUrl: string,
   pathFinderUrl: string,
@@ -19,6 +20,7 @@ type PropsType = {
 }
 
 const Terrain = ({
+  hike,
   position,
   tileServerUrl,
   pathFinderUrl,
@@ -42,7 +44,7 @@ const Terrain = ({
 
       if (rendererRef.current === null) {
         rendererRef.current = new TerrainRenderer(
-          gl, position, tileServerUrl, pathFinderUrl, onFpsChange, onLoadChange,
+          gl, position, hike, tileServerUrl, pathFinderUrl, onFpsChange, onLoadChange,
         );
 
         rendererRef.current.start();
@@ -116,12 +118,14 @@ const Terrain = ({
     const renderer = rendererRef.current;
     if (renderer) {
       switch (event.key) {
-        case 'ArrowUp':
-          renderer.setVelocity(1);
+        case 'W':
+        case 'w':
+          renderer.setVelocity(0.1);
           break;
 
-        case 'ArrowDown':
-          renderer.setVelocity(-1);
+        case 'S':
+        case 's':
+          renderer.setVelocity(-0.1);
           break;
 
         case 'ArrowLeft':
@@ -130,6 +134,14 @@ const Terrain = ({
 
         case 'ArrowRight':
           renderer.setVelocity(0);
+          break;
+
+        case 'PageUp':
+          renderer.setUpVelocity(1);
+          break;
+
+        case 'PageDown':
+          renderer.setUpVelocity(-1);
           break;
 
         default:
@@ -144,7 +156,36 @@ const Terrain = ({
   const handleKeyUp: React.KeyboardEventHandler = (event) => {
     const renderer = rendererRef.current;
     if (renderer) {
-      renderer.setVelocity(0);
+      switch (event.key) {
+        case 'W':
+        case 'w':
+          renderer.setVelocity(0);
+          break;
+
+        case 'S':
+        case 's':
+          renderer.setVelocity(0);
+          break;
+
+        case 'ArrowLeft':
+          renderer.setVelocity(0);
+          break;
+
+        case 'ArrowRight':
+          renderer.setVelocity(0);
+          break;
+
+        case 'PageUp':
+          renderer.setUpVelocity(0);
+          break;
+
+        case 'PageDown':
+          renderer.setUpVelocity(0);
+          break;
+
+        default:
+          break;
+      }
     }
 
     event.preventDefault();

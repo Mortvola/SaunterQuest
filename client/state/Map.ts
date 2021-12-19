@@ -1,7 +1,6 @@
 import { makeAutoObservable, runInAction } from 'mobx';
-import Marker from './Marker';
 import {
-  HikeInterface, MapInterface, MarkerInterface, PointOfInterestInterface,
+  HikeInterface, MapInterface, PointOfInterestInterface,
 } from './Types';
 
 class Map implements MapInterface {
@@ -15,12 +14,20 @@ class Map implements MapInterface {
 
   hike: HikeInterface;
 
+  temporaryMarkerLocation: L.LatLng | null = null;
+
   waiting = false;
 
   constructor(hike: HikeInterface) {
     this.hike = hike;
 
     makeAutoObservable(this);
+  }
+
+  setTemporaryMarkerLocation(latlng: L.LatLng): void {
+    runInAction(() => {
+      this.temporaryMarkerLocation = latlng;
+    });
   }
 
   setWaiting(waiting: boolean): void {

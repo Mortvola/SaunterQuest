@@ -56,8 +56,8 @@ const Map: FC<Props> = ({
     day: true,
     postOffices: true,
     cities: true,
+    photos: true,
   });
-  const [temporaryMarkerLocation, setTemporaryMarkerLocation] = useState<L.LatLng | null>(null);
 
   const handlePoiSelectionChange = (value: PoiSelections) => {
     setPoiSelections(value);
@@ -146,15 +146,12 @@ const Map: FC<Props> = ({
   };
 
   const handleMapClick: L.LeafletMouseEventHandlerFn = (e) => {
-    setTemporaryMarkerLocation(e.latlng);
+    hike.map.setTemporaryMarkerLocation(e.latlng);
     hike.map.clearSelectedMarkers();
   };
 
   const showIn3D: React.MouseEventHandler = () => {
-    runInAction(() => {
-      uiState.location3d = temporaryMarkerLocation;
-      uiState.show3D = true;
-    });
+    uiState.showIn3D(hike.map.temporaryMarkerLocation);
   };
 
   useMapEvents({
@@ -202,10 +199,10 @@ const Map: FC<Props> = ({
       <MapDrawer>
         <div className={styles.drawerContents}>
           {
-            temporaryMarkerLocation
+            hike.map.temporaryMarkerLocation
               ? (
                 <div>
-                  <div>{`lat,lng: ${temporaryMarkerLocation.lat}, ${temporaryMarkerLocation.lng}`}</div>
+                  <div>{`lat,lng: ${hike.map.temporaryMarkerLocation.lat}, ${hike.map.temporaryMarkerLocation.lng}`}</div>
                   <button type="button" onClick={showIn3D}>Show in 3D</button>
                 </div>
               )
@@ -249,9 +246,9 @@ const Map: FC<Props> = ({
           : null
       }
       {
-        temporaryMarkerLocation
+        hike.map.temporaryMarkerLocation
           ? (
-            <LeafletMarker position={temporaryMarkerLocation} />
+            <LeafletMarker position={hike.map.temporaryMarkerLocation} />
           )
           : null
       }

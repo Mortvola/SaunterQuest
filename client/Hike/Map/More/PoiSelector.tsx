@@ -11,6 +11,7 @@ export type PoiSelections = {
   day: boolean,
   postOffices: boolean,
   cities: boolean,
+  photos: boolean,
 }
 
 export type OnSelectionCallback = (selections: PoiSelections) => void;
@@ -42,6 +43,7 @@ const PoiSelector: React.FC<SelectListProps> = ({
       <Checkbox name="day" label="Day" checked={selections.day} onChange={handleChange} />
       <Checkbox name="postOffices" label="Post Offices" checked={selections.postOffices} onChange={handleChange} />
       <Checkbox name="cities" label="Cities" checked={selections.cities} onChange={handleChange} />
+      <Checkbox name="photos" label="Photos" checked={selections.photos} onChange={handleChange} />
     </div>
   );
 };

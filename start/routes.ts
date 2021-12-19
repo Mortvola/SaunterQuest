@@ -77,6 +77,9 @@ Route.group(() => {
 
       Route.get('/poi', 'PointsOfInterestController.get');
       Route.post('/poi', 'PointsOfInterestController.add');
+
+      Route.post('/photo-upload', 'HikesController.photoUpload');
+      Route.get('/photo/:photoId', 'HikesController.getPhoto');
     })
       .prefix('/:hikeId');
   })
@@ -100,6 +103,7 @@ Route.group(() => {
     .prefix('/gear');
 
   Route.get('/poi/rv', 'PointsOfInterestController.getRvSites');
+  Route.get('/poi/photos', 'PointsOfInterestController.getPhotos');
   Route.get('/campsites', 'PointsOfInterestController.getCampsites');
   Route.get('/post-offices', 'PointsOfInterestController.getPostOffices');
   Route.get('/cities', 'PointsOfInterestController.getCities');

@@ -9,7 +9,8 @@
     "dev-server-build": "node ace build",
     "dev-welcome-build": "webpack --config-name welcome",
     "dev-client-build": "webpack --config-name app",
-    "start": "node ace serve --watch",
+    "start-watch": "node ace serve --watch",
+    "start": "node ace serve",
     "lint": "eslint ."
   },
   "dependencies": {
@@ -32,6 +33,7 @@
     "bootstrap": "^5.1.3",
     "braces": "^3.0.2",
     "caniuse-lite": "^1.0.30001283",
+    "exif-parser": "^0.1.12",
     "formik": "^2.2.9",
     "gl-matrix": "^3.4.3",
     "jsonwebtoken": "^8.5.1",

@@ -6,6 +6,7 @@ import PostOffices from './PostOffices';
 import Cities from './Cities';
 import RvSites from './RvSites';
 import { PoiSelections } from '../More/PoiSelector';
+import Photos from './Photos';
 
 type PropsType = {
   selections: PoiSelections,
@@ -28,7 +29,12 @@ const Poi: React.FC<PropsType> = ({ selections }) => {
   });
 
   useEffect(() => {
-    setBounds(leafletMap.getBounds());
+    if (leafletMap.getZoom() < 8) {
+      setBounds(null);
+    }
+    else {
+      setBounds(leafletMap.getBounds());
+    }
   }, [leafletMap]);
 
   return (
@@ -37,6 +43,7 @@ const Poi: React.FC<PropsType> = ({ selections }) => {
       <RvSites bounds={bounds} show={selections.rvSites} />
       <PostOffices bounds={bounds} show={selections.postOffices} />
       <Cities bounds={bounds} show={selections.cities} />
+      <Photos bounds={bounds} show={selections.photos} />
     </MarkerCluster>
   );
 };

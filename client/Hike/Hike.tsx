@@ -59,10 +59,7 @@ const Hike = ({
 
   if (uiState.hike) {
     const handleBackClick = () => {
-      runInAction(() => {
-        uiState.show3D = false;
-        uiState.location3d = null;
-      });
+      uiState.showIn3D(null);
     };
 
     return (
@@ -83,7 +80,7 @@ const Hike = ({
           />
         </div>
         {
-          uiState.show3D && uiState.location3d
+          uiState.location3d
             ? (
               <div className={styles.terrain}>
                 {
@@ -93,6 +90,7 @@ const Hike = ({
                 }
                 <div className={styles.button} onClick={handleBackClick}>X</div>
                 <Terrain
+                  hike={uiState.hike}
                   tileServerUrl={tileServerUrl}
                   pathFinderUrl={pathFinderUrl}
                   position={uiState.location3d}

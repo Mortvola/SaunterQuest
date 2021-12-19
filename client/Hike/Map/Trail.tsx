@@ -7,7 +7,7 @@ type Props = {
   trail: TrailPoint[];
 };
 
-const Trail: React.FC<Props> = ({ trail }): ReactElement | null => {
+const Trail: React.FC<Props> = observer(({ trail }): ReactElement | null => {
   const routeStrokeWeight = 6;
 
   if (trail && trail.length > 1) {
@@ -24,6 +24,6 @@ const Trail: React.FC<Props> = ({ trail }): ReactElement | null => {
   }
 
   return null;
-};
+});
 
-export default observer(Trail);
+export default Trail;

@@ -4,6 +4,8 @@ import React, {
   FC, useEffect, useState,
 } from 'react';
 import { useMap } from 'react-leaflet';
+import ExifParser from 'exif-parser';
+import Http from '@mortvola/http';
 import LeafletControl from '../LeafletControl';
 import MoreItem from './MoreItem';
 import PoiSelector, { PoiSelections, OnSelectionCallback } from './PoiSelector';
@@ -11,6 +13,7 @@ import styles from './MoreControl.module.css';
 import { useHikeDialog } from '../../HikeSettingsDialog';
 import { HikeInterface } from '../../../state/Types';
 import Checkbox from './Checkbox';
+import UploadFileButton from '../../UploadFileButton';
 
 type PropsType = {
   hike: HikeInterface,
@@ -80,6 +83,43 @@ const MoreControl: FC<PropsType> = ({
     };
   }, [map]);
 
+  const handleFileSelection: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+    const toBinaryString = (bytes: Uint8Array) => {
+      let result = '';
+      for (let i = 0; i < bytes.length; i += 1) {
+        result += String.fromCharCode(bytes[i]);
+      }
+
+      return result;
+    };
+
+    if (event.target.files && event.target.files[0]) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        if (e.target && e.target.result !== null && typeof e.target.result !== 'string') {
+          const exifParser = ExifParser.create(e.target.result);
+          const result = exifParser.parse();
+          const tmp = new Uint8Array(e.target.result);
+          const encodedPicture = btoa(toBinaryString(tmp));
+
+          const response = await Http.post(`/api/hike/${hike.id}/photo-upload`, {
+            lat: result.tags.GPSLatitude,
+            lng: result.tags.GPSLongitude,
+            data: encodedPicture,
+          });
+
+          if (response.ok) {
+            hike.map.setTemporaryMarkerLocation(
+              new L.LatLng(result.tags.GPSLatitude, result.tags.GPSLongitude),
+            );
+          }
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+  };
+
   return (
     <>
       <LeafletControl position={position}>
@@ -93,6 +133,10 @@ const MoreControl: FC<PropsType> = ({
                   </MoreItem>
                   <MoreItem label="Settings..." onClick={handleSettingsClick} />
                   <Checkbox name="grade" label="Grade" checked={steepness} onChange={handleSteepnessChange} />
+                  <UploadFileButton
+                    onFileSelection={handleFileSelection}
+                    label="Upload Photo"
+                  />
                 </div>
               )
               : null

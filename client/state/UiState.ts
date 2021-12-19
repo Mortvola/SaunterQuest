@@ -11,8 +11,6 @@ class UiState {
 
   gearConfigSort = 'System';
 
-  show3D = false;
-
   location3d: LatLng | null = null;
 
   toggleMarker(markerTypes: MarkerType): void {
@@ -36,6 +34,12 @@ class UiState {
   setHike(hike: Hike | null): void {
     runInAction(() => {
       this.hike = hike;
+    });
+  }
+
+  showIn3D(position: L.LatLng | null): void {
+    runInAction(() => {
+      this.location3d = position;
     });
   }
 }
