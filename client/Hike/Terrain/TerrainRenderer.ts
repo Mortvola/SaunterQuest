@@ -11,7 +11,6 @@ import PhotoShader from './Shaders/PhotoShader';
 type Tile = {
   offset: { x: number, y: number},
   tile: TerrainTile,
-  order: number,
 }
 
 const cameraZOffset = 2;
@@ -33,15 +32,17 @@ class TerrainRenderer implements TerrainRendererInterface {
 
   pathFinderUrl: string;
 
-  tilesMatrix: Tile[][];
+  tileGrid: Tile[][] = [];
 
-  tiles: Tile[] = [];
+  tileRenderOrder: { x: number, y: number }[] = [];
+
+  tileMap: Map<string, TerrainTile> = new Map();
 
   position: LatLng;
 
-  cameraOffset: vec3 = [0, 0, 0];
+  cameraOffset: vec3 = vec3.fromValues(0, 0, 0);
 
-  cameraFront: vec3 = [0, 1, 0];
+  cameraFront: vec3 = vec3.fromValues(0, 1, 0);
 
   velocity = 0;
 
@@ -98,16 +99,59 @@ class TerrainRenderer implements TerrainRendererInterface {
     this.gl.depthFunc(this.gl.LEQUAL); // Near things obscure far things
     this.gl.enable(this.gl.CULL_FACE);
 
-    this.tilesMatrix = new Array(tilePadding * 2 + 1);
-    for (let y = 0; y < this.tilesMatrix.length; y += 1) {
-      this.tilesMatrix[y] = new Array(tilePadding * 2 + 1);
-    }
-
     this.terrainShader = new TerrainShader(this.gl);
 
     this.photoShader = new PhotoShader(this.gl);
 
-    this.loadTiles();
+    this.initialize();
+  }
+
+  async initialize(): Promise<void> {
+    this.initTileMatrix();
+
+    const zoom = 4;
+    const [x, y] = latLngToTerrainTile(this.position.lat, this.position.lng, zoom);
+
+    await this.loadTiles(x, y, zoom);
+    this.initCamera(x, y, zoom);
+
+    // Use the padding width to set the fog normalization factor
+    // so that the far edge of the tiled area is completely occluded by
+    // the fog.
+    const fogFar = TerrainTile.dimension * tilePadding;
+    this.fogNormalizationFactor = 1 / (2 ** (fogFar * (Math.LOG2E / 4096.0)) - 1.0);
+
+    this.enableRendering = true;
+  }
+
+  initTileMatrix(): void {
+    this.tileGrid = new Array(tilePadding * 2 + 1);
+    for (let y = 0; y < this.tileGrid.length; y += 1) {
+      this.tileGrid[y] = new Array(tilePadding * 2 + 1);
+    }
+
+    for (let y = 0; y <= (tilePadding * 2); y += 1) {
+      for (let x = 0; x <= (tilePadding * 2); x += 1) {
+        this.tileRenderOrder.push({ x, y });
+      }
+    }
+
+    this.tileRenderOrder.sort((a, b) => (
+      (Math.abs(a.x - tilePadding) + Math.abs(a.y - tilePadding))
+      - (Math.abs(b.x - tilePadding) + Math.abs(b.y - tilePadding))
+    ));
+  }
+
+  initCamera(x: number, y: number, zoom: number): void {
+    const tileCenter = terrainTileToLatLng(x, y, zoom);
+    const xOffset = -latOffset(this.position.lng, tileCenter.lng);
+    const yOffset = -latOffset(this.position.lat, tileCenter.lat);
+    this.cameraOffset = [
+      xOffset,
+      yOffset,
+      this.tileGrid[tilePadding][tilePadding]
+        .tile.getElevation(xOffset, yOffset) + cameraZOffset,
+    ];
   }
 
   start(): void {
@@ -132,7 +176,7 @@ class TerrainRenderer implements TerrainRendererInterface {
           if (this.previousTimestamp !== null) {
             const elapsedTime = (timestamp - this.previousTimestamp) * 0.001;
 
-            const newCameraOffset: vec3 = [0, 0, 0];
+            const newCameraOffset: vec3 = vec3.fromValues(0, 0, 0);
 
             vec3.scaleAndAdd(
               newCameraOffset,
@@ -142,16 +186,44 @@ class TerrainRenderer implements TerrainRendererInterface {
             );
 
             // this.cameraOffset[2] += this.upVelocity / elapsedTime;
+
+            if (newCameraOffset[0] > (TerrainTile.dimension / 2)
+              || newCameraOffset[0] < -(TerrainTile.dimension / 2)
+              || newCameraOffset[1] > (TerrainTile.dimension / 2)
+              || newCameraOffset[1] < -(TerrainTile.dimension / 2)
+            ) {
+              const gridX = Math.floor(
+                (newCameraOffset[0] + (TerrainTile.dimension / 2)) / TerrainTile.dimension,
+              );
+
+              const gridY = Math.floor(
+                (newCameraOffset[1] + (TerrainTile.dimension / 2)) / TerrainTile.dimension,
+              );
+
+              const newCenterTile = this.tileGrid[tilePadding - gridY][tilePadding + gridX];
+
+              this.loadTiles(newCenterTile.tile.location.x, newCenterTile.tile.location.y, 4);
+
+              newCameraOffset[0] -= gridX * TerrainTile.dimension;
+              newCameraOffset[1] -= gridY * TerrainTile.dimension;
+            }
+
             // If the camera x/y position has changed then updated the elevation (z).
             if (newCameraOffset[0] !== this.cameraOffset[0]
               || newCameraOffset[1] !== this.cameraOffset[1]) {
               [this.cameraOffset[0], this.cameraOffset[1]] = newCameraOffset;
 
-              if (this.tiles[0]) {
-                this.cameraOffset[2] = this.tiles[0].tile.getElevation(
-                  this.cameraOffset[0],
-                  this.cameraOffset[1],
-                ) + cameraZOffset;
+              if (this.tileGrid[tilePadding][tilePadding]) {
+                try {
+                  this.cameraOffset[2] = this.tileGrid[tilePadding][tilePadding]
+                    .tile.getElevation(
+                      this.cameraOffset[0],
+                      this.cameraOffset[1],
+                    ) + cameraZOffset;
+                }
+                catch (error) {
+                  console.log(`newCameraOffset = [${newCameraOffset[0]}, ${newCameraOffset[1]}]`);
+                }
               }
             }
           }
@@ -177,9 +249,7 @@ class TerrainRenderer implements TerrainRendererInterface {
     this.#render = false;
   }
 
-  async loadTiles(): Promise<void> {
-    const zoom = 4;
-    const [x, y] = latLngToTerrainTile(this.position.lat, this.position.lng, zoom);
+  async loadTiles(x: number, y: number, zoom: number): Promise<void> {
     const totalTiles = (tilePadding * 2 + 1) ** 2;
     let tilesLoaded = 0;
     const promises: Promise<void>[] = [];
@@ -192,13 +262,12 @@ class TerrainRenderer implements TerrainRendererInterface {
     for (let y2 = -tilePadding; y2 <= tilePadding; y2 += 1) {
       for (let x2 = -tilePadding; x2 <= tilePadding; x2 += 1) {
         promises.push(
-          this.addTile(
+          this.loadTile(
             x2 + tilePadding,
             y2 + tilePadding,
             { x: x + x2, y: y - y2, zoom },
             x2 * TerrainTile.dimension,
             -y2 * TerrainTile.dimension,
-            Math.abs(x2) + Math.abs(y2),
             handleTileLoaded,
           ),
         );
@@ -206,41 +275,42 @@ class TerrainRenderer implements TerrainRendererInterface {
     }
 
     await Promise.all(promises);
-
-    this.tiles.sort((a, b) => a.order - b.order);
-
-    const tileCenter = terrainTileToLatLng(x, y, zoom);
-    const xOffset = -latOffset(this.position.lng, tileCenter.lng);
-    const yOffset = -latOffset(this.position.lat, tileCenter.lat);
-    this.cameraOffset = [
-      xOffset,
-      yOffset,
-      this.tiles[0].tile.getElevation(xOffset, yOffset) + cameraZOffset,
-    ];
-
-    this.enableRendering = true;
   }
 
-  async addTile(
+  async loadTile(
     x: number,
     y: number,
     location: Location,
     xOffset: number,
     yOffset: number,
-    renderOrder: number,
     onTileLoaded: () => void,
   ): Promise<void> {
-    const tile = new TerrainTile(this, this.hike.id, location, this.photoShader);
-    this.tilesMatrix[y][x] = {
-      offset: {
-        x: xOffset,
-        y: yOffset,
-      },
-      tile,
-      order: renderOrder,
-    };
-    this.tiles.push(this.tilesMatrix[y][x]);
-    return tile.load(this.terrainShader, onTileLoaded);
+    const locationKey = (loc: Location): string => (
+      `${loc.x}-${loc.y}`
+    );
+
+    let tile = this.tileMap.get(locationKey(location));
+
+    if (!tile) {
+      tile = new TerrainTile(this, this.hike.id, location, this.photoShader);
+      this.tileMap.set(locationKey(location), tile);
+
+      this.tileGrid[y][x] = {
+        offset: {
+          x: xOffset,
+          y: yOffset,
+        },
+        tile,
+      };
+
+      return tile.load(this.terrainShader, onTileLoaded);
+    }
+
+    this.tileGrid[y][x].tile = tile;
+
+    onTileLoaded();
+
+    return Promise.resolve();
   }
 
   updateLookAt(yawChange: number, pitchChange: number): void {
@@ -280,7 +350,8 @@ class TerrainRenderer implements TerrainRendererInterface {
       const lightVector = vec3.fromValues(0, -1, -1);
       vec3.normalize(lightVector, lightVector);
 
-      this.tiles.forEach((tile) => {
+      this.tileRenderOrder.forEach((order) => {
+        const tile = this.tileGrid[order.y][order.x];
         this.gl.useProgram(this.terrainShader.shaderProgram);
 
         this.gl.uniformMatrix4fv(
@@ -312,7 +383,8 @@ class TerrainRenderer implements TerrainRendererInterface {
       });
 
       // Draw Transparent
-      this.tiles.forEach((tile) => {
+      this.tileRenderOrder.forEach((order) => {
+        const tile = this.tileGrid[order.y][order.x];
         this.gl.useProgram(this.terrainShader.shaderProgram);
 
         this.gl.uniformMatrix4fv(
