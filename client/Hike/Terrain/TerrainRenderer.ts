@@ -132,6 +132,10 @@ class TerrainRenderer implements TerrainRendererInterface {
 
     for (let y = 0; y <= (tilePadding * 2); y += 1) {
       for (let x = 0; x <= (tilePadding * 2); x += 1) {
+        const offsetX = (x - tilePadding) * TerrainTile.dimension;
+        const offsetY = -(y - tilePadding) * TerrainTile.dimension;
+
+        this.tileGrid[y][x].offset = { x: offsetX, y: offsetY };
         this.tileRenderOrder.push({ x, y });
       }
     }
@@ -152,6 +156,60 @@ class TerrainRenderer implements TerrainRendererInterface {
       this.tileGrid[tilePadding][tilePadding]
         .tile.getElevation(xOffset, yOffset) + cameraZOffset,
     ];
+  }
+
+  async loadTiles(x: number, y: number, zoom: number): Promise<void> {
+    const totalTiles = (tilePadding * 2 + 1) ** 2;
+    let tilesLoaded = 0;
+    const promises: Promise<void>[] = [];
+
+    const handleTileLoaded = () => {
+      tilesLoaded += 1;
+      this.onLoadChange(tilesLoaded / totalTiles);
+    };
+
+    for (let y2 = -tilePadding; y2 <= tilePadding; y2 += 1) {
+      for (let x2 = -tilePadding; x2 <= tilePadding; x2 += 1) {
+        promises.push(
+          this.loadTile(
+            x2 + tilePadding,
+            y2 + tilePadding,
+            { x: x + x2, y: y - y2, zoom },
+            handleTileLoaded,
+          ),
+        );
+      }
+    }
+
+    await Promise.all(promises);
+  }
+
+  async loadTile(
+    x: number,
+    y: number,
+    location: Location,
+    onTileLoaded: () => void,
+  ): Promise<void> {
+    const locationKey = (loc: Location): string => (
+      `${loc.x}-${loc.y}`
+    );
+
+    let tile = this.tileMap.get(locationKey(location));
+
+    if (!tile) {
+      tile = new TerrainTile(this, this.hike.id, location, this.photoShader);
+      this.tileMap.set(locationKey(location), tile);
+
+      this.tileGrid[y][x].tile = tile;
+
+      return tile.load(this.terrainShader, onTileLoaded);
+    }
+
+    this.tileGrid[y][x].tile = tile;
+
+    onTileLoaded();
+
+    return Promise.resolve();
   }
 
   start(): void {
@@ -247,70 +305,6 @@ class TerrainRenderer implements TerrainRendererInterface {
 
   stop(): void {
     this.#render = false;
-  }
-
-  async loadTiles(x: number, y: number, zoom: number): Promise<void> {
-    const totalTiles = (tilePadding * 2 + 1) ** 2;
-    let tilesLoaded = 0;
-    const promises: Promise<void>[] = [];
-
-    const handleTileLoaded = () => {
-      tilesLoaded += 1;
-      this.onLoadChange(tilesLoaded / totalTiles);
-    };
-
-    for (let y2 = -tilePadding; y2 <= tilePadding; y2 += 1) {
-      for (let x2 = -tilePadding; x2 <= tilePadding; x2 += 1) {
-        promises.push(
-          this.loadTile(
-            x2 + tilePadding,
-            y2 + tilePadding,
-            { x: x + x2, y: y - y2, zoom },
-            x2 * TerrainTile.dimension,
-            -y2 * TerrainTile.dimension,
-            handleTileLoaded,
-          ),
-        );
-      }
-    }
-
-    await Promise.all(promises);
-  }
-
-  async loadTile(
-    x: number,
-    y: number,
-    location: Location,
-    xOffset: number,
-    yOffset: number,
-    onTileLoaded: () => void,
-  ): Promise<void> {
-    const locationKey = (loc: Location): string => (
-      `${loc.x}-${loc.y}`
-    );
-
-    let tile = this.tileMap.get(locationKey(location));
-
-    if (!tile) {
-      tile = new TerrainTile(this, this.hike.id, location, this.photoShader);
-      this.tileMap.set(locationKey(location), tile);
-
-      this.tileGrid[y][x] = {
-        offset: {
-          x: xOffset,
-          y: yOffset,
-        },
-        tile,
-      };
-
-      return tile.load(this.terrainShader, onTileLoaded);
-    }
-
-    this.tileGrid[y][x].tile = tile;
-
-    onTileLoaded();
-
-    return Promise.resolve();
   }
 
   updateLookAt(yawChange: number, pitchChange: number): void {
