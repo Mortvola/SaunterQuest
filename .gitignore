@@ -2,7 +2,6 @@
 /data/
 node_modules
 /public/images
-/storage/*.key
 /blog/
 build/
 client-build/
@@ -11,9 +10,6 @@ coverage
 .DS_STORE
 .env
 .env.backup
-.phpunit.result.cache
-Homestead.json
-Homestead.yaml
 npm-debug.log
 yarn-error.log
 *.hgt
