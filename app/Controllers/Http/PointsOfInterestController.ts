@@ -176,11 +176,7 @@ export default class PointsOfInterestController {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  public async getPhotos({ auth, request }: HttpContextContract) : Promise<unknown> {
-    if (!auth.user) {
-      throw new Exception('invalid user');
-    }
-
+  public async getPhotos({ request }: HttpContextContract) : Promise<unknown> {
     const {
       n, s, e, w,
     } = request.qs();
@@ -201,7 +197,6 @@ export default class PointsOfInterestController {
 
     items.forEach((i) => {
       if (i.transforms !== null) {
-        console.log(i.transforms);
         i.transforms = JSON.parse(i.transforms);
       }
     });

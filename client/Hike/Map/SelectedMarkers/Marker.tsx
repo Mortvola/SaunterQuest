@@ -21,6 +21,12 @@ const Marker: React.FC<PropsType> = ({ marker }) => {
     uiState.showIn3D(new L.LatLng(marker.marker.latLng.lat, marker.marker.latLng.lng));
   };
 
+  const respositionPhoto: React.MouseEventHandler = () => {
+    uiState.repositionPhoto(
+      marker.id, new L.LatLng(marker.marker.latLng.lat, marker.marker.latLng.lng),
+    );
+  };
+
   return (
     <div className={styles.attribute}>
       {
@@ -33,6 +39,7 @@ const Marker: React.FC<PropsType> = ({ marker }) => {
         <div>{`lat,lng: ${marker.marker.latLng.lat}, ${marker.marker.latLng.lng}`}</div>
       </div>
       <button type="button" onClick={showIn3D}>Show in 3D</button>
+      <button type="button" onClick={respositionPhoto}>Edit</button>
       {
         marker.marker.deletable
           ? <IconButton icon="trash" onClick={handleClick} />

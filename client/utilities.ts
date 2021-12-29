@@ -124,6 +124,10 @@ export const degToRad = (degrees: number): number => (
   degrees * (Math.PI / 180)
 );
 
+export const radToDeg = (radians: number): number => (
+  (radians / Math.PI) * 180
+);
+
 function haversineGreatCircleDistance(
   latitudeFrom: number,
   longitudeFrom: number,

@@ -478,7 +478,8 @@ export default class Hike extends BaseModel {
       preferredTrailId: this.routeGroupId !== -1 ? this.routeGroupId : undefined,
     }));
 
-    const response = await fetch(`${Env.get('PATHFINDER_INTERNAL_URL')}/map/find-route?p=${encodedPoints}&o=${options}`);
+    const url = `${Env.get('PATHFINDER_INTERNAL_URL')}/map/find-route?p=${encodedPoints}&o=${options}`;
+    const response = await fetch(url);
 
     if (!response.ok) {
       throw (new Error(`Fetch from pathFinder failed: ${response.statusText}`));

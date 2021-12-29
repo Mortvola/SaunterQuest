@@ -1,7 +1,6 @@
 import React, {
   useEffect, ReactElement, useState,
 } from 'react';
-import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { matchPath, useHistory } from 'react-router-dom';
 import Http from '@mortvola/http';
@@ -28,8 +27,6 @@ const Hike = ({
   const { uiState } = useStores();
   const history = useHistory();
   const { isMobile, addMediaClass } = useMediaQuery();
-  const [fps, setFps] = useState<number>(0);
-  const [percentComplete, setPercentComplete] = useState<number>(0);
 
   useEffect(() => {
     (async () => {
@@ -58,7 +55,7 @@ const Hike = ({
   }
 
   if (uiState.hike) {
-    const handleBackClick = () => {
+    const handleClose = () => {
       uiState.showIn3D(null);
     };
 
@@ -82,22 +79,14 @@ const Hike = ({
         {
           uiState.location3d
             ? (
-              <div className={styles.terrain}>
-                {
-                  percentComplete === 1
-                    ? <div className={styles.frameRate}>{`${fps.toFixed(2)} fps`}</div>
-                    : <div className={styles.loading}>{`Loading: ${(percentComplete * 100).toFixed(1)}% complete`}</div>
-                }
-                <div className={styles.button} onClick={handleBackClick}>X</div>
-                <Terrain
-                  hike={uiState.hike}
-                  tileServerUrl={tileServerUrl}
-                  pathFinderUrl={pathFinderUrl}
-                  position={uiState.location3d}
-                  onFpsChange={setFps}
-                  onLoadChange={setPercentComplete}
-                />
-              </div>
+              <Terrain
+                photoUrl={`/api/hike/${uiState.hike.id}/photo`}
+                photoId={uiState.photoId}
+                editPhoto={uiState.editPhoto}
+                pathFinderUrl={pathFinderUrl}
+                position={uiState.location3d}
+                onClose={handleClose}
+              />
             )
             : null
         }

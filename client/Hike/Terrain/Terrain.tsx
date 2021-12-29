@@ -1,8 +1,11 @@
+/* eslint-disable jsx-a11y/label-has-associated-control */
 import React, {
-  ReactElement, useEffect, useRef,
+  ReactElement, useEffect, useRef, useState,
 } from 'react';
-import { HikeInterface, LatLng } from '../../state/Types';
+import { LatLng } from '../../state/Types';
 import TerrainRenderer from './TerrainRenderer';
+import styles from './Terrain.module.css';
+import Frame from './Frame';
 
 export type Location = {
   x: number,
@@ -11,25 +14,32 @@ export type Location = {
 };
 
 type PropsType = {
-  hike: HikeInterface,
+  photoUrl: string,
+  photoId: null | number,
+  editPhoto: boolean,
   position: LatLng,
-  tileServerUrl: string,
   pathFinderUrl: string,
-  onFpsChange: (fps: number) => void,
-  onLoadChange: (percentComplete: number) => void,
+  onClose: () => void,
 }
 
 const Terrain = ({
-  hike,
+  photoUrl,
+  photoId,
+  editPhoto,
   position,
-  tileServerUrl,
   pathFinderUrl,
-  onFpsChange,
-  onLoadChange,
+  onClose,
 }: PropsType): ReactElement => {
   const rendererRef = useRef<TerrainRenderer | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const mouseRef = useRef<{ x: number, y: number} | null>(null);
+  const [fps, setFps] = useState<number>(0);
+  const [percentComplete, setPercentComplete] = useState<number>(0);
+  const [photo, setPhoto] = useState<Frame | null>(null);
+
+  const handlePhotoFound = (frame: Frame) => {
+    setPhoto(frame);
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -44,7 +54,8 @@ const Terrain = ({
 
       if (rendererRef.current === null) {
         rendererRef.current = new TerrainRenderer(
-          gl, position, hike, tileServerUrl, pathFinderUrl, onFpsChange, onLoadChange,
+          gl, position, photoUrl, photoId, pathFinderUrl, setFps, setPercentComplete,
+          handlePhotoFound,
         );
 
         rendererRef.current.start();
@@ -57,7 +68,37 @@ const Terrain = ({
         renderer.stop();
       }
     };
-  }, [pathFinderUrl, position, tileServerUrl]);
+  }, [photoUrl, pathFinderUrl, position, photoId]);
+
+  const handleCenterClick = () => {
+    const renderer = rendererRef.current;
+
+    if (renderer) {
+      renderer.centerPhoto();
+    }
+  };
+
+  const handleOffsetChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+    photo?.setTranslation(parseFloat(event.target.value), null, null);
+  };
+
+  const handleXRotationChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+    if (photo) {
+      photo.setRotation(parseFloat(event.target.value), null, null);
+    }
+  };
+
+  const handleYRotationChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+    if (photo) {
+      photo.setRotation(null, parseFloat(event.target.value), null);
+    }
+  };
+
+  const handleZRotationChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+    if (photo) {
+      photo.setRotation(null, null, parseFloat(event.target.value));
+    }
+  };
 
   const handlePointerDown: React.PointerEventHandler<HTMLCanvasElement> = (
     event: React.PointerEvent<HTMLCanvasElement> & {
@@ -193,23 +234,57 @@ const Terrain = ({
   };
 
   return (
-    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-    <canvas
-      ref={canvasRef}
-      style={{
-        width: '100%', height: '100%', backgroundColor: '#fff', touchAction: 'none',
-      }}
-      width="853"
-      height="480"
-      tabIndex={0}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onGotPointerCapture={handlePointerCapture}
-      onLostPointerCapture={handlePointerRelease}
-      onKeyDown={handleKeyDown}
-      onKeyUp={handleKeyUp}
-    />
+    <div className={styles.terrain}>
+      {
+        percentComplete === 1
+          ? <div className={styles.frameRate}>{`${fps.toFixed(2)} fps`}</div>
+          : <div className={styles.loading}>{`Loading: ${(percentComplete * 100).toFixed(1)}% complete`}</div>
+      }
+      <div className={styles.controls}>
+        <div className={styles.button} onClick={onClose}>X</div>
+        {
+          photo && editPhoto
+            ? (
+              <>
+                <div className={styles.button} onClick={handleCenterClick}>Center</div>
+                <label>
+                  Offset
+                  <input type="text" onChange={handleOffsetChange} defaultValue={photo.translation[0]} />
+                </label>
+                <label>
+                  X Rotation
+                  <input type="text" onChange={handleXRotationChange} defaultValue={photo.xRotation} />
+                </label>
+                <label>
+                  Y Rotation
+                  <input type="text" onChange={handleYRotationChange} defaultValue={photo.yRotation} />
+                </label>
+                <label>
+                  Z Rotation
+                  <input type="text" onChange={handleZRotationChange} defaultValue={photo.zRotation} />
+                </label>
+              </>
+            )
+            : null
+        }
+      </div>
+      <canvas
+        ref={canvasRef}
+        style={{
+          width: '100%', height: '100%', backgroundColor: '#fff', touchAction: 'none',
+        }}
+        width="853"
+        height="480"
+        tabIndex={0}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onGotPointerCapture={handlePointerCapture}
+        onLostPointerCapture={handlePointerRelease}
+        onKeyDown={handleKeyDown}
+        onKeyUp={handleKeyUp}
+      />
+    </div>
   );
 };
 

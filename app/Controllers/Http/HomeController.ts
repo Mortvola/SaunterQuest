@@ -15,6 +15,10 @@ export default class HomeController {
       return view.render('home', { props });
     }
 
-    return view.render('welcome');
+    const props = {
+      pathFinderUrl: Env.get('PATHFINDER_URL'),
+    };
+
+    return view.render('welcome', { props });
   }
 }

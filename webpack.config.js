@@ -1,11 +1,11 @@
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
-const config = (name, env) => ({
+const config = (folder, name, env) => ({
   name,
   mode: env.production ? 'production' : 'development',
   devtool: env.production ? 'source-map' : 'inline-source-map',
-  entry: `./client/${name.charAt(0).toUpperCase()}${name.slice(1)}.tsx`,
+  entry: `${folder}/${name.charAt(0).toUpperCase()}${name.slice(1)}.tsx`,
   output: {
     path: path.resolve(__dirname, 'public'),
     filename: `${name}.js`,
@@ -73,6 +73,6 @@ const config = (name, env) => ({
 });
 
 module.exports = [
-  (env) => config('app', env),
-  (env) => config('welcome', env),
+  (env) => config('./client', 'app', env),
+  (env) => config('./client/welcome', 'welcome', env),
 ];

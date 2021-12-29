@@ -1,0 +1,15 @@
+.blog {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.title {
+  font-size: 3rem;
+  padding-left: 1rem;
+}
+
+.pictures {
+  overflow-y: auto;
+}

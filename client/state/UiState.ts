@@ -2,7 +2,7 @@ import { LatLng } from 'leaflet';
 import { makeAutoObservable, runInAction } from 'mobx';
 import GearConfiguration from './GearConfiguration';
 import Hike from './Hike';
-import { MarkerType, MarkerInterface } from './Types';
+import { MarkerType } from './Types';
 
 class UiState {
   hike: Hike | null = null;
@@ -12,6 +12,10 @@ class UiState {
   gearConfigSort = 'System';
 
   location3d: LatLng | null = null;
+
+  photoId: number | null = null;
+
+  editPhoto = false;
 
   toggleMarker(markerTypes: MarkerType): void {
     runInAction(() => {
@@ -39,6 +43,16 @@ class UiState {
 
   showIn3D(position: L.LatLng | null): void {
     runInAction(() => {
+      this.photoId = null;
+      this.editPhoto = false;
+      this.location3d = position;
+    });
+  }
+
+  repositionPhoto(id: number, position: L.LatLng | null): void {
+    runInAction(() => {
+      this.photoId = id;
+      this.editPhoto = true;
       this.location3d = position;
     });
   }

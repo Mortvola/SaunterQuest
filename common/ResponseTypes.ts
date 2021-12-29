@@ -33,8 +33,10 @@ export type Points = {
   sw: { lat: number, lng: number },
   textureNE: { s: number, t: number },
   textureSW: { s: number, t: number },
-  points: number[][],
-  centers: number[][],
+  points: number[],
+  normals: number[],
+  indices: number[],
+  ele: number[][],
 };
 
 export const isPointsResponse = (r: unknown): r is Points => (
@@ -44,7 +46,6 @@ export const isPointsResponse = (r: unknown): r is Points => (
   && (r as Points).textureNE !== undefined
   && (r as Points).textureSW !== undefined
   && (r as Points).points !== undefined
-  && (r as Points).centers !== undefined
 );
 
 export interface Error {
@@ -79,6 +80,7 @@ export interface PhotoProps {
   id: number,
   location: [number, number],
   transforms: [],
+  caption: string,
 }
 
 export interface Campsite {
@@ -118,3 +120,9 @@ export type DayProps = {
 };
 
 export type ScheduleResponse = DayProps[];
+
+export type BlogProps = {
+  id: number,
+  title: string,
+  hikeId: number,
+};

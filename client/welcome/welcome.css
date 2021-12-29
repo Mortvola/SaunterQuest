@@ -8,6 +8,7 @@ html, body {
     font-family: 'Nunito', sans-serif;
     font-weight: 200;
     height: 100vh;
+    width: 100vw;
     margin: 0;
 }
 
@@ -37,7 +38,7 @@ html, body {
 }
 
 .links > a {
-    color: #636b6f;
+    /* color: #636b6f; */
     padding: 0 25px;
     font-size: 13px;
     font-weight: 600;
@@ -50,12 +51,12 @@ html, body {
     margin-bottom: 30px;
 }
 
-body {
+/* body {
     background-color: black;
-}
+} */
 
 .background {
-    background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1)), url('./images/Forester.jpg');
+    background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1)), url('../images/Forester.jpg');
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-position: center;
@@ -113,11 +114,11 @@ body {
 }
 
 .welcome-button {
-    display: inline;
-	color: white;
-	cursor: pointer;
-	text-transform: uppercase;
-	padding: 0 25px;
+  display: inline;
+  /* color: white; */
+  cursor: pointer;
+  text-transform: uppercase;
+  padding: 0 25px;
 }
 
 .text-link {
