@@ -89,8 +89,6 @@ class Frame {
     const w = 31.5 / 2; // (width * scale) / 2;
     const h = 23.625 / 2; // (height * scale) / 2;
 
-    console.log(`width, height: ${width}, ${height}; w, h: ${w}, ${h}`);
-
     const points = [
       0, w, h, 0, 0,
       0, w, -h, 0, 1,

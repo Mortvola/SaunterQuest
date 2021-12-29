@@ -41,7 +41,7 @@ class TerrainRenderer implements TerrainRendererInterface {
 
   cameraOffset: vec3 = vec3.fromValues(0, 0, 0);
 
-  cameraFront: vec3 = vec3.fromValues(0, 0, 0);
+  cameraFront: vec3 = vec3.fromValues(1, 0, 0);
 
   velocity = 0;
 
@@ -180,6 +180,17 @@ class TerrainRenderer implements TerrainRendererInterface {
       yOffset,
       tile.getElevation(xOffset, yOffset) + cameraZOffset,
     ];
+
+    if (this.photo) {
+      const cameraFront: vec3 = vec3.create();
+
+      vec3.subtract(cameraFront, this.photo.center, this.cameraOffset);
+
+      vec3.normalize(this.cameraFront, cameraFront);
+
+      this.yaw = radToDeg(Math.atan2(this.cameraFront[1], this.cameraFront[0]));
+      this.pitch = radToDeg(Math.asin(this.cameraFront[2]));
+    }
   }
 
   async loadTiles(x: number, y: number, zoom: number): Promise<void> {
@@ -216,15 +227,6 @@ class TerrainRenderer implements TerrainRendererInterface {
   // eslint-disable-next-line class-methods-use-this
   handlePhotoLoaded(frame: Frame): void {
     if (frame.id === this.photoId) {
-      const cameraFront: vec3 = vec3.create();
-
-      vec3.subtract(cameraFront, frame.center, this.cameraOffset);
-
-      vec3.normalize(this.cameraFront, cameraFront);
-
-      this.yaw = radToDeg(Math.atan2(this.cameraFront[1], this.cameraFront[0]));
-      this.pitch = radToDeg(Math.asin(this.cameraFront[2]));
-
       this.photo = frame;
 
       this.onPhotoFound(frame);
