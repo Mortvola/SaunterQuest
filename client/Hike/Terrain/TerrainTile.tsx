@@ -100,7 +100,7 @@ class TerrainTile {
     this.vao = this.gl.createVertexArray();
   }
 
-  async load(shader: Shader, onTileLoaded: () => void): Promise<void> {
+  async load(shader: Shader, onTileLoaded: () => void): Promise<void | void[]> {
     let data = terrainDataMap.get(locationKey(this.location));
 
     if (!data) {
@@ -131,8 +131,10 @@ class TerrainTile {
     if (data) {
       this.elevation = data.elevation;
       this.initBuffers(data, shader);
-      this.loadPhotos(handlePhotosLoaded);
+      return this.loadPhotos(handlePhotosLoaded);
     }
+
+    return Promise.resolve();
   }
 
   getElevation(x: number, y: number): number {
@@ -155,44 +157,50 @@ class TerrainTile {
     );
   }
 
-  async loadPhotos(onPhotosLoaded: () => void): Promise<void> {
+  async loadPhotos(onPhotosLoaded: () => void): Promise<void | void[]> {
     const response = await Http.get<PhotoProps[]>(`/api/poi/photos?n=${this.ne.lat}&s=${this.sw.lat}&e=${this.ne.lng}&w=${this.sw.lng}`);
 
     if (response.ok) {
       const body = await response.body();
       if (body.length === 0) {
         onPhotosLoaded();
+
+        return Promise.resolve();
       }
-      else {
-        let photosLoaded = 0;
 
-        const handlePhotoLoaded = (frame: Frame) => {
-          this.onPhotoLoaded(frame);
+      let photosLoaded = 0;
 
-          photosLoaded += 1;
-          if (photosLoaded >= body.length) {
-            onPhotosLoaded();
-          }
-        };
+      const handlePhotoLoaded = (frame: Frame) => {
+        this.onPhotoLoaded(frame);
 
-        body.forEach((p) => {
-          const xOffset = -latOffset(p.location[0], this.latLngCenter.lng);
-          const yOffset = -latOffset(p.location[1], this.latLngCenter.lat);
-          const zOffset = this.getElevation(xOffset, yOffset) + 2;
-          this.frames.push(new Frame(
-            p.id,
-            this.gl,
-            this.photoShader,
-            `${this.photoUrl}/${p.id}`,
-            xOffset,
-            yOffset,
-            zOffset,
-            p.transforms,
-            handlePhotoLoaded,
-          ));
-        });
-      }
+        photosLoaded += 1;
+        if (photosLoaded >= body.length) {
+          onPhotosLoaded();
+        }
+      };
+
+      return Promise.all(body.map(async (p) => {
+        const xOffset = -latOffset(p.location[0], this.latLngCenter.lng);
+        const yOffset = -latOffset(p.location[1], this.latLngCenter.lat);
+        const zOffset = this.getElevation(xOffset, yOffset) + 2;
+        const frame = new Frame(
+          p.id,
+          this.gl,
+          this.photoShader,
+          xOffset,
+          yOffset,
+          zOffset,
+          p.transforms,
+          handlePhotoLoaded,
+        );
+
+        this.frames.push(frame);
+
+        return frame.loadPhoto(`${this.photoUrl}/${p.id}`);
+      }));
     }
+
+    return Promise.resolve();
   }
 
   initBuffers(

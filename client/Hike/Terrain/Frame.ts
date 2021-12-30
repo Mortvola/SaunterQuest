@@ -52,7 +52,6 @@ class Frame {
     id: number,
     gl: WebGL2RenderingContext,
     shader: PhotoShader,
-    photoUrl: string,
     xOffset: number,
     yOffset: number,
     zOffset: number,
@@ -79,8 +78,6 @@ class Frame {
     }
 
     this.onPhotoLoaded = onPhotoLoaded;
-
-    this.loadPhoto(photoUrl);
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -273,31 +270,37 @@ class Frame {
     this.gl.generateMipmap(this.gl.TEXTURE_2D);
   }
 
-  loadPhoto(photoUrl: string): void {
+  loadPhoto(photoUrl: string): Promise<void> {
     const image = new Image();
 
     if (this.texture === null) {
-      image.onload = () => {
-        if (this === null || this.gl === null) {
-          throw new Error('this or this.gl is null');
-        }
+      return new Promise((resolve) => {
+        image.onload = () => {
+          if (this === null || this.gl === null) {
+            throw new Error('this or this.gl is null');
+          }
 
-        this.data = this.initData(image.width, image.height);
+          this.data = this.initData(image.width, image.height);
 
-        this.vao = this.gl.createVertexArray();
+          this.vao = this.gl.createVertexArray();
 
-        this.gl.bindVertexArray(this.vao);
-        this.initBuffers();
-        this.initTexture(image);
-        this.gl.bindVertexArray(null);
+          this.gl.bindVertexArray(this.vao);
+          this.initBuffers();
+          this.initTexture(image);
+          this.gl.bindVertexArray(null);
 
-        if (this.onPhotoLoaded) {
-          this.onPhotoLoaded(this);
-        }
-      };
+          if (this.onPhotoLoaded) {
+            this.onPhotoLoaded(this);
+          }
 
-      image.src = photoUrl;
+          resolve();
+        };
+
+        image.src = photoUrl;
+      });
     }
+
+    return Promise.resolve();
   }
 
   draw(): void {

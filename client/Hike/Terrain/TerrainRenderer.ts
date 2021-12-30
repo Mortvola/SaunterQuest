@@ -196,7 +196,7 @@ class TerrainRenderer implements TerrainRendererInterface {
   async loadTiles(x: number, y: number, zoom: number): Promise<void> {
     const totalTiles = (tilePadding * 2 + 1) ** 2;
     let tilesLoaded = 0;
-    const promises: Promise<void>[] = [];
+    const promises: Promise<void | void[]>[] = [];
 
     const handleTileLoaded = () => {
       tilesLoaded += 1;
@@ -228,7 +228,6 @@ class TerrainRenderer implements TerrainRendererInterface {
   handlePhotoLoaded(frame: Frame): void {
     if (frame.id === this.photoId) {
       this.photo = frame;
-
       this.onPhotoFound(frame);
     }
   }
@@ -244,7 +243,7 @@ class TerrainRenderer implements TerrainRendererInterface {
     y: number,
     location: Location,
     onTileLoaded: () => void,
-  ): Promise<void> {
+  ): Promise<void | void[]> {
     const locationKey = (loc: Location): string => (
       `${loc.x}-${loc.y}`
     );
