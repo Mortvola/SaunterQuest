@@ -196,30 +196,23 @@ export const lat2tile = (lat: number, zoom: number): number => (
   )
 );
 
-export const latLngToTerrainTile = (lat: number, lng:number, zoom: number): [number, number] => {
-  const zoomFactor = 2 ** zoom;
-
-  const x = Math.floor((lng + 180) * zoomFactor);
-  const y = Math.floor((lat + 180) * zoomFactor);
+export const latLngToTerrainTile = (
+  lat: number, lng:number, dimension: number,
+): [number, number] => {
+  const x = Math.floor(((lng + 180) * 3600) / (dimension - 1));
+  const y = Math.floor(((lat + 180) * 3600) / (dimension - 1));
 
   return [x, y];
 };
 
-export const terrainTileToLatLng = (x: number, y: number, zoom: number): L.LatLng => {
-  const zoomFactor = 2 ** zoom;
-  const tileDimension = 1 / zoomFactor;
+export const terrainTileToLatLng = (x: number, y: number, dimension: number): L.LatLng => {
+  const numTiles = (360 * 3600) / (dimension - 1);
 
-  const tmpX = x / zoomFactor - 180.0;
-  const tmpY = y / zoomFactor - 180.0;
+  let lng = ((x / numTiles) * 360 - 180);
+  let lat = ((y / numTiles) * 360 - 180);
 
-  let lng = Math.floor(tmpX);
-  let lat = Math.floor(tmpY);
-
-  const tileX = (tmpX - lng) * zoomFactor;
-  const tileY = (tmpY - lat) * zoomFactor;
-
-  lng += tileX / zoomFactor + tileDimension / 2;
-  lat += tileY / zoomFactor + tileDimension / 2;
+  lng += ((dimension - 1) / 3600) / 2;
+  lat += ((dimension - 1) / 3600) / 2;
 
   return new L.LatLng(lat, lng);
 };

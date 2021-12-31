@@ -14,18 +14,19 @@ type TerrainData = {
   points: number[],
   indices: number[],
   normals: number[],
-  dimension: number,
 }
 
-type Location = { x: number, y: number, zoom: number };
+export type Location = { x: number, y: number, dimension: number };
 
 const locationKey = (location: Location): string => (
-  `${location.zoom}-${location.x}-${location.y}`
+  `${location.dimension}-${location.x}-${location.y}`
 );
 
 const terrainDataMap: Map<string, TerrainData> = new Map();
 
 const terrainVertexStride = 5;
+
+export const tileDimension = 128;
 
 export interface TerrainRendererInterface {
   gl: WebGL2RenderingContext;
@@ -36,7 +37,7 @@ export interface TerrainRendererInterface {
 class TerrainTile {
   location: Location;
 
-  static dimension = latDistance(-104, -103) / (2 ** 4);
+  static dimension = (latDistance(-104, -103) / 3600) * (tileDimension - 1);
 
   renderer: TerrainRendererInterface;
 
@@ -79,13 +80,10 @@ class TerrainTile {
     this.onPhotoLoaded = onPhotoLoaded;
 
     this.latLngCenter = terrainTileToLatLng(
-      this.location.x, this.location.y, this.location.zoom,
+      this.location.x, this.location.y, this.location.dimension,
     );
 
-    const zoomFactor = 2 ** this.location.zoom;
-
-    const latlngDimension = 1 / zoomFactor;
-    const halfDimension = latlngDimension / 2;
+    const halfDimension = (this.location.dimension / 3600) / 2;
 
     this.sw = new L.LatLng(
       this.latLngCenter.lat - halfDimension,
@@ -104,7 +102,7 @@ class TerrainTile {
     let data = terrainDataMap.get(locationKey(this.location));
 
     if (!data) {
-      const response = await Http.get<Points>(`${this.renderer.pathFinderUrl}/elevation/tile/${this.location.zoom}/${this.location.x}/${this.location.y}`);
+      const response = await Http.get<Points>(`${this.renderer.pathFinderUrl}/elevation/tile/${this.location.dimension}/${this.location.x}/${this.location.y}`);
 
       if (response.ok) {
         const body = await response.body();
@@ -114,7 +112,6 @@ class TerrainTile {
           points: body.points,
           indices: body.indices,
           normals: body.normals,
-          dimension: TerrainTile.dimension,
         };
 
         terrainDataMap.set(locationKey(this.location), data);

@@ -1,7 +1,6 @@
 import { vec3, mat4 } from 'gl-matrix';
-import TerrainTile, { TerrainRendererInterface } from './TerrainTile';
+import TerrainTile, { TerrainRendererInterface, Location, tileDimension } from './TerrainTile';
 import { LatLng } from '../../state/Types';
-import { Location } from './Terrain';
 import {
   degToRad, latLngToTerrainTile, latOffset, radToDeg, terrainTileToLatLng,
 } from '../../utilities';
@@ -24,7 +23,7 @@ const requestPostAnimationFrame = (task: any) => {
   });
 };
 
-const tilePadding = 2;
+const tilePadding = 4;
 
 class TerrainRenderer implements TerrainRendererInterface {
   gl: WebGL2RenderingContext;
@@ -116,11 +115,10 @@ class TerrainRenderer implements TerrainRendererInterface {
   async initialize(): Promise<void> {
     this.initTileGrid();
 
-    const zoom = 4;
-    const [x, y] = latLngToTerrainTile(this.position.lat, this.position.lng, zoom);
+    const [x, y] = latLngToTerrainTile(this.position.lat, this.position.lng, tileDimension);
 
-    await this.loadTiles(x, y, zoom);
-    this.initCamera(x, y, zoom);
+    await this.loadTiles(x, y);
+    this.initCamera(x, y);
 
     // Use the padding width to set the fog normalization factor
     // so that the far edge of the tiled area is completely occluded by
@@ -162,10 +160,10 @@ class TerrainRenderer implements TerrainRendererInterface {
     ));
   }
 
-  initCamera(x: number, y: number, zoom: number): void {
+  initCamera(x: number, y: number): void {
     this.updateLookAt(0, 0);
 
-    const tileCenter = terrainTileToLatLng(x, y, zoom);
+    const tileCenter = terrainTileToLatLng(x, y, tileDimension);
     const xOffset = -latOffset(this.position.lng, tileCenter.lng);
     const yOffset = -latOffset(this.position.lat, tileCenter.lat);
 
@@ -193,7 +191,7 @@ class TerrainRenderer implements TerrainRendererInterface {
     }
   }
 
-  async loadTiles(x: number, y: number, zoom: number): Promise<void> {
+  async loadTiles(x: number, y: number): Promise<void> {
     const totalTiles = (tilePadding * 2 + 1) ** 2;
     let tilesLoaded = 0;
     const promises: Promise<void | void[]>[] = [];
@@ -214,7 +212,7 @@ class TerrainRenderer implements TerrainRendererInterface {
           this.loadTile(
             x2 + tilePadding,
             y2 + tilePadding,
-            { x: x + x2, y: y - y2, zoom },
+            { x: x + x2, y: y - y2, dimension: tileDimension },
             handleTileLoaded,
           ),
         );
@@ -324,7 +322,7 @@ class TerrainRenderer implements TerrainRendererInterface {
                 throw new Error('new center tile is null');
               }
 
-              this.loadTiles(newCenterTile.location.x, newCenterTile.location.y, 4);
+              this.loadTiles(newCenterTile.location.x, newCenterTile.location.y);
 
               newCameraOffset[0] -= gridX * TerrainTile.dimension;
               newCameraOffset[1] -= gridY * TerrainTile.dimension;

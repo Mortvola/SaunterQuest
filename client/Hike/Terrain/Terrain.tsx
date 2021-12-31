@@ -7,12 +7,6 @@ import TerrainRenderer from './TerrainRenderer';
 import styles from './Terrain.module.css';
 import Frame from './Frame';
 
-export type Location = {
-  x: number,
-  y: number,
-  zoom: number,
-};
-
 type PropsType = {
   photoUrl: string,
   photoId: null | number,
