@@ -1,5 +1,6 @@
 import { LatLng } from 'leaflet';
 import { makeAutoObservable, runInAction } from 'mobx';
+import { PhotoInterface } from '../welcome/state/Types';
 import GearConfiguration from './GearConfiguration';
 import Hike from './Hike';
 import { MarkerType } from './Types';
@@ -13,7 +14,7 @@ class UiState {
 
   location3d: LatLng | null = null;
 
-  photoId: number | null = null;
+  photo: PhotoInterface | null = null;
 
   editPhoto = false;
 
@@ -43,15 +44,15 @@ class UiState {
 
   showIn3D(position: L.LatLng | null): void {
     runInAction(() => {
-      this.photoId = null;
+      this.photo = null;
       this.editPhoto = false;
       this.location3d = position;
     });
   }
 
-  repositionPhoto(id: number, position: L.LatLng | null): void {
+  repositionPhoto(photo: PhotoInterface, position: L.LatLng | null): void {
     runInAction(() => {
-      this.photoId = id;
+      this.photo = photo;
       this.editPhoto = true;
       this.location3d = position;
     });

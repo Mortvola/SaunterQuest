@@ -5,11 +5,12 @@ import React, {
 import { LatLng } from '../../state/Types';
 import TerrainRenderer from './TerrainRenderer';
 import styles from './Terrain.module.css';
-import Frame from './Frame';
+import Photo from './Photo';
+import { PhotoInterface } from '../../welcome/state/Types';
 
 type PropsType = {
   photoUrl: string,
-  photoId: null | number,
+  photo: null | PhotoInterface,
   editPhoto: boolean,
   position: LatLng,
   tileServerUrl: string,
@@ -18,7 +19,7 @@ type PropsType = {
 
 const Terrain = ({
   photoUrl,
-  photoId,
+  photo,
   editPhoto,
   position,
   tileServerUrl,
@@ -29,11 +30,6 @@ const Terrain = ({
   const mouseRef = useRef<{ x: number, y: number} | null>(null);
   const [fps, setFps] = useState<number>(0);
   const [percentComplete, setPercentComplete] = useState<number>(0);
-  const [photo, setPhoto] = useState<Frame | null>(null);
-
-  const handlePhotoFound = (frame: Frame) => {
-    setPhoto(frame);
-  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -48,8 +44,7 @@ const Terrain = ({
 
       if (rendererRef.current === null) {
         rendererRef.current = new TerrainRenderer(
-          gl, position, photoUrl, photoId, tileServerUrl, setFps, setPercentComplete,
-          handlePhotoFound,
+          gl, position, photoUrl, photo, tileServerUrl, setFps, setPercentComplete,
         );
 
         rendererRef.current.start();
@@ -62,7 +57,7 @@ const Terrain = ({
         renderer.stop();
       }
     };
-  }, [photoUrl, tileServerUrl, position, photoId]);
+  }, [photoUrl, tileServerUrl, position, photo]);
 
   const handleCenterClick = () => {
     const renderer = rendererRef.current;
@@ -77,21 +72,15 @@ const Terrain = ({
   };
 
   const handleXRotationChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
-    if (photo) {
-      photo.setRotation(parseFloat(event.target.value), null, null);
-    }
+    photo?.setRotation(parseFloat(event.target.value), null, null);
   };
 
   const handleYRotationChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
-    if (photo) {
-      photo.setRotation(null, parseFloat(event.target.value), null);
-    }
+    photo?.setRotation(null, parseFloat(event.target.value), null);
   };
 
   const handleZRotationChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
-    if (photo) {
-      photo.setRotation(null, null, parseFloat(event.target.value));
-    }
+    photo?.setRotation(null, null, parseFloat(event.target.value));
   };
 
   const handlePointerDown: React.PointerEventHandler<HTMLCanvasElement> = (

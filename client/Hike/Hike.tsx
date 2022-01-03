@@ -81,7 +81,7 @@ const Hike = ({
             ? (
               <Terrain
                 photoUrl={`/api/hike/${uiState.hike.id}/photo`}
-                photoId={uiState.photoId}
+                photo={uiState.photo}
                 editPhoto={uiState.editPhoto}
                 tileServerUrl={tileServerUrl}
                 position={uiState.location3d}

@@ -2,11 +2,12 @@ import { vec3, mat4 } from 'gl-matrix';
 import TerrainTile, { TerrainRendererInterface, Location, tileDimension } from './TerrainTile';
 import { LatLng } from '../../state/Types';
 import {
-  degToRad, latDistance, latLngToTerrainTile, latOffset, radToDeg, terrainTileToLatLng,
+  degToRad, latLngToTerrainTile, latOffset, radToDeg, terrainTileToLatLng,
 } from '../../utilities';
 import TerrainShader from './Shaders/TerrainShader';
 import PhotoShader from './Shaders/PhotoShader';
-import Frame from './Frame';
+import Photo from './Photo';
+import { PhotoInterface } from '../../welcome/state/Types';
 
 type Tile = {
   offset: { x: number, y: number},
@@ -68,13 +69,11 @@ class TerrainRenderer implements TerrainRendererInterface {
 
   onLoadChange: (percentComplete: number) => void;
 
-  onPhotoFound: (frame: Frame) => void;
-
   photoUrl: string;
 
-  photoId: null | number = null;
+  photoData: PhotoInterface | null = null;
 
-  photo: Frame | null = null;
+  photo: Photo | null = null;
 
   enableRendering = false;
 
@@ -82,20 +81,18 @@ class TerrainRenderer implements TerrainRendererInterface {
     gl: WebGL2RenderingContext,
     position: LatLng,
     photoUrl: string,
-    photoId: null | number,
+    photoData: null | PhotoInterface,
     tileServerUrl: string,
     onFpsChange: (fps: number) => void,
     onLoadChange: (percentComplete: number) => void,
-    onPhotoFound: (frame: Frame) => void,
   ) {
     this.gl = gl;
     this.tileServerUrl = tileServerUrl;
     this.position = position;
     this.onFpsChange = onFpsChange;
     this.onLoadChange = onLoadChange;
-    this.onPhotoFound = onPhotoFound;
     this.photoUrl = photoUrl;
-    this.photoId = photoId;
+    this.photoData = photoData;
 
     // Only continue if WebGL is available and working
     // Set clear color to black, fully opaque
@@ -117,8 +114,15 @@ class TerrainRenderer implements TerrainRendererInterface {
 
     const [x, y] = latLngToTerrainTile(this.position.lat, this.position.lng, tileDimension);
 
-    await this.loadTiles(x, y);
     this.initCamera(x, y);
+    this.loadPhoto(x, y);
+    this.lookAtPhoto();
+
+    await this.loadTiles(x, y);
+
+    this.initCamera(x, y);
+    this.updatePhotoElevation(x, y);
+    this.lookAtPhoto();
 
     // Use the padding width to set the fog normalization factor
     // so that the far edge of the tiled area is completely occluded by
@@ -144,16 +148,6 @@ class TerrainRenderer implements TerrainRendererInterface {
       this.tileGrid.push(row);
     }
 
-    // for (let y = 0; y <= (tilePadding * 2); y += 1) {
-    //   for (let x = 0; x <= (tilePadding * 2); x += 1) {
-    //     const offsetX = (x - tilePadding) * TerrainTile.dimension;
-    //     const offsetY = -(y - tilePadding) * TerrainTile.dimension;
-
-    //     this.tileGrid[y][x].offset = { x: offsetX, y: offsetY };
-    //     this.tileRenderOrder.push({ x, y });
-    //   }
-    // }
-
     this.tileRenderOrder.sort((a, b) => (
       (Math.abs(a.x - tilePadding) + Math.abs(a.y - tilePadding))
       - (Math.abs(b.x - tilePadding) + Math.abs(b.y - tilePadding))
@@ -169,16 +163,14 @@ class TerrainRenderer implements TerrainRendererInterface {
 
     const { tile } = this.tileGrid[tilePadding][tilePadding];
 
-    if (!tile) {
-      throw new Error('tile is null');
-    }
-
     this.cameraOffset = [
       xOffset,
       yOffset,
-      tile.getElevation(xOffset, yOffset) + cameraZOffset,
+      tile ? tile.getElevation(xOffset, yOffset) + cameraZOffset : 0,
     ];
+  }
 
+  lookAtPhoto(): void {
     if (this.photo) {
       const cameraFront: vec3 = vec3.create();
 
@@ -222,11 +214,37 @@ class TerrainRenderer implements TerrainRendererInterface {
     await Promise.all(promises);
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  handlePhotoLoaded(frame: Frame): void {
-    if (frame.id === this.photoId) {
-      this.photo = frame;
-      this.onPhotoFound(frame);
+  loadPhoto(x: number, y: number): void {
+    if (this.photoData) {
+      const centerTile = this.tileGrid[tilePadding][tilePadding].tile;
+
+      const tileCenter = terrainTileToLatLng(x, y, tileDimension);
+      const xOffset = -latOffset(this.position.lng, tileCenter.lng);
+      const yOffset = -latOffset(this.position.lat, tileCenter.lat);
+      const zOffset = centerTile ? centerTile.getElevation(xOffset, yOffset) + 2 : 0;
+
+      this.photo = new Photo(
+        this.photoData,
+        this.photoUrl,
+        this.gl,
+        this.photoShader,
+        xOffset,
+        yOffset,
+        zOffset,
+      );
+    }
+  }
+
+  updatePhotoElevation(x: number, y: number): void {
+    if (this.photo) {
+      const centerTile = this.tileGrid[tilePadding][tilePadding].tile;
+
+      const tileCenter = terrainTileToLatLng(x, y, tileDimension);
+      const xOffset = -latOffset(this.position.lng, tileCenter.lng);
+      const yOffset = -latOffset(this.position.lat, tileCenter.lat);
+
+      this.photo.zOffset = centerTile ? centerTile.getElevation(xOffset, yOffset) + 2 : 0;
+      this.photo.makeTransform();
     }
   }
 
@@ -249,9 +267,7 @@ class TerrainRenderer implements TerrainRendererInterface {
     let tile = this.tileMap.get(locationKey(location));
 
     if (!tile) {
-      tile = new TerrainTile(
-        this, this.photoUrl, location, this.photoShader, this.handlePhotoLoaded.bind(this),
-      );
+      tile = new TerrainTile(this, location);
       this.tileMap.set(locationKey(location), tile);
 
       this.tileGrid[y][x].tile = tile;
@@ -393,91 +409,139 @@ class TerrainRenderer implements TerrainRendererInterface {
   }
 
   drawScene(): void {
+    const projectionMatrix = this.getProjectionMatrix(45); // 63.5);
+    const viewMatrix = this.getViewMatrix();
+
+    // Clear the canvas before we start drawing on it.
+    // eslint-disable-next-line no-bitwise
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+    this.gl.enable(this.gl.DEPTH_TEST); // Enable depth testing
+    this.gl.disable(this.gl.BLEND);
+
     if (this.enableRendering) {
-      // Clear the canvas before we start drawing on it.
-      // eslint-disable-next-line no-bitwise
-      this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-      this.gl.enable(this.gl.DEPTH_TEST); // Enable depth testing
-      this.gl.disable(this.gl.BLEND);
+      this.drawTerrain(projectionMatrix, viewMatrix);
+    }
 
-      const projectionMatrix = this.getProjectionMatrix(45); // 63.5);
-      const viewMatrix = this.getViewMatrix();
+    this.drawPhoto(projectionMatrix, viewMatrix);
+  }
 
-      const lightVector = vec3.fromValues(0, -1, -1);
-      vec3.normalize(lightVector, lightVector);
+  drawTerrain(
+    projectionMatrix: mat4,
+    viewMatrix: mat4,
+  ): void {
+    const lightVector = vec3.fromValues(0, -1, -1);
+    vec3.normalize(lightVector, lightVector);
 
-      this.tileRenderOrder.forEach((order) => {
-        const { tile, offset } = this.tileGrid[order.y][order.x];
+    this.tileRenderOrder.forEach((order) => {
+      const { tile, offset } = this.tileGrid[order.y][order.x];
 
-        if (tile) {
-          this.gl.useProgram(this.terrainShader.shaderProgram);
+      if (tile) {
+        this.gl.useProgram(this.terrainShader.shaderProgram);
 
-          this.gl.uniformMatrix4fv(
-            this.terrainShader.uniformLocations.projectionMatrix,
-            false,
-            projectionMatrix,
-          );
+        this.gl.uniformMatrix4fv(
+          this.terrainShader.uniformLocations.projectionMatrix,
+          false,
+          projectionMatrix,
+        );
 
-          this.gl.uniformMatrix4fv(
-            this.terrainShader.uniformLocations.viewMatrix,
-            false,
-            viewMatrix,
-          );
+        this.gl.uniformMatrix4fv(
+          this.terrainShader.uniformLocations.viewMatrix,
+          false,
+          viewMatrix,
+        );
 
-          this.gl.uniform3fv(this.terrainShader.uniformLocations.lightVector, lightVector);
+        this.gl.uniform3fv(this.terrainShader.uniformLocations.lightVector, lightVector);
 
-          this.gl.uniform4fv(this.terrainShader.uniformLocations.fogColor, [1.0, 1.0, 1.0, 1.0]);
-          this.gl.uniform1f(
-            this.terrainShader.uniformLocations.fogNormalizationFactor, this.fogNormalizationFactor,
-          );
+        this.gl.uniform4fv(this.terrainShader.uniformLocations.fogColor, [1.0, 1.0, 1.0, 1.0]);
+        this.gl.uniform1f(
+          this.terrainShader.uniformLocations.fogNormalizationFactor, this.fogNormalizationFactor,
+        );
 
-          const modelMatrix = TerrainRenderer.getModelMatrix(
-            offset.x,
-            offset.y,
-            0,
-          );
+        const modelMatrix = TerrainRenderer.getModelMatrix(
+          offset.x,
+          offset.y,
+          0,
+        );
 
-          tile.draw(projectionMatrix, viewMatrix, modelMatrix, this.terrainShader);
-        }
-      });
+        tile.draw(projectionMatrix, viewMatrix, modelMatrix, this.terrainShader);
+      }
+    });
 
-      this.gl.disable(this.gl.DEPTH_TEST); // Disable depth testing
+    // Disable depth test when rendering transparent components.
+    this.gl.disable(this.gl.DEPTH_TEST);
 
-      // Draw Transparent
-      this.tileRenderOrder.forEach((order) => {
-        const { tile, offset } = this.tileGrid[order.y][order.x];
+    // Draw Transparent
+    this.tileRenderOrder.forEach((order) => {
+      const { tile, offset } = this.tileGrid[order.y][order.x];
 
-        if (tile) {
-          this.gl.useProgram(this.terrainShader.shaderProgram);
+      if (tile) {
+        this.gl.useProgram(this.terrainShader.shaderProgram);
 
-          this.gl.uniformMatrix4fv(
-            this.terrainShader.uniformLocations.projectionMatrix,
-            false,
-            projectionMatrix,
-          );
+        this.gl.uniformMatrix4fv(
+          this.terrainShader.uniformLocations.projectionMatrix,
+          false,
+          projectionMatrix,
+        );
 
-          this.gl.uniformMatrix4fv(
-            this.terrainShader.uniformLocations.viewMatrix,
-            false,
-            viewMatrix,
-          );
+        this.gl.uniformMatrix4fv(
+          this.terrainShader.uniformLocations.viewMatrix,
+          false,
+          viewMatrix,
+        );
 
-          this.gl.uniform3fv(this.terrainShader.uniformLocations.lightVector, lightVector);
+        this.gl.uniform3fv(this.terrainShader.uniformLocations.lightVector, lightVector);
 
-          this.gl.uniform4fv(this.terrainShader.uniformLocations.fogColor, [1.0, 1.0, 1.0, 1.0]);
-          this.gl.uniform1f(
-            this.terrainShader.uniformLocations.fogNormalizationFactor, this.fogNormalizationFactor,
-          );
+        this.gl.uniform4fv(this.terrainShader.uniformLocations.fogColor, [1.0, 1.0, 1.0, 1.0]);
+        this.gl.uniform1f(
+          this.terrainShader.uniformLocations.fogNormalizationFactor, this.fogNormalizationFactor,
+        );
 
-          const modelMatrix = TerrainRenderer.getModelMatrix(
-            offset.x,
-            offset.y,
-            0,
-          );
+        const modelMatrix = TerrainRenderer.getModelMatrix(
+          offset.x,
+          offset.y,
+          0,
+        );
 
-          tile.drawTransparent(projectionMatrix, viewMatrix, modelMatrix, this.terrainShader);
-        }
-      });
+        tile.drawTransparent(projectionMatrix, viewMatrix, modelMatrix, this.terrainShader);
+      }
+    });
+  }
+
+  drawPhoto(
+    projectionMatrix: mat4,
+    viewMatrix: mat4,
+  ): void {
+    if (this.photo) {
+      this.gl.useProgram(this.photoShader.shaderProgram);
+
+      this.gl.uniformMatrix4fv(
+        this.photoShader.uniformLocations.projectionMatrix,
+        false,
+        projectionMatrix,
+      );
+
+      this.gl.uniformMatrix4fv(
+        this.photoShader.uniformLocations.viewMatrix,
+        false,
+        viewMatrix,
+      );
+
+      if (this.enableRendering) {
+        this.gl.blendColor(1, 1, 1, 0.5);
+        this.gl.blendFunc(this.gl.CONSTANT_ALPHA, this.gl.ONE_MINUS_CONSTANT_ALPHA);
+        this.gl.enable(this.gl.BLEND);
+      }
+      else {
+        this.gl.disable(this.gl.BLEND);
+      }
+
+      this.gl.uniformMatrix4fv(
+        this.photoShader.uniformLocations.modelMatrix,
+        false,
+        this.photo.transform,
+      );
+
+      this.photo.draw();
     }
   }
 

@@ -2,12 +2,10 @@ import { mat4 } from 'gl-matrix';
 import Http from '@mortvola/http';
 import L from 'leaflet';
 import {
-  bilinearInterpolation, latDistance, latOffset, terrainTileToLatLng,
+  bilinearInterpolation, latDistance, terrainTileToLatLng,
 } from '../../utilities';
-import { PhotoProps, Points } from '../../../common/ResponseTypes';
+import { Points } from '../../../common/ResponseTypes';
 import Shader from './Shaders/TerrainShader';
-import Frame from './Frame';
-import PhotoShader from './Shaders/PhotoShader';
 
 type TerrainData = {
   elevation: number[][],
@@ -49,12 +47,6 @@ class TerrainTile {
 
   numIndices = 0;
 
-  frames: Frame[] = [];
-
-  photoShader: PhotoShader;
-
-  photoUrl: string;
-
   elevation: number[][] = [];
 
   sw: L.LatLng;
@@ -63,21 +55,13 @@ class TerrainTile {
 
   latLngCenter: L.LatLng;
 
-  onPhotoLoaded: (frame: Frame) => void;
-
   constructor(
     renderer: TerrainRendererInterface,
-    photoUrl: string,
     location: Location,
-    photoShader: PhotoShader,
-    onPhotoLoaded: (frame: Frame) => void,
   ) {
     this.location = location;
     this.renderer = renderer;
     this.gl = renderer.gl;
-    this.photoShader = photoShader;
-    this.photoUrl = photoUrl;
-    this.onPhotoLoaded = onPhotoLoaded;
 
     this.latLngCenter = terrainTileToLatLng(
       this.location.x, this.location.y, this.location.dimension,
@@ -127,17 +111,11 @@ class TerrainTile {
       }
     }
 
-    const handlePhotosLoaded = () => {
-      onTileLoaded();
-    };
-
     if (data) {
       this.elevation = data.elevation;
       this.initBuffers(data, shader);
-      return this.loadPhotos(handlePhotosLoaded);
+      onTileLoaded();
     }
-
-    return Promise.resolve();
   }
 
   getElevation(x: number, y: number): number {
@@ -160,51 +138,52 @@ class TerrainTile {
     );
   }
 
-  async loadPhotos(onPhotosLoaded: () => void): Promise<void | void[]> {
-    const response = await Http.get<PhotoProps[]>(`/api/poi/photos?n=${this.ne.lat}&s=${this.sw.lat}&e=${this.ne.lng}&w=${this.sw.lng}`);
+  // async loadPhotos(onPhotosLoaded: () => void): Promise<void | void[]> {
+  // eslint-disable-next-line max-len
+  //   const response = await Http.get<PhotoProps[]>(`/api/poi/photos?n=${this.ne.lat}&s=${this.sw.lat}&e=${this.ne.lng}&w=${this.sw.lng}`);
 
-    if (response.ok) {
-      const body = await response.body();
-      if (body.length === 0) {
-        onPhotosLoaded();
+  //   if (response.ok) {
+  //     const body = await response.body();
+  //     if (body.length === 0) {
+  //       onPhotosLoaded();
 
-        return Promise.resolve();
-      }
+  //       return Promise.resolve();
+  //     }
 
-      let photosLoaded = 0;
+  //     let photosLoaded = 0;
 
-      const handlePhotoLoaded = (frame: Frame) => {
-        this.onPhotoLoaded(frame);
+  //     const handlePhotoLoaded = (photo: Photo) => {
+  //       this.onPhotoLoaded(photo);
 
-        photosLoaded += 1;
-        if (photosLoaded >= body.length) {
-          onPhotosLoaded();
-        }
-      };
+  //       photosLoaded += 1;
+  //       // if (photosLoaded >= body.length) {
+  //       onPhotosLoaded();
+  //       // }
+  //     };
 
-      return Promise.all(body.map(async (p) => {
-        const xOffset = -latOffset(p.location[0], this.latLngCenter.lng);
-        const yOffset = -latOffset(p.location[1], this.latLngCenter.lat);
-        const zOffset = this.getElevation(xOffset, yOffset) + 2;
-        const frame = new Frame(
-          p.id,
-          this.gl,
-          this.photoShader,
-          xOffset,
-          yOffset,
-          zOffset,
-          p.transforms,
-          handlePhotoLoaded,
-        );
+  //     return Promise.all(body.map(async (p) => {
+  //       const xOffset = -latOffset(p.location[0], this.latLngCenter.lng);
+  //       const yOffset = -latOffset(p.location[1], this.latLngCenter.lat);
+  //       const zOffset = this.getElevation(xOffset, yOffset) + 2;
+  //       const frame = new Photo(
+  //         p.id,
+  //         this.gl,
+  //         this.photoShader,
+  //         xOffset,
+  //         yOffset,
+  //         zOffset,
+  //         p.transforms,
+  //         handlePhotoLoaded,
+  //       );
 
-        this.frames.push(frame);
+  //       this.frames.push(frame);
+  //       handlePhotoLoaded(frame);
+  //       // return frame.loadPhoto(`${this.photoUrl}/${p.id}`);
+  //     }));
+  //   }
 
-        return frame.loadPhoto(`${this.photoUrl}/${p.id}`);
-      }));
-    }
-
-    return Promise.resolve();
-  }
+  //   return Promise.resolve();
+  // }
 
   initBuffers(
     data: TerrainData,
@@ -320,45 +299,46 @@ class TerrainTile {
     }
   }
 
+  // eslint-disable-next-line class-methods-use-this
   drawTransparent(
     projectionMatrix: mat4,
     viewMatrix: mat4,
     modelMatrix: mat4,
     shader: Shader,
   ): void {
-    if (this.numIndices !== 0) {
-      if (this.frames.length > 0) {
-        this.gl.useProgram(this.photoShader.shaderProgram);
+    // if (this.numIndices !== 0) {
+    //   if (this.frames.length > 0) {
+    //     this.gl.useProgram(this.photoShader.shaderProgram);
 
-        this.gl.uniformMatrix4fv(
-          this.photoShader.uniformLocations.projectionMatrix,
-          false,
-          projectionMatrix,
-        );
+    //     this.gl.uniformMatrix4fv(
+    //       this.photoShader.uniformLocations.projectionMatrix,
+    //       false,
+    //       projectionMatrix,
+    //     );
 
-        this.gl.uniformMatrix4fv(
-          this.photoShader.uniformLocations.viewMatrix,
-          false,
-          viewMatrix,
-        );
+    //     this.gl.uniformMatrix4fv(
+    //       this.photoShader.uniformLocations.viewMatrix,
+    //       false,
+    //       viewMatrix,
+    //     );
 
-        this.gl.blendColor(1, 1, 1, 0.5);
-        this.gl.blendFunc(this.gl.CONSTANT_ALPHA, this.gl.ONE_MINUS_CONSTANT_ALPHA);
-        this.gl.enable(this.gl.BLEND);
+    //     this.gl.blendColor(1, 1, 1, 0.5);
+    //     this.gl.blendFunc(this.gl.CONSTANT_ALPHA, this.gl.ONE_MINUS_CONSTANT_ALPHA);
+    //     this.gl.enable(this.gl.BLEND);
 
-        this.frames.forEach((f) => {
-          this.gl.uniformMatrix4fv(
-            this.photoShader.uniformLocations.modelMatrix,
-            false,
-            f.transform,
-          );
+    //     this.frames.forEach((f) => {
+    //       this.gl.uniformMatrix4fv(
+    //         this.photoShader.uniformLocations.modelMatrix,
+    //         false,
+    //         f.transform,
+    //       );
 
-          f.draw();
-        });
+    //       f.draw();
+    //     });
 
-        this.gl.disable(this.gl.BLEND);
-      }
-    }
+    //     this.gl.disable(this.gl.BLEND);
+    //   }
+    // }
   }
 }
 

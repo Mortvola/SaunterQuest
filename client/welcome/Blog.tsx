@@ -16,7 +16,7 @@ const Blog: React.FC<PropsType> = observer(({ tileServerUrl }) => {
   const history = useHistory();
   const [blog, setBlog] = useState<BlogInterface | null>(null);
   const [position, setPosition] = useState<L.LatLng | null>(null);
-  const [photoId, setPhotoId] = useState<number | null>(null);
+  const [photo, setPhoto] = useState<PhotoInterface | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -33,9 +33,9 @@ const Blog: React.FC<PropsType> = observer(({ tileServerUrl }) => {
     })();
   }, [history.location.pathname]);
 
-  const handlePhotoClick = (photo: PhotoInterface) => {
-    setPhotoId(photo.id);
-    setPosition(new L.LatLng(photo.location[1], photo.location[0]));
+  const handlePhotoClick = (p: PhotoInterface) => {
+    setPhoto(p);
+    setPosition(new L.LatLng(p.location[1], p.location[0]));
   };
 
   if (blog) {
@@ -47,7 +47,7 @@ const Blog: React.FC<PropsType> = observer(({ tileServerUrl }) => {
       return (
         <Terrain
           photoUrl={`/api/blog/${blog.id}/photo`}
-          photoId={photoId}
+          photo={photo}
           editPhoto={false}
           tileServerUrl={tileServerUrl}
           position={position}

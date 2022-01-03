@@ -76,10 +76,16 @@ export interface City {
   location: [number, number];
 }
 
+type Transform = {
+  transform: 'rotateX' | 'rotateY' | 'rotateZ' | 'translate',
+  degrees?: number,
+  vector?: [number, number, number],
+}
+
 export interface PhotoProps {
   id: number,
   location: [number, number],
-  transforms: [],
+  transforms: Transform[],
   caption: string,
 }
 

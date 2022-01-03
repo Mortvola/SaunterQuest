@@ -1,5 +1,6 @@
-import { mat4, vec3, vec4 } from 'gl-matrix';
+import { mat4, vec3 } from 'gl-matrix';
 import { degToRad } from '../../utilities';
+import { PhotoInterface } from '../../welcome/state/Types';
 import PhotoShader from './Shaders/PhotoShader';
 
 type Data = {
@@ -7,14 +8,8 @@ type Data = {
   indices: number[],
 }
 
-type Transform = {
-  transform: 'rotateX' | 'rotateY' | 'rotateZ' | 'translate',
-  degrees?: number,
-  vector?: [number, number, number],
-}
-
-class Frame {
-  id: number;
+class Photo {
+  photoData: PhotoInterface;
 
   gl: WebGL2RenderingContext;
 
@@ -32,52 +27,58 @@ class Frame {
 
   zOffset: number;
 
-  xRotation = 0;
-
-  yRotation = 0;
-
-  zRotation = 0;
-
-  translation = vec3.create()
-
-  transforms: Transform[] = [];
-
-  transform = mat4.create();
+  transform: mat4 = mat4.create();
 
   center: vec3 = vec3.fromValues(0, 0, 0);
 
-  onPhotoLoaded: ((frame: Frame) => void) | null = null;
-
   constructor(
-    id: number,
+    photoData: PhotoInterface,
+    photoUrl: string,
     gl: WebGL2RenderingContext,
     shader: PhotoShader,
     xOffset: number,
     yOffset: number,
     zOffset: number,
-    transforms: Transform[],
-    onPhotoLoaded: (frame: Frame) => void,
   ) {
-    this.id = id;
+    this.photoData = photoData;
     this.gl = gl;
     this.shader = shader;
     this.xOffset = xOffset;
     this.yOffset = yOffset;
     this.zOffset = zOffset;
 
-    if (transforms) {
-      this.transforms = transforms;
-    }
-    else {
-      this.transforms = [
-        {
-          transform: 'translate',
-          vector: [20, 0, 0],
-        },
-      ];
+    this.makeTransform();
+
+    this.loadPhoto(`${photoUrl}/${this.photoData.id}`);
+  }
+
+  loadPhoto(photoUrl: string): Promise<void> {
+    const image = new Image();
+
+    if (this.texture === null) {
+      return new Promise((resolve) => {
+        image.onload = () => {
+          if (this === null || this.gl === null) {
+            throw new Error('this or this.gl is null');
+          }
+
+          this.data = this.initData(image.width, image.height);
+
+          this.vao = this.gl.createVertexArray();
+
+          this.gl.bindVertexArray(this.vao);
+          this.initBuffers();
+          this.initTexture(image);
+          this.gl.bindVertexArray(null);
+
+          resolve();
+        };
+
+        image.src = photoUrl;
+      });
     }
 
-    this.onPhotoLoaded = onPhotoLoaded;
+    return Promise.resolve();
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -98,31 +99,6 @@ class Frame {
       2, 3, 0,
     ];
 
-    this.transforms.forEach((t) => {
-      switch (t.transform) {
-        case 'rotateX':
-          this.xRotation = t.degrees ?? 0;
-          break;
-
-        case 'rotateY':
-          this.yRotation = t.degrees ?? 0;
-          break;
-
-        case 'rotateZ':
-          this.zRotation = t.degrees ?? 0;
-          break;
-
-        case 'translate':
-          this.translation = t.vector ?? vec3.fromValues(0, 0, 0);
-          break;
-
-        default:
-          break;
-      }
-    });
-
-    this.makeTransform();
-
     return { points, indices };
   }
 
@@ -131,45 +107,23 @@ class Frame {
 
     mat4.translate(transform, transform, [this.xOffset, this.yOffset, this.zOffset]);
 
-    mat4.rotateZ(transform, transform, degToRad(this.zRotation));
-    mat4.rotateY(transform, transform, degToRad(this.yRotation));
-    mat4.translate(transform, transform, this.translation);
-    mat4.rotateX(transform, transform, degToRad(this.xRotation));
+    mat4.rotateZ(transform, transform, degToRad(this.photoData.zRotation));
+    mat4.rotateY(transform, transform, degToRad(this.photoData.yRotation));
+    mat4.translate(transform, transform, this.photoData.translation);
+    mat4.rotateX(transform, transform, degToRad(this.photoData.xRotation));
 
     this.transform = transform;
 
-    vec3.transformMat4(this.center, this.center, this.transform);
+    vec3.transformMat4(this.center, vec3.fromValues(0, 0, 0), this.transform);
   }
 
   setTranslation(x: number | null, y: number | null, z: number | null): void {
-    if (x !== null) {
-      this.translation[0] = x;
-    }
-
-    if (y !== null) {
-      this.translation[1] = y;
-    }
-
-    if (z !== null) {
-      this.translation[2] = z;
-    }
-
+    this.photoData.setTranslation(x, y, z);
     this.makeTransform();
   }
 
   setRotation(x: number | null, y: number | null, z: number | null): void {
-    if (x !== null) {
-      this.xRotation = x;
-    }
-
-    if (y !== null) {
-      this.yRotation = y;
-    }
-
-    if (z !== null) {
-      this.zRotation = z;
-    }
-
+    this.photoData.setRotation(x, y, z);
     this.makeTransform();
   }
 
@@ -270,39 +224,6 @@ class Frame {
     this.gl.generateMipmap(this.gl.TEXTURE_2D);
   }
 
-  loadPhoto(photoUrl: string): Promise<void> {
-    const image = new Image();
-
-    if (this.texture === null) {
-      return new Promise((resolve) => {
-        image.onload = () => {
-          if (this === null || this.gl === null) {
-            throw new Error('this or this.gl is null');
-          }
-
-          this.data = this.initData(image.width, image.height);
-
-          this.vao = this.gl.createVertexArray();
-
-          this.gl.bindVertexArray(this.vao);
-          this.initBuffers();
-          this.initTexture(image);
-          this.gl.bindVertexArray(null);
-
-          if (this.onPhotoLoaded) {
-            this.onPhotoLoaded(this);
-          }
-
-          resolve();
-        };
-
-        image.src = photoUrl;
-      });
-    }
-
-    return Promise.resolve();
-  }
-
   draw(): void {
     if (this.data && this.data.indices.length !== 0) {
       this.gl.bindVertexArray(this.vao);
@@ -319,4 +240,4 @@ class Frame {
   }
 }
 
-export default Frame;
+export default Photo;

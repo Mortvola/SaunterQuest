@@ -22,9 +22,9 @@ const Marker: React.FC<PropsType> = ({ marker }) => {
   };
 
   const respositionPhoto: React.MouseEventHandler = () => {
-    uiState.repositionPhoto(
-      marker.id, new L.LatLng(marker.marker.latLng.lat, marker.marker.latLng.lng),
-    );
+    // uiState.repositionPhoto(
+    //   marker.id, new L.LatLng(marker.marker.latLng.lat, marker.marker.latLng.lng),
+    // );
   };
 
   return (
