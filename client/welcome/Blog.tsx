@@ -9,10 +9,10 @@ import Photo from './Photo';
 import Terrain from '../Hike/Terrain/Terrain';
 
 type PropsType = {
-  pathFinderUrl: string,
+  tileServerUrl: string,
 }
 
-const Blog: React.FC<PropsType> = observer(({ pathFinderUrl }) => {
+const Blog: React.FC<PropsType> = observer(({ tileServerUrl }) => {
   const history = useHistory();
   const [blog, setBlog] = useState<BlogInterface | null>(null);
   const [position, setPosition] = useState<L.LatLng | null>(null);
@@ -49,7 +49,7 @@ const Blog: React.FC<PropsType> = observer(({ pathFinderUrl }) => {
           photoUrl={`/api/blog/${blog.id}/photo`}
           photoId={photoId}
           editPhoto={false}
-          pathFinderUrl={pathFinderUrl}
+          tileServerUrl={tileServerUrl}
           position={position}
           onClose={handleClose}
         />

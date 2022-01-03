@@ -31,7 +31,7 @@ export const tileDimension = 128;
 export interface TerrainRendererInterface {
   gl: WebGL2RenderingContext;
 
-  pathFinderUrl: string;
+  tileServerUrl: string;
 }
 
 class TerrainTile {
@@ -102,19 +102,25 @@ class TerrainTile {
     let data = terrainDataMap.get(locationKey(this.location));
 
     if (!data) {
-      const response = await Http.get<Points>(`${this.renderer.pathFinderUrl}/elevation/tile/${this.location.dimension}/${this.location.x}/${this.location.y}`);
+      const url = `${this.renderer.tileServerUrl}/tile/terrain3d/${this.location.dimension}/${this.location.x}/${this.location.y}`;
+      const response = await Http.get<Points>(url);
 
       if (response.ok) {
-        const body = await response.body();
+        try {
+          const body = await response.body();
 
-        data = {
-          elevation: body.ele,
-          points: body.points,
-          indices: body.indices,
-          normals: body.normals,
-        };
+          data = {
+            elevation: body.ele,
+            points: body.points,
+            indices: body.indices,
+            normals: body.normals,
+          };
 
-        terrainDataMap.set(locationKey(this.location), data);
+          terrainDataMap.set(locationKey(this.location), data);
+        }
+        catch (error) {
+          console.log(`error in content: ${url}`);
+        }
       }
       else {
         throw new Error('invalid response');

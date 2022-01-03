@@ -93,7 +93,8 @@
       "dense_hash_map": "cpp",
       "bit": "cpp",
       "random": "cpp",
-      "variant": "cpp"
+      "variant": "cpp",
+      "unordered_set": "cpp"
     },
     "C_Cpp.formatting": "vcFormat",
     "C_Cpp.vcFormat.newLine.beforeOpenBrace.block": "newLine",

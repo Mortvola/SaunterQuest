@@ -11,14 +11,14 @@ import Main from './Main';
 import Blog from './Blog';
 
 type PropsType = {
-  pathFinderUrl: string,
+  tileServerUrl: string,
 }
 
-const Welcome: React.FC<PropsType> = ({ pathFinderUrl }) => (
+const Welcome: React.FC<PropsType> = ({ tileServerUrl }) => (
   <>
     <Switch>
       <Route path="/blog">
-        <Blog pathFinderUrl={pathFinderUrl} />
+        <Blog tileServerUrl={tileServerUrl} />
       </Route>
       <Route path="/">
         <Main />
@@ -42,7 +42,7 @@ const initialProps = JSON.parse(initialPropsString) as PropsType;
 ReactDOM.render(
   <BlogStore>
     <Router>
-      <Welcome pathFinderUrl={initialProps.pathFinderUrl} />
+      <Welcome tileServerUrl={initialProps.tileServerUrl} />
     </Router>
   </BlogStore>,
   document.querySelector('.app'),

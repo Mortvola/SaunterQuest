@@ -12,7 +12,7 @@ type PropsType = {
   photoId: null | number,
   editPhoto: boolean,
   position: LatLng,
-  pathFinderUrl: string,
+  tileServerUrl: string,
   onClose: () => void,
 }
 
@@ -21,7 +21,7 @@ const Terrain = ({
   photoId,
   editPhoto,
   position,
-  pathFinderUrl,
+  tileServerUrl,
   onClose,
 }: PropsType): ReactElement => {
   const rendererRef = useRef<TerrainRenderer | null>(null);
@@ -48,7 +48,7 @@ const Terrain = ({
 
       if (rendererRef.current === null) {
         rendererRef.current = new TerrainRenderer(
-          gl, position, photoUrl, photoId, pathFinderUrl, setFps, setPercentComplete,
+          gl, position, photoUrl, photoId, tileServerUrl, setFps, setPercentComplete,
           handlePhotoFound,
         );
 
@@ -62,7 +62,7 @@ const Terrain = ({
         renderer.stop();
       }
     };
-  }, [photoUrl, pathFinderUrl, position, photoId]);
+  }, [photoUrl, tileServerUrl, position, photoId]);
 
   const handleCenterClick = () => {
     const renderer = rendererRef.current;

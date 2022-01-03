@@ -2,7 +2,7 @@ import { vec3, mat4 } from 'gl-matrix';
 import TerrainTile, { TerrainRendererInterface, Location, tileDimension } from './TerrainTile';
 import { LatLng } from '../../state/Types';
 import {
-  degToRad, latLngToTerrainTile, latOffset, radToDeg, terrainTileToLatLng,
+  degToRad, latDistance, latLngToTerrainTile, latOffset, radToDeg, terrainTileToLatLng,
 } from '../../utilities';
 import TerrainShader from './Shaders/TerrainShader';
 import PhotoShader from './Shaders/PhotoShader';
@@ -28,7 +28,7 @@ const tilePadding = 4;
 class TerrainRenderer implements TerrainRendererInterface {
   gl: WebGL2RenderingContext;
 
-  pathFinderUrl: string;
+  tileServerUrl: string;
 
   tileGrid: Tile[][] = [];
 
@@ -83,13 +83,13 @@ class TerrainRenderer implements TerrainRendererInterface {
     position: LatLng,
     photoUrl: string,
     photoId: null | number,
-    pathFinderUrl: string,
+    tileServerUrl: string,
     onFpsChange: (fps: number) => void,
     onLoadChange: (percentComplete: number) => void,
     onPhotoFound: (frame: Frame) => void,
   ) {
     this.gl = gl;
-    this.pathFinderUrl = pathFinderUrl;
+    this.tileServerUrl = tileServerUrl;
     this.position = position;
     this.onFpsChange = onFpsChange;
     this.onLoadChange = onLoadChange;

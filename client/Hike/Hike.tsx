@@ -83,7 +83,7 @@ const Hike = ({
                 photoUrl={`/api/hike/${uiState.hike.id}/photo`}
                 photoId={uiState.photoId}
                 editPhoto={uiState.editPhoto}
-                pathFinderUrl={pathFinderUrl}
+                tileServerUrl={tileServerUrl}
                 position={uiState.location3d}
                 onClose={handleClose}
               />

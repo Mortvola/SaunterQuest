@@ -16,7 +16,7 @@ export default class HomeController {
     }
 
     const props = {
-      pathFinderUrl: Env.get('PATHFINDER_URL'),
+      tileServerUrl: Env.get('TILE_SERVER_URL'),
     };
 
     return view.render('welcome', { props });
