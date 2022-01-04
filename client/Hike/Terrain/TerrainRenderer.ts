@@ -73,6 +73,8 @@ class TerrainRenderer implements TerrainRendererInterface {
 
   photoData: PhotoInterface | null = null;
 
+  editPhoto = false;
+
   photo: Photo | null = null;
 
   photoAlpha = 1;
@@ -92,6 +94,7 @@ class TerrainRenderer implements TerrainRendererInterface {
     position: LatLng,
     photoUrl: string,
     photoData: null | PhotoInterface,
+    editPhoto: boolean,
     tileServerUrl: string,
     onFpsChange: (fps: number) => void,
     onLoadChange: (percentComplete: number) => void,
@@ -103,6 +106,7 @@ class TerrainRenderer implements TerrainRendererInterface {
     this.onLoadChange = onLoadChange;
     this.photoUrl = photoUrl;
     this.photoData = photoData;
+    this.editPhoto = editPhoto;
 
     // Only continue if WebGL is available and working
     // Set clear color to black, fully opaque
@@ -205,7 +209,7 @@ class TerrainRenderer implements TerrainRendererInterface {
 
       if (percentComplete >= 1) {
         this.terrainLoaded = true;
-        this.fadePhoto = true;
+        this.fadePhoto = !this.editPhoto;
       }
     };
 

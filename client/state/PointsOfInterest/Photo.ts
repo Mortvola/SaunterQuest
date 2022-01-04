@@ -1,11 +1,17 @@
 import L from 'leaflet';
+import { PhotoProps } from '../../../common/ResponseTypes';
 import { MapInterface, PointOfInterestInterface } from '../Types';
 import PointOfInterest from './PointOfInterset';
+import PhotoData from '../../welcome/state/Photo';
 
-class Photo extends PointOfInterest implements PointOfInterestInterface {
-  constructor(id: number, position: L.LatLng, map: MapInterface) {
-    super(id, null, 'photo', position, false, false, map);
+class PhotoPoi extends PointOfInterest implements PointOfInterestInterface {
+  photo: PhotoData;
+
+  constructor(props: PhotoProps, map: MapInterface) {
+    super(props.id, null, 'photo', new L.LatLng(props.location[1], props.location[0]), false, false, map);
+
+    this.photo = new PhotoData(props);
   }
 }
 
-export default Photo;
+export default PhotoPoi;

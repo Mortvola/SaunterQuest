@@ -36,7 +36,7 @@ const Photos: React.FC<PropsType> = ({ show, bounds }) => {
           }
 
           return new Photo(
-            m.id, new L.LatLng(m.location[1], m.location[0]), uiState.hike.map,
+            m, uiState.hike.map,
           );
         });
 

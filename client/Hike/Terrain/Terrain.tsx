@@ -44,7 +44,7 @@ const Terrain = ({
 
       if (rendererRef.current === null) {
         rendererRef.current = new TerrainRenderer(
-          gl, position, photoUrl, photo, tileServerUrl, setFps, setPercentComplete,
+          gl, position, photoUrl, photo, editPhoto, tileServerUrl, setFps, setPercentComplete,
         );
 
         rendererRef.current.start();

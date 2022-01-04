@@ -4,6 +4,7 @@ import IconButton from '../../../IconButton';
 import { useStores } from '../../../state/store';
 import { PointOfInterestInterface } from '../../../state/Types';
 import styles from './Marker.module.css';
+import PhotoPoi from '../../../state/PointsOfInterest/Photo';
 
 type PropsType = {
   marker: PointOfInterestInterface,
@@ -22,9 +23,11 @@ const Marker: React.FC<PropsType> = ({ marker }) => {
   };
 
   const respositionPhoto: React.MouseEventHandler = () => {
-    // uiState.repositionPhoto(
-    //   marker.id, new L.LatLng(marker.marker.latLng.lat, marker.marker.latLng.lng),
-    // );
+    const photoPoi = marker as PhotoPoi;
+
+    uiState.repositionPhoto(
+      photoPoi.photo, new L.LatLng(marker.marker.latLng.lat, marker.marker.latLng.lng),
+    );
   };
 
   return (
