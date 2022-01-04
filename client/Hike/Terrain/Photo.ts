@@ -31,6 +31,8 @@ class Photo {
 
   center: vec3 = vec3.fromValues(0, 0, 0);
 
+  onPhotoLoaded: () => void;
+
   constructor(
     photoData: PhotoInterface,
     photoUrl: string,
@@ -39,6 +41,7 @@ class Photo {
     xOffset: number,
     yOffset: number,
     zOffset: number,
+    onPhotoLoaded: () => void,
   ) {
     this.photoData = photoData;
     this.gl = gl;
@@ -46,6 +49,7 @@ class Photo {
     this.xOffset = xOffset;
     this.yOffset = yOffset;
     this.zOffset = zOffset;
+    this.onPhotoLoaded = onPhotoLoaded;
 
     this.makeTransform();
 
@@ -70,6 +74,8 @@ class Photo {
           this.initBuffers();
           this.initTexture(image);
           this.gl.bindVertexArray(null);
+
+          this.onPhotoLoaded();
 
           resolve();
         };

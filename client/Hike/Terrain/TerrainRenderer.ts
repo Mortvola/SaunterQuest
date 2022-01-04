@@ -75,7 +75,17 @@ class TerrainRenderer implements TerrainRendererInterface {
 
   photo: Photo | null = null;
 
-  enableRendering = false;
+  photoAlpha = 1;
+
+  fadePhoto = false;
+
+  fadeSTartTime: number | null = null;
+
+  photoFadeDuration = 2;
+
+  photoLoaded = false;
+
+  terrainLoaded = false;
 
   constructor(
     gl: WebGL2RenderingContext,
@@ -194,7 +204,8 @@ class TerrainRenderer implements TerrainRendererInterface {
       this.onLoadChange(percentComplete);
 
       if (percentComplete >= 1) {
-        this.enableRendering = true;
+        this.terrainLoaded = true;
+        this.fadePhoto = true;
       }
     };
 
@@ -214,6 +225,10 @@ class TerrainRenderer implements TerrainRendererInterface {
     await Promise.all(promises);
   }
 
+  handlePhotoLoaded(): void {
+    this.photoLoaded = true;
+  }
+
   loadPhoto(x: number, y: number): void {
     if (this.photoData) {
       const centerTile = this.tileGrid[tilePadding][tilePadding].tile;
@@ -231,6 +246,7 @@ class TerrainRenderer implements TerrainRendererInterface {
         xOffset,
         yOffset,
         zOffset,
+        this.handlePhotoLoaded.bind(this),
       );
     }
   }
@@ -362,6 +378,24 @@ class TerrainRenderer implements TerrainRendererInterface {
                 }
               }
             }
+
+            if (this.fadePhoto && this.photoAlpha > 0) {
+              if (this.fadeSTartTime) {
+                const eTime = (timestamp - this.fadeSTartTime) * 0.001;
+                if (eTime < this.photoFadeDuration) {
+                  this.photoAlpha = 1 - eTime / this.photoFadeDuration;
+                  if (this.photoAlpha < 0) {
+                    this.photoAlpha = 0;
+                  }
+                }
+                else {
+                  this.photoAlpha = 0;
+                }
+              }
+              else {
+                this.fadeSTartTime = timestamp;
+              }
+            }
           }
 
           this.previousTimestamp = timestamp;
@@ -418,9 +452,7 @@ class TerrainRenderer implements TerrainRendererInterface {
     this.gl.enable(this.gl.DEPTH_TEST); // Enable depth testing
     this.gl.disable(this.gl.BLEND);
 
-    if (this.enableRendering) {
-      this.drawTerrain(projectionMatrix, viewMatrix);
-    }
+    this.drawTerrain(projectionMatrix, viewMatrix);
 
     this.drawPhoto(projectionMatrix, viewMatrix);
   }
@@ -429,89 +461,91 @@ class TerrainRenderer implements TerrainRendererInterface {
     projectionMatrix: mat4,
     viewMatrix: mat4,
   ): void {
-    const lightVector = vec3.fromValues(0, -1, -1);
-    vec3.normalize(lightVector, lightVector);
+    if (this.photoLoaded && this.terrainLoaded) {
+      const lightVector = vec3.fromValues(0, -1, -1);
+      vec3.normalize(lightVector, lightVector);
 
-    this.tileRenderOrder.forEach((order) => {
-      const { tile, offset } = this.tileGrid[order.y][order.x];
+      this.tileRenderOrder.forEach((order) => {
+        const { tile, offset } = this.tileGrid[order.y][order.x];
 
-      if (tile) {
-        this.gl.useProgram(this.terrainShader.shaderProgram);
+        if (tile) {
+          this.gl.useProgram(this.terrainShader.shaderProgram);
 
-        this.gl.uniformMatrix4fv(
-          this.terrainShader.uniformLocations.projectionMatrix,
-          false,
-          projectionMatrix,
-        );
+          this.gl.uniformMatrix4fv(
+            this.terrainShader.uniformLocations.projectionMatrix,
+            false,
+            projectionMatrix,
+          );
 
-        this.gl.uniformMatrix4fv(
-          this.terrainShader.uniformLocations.viewMatrix,
-          false,
-          viewMatrix,
-        );
+          this.gl.uniformMatrix4fv(
+            this.terrainShader.uniformLocations.viewMatrix,
+            false,
+            viewMatrix,
+          );
 
-        this.gl.uniform3fv(this.terrainShader.uniformLocations.lightVector, lightVector);
+          this.gl.uniform3fv(this.terrainShader.uniformLocations.lightVector, lightVector);
 
-        this.gl.uniform4fv(this.terrainShader.uniformLocations.fogColor, [1.0, 1.0, 1.0, 1.0]);
-        this.gl.uniform1f(
-          this.terrainShader.uniformLocations.fogNormalizationFactor, this.fogNormalizationFactor,
-        );
+          this.gl.uniform4fv(this.terrainShader.uniformLocations.fogColor, [1.0, 1.0, 1.0, 1.0]);
+          this.gl.uniform1f(
+            this.terrainShader.uniformLocations.fogNormalizationFactor, this.fogNormalizationFactor,
+          );
 
-        const modelMatrix = TerrainRenderer.getModelMatrix(
-          offset.x,
-          offset.y,
-          0,
-        );
+          const modelMatrix = TerrainRenderer.getModelMatrix(
+            offset.x,
+            offset.y,
+            0,
+          );
 
-        tile.draw(projectionMatrix, viewMatrix, modelMatrix, this.terrainShader);
-      }
-    });
+          tile.draw(projectionMatrix, viewMatrix, modelMatrix, this.terrainShader);
+        }
+      });
 
-    // Disable depth test when rendering transparent components.
-    this.gl.disable(this.gl.DEPTH_TEST);
+      // Disable depth test when rendering transparent components.
+      this.gl.disable(this.gl.DEPTH_TEST);
 
-    // Draw Transparent
-    this.tileRenderOrder.forEach((order) => {
-      const { tile, offset } = this.tileGrid[order.y][order.x];
+      // Draw Transparent
+      this.tileRenderOrder.forEach((order) => {
+        const { tile, offset } = this.tileGrid[order.y][order.x];
 
-      if (tile) {
-        this.gl.useProgram(this.terrainShader.shaderProgram);
+        if (tile) {
+          this.gl.useProgram(this.terrainShader.shaderProgram);
 
-        this.gl.uniformMatrix4fv(
-          this.terrainShader.uniformLocations.projectionMatrix,
-          false,
-          projectionMatrix,
-        );
+          this.gl.uniformMatrix4fv(
+            this.terrainShader.uniformLocations.projectionMatrix,
+            false,
+            projectionMatrix,
+          );
 
-        this.gl.uniformMatrix4fv(
-          this.terrainShader.uniformLocations.viewMatrix,
-          false,
-          viewMatrix,
-        );
+          this.gl.uniformMatrix4fv(
+            this.terrainShader.uniformLocations.viewMatrix,
+            false,
+            viewMatrix,
+          );
 
-        this.gl.uniform3fv(this.terrainShader.uniformLocations.lightVector, lightVector);
+          this.gl.uniform3fv(this.terrainShader.uniformLocations.lightVector, lightVector);
 
-        this.gl.uniform4fv(this.terrainShader.uniformLocations.fogColor, [1.0, 1.0, 1.0, 1.0]);
-        this.gl.uniform1f(
-          this.terrainShader.uniformLocations.fogNormalizationFactor, this.fogNormalizationFactor,
-        );
+          this.gl.uniform4fv(this.terrainShader.uniformLocations.fogColor, [1.0, 1.0, 1.0, 1.0]);
+          this.gl.uniform1f(
+            this.terrainShader.uniformLocations.fogNormalizationFactor, this.fogNormalizationFactor,
+          );
 
-        const modelMatrix = TerrainRenderer.getModelMatrix(
-          offset.x,
-          offset.y,
-          0,
-        );
+          const modelMatrix = TerrainRenderer.getModelMatrix(
+            offset.x,
+            offset.y,
+            0,
+          );
 
-        tile.drawTransparent(projectionMatrix, viewMatrix, modelMatrix, this.terrainShader);
-      }
-    });
+          tile.drawTransparent(projectionMatrix, viewMatrix, modelMatrix, this.terrainShader);
+        }
+      });
+    }
   }
 
   drawPhoto(
     projectionMatrix: mat4,
     viewMatrix: mat4,
   ): void {
-    if (this.photo) {
+    if (this.photo && this.photoAlpha > 0) {
       this.gl.useProgram(this.photoShader.shaderProgram);
 
       this.gl.uniformMatrix4fv(
@@ -526,8 +560,8 @@ class TerrainRenderer implements TerrainRendererInterface {
         viewMatrix,
       );
 
-      if (this.enableRendering) {
-        this.gl.blendColor(1, 1, 1, 0.5);
+      if (this.terrainLoaded) {
+        this.gl.blendColor(1, 1, 1, this.photoAlpha);
         this.gl.blendFunc(this.gl.CONSTANT_ALPHA, this.gl.ONE_MINUS_CONSTANT_ALPHA);
         this.gl.enable(this.gl.BLEND);
       }
