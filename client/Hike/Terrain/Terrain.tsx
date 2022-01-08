@@ -1,11 +1,11 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import React, {
-  ReactElement, useEffect, useRef, useState,
+  useEffect, useRef, useState,
 } from 'react';
+import { observer } from 'mobx-react-lite';
 import { LatLng } from '../../state/Types';
 import TerrainRenderer from './TerrainRenderer';
 import styles from './Terrain.module.css';
-import Photo from './Photo';
 import { PhotoInterface } from '../../welcome/state/Types';
 
 type PropsType = {
@@ -17,19 +17,20 @@ type PropsType = {
   onClose: () => void,
 }
 
-const Terrain = ({
+const Terrain: React.FC<PropsType> = observer(({
   photoUrl,
   photo,
   editPhoto,
   position,
   tileServerUrl,
   onClose,
-}: PropsType): ReactElement => {
+}) => {
   const rendererRef = useRef<TerrainRenderer | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const mouseRef = useRef<{ x: number, y: number} | null>(null);
   const [fps, setFps] = useState<number>(0);
   const [percentComplete, setPercentComplete] = useState<number>(0);
+  const [photoAlpha, setPhotoAlpha] = useState<number>(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -57,7 +58,7 @@ const Terrain = ({
         renderer.stop();
       }
     };
-  }, [photoUrl, tileServerUrl, position, photo]);
+  }, [editPhoto, photo, photoUrl, position, tileServerUrl]);
 
   const handleCenterClick = () => {
     const renderer = rendererRef.current;
@@ -67,20 +68,79 @@ const Terrain = ({
     }
   };
 
+  const handleSaveClick = () => {
+    photo?.save();
+  };
+
+  const getFloat = (v: string) => {
+    if (v.match(/^[+-]?\d+(\.\d+)?$/)) {
+      return parseFloat(v);
+    }
+
+    return Number.NaN;
+  };
+
   const handleOffsetChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
-    photo?.setTranslation(parseFloat(event.target.value), null, null);
+    const value = getFloat(event.target.value);
+    if (!Number.isNaN(value)) {
+      photo?.setOffset(value, null, null);
+    }
   };
 
   const handleXRotationChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
-    photo?.setRotation(parseFloat(event.target.value), null, null);
+    const value = getFloat(event.target.value);
+    if (!Number.isNaN(value)) {
+      photo?.setRotation(value, null, null);
+    }
   };
 
   const handleYRotationChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
-    photo?.setRotation(null, parseFloat(event.target.value), null);
+    const value = getFloat(event.target.value);
+    if (!Number.isNaN(value)) {
+      photo?.setRotation(null, value, null);
+    }
   };
 
   const handleZRotationChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
-    photo?.setRotation(null, null, parseFloat(event.target.value));
+    const value = getFloat(event.target.value);
+    if (!Number.isNaN(value)) {
+      photo?.setRotation(null, null, value);
+    }
+  };
+
+  const handleXTranslationChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+    const value = getFloat(event.target.value);
+    if (!Number.isNaN(value)) {
+      photo?.setTranslation(value, null, null);
+    }
+  };
+
+  const handleYTranslationChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+    const value = getFloat(event.target.value);
+    if (!Number.isNaN(value)) {
+      photo?.setTranslation(null, value, null);
+    }
+  };
+
+  const handleZTranslationChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+    const value = getFloat(event.target.value);
+    if (!Number.isNaN(value)) {
+      photo?.setTranslation(null, value, null);
+    }
+  };
+
+  const handleTransparencyChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+    const renderer = rendererRef.current;
+
+    if (renderer) {
+      const value = getFloat(event.target.value);
+      if (!Number.isNaN(value)) {
+        setPhotoAlpha(value);
+
+        const alpha = 1 - value / 100;
+        renderer.setPhotoAlpha(alpha);
+      }
+    }
   };
 
   const handlePointerDown: React.PointerEventHandler<HTMLCanvasElement> = (
@@ -109,11 +169,12 @@ const Terrain = ({
 
       if (canvas) {
         const xOffset = event.clientX - mouseRef.current.x;
-        const yOffset = event.clientY - mouseRef.current.y;
+        const yOffset = -(event.clientY - mouseRef.current.y);
+        const sensitivity = 0.1;
 
         const renderer = rendererRef.current;
         if (renderer !== null) {
-          renderer.updateLookAt(xOffset * 0.1, yOffset * 0.1);
+          renderer.updateLookAt(xOffset * sensitivity, yOffset * sensitivity);
         }
 
         mouseRef.current = { x: event.clientX, y: event.clientY };
@@ -142,30 +203,34 @@ const Terrain = ({
     const renderer = rendererRef.current;
     if (renderer) {
       switch (event.key) {
-        case 'W':
-        case 'w':
-          renderer.setVelocity(0.1);
+        case 'E':
+        case 'e':
+          renderer.setVelocity(1, null, null);
+          break;
+
+        case 'D':
+        case 'd':
+          renderer.setVelocity(-1, null, null);
           break;
 
         case 'S':
         case 's':
-          renderer.setVelocity(-0.1);
+          renderer.setVelocity(null, 1, null);
           break;
 
-        case 'ArrowLeft':
-          renderer.setVelocity(0);
-          break;
-
-        case 'ArrowRight':
-          renderer.setVelocity(0);
+        case 'F':
+        case 'f':
+          renderer.setVelocity(null, -1, null);
           break;
 
         case 'PageUp':
-          renderer.setUpVelocity(1);
+          // renderer.setVelocity(null, null, 1);
+          renderer.updateLookAt(0, 1);
           break;
 
         case 'PageDown':
-          renderer.setUpVelocity(-1);
+          // renderer.setVelocity(null, null, -1);
+          renderer.updateLookAt(0, -1);
           break;
 
         default:
@@ -181,30 +246,32 @@ const Terrain = ({
     const renderer = rendererRef.current;
     if (renderer) {
       switch (event.key) {
-        case 'W':
-        case 'w':
-          renderer.setVelocity(0);
+        case 'E':
+        case 'e':
+          renderer.setVelocity(0, null, null);
+          break;
+
+        case 'D':
+        case 'd':
+          renderer.setVelocity(0, null, null);
+          break;
+
+        case 'F':
+        case 'f':
+          renderer.setVelocity(null, 0, null);
           break;
 
         case 'S':
         case 's':
-          renderer.setVelocity(0);
-          break;
-
-        case 'ArrowLeft':
-          renderer.setVelocity(0);
-          break;
-
-        case 'ArrowRight':
-          renderer.setVelocity(0);
+          renderer.setVelocity(null, 0, null);
           break;
 
         case 'PageUp':
-          renderer.setUpVelocity(0);
+          renderer.setVelocity(null, null, 0);
           break;
 
         case 'PageDown':
-          renderer.setUpVelocity(0);
+          renderer.setVelocity(null, null, 0);
           break;
 
         default:
@@ -230,21 +297,38 @@ const Terrain = ({
             ? (
               <>
                 <div className={styles.button} onClick={handleCenterClick}>Center</div>
-                <label>
+                <label className={styles.labeledInput}>
                   Offset
-                  <input type="text" onChange={handleOffsetChange} defaultValue={photo.translation[0]} />
+                  <input type="text" onChange={handleOffsetChange} value={photo.offset[0].toFixed(2)} />
                 </label>
-                <label>
+                <label className={styles.labeledInput}>
                   X Rotation
-                  <input type="text" onChange={handleXRotationChange} defaultValue={photo.xRotation} />
+                  <input type="text" onChange={handleXRotationChange} value={photo.xRotation.toFixed(2)} />
                 </label>
-                <label>
+                <label className={styles.labeledInput}>
                   Y Rotation
-                  <input type="text" onChange={handleYRotationChange} defaultValue={photo.yRotation} />
+                  <input type="text" onChange={handleYRotationChange} value={photo.yRotation.toFixed(2)} />
                 </label>
-                <label>
+                <label className={styles.labeledInput}>
                   Z Rotation
-                  <input type="text" onChange={handleZRotationChange} defaultValue={photo.zRotation} />
+                  <input type="text" onChange={handleZRotationChange} value={photo.zRotation.toFixed(2)} />
+                </label>
+                <label className={styles.labeledInput}>
+                  X Translation
+                  <input type="text" onChange={handleXTranslationChange} value={photo.translation[0].toFixed(2)} />
+                </label>
+                <label className={styles.labeledInput}>
+                  Y Translation
+                  <input type="text" onChange={handleYTranslationChange} value={photo.translation[1].toFixed(2)} />
+                </label>
+                <label className={styles.labeledInput}>
+                  Z Translation
+                  <input type="text" onChange={handleZTranslationChange} value={photo.translation[2].toFixed(2)} />
+                </label>
+                <div className={styles.button} onClick={handleSaveClick}>Save</div>
+                <label className={styles.labeledInput}>
+                  Transparency
+                  <input type="text" onChange={handleTransparencyChange} value={photoAlpha.toFixed(2)} />
                 </label>
               </>
             )
@@ -253,9 +337,7 @@ const Terrain = ({
       </div>
       <canvas
         ref={canvasRef}
-        style={{
-          width: '100%', height: '100%', backgroundColor: '#fff', touchAction: 'none',
-        }}
+        className={styles.canvas}
         width="853"
         height="480"
         tabIndex={0}
@@ -269,6 +351,6 @@ const Terrain = ({
       />
     </div>
   );
-};
+});
 
 export default Terrain;

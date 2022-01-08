@@ -7,7 +7,7 @@ export interface PhotoInterface {
 
   location: [number, number];
 
-  translation: vec3;
+  offset: vec3;
 
   xRotation: number;
 
@@ -15,9 +15,17 @@ export interface PhotoInterface {
 
   zRotation: number;
 
+  translation: vec3;
+
+  onChange: (() => void) | null;
+
+  setOffset(x: number | null, y: number | null, z: number | null): void;
+
   setTranslation(x: number | null, y: number | null, z: number | null): void;
 
   setRotation(x: number | null, y: number | null, z: number | null): void;
+
+  save(): void;
 }
 
 export interface BlogInterface {

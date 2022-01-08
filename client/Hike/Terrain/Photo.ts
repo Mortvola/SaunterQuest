@@ -44,6 +44,7 @@ class Photo {
     onPhotoLoaded: () => void,
   ) {
     this.photoData = photoData;
+    this.photoData.onChange = this.makeTransform.bind(this);
     this.gl = gl;
     this.shader = shader;
     this.xOffset = xOffset;
@@ -111,11 +112,15 @@ class Photo {
   makeTransform(): void {
     const transform = mat4.create();
 
-    mat4.translate(transform, transform, [this.xOffset, this.yOffset, this.zOffset]);
+    mat4.translate(transform, transform, [
+      this.xOffset + this.photoData.translation[0],
+      this.yOffset + this.photoData.translation[1],
+      this.zOffset + 0, // this.photoData.translation[2],
+    ]);
 
     mat4.rotateZ(transform, transform, degToRad(this.photoData.zRotation));
     mat4.rotateY(transform, transform, degToRad(this.photoData.yRotation));
-    mat4.translate(transform, transform, this.photoData.translation);
+    mat4.translate(transform, transform, this.photoData.offset);
     mat4.rotateX(transform, transform, degToRad(this.photoData.xRotation));
 
     this.transform = transform;
@@ -125,12 +130,14 @@ class Photo {
 
   setTranslation(x: number | null, y: number | null, z: number | null): void {
     this.photoData.setTranslation(x, y, z);
-    this.makeTransform();
+  }
+
+  setOffset(x: number | null, y: number | null, z: number | null): void {
+    this.photoData.setOffset(x, y, z);
   }
 
   setRotation(x: number | null, y: number | null, z: number | null): void {
     this.photoData.setRotation(x, y, z);
-    this.makeTransform();
   }
 
   initBuffers(): void {

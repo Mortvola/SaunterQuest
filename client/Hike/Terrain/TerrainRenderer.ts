@@ -43,9 +43,9 @@ class TerrainRenderer implements TerrainRendererInterface {
 
   cameraFront: vec3 = vec3.fromValues(1, 0, 0);
 
-  velocity = 0;
+  velocity = 1.1176 * 10; // meters per second
 
-  upVelocity = 0;
+  moveDirection: vec3 = vec3.create();
 
   previousTimestamp: number | null = null;
 
@@ -172,15 +172,22 @@ class TerrainRenderer implements TerrainRendererInterface {
     this.updateLookAt(0, 0);
 
     const tileCenter = terrainTileToLatLng(x, y, tileDimension);
-    const xOffset = -latOffset(this.position.lng, tileCenter.lng);
-    const yOffset = -latOffset(this.position.lat, tileCenter.lat);
+    let xOffset = -latOffset(this.position.lng, tileCenter.lng);
+    let yOffset = -latOffset(this.position.lat, tileCenter.lat);
+
+    if (this.photoData) {
+      xOffset += this.photoData.translation[0];
+      yOffset += this.photoData.translation[1];
+    }
 
     const { tile } = this.tileGrid[tilePadding][tilePadding];
+
+    const zOffset = (tile?.getElevation(xOffset, yOffset) ?? 0) + cameraZOffset;
 
     this.cameraOffset = [
       xOffset,
       yOffset,
-      tile ? tile.getElevation(xOffset, yOffset) + cameraZOffset : 0,
+      zOffset,
     ];
   }
 
@@ -240,7 +247,11 @@ class TerrainRenderer implements TerrainRendererInterface {
       const tileCenter = terrainTileToLatLng(x, y, tileDimension);
       const xOffset = -latOffset(this.position.lng, tileCenter.lng);
       const yOffset = -latOffset(this.position.lat, tileCenter.lat);
-      const zOffset = centerTile ? centerTile.getElevation(xOffset, yOffset) + 2 : 0;
+
+      const zOffset = (centerTile?.getElevation(
+        xOffset + this.photoData.translation[0],
+        yOffset + this.photoData.translation[1],
+      ) ?? 0) + cameraZOffset;
 
       this.photo = new Photo(
         this.photoData,
@@ -263,15 +274,22 @@ class TerrainRenderer implements TerrainRendererInterface {
       const xOffset = -latOffset(this.position.lng, tileCenter.lng);
       const yOffset = -latOffset(this.position.lat, tileCenter.lat);
 
-      this.photo.zOffset = centerTile ? centerTile.getElevation(xOffset, yOffset) + 2 : 0;
+      this.photo.zOffset = (centerTile?.getElevation(
+        xOffset + this.photo.photoData.translation[0],
+        yOffset + this.photo.photoData.translation[1],
+      ) ?? 0) + cameraZOffset;
       this.photo.makeTransform();
     }
   }
 
   centerPhoto(): void {
     if (this.photo) {
-      this.photo.setRotation(this.pitch, null, this.yaw);
+      this.photo.setRotation(null, this.pitch, this.yaw);
     }
+  }
+
+  setPhotoAlpha(alpha: number): void {
+    this.photoAlpha = Math.max(Math.min(alpha, 1), 0);
   }
 
   async loadTile(
@@ -324,80 +342,18 @@ class TerrainRenderer implements TerrainRendererInterface {
           if (this.previousTimestamp !== null) {
             const elapsedTime = (timestamp - this.previousTimestamp) * 0.001;
 
-            const newCameraOffset: vec3 = vec3.fromValues(0, 0, 0);
-
-            vec3.scaleAndAdd(
-              newCameraOffset,
-              this.cameraOffset,
-              this.cameraFront,
-              this.velocity / elapsedTime,
-            );
-
-            // this.cameraOffset[2] += this.upVelocity / elapsedTime;
-
-            if (newCameraOffset[0] > (TerrainTile.dimension / 2)
-              || newCameraOffset[0] < -(TerrainTile.dimension / 2)
-              || newCameraOffset[1] > (TerrainTile.dimension / 2)
-              || newCameraOffset[1] < -(TerrainTile.dimension / 2)
-            ) {
-              const gridX = Math.floor(
-                (newCameraOffset[0] + (TerrainTile.dimension / 2)) / TerrainTile.dimension,
-              );
-
-              const gridY = Math.floor(
-                (newCameraOffset[1] + (TerrainTile.dimension / 2)) / TerrainTile.dimension,
-              );
-
-              const { tile: newCenterTile } = this.tileGrid[
-                tilePadding - gridY
-              ][
-                tilePadding + gridX
-              ];
-
-              if (!newCenterTile) {
-                throw new Error('new center tile is null');
-              }
-
-              this.loadTiles(newCenterTile.location.x, newCenterTile.location.y);
-
-              newCameraOffset[0] -= gridX * TerrainTile.dimension;
-              newCameraOffset[1] -= gridY * TerrainTile.dimension;
-            }
-
-            // If the camera x/y position has changed then updated the elevation (z).
-            if (newCameraOffset[0] !== this.cameraOffset[0]
-              || newCameraOffset[1] !== this.cameraOffset[1]) {
-              [this.cameraOffset[0], this.cameraOffset[1]] = newCameraOffset;
-
-              const { tile } = this.tileGrid[tilePadding][tilePadding];
-              if (tile) {
-                try {
-                  this.cameraOffset[2] = tile.getElevation(
-                    this.cameraOffset[0],
-                    this.cameraOffset[1],
-                  ) + cameraZOffset;
-                }
-                catch (error) {
-                  console.log(`newCameraOffset = [${newCameraOffset[0]}, ${newCameraOffset[1]}]`);
-                }
-              }
-            }
+            this.updateCameraPosition(elapsedTime);
 
             if (this.fadePhoto && this.photoAlpha > 0) {
-              if (this.fadeSTartTime) {
-                const eTime = (timestamp - this.fadeSTartTime) * 0.001;
-                if (eTime < this.photoFadeDuration) {
-                  this.photoAlpha = 1 - eTime / this.photoFadeDuration;
-                  if (this.photoAlpha < 0) {
-                    this.photoAlpha = 0;
-                  }
-                }
-                else {
-                  this.photoAlpha = 0;
-                }
+              if (this.fadeSTartTime === null) {
+                this.fadeSTartTime = timestamp;
               }
               else {
-                this.fadeSTartTime = timestamp;
+                const eTime = (timestamp - this.fadeSTartTime) * 0.001;
+                this.photoAlpha = 1 - eTime / this.photoFadeDuration;
+                if (this.photoAlpha < 0) {
+                  this.photoAlpha = 0;
+                }
               }
             }
           }
@@ -423,27 +379,106 @@ class TerrainRenderer implements TerrainRendererInterface {
     this.#render = false;
   }
 
+  updateCameraPosition(elapsedTime: number): void {
+    if (
+      this.moveDirection[0] !== 0
+      || this.moveDirection[1] !== 0
+      || this.moveDirection[2] !== 0
+    ) {
+      const newCameraOffset = vec3.create();
+      const velocity = vec3.create();
+      const direction = vec3.create();
+
+      vec3.normalize(direction, this.moveDirection);
+      vec3.rotateZ(direction, direction, vec3.create(), degToRad(this.yaw));
+
+      vec3.scale(velocity, direction, this.velocity * elapsedTime);
+      vec3.add(newCameraOffset, this.cameraOffset, velocity);
+
+      if (newCameraOffset[0] > (TerrainTile.dimension / 2)
+        || newCameraOffset[0] < -(TerrainTile.dimension / 2)
+        || newCameraOffset[1] > (TerrainTile.dimension / 2)
+        || newCameraOffset[1] < -(TerrainTile.dimension / 2)
+      ) {
+        const gridX = Math.floor(
+          (newCameraOffset[0] + (TerrainTile.dimension / 2)) / TerrainTile.dimension,
+        );
+
+        const gridY = Math.floor(
+          (newCameraOffset[1] + (TerrainTile.dimension / 2)) / TerrainTile.dimension,
+        );
+
+        const { tile: newCenterTile } = this.tileGrid[
+          tilePadding - gridY
+        ][
+          tilePadding + gridX
+        ];
+
+        if (!newCenterTile) {
+          throw new Error('new center tile is null');
+        }
+
+        this.loadTiles(newCenterTile.location.x, newCenterTile.location.y);
+
+        newCameraOffset[0] -= gridX * TerrainTile.dimension;
+        newCameraOffset[1] -= gridY * TerrainTile.dimension;
+      }
+
+      // If the camera x/y position has changed then updated the elevation (z).
+      if (newCameraOffset[0] !== this.cameraOffset[0]
+        || newCameraOffset[1] !== this.cameraOffset[1]) {
+        [this.cameraOffset[0], this.cameraOffset[1]] = newCameraOffset;
+
+        const { tile } = this.tileGrid[tilePadding][tilePadding];
+        if (tile) {
+          try {
+            this.cameraOffset[2] = tile.getElevation(
+              this.cameraOffset[0],
+              this.cameraOffset[1],
+            ) + cameraZOffset;
+
+            if (this.editPhoto) {
+              this.photo?.setTranslation(
+                this.cameraOffset[0] - this.photo.xOffset,
+                this.cameraOffset[1] - this.photo.yOffset,
+                this.cameraOffset[2] - 0, // this.photo.zOffset,
+              );
+            }
+          }
+          catch (error) {
+            console.log(`newCameraOffset = [${newCameraOffset[0]}, ${newCameraOffset[1]}]`);
+          }
+        }
+      }
+    }
+  }
+
   updateLookAt(yawChange: number, pitchChange: number): void {
     this.yaw += yawChange;
     this.pitch += pitchChange;
 
     this.pitch = Math.max(Math.min(this.pitch, 89), -89);
 
-    const x = Math.cos(degToRad(this.yaw) * Math.cos(degToRad(this.pitch)));
-    const y = Math.sin(degToRad(this.yaw) * Math.cos(degToRad(this.pitch)));
-    const z = Math.sin(degToRad(this.pitch));
+    const cameraFront = vec3.fromValues(1, 0, 0);
 
-    const cameraFront = vec3.fromValues(x, y, z);
+    vec3.rotateY(cameraFront, cameraFront, vec3.create(), degToRad(this.pitch));
+    vec3.rotateZ(cameraFront, cameraFront, vec3.create(), degToRad(this.yaw));
 
-    vec3.normalize(this.cameraFront, cameraFront);
+    this.cameraFront = cameraFront;
   }
 
-  setVelocity(velocity: number): void {
-    this.velocity = velocity;
-  }
+  setVelocity(x: number | null, y: number | null, z: number | null): void {
+    if (x !== null) {
+      this.moveDirection[0] = x;
+    }
 
-  setUpVelocity(velocity: number): void {
-    this.upVelocity = velocity;
+    if (y !== null) {
+      this.moveDirection[1] = y;
+    }
+
+    if (z !== null) {
+      this.moveDirection[2] = z;
+    }
   }
 
   drawScene(): void {

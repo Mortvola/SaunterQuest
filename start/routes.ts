@@ -87,6 +87,8 @@ Route.group(() => {
     })
       .prefix('/hike');
 
+    Route.put('/photo/:photoId', 'HikesController.updatePhoto');
+
     Route.group(() => {
       Route.get('/configuration', 'GearConfigurationsController.get');
       Route.post('/configuration', 'GearConfigurationsController.add');

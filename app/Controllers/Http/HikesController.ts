@@ -5,6 +5,7 @@ import Database from '@ioc:Adonis/Lucid/Database';
 import Hike from 'App/Models/Hike';
 import Drive from '@ioc:Adonis/Core/Drive';
 import { extname } from 'path';
+import sharp from 'sharp';
 
 export default class HikesController {
   // eslint-disable-next-line class-methods-use-this
@@ -130,7 +131,13 @@ export default class HikesController {
         way: Database.raw(`ST_Transform(ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326), 3857)`),
       });
 
-    Drive.put(`./hikes/${params.hikeId}/photos/${id[0]}.jpg`, Buffer.from(data, 'base64'));
+    const photo = Buffer.from(data, 'base64');
+
+    Drive.put(`./hikes/${params.hikeId}/photos/${id[0]}_original.jpg`, photo);
+
+    const smaller = await sharp(photo).resize(508).toBuffer();
+
+    Drive.put(`./hikes/${params.hikeId}/photos/${id[0]}_small.jpg`, smaller);
 
     return id[0];
   }
@@ -147,7 +154,7 @@ export default class HikesController {
       throw new Exception('user unauthorized');
     }
 
-    const location = `./hikes/${params.hikeId}/photos/${params.photoId}.jpg`;
+    const location = `./hikes/${params.hikeId}/photos/${params.photoId}_small.jpg`;
 
     const { size } = await Drive.getStats(location);
 
@@ -155,5 +162,25 @@ export default class HikesController {
     response.header('content-length', size);
 
     return response.stream(await Drive.getStream(location));
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async updatePhoto({
+    auth: {
+      user,
+    },
+    params,
+    request,
+  }: HttpContextContract): Promise<void> {
+    if (!user) {
+      throw new Exception('user unauthorized');
+    }
+
+    await Database.query()
+      .update({
+        transforms: JSON.stringify(request.body().transforms),
+      })
+      .from('hike_photos')
+      .where('id', params.photoId);
   }
 }

@@ -77,7 +77,7 @@ export interface City {
 }
 
 type Transform = {
-  transform: 'rotateX' | 'rotateY' | 'rotateZ' | 'translate',
+  transform: 'rotateX' | 'rotateY' | 'rotateZ' | 'translate' | 'offset' | 'translation',
   degrees?: number,
   vector?: [number, number, number],
 }

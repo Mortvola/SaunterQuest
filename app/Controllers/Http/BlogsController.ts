@@ -49,7 +49,7 @@ export default class BlogsController {
   }: HttpContextContract): Promise<unknown> {
     const blog = await Blog.findOrFail(params.blogId);
 
-    const location = `./hikes/${blog.hikeId}/photos/${params.photoId}.jpg`;
+    const location = `./hikes/${blog.hikeId}/photos/${params.photoId}_small.jpg`;
 
     const { size } = await Drive.getStats(location);
 
