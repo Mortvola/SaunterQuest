@@ -209,17 +209,6 @@ class TerrainRenderer implements TerrainRendererInterface {
     let tilesLoaded = 0;
     const promises: Promise<void | void[]>[] = [];
 
-    const handleTileLoaded = () => {
-      tilesLoaded += 1;
-      const percentComplete = tilesLoaded / totalTiles;
-      this.onLoadChange(percentComplete);
-
-      if (percentComplete >= 1) {
-        this.terrainLoaded = true;
-        this.fadePhoto = !this.editPhoto;
-      }
-    };
-
     for (let y2 = -tilePadding; y2 <= tilePadding; y2 += 1) {
       for (let x2 = -tilePadding; x2 <= tilePadding; x2 += 1) {
         promises.push(
@@ -227,8 +216,18 @@ class TerrainRenderer implements TerrainRendererInterface {
             x2 + tilePadding,
             y2 + tilePadding,
             { x: x + x2, y: y - y2, dimension: tileDimension },
-            handleTileLoaded,
-          ),
+          )
+            // eslint-disable-next-line no-loop-func
+            .then(() => {
+              tilesLoaded += 1;
+              const percentComplete = tilesLoaded / totalTiles;
+              this.onLoadChange(percentComplete);
+
+              if (percentComplete >= 1) {
+                this.terrainLoaded = true;
+                this.fadePhoto = !this.editPhoto;
+              }
+            }),
         );
       }
     }
@@ -296,7 +295,6 @@ class TerrainRenderer implements TerrainRendererInterface {
     x: number,
     y: number,
     location: Location,
-    onTileLoaded: () => void,
   ): Promise<void | void[]> {
     const locationKey = (loc: Location): string => (
       `${loc.x}-${loc.y}`
@@ -310,12 +308,10 @@ class TerrainRenderer implements TerrainRendererInterface {
 
       this.tileGrid[y][x].tile = tile;
 
-      return tile.load(this.terrainShader, onTileLoaded);
+      return tile.load(this.terrainShader);
     }
 
     this.tileGrid[y][x].tile = tile;
-
-    onTileLoaded();
 
     return Promise.resolve();
   }

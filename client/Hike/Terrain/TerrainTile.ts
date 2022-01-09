@@ -82,7 +82,7 @@ class TerrainTile {
     this.vao = this.gl.createVertexArray();
   }
 
-  async load(shader: Shader, onTileLoaded: () => void): Promise<void | void[]> {
+  async load(shader: Shader): Promise<void | void[]> {
     let data = terrainDataMap.get(locationKey(this.location));
 
     if (!data) {
@@ -114,7 +114,6 @@ class TerrainTile {
     if (data) {
       this.elevation = data.elevation;
       this.initBuffers(data, shader);
-      onTileLoaded();
     }
   }
 
