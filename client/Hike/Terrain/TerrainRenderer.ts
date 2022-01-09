@@ -16,7 +16,7 @@ type Tile = {
 
 const cameraZOffset = 2;
 
-const requestPostAnimationFrame = (task: any) => {
+const requestPostAnimationFrame = (task: (timestamp: number) => void) => {
   requestAnimationFrame((timestamp: number) => {
     setTimeout(() => {
       task(timestamp);
