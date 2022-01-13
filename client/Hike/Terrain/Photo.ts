@@ -29,6 +29,8 @@ class Photo {
 
   transform: mat4 = mat4.create();
 
+  scale: number;
+
   center: vec3 = vec3.fromValues(0, 0, 0);
 
   onPhotoLoaded: () => void;
@@ -41,6 +43,7 @@ class Photo {
     xOffset: number,
     yOffset: number,
     zOffset: number,
+    scale: number,
     onPhotoLoaded: () => void,
   ) {
     this.photoData = photoData;
@@ -50,6 +53,7 @@ class Photo {
     this.xOffset = xOffset;
     this.yOffset = yOffset;
     this.zOffset = zOffset;
+    this.scale = scale;
     this.onPhotoLoaded = onPhotoLoaded;
 
     this.makeTransform();
@@ -113,19 +117,25 @@ class Photo {
     const transform = mat4.create();
 
     mat4.translate(transform, transform, [
-      this.xOffset + this.photoData.translation[0],
-      this.yOffset + this.photoData.translation[1],
+      (this.xOffset + this.photoData.translation[0]) * this.scale,
+      (this.yOffset + this.photoData.translation[1]) * this.scale,
       this.zOffset + 0, // this.photoData.translation[2],
     ]);
 
+    const offset = vec3.multiply(
+      vec3.create(),
+      this.photoData.offset,
+      vec3.fromValues(this.scale, this.scale, 1),
+    );
+
     mat4.rotateZ(transform, transform, degToRad(this.photoData.zRotation));
     mat4.rotateY(transform, transform, degToRad(this.photoData.yRotation));
-    mat4.translate(transform, transform, this.photoData.offset);
+    mat4.translate(transform, transform, offset);
     mat4.rotateX(transform, transform, degToRad(this.photoData.xRotation));
 
     this.transform = transform;
 
-    vec3.transformMat4(this.center, vec3.fromValues(0, 0, 0), this.transform);
+    vec3.transformMat4(this.center, vec3.create(), this.transform);
   }
 
   setTranslation(x: number | null, y: number | null, z: number | null): void {
@@ -138,6 +148,11 @@ class Photo {
 
   setRotation(x: number | null, y: number | null, z: number | null): void {
     this.photoData.setRotation(x, y, z);
+  }
+
+  setScale(scale: number): void {
+    this.scale = scale;
+    this.makeTransform();
   }
 
   initBuffers(): void {

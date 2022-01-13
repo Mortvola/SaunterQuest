@@ -28,25 +28,19 @@ export type RouteUpdateResponse = {
   anchors: AnchorProps[],
 }
 
-export type Points = {
-  ne: { lat: number, lng: number },
-  sw: { lat: number, lng: number },
-  textureNE: { s: number, t: number },
-  textureSW: { s: number, t: number },
+export type ObjectProps = {
+  type: string,
   points: number[],
   normals: number[],
   indices: number[],
-  ele: number[][],
 };
 
-export const isPointsResponse = (r: unknown): r is Points => (
-  r !== undefined && r !== null
-  && (r as Points).ne !== undefined
-  && (r as Points).sw !== undefined
-  && (r as Points).textureNE !== undefined
-  && (r as Points).textureSW !== undefined
-  && (r as Points).points !== undefined
-);
+export type TerrainTileProps = {
+  xDimension: number,
+  yDimension: number,
+  ele: number[][],
+  objects: ObjectProps[],
+};
 
 export interface Error {
   field: string;

@@ -2,7 +2,7 @@ import { vec3, mat4 } from 'gl-matrix';
 import TerrainTile, { TerrainRendererInterface, Location, tileDimension } from './TerrainTile';
 import { LatLng } from '../../state/Types';
 import {
-  degToRad, latLngToTerrainTile, latOffset, radToDeg, terrainTileToLatLng,
+  degToRad, latLngToMercator, latLngToTerrainTile, latOffset, radToDeg, terrainTileToLatLng,
 } from '../../utilities';
 import TerrainShader from './Shaders/TerrainShader';
 import PhotoShader from './Shaders/PhotoShader';
@@ -89,6 +89,8 @@ class TerrainRenderer implements TerrainRendererInterface {
 
   terrainLoaded = false;
 
+  scale = 1;
+
   constructor(
     gl: WebGL2RenderingContext,
     position: LatLng,
@@ -127,21 +129,25 @@ class TerrainRenderer implements TerrainRendererInterface {
     this.initTileGrid();
 
     const [x, y] = latLngToTerrainTile(this.position.lat, this.position.lng, tileDimension);
+    const latLngCenter = terrainTileToLatLng(x, y, tileDimension);
 
-    this.initCamera(x, y);
-    this.loadPhoto(x, y);
+    this.scale = Math.cos(degToRad(latLngCenter.lat));
+
+    this.initCamera(x, y, latLngCenter);
+    this.loadPhoto(x, y, latLngCenter);
     this.lookAtPhoto();
 
     await this.loadTiles(x, y);
 
-    this.initCamera(x, y);
-    this.updatePhotoElevation(x, y);
+    this.initCamera(x, y, latLngCenter);
+    this.updatePhotoElevation(x, y, latLngCenter);
     this.lookAtPhoto();
 
     // Use the padding width to set the fog normalization factor
     // so that the far edge of the tiled area is completely occluded by
     // the fog.
-    const fogFar = TerrainTile.dimension * tilePadding;
+    const { tile } = this.tileGrid[tilePadding][tilePadding];
+    const fogFar = (tile?.xDimension ?? 1) * tilePadding;
     this.fogNormalizationFactor = 1 / (2 ** (fogFar * (Math.LOG2E / 4096.0)) - 1.0);
   }
 
@@ -152,8 +158,8 @@ class TerrainRenderer implements TerrainRendererInterface {
       const row = [];
 
       for (let x = 0; x < gridDimension; x += 1) {
-        const offsetX = (x - tilePadding) * TerrainTile.dimension;
-        const offsetY = -(y - tilePadding) * TerrainTile.dimension;
+        const offsetX = 0; // (x - tilePadding) * TerrainTile.xDimension;
+        const offsetY = 0; // -(y - tilePadding) * TerrainTile.yDimension;
 
         row.push({ offset: { x: offsetX, y: offsetY }, tile: null });
         this.tileRenderOrder.push({ x, y });
@@ -168,12 +174,10 @@ class TerrainRenderer implements TerrainRendererInterface {
     ));
   }
 
-  initCamera(x: number, y: number): void {
+  initCamera(x: number, y: number, latLngCenter: LatLng): void {
     this.updateLookAt(0, 0);
 
-    const tileCenter = terrainTileToLatLng(x, y, tileDimension);
-    let xOffset = -latOffset(this.position.lng, tileCenter.lng);
-    let yOffset = -latOffset(this.position.lat, tileCenter.lat);
+    let [xOffset, yOffset] = this.getCameraOffset(latLngCenter);
 
     if (this.photoData) {
       xOffset += this.photoData.translation[0];
@@ -193,9 +197,10 @@ class TerrainRenderer implements TerrainRendererInterface {
 
   lookAtPhoto(): void {
     if (this.photo) {
-      const cameraFront: vec3 = vec3.create();
-
-      vec3.subtract(cameraFront, this.photo.center, this.cameraOffset);
+      const cameraOffset = vec3.multiply(
+        vec3.create(), this.cameraOffset, vec3.fromValues(this.scale, this.scale, 1),
+      );
+      const cameraFront = vec3.subtract(vec3.create(), this.photo.center, cameraOffset);
 
       vec3.normalize(this.cameraFront, cameraFront);
 
@@ -233,19 +238,70 @@ class TerrainRenderer implements TerrainRendererInterface {
     }
 
     await Promise.all(promises);
+
+    this.setTileGridOffsets();
+  }
+
+  setTileRowOffsets(y: number, yOffset: number): void {
+    for (let x = 1; x <= tilePadding; x += 1) {
+      let prevTile = this.tileGrid[y][tilePadding + x - 1];
+      let currentTile = this.tileGrid[y][tilePadding + x];
+
+      if (prevTile.tile && currentTile.tile) {
+        currentTile.offset.x = prevTile.offset.x
+          + (prevTile.tile.xDimension + currentTile.tile.xDimension) / 2;
+        currentTile.offset.y = yOffset;
+      }
+
+      prevTile = this.tileGrid[y][tilePadding - x + 1];
+      currentTile = this.tileGrid[y][tilePadding - x];
+
+      if (prevTile.tile && currentTile.tile) {
+        currentTile.offset.x = prevTile.offset.x
+          - (prevTile.tile.xDimension + currentTile.tile.xDimension) / 2;
+        currentTile.offset.y = yOffset;
+      }
+    }
+  }
+
+  setTileGridOffsets(): void {
+    this.setTileRowOffsets(tilePadding, 0);
+
+    for (let y = 1; y <= tilePadding; y += 1) {
+      let prevTile = this.tileGrid[tilePadding + y - 1][tilePadding];
+      const currentTile1 = this.tileGrid[tilePadding + y][tilePadding];
+
+      if (prevTile.tile && currentTile1.tile) {
+        currentTile1.offset.x = 0;
+        currentTile1.offset.y = prevTile.offset.y
+          - (prevTile.tile.yDimension + currentTile1.tile.yDimension) / 2;
+      }
+
+      prevTile = this.tileGrid[tilePadding - y + 1][tilePadding];
+      const currentTile2 = this.tileGrid[tilePadding - y][tilePadding];
+
+      if (prevTile.tile && currentTile2.tile) {
+        currentTile2.offset.x = 0;
+        currentTile2.offset.y = prevTile.offset.y
+          + (prevTile.tile.yDimension + currentTile2.tile.yDimension) / 2;
+      }
+
+      for (let x = 1; x <= tilePadding; x += 1) {
+        this.setTileRowOffsets(tilePadding + y, currentTile1.offset.y);
+        this.setTileRowOffsets(tilePadding - y, currentTile2.offset.y);
+      }
+    }
   }
 
   handlePhotoLoaded(): void {
     this.photoLoaded = true;
   }
 
-  loadPhoto(x: number, y: number): void {
+  loadPhoto(x: number, y: number, latLngCenter: LatLng): void {
     if (this.photoData) {
       const centerTile = this.tileGrid[tilePadding][tilePadding].tile;
 
-      const tileCenter = terrainTileToLatLng(x, y, tileDimension);
-      const xOffset = -latOffset(this.position.lng, tileCenter.lng);
-      const yOffset = -latOffset(this.position.lat, tileCenter.lat);
+      const [xOffset, yOffset] = this.getCameraOffset(latLngCenter);
 
       const zOffset = (centerTile?.getElevation(
         xOffset + this.photoData.translation[0],
@@ -260,18 +316,27 @@ class TerrainRenderer implements TerrainRendererInterface {
         xOffset,
         yOffset,
         zOffset,
+        this.scale,
         this.handlePhotoLoaded.bind(this),
       );
     }
   }
 
-  updatePhotoElevation(x: number, y: number): void {
+  getCameraOffset(latLngCenter: LatLng): [number, number] {
+    const positionMerc = latLngToMercator(this.position.lat, this.position.lng);
+    const centerMerc = latLngToMercator(latLngCenter.lat, latLngCenter.lng);
+
+    return [
+      positionMerc[0] - centerMerc[0],
+      positionMerc[1] - centerMerc[1],
+    ];
+  }
+
+  updatePhotoElevation(x: number, y: number, latLngCenter: LatLng): void {
     if (this.photo) {
       const centerTile = this.tileGrid[tilePadding][tilePadding].tile;
 
-      const tileCenter = terrainTileToLatLng(x, y, tileDimension);
-      const xOffset = -latOffset(this.position.lng, tileCenter.lng);
-      const yOffset = -latOffset(this.position.lat, tileCenter.lat);
+      const [xOffset, yOffset] = this.getCameraOffset(latLngCenter);
 
       this.photo.zOffset = (centerTile?.getElevation(
         xOffset + this.photo.photoData.translation[0],
@@ -381,52 +446,54 @@ class TerrainRenderer implements TerrainRendererInterface {
       || this.moveDirection[1] !== 0
       || this.moveDirection[2] !== 0
     ) {
-      const newCameraOffset = vec3.create();
-      const velocity = vec3.create();
-      const direction = vec3.create();
+      const { tile } = this.tileGrid[tilePadding][tilePadding];
 
-      vec3.normalize(direction, this.moveDirection);
-      vec3.rotateZ(direction, direction, vec3.create(), degToRad(this.yaw));
+      if (tile) {
+        const newCameraOffset = vec3.create();
+        const velocity = vec3.create();
+        const direction = vec3.create();
 
-      vec3.scale(velocity, direction, this.velocity * elapsedTime);
-      vec3.add(newCameraOffset, this.cameraOffset, velocity);
+        vec3.normalize(direction, this.moveDirection);
+        vec3.rotateZ(direction, direction, vec3.create(), degToRad(this.yaw));
 
-      if (newCameraOffset[0] > (TerrainTile.dimension / 2)
-        || newCameraOffset[0] < -(TerrainTile.dimension / 2)
-        || newCameraOffset[1] > (TerrainTile.dimension / 2)
-        || newCameraOffset[1] < -(TerrainTile.dimension / 2)
-      ) {
-        const gridX = Math.floor(
-          (newCameraOffset[0] + (TerrainTile.dimension / 2)) / TerrainTile.dimension,
-        );
+        vec3.scale(velocity, direction, this.velocity * elapsedTime);
+        vec3.add(newCameraOffset, this.cameraOffset, velocity);
 
-        const gridY = Math.floor(
-          (newCameraOffset[1] + (TerrainTile.dimension / 2)) / TerrainTile.dimension,
-        );
+        // If we have crossed over a tile boundary then...
+        if (newCameraOffset[0] > (tile.xDimension / 2)
+          || newCameraOffset[0] < -(tile.xDimension / 2)
+          || newCameraOffset[1] > (tile.yDimension / 2)
+          || newCameraOffset[1] < -(tile.yDimension / 2)
+        ) {
+          const gridX = Math.floor(
+            (newCameraOffset[0] + (tile.xDimension / 2)) / tile.xDimension,
+          );
 
-        const { tile: newCenterTile } = this.tileGrid[
-          tilePadding - gridY
-        ][
-          tilePadding + gridX
-        ];
+          const gridY = Math.floor(
+            (newCameraOffset[1] + (tile.xDimension / 2)) / tile.yDimension,
+          );
 
-        if (!newCenterTile) {
-          throw new Error('new center tile is null');
+          const { tile: newCenterTile } = this.tileGrid[
+            tilePadding - gridY
+          ][
+            tilePadding + gridX
+          ];
+
+          if (!newCenterTile) {
+            throw new Error('new center tile is null');
+          }
+
+          this.loadTiles(newCenterTile.location.x, newCenterTile.location.y);
+
+          newCameraOffset[0] -= gridX * tile.xDimension;
+          newCameraOffset[1] -= gridY * tile.yDimension;
         }
 
-        this.loadTiles(newCenterTile.location.x, newCenterTile.location.y);
+        // If the camera x/y position has changed then updated the elevation (z).
+        if (newCameraOffset[0] !== this.cameraOffset[0]
+          || newCameraOffset[1] !== this.cameraOffset[1]) {
+          [this.cameraOffset[0], this.cameraOffset[1]] = newCameraOffset;
 
-        newCameraOffset[0] -= gridX * TerrainTile.dimension;
-        newCameraOffset[1] -= gridY * TerrainTile.dimension;
-      }
-
-      // If the camera x/y position has changed then updated the elevation (z).
-      if (newCameraOffset[0] !== this.cameraOffset[0]
-        || newCameraOffset[1] !== this.cameraOffset[1]) {
-        [this.cameraOffset[0], this.cameraOffset[1]] = newCameraOffset;
-
-        const { tile } = this.tileGrid[tilePadding][tilePadding];
-        if (tile) {
           try {
             this.cameraOffset[2] = tile.getElevation(
               this.cameraOffset[0],
@@ -435,8 +502,8 @@ class TerrainRenderer implements TerrainRendererInterface {
 
             if (this.editPhoto) {
               this.photo?.setTranslation(
-                this.cameraOffset[0] - this.photo.xOffset,
-                this.cameraOffset[1] - this.photo.yOffset,
+                (this.cameraOffset[0] - this.photo.xOffset) * this.scale,
+                (this.cameraOffset[1] - this.photo.yOffset) * this.scale,
                 this.cameraOffset[2] - 0, // this.photo.zOffset,
               );
             }
@@ -525,7 +592,7 @@ class TerrainRenderer implements TerrainRendererInterface {
             this.terrainShader.uniformLocations.fogNormalizationFactor, this.fogNormalizationFactor,
           );
 
-          const modelMatrix = TerrainRenderer.getModelMatrix(
+          const modelMatrix = this.getModelMatrix(
             offset.x,
             offset.y,
             0,
@@ -564,7 +631,7 @@ class TerrainRenderer implements TerrainRendererInterface {
             this.terrainShader.uniformLocations.fogNormalizationFactor, this.fogNormalizationFactor,
           );
 
-          const modelMatrix = TerrainRenderer.getModelMatrix(
+          const modelMatrix = this.getModelMatrix(
             offset.x,
             offset.y,
             0,
@@ -632,28 +699,45 @@ class TerrainRenderer implements TerrainRendererInterface {
   }
 
   getViewMatrix(): mat4 {
+    const cameraOffset = vec3.multiply(
+      vec3.create(),
+      this.cameraOffset,
+      vec3.fromValues(this.scale, this.scale, 1),
+    );
+
     const cameraTarget = vec3.fromValues(
-      this.cameraFront[0] + this.cameraOffset[0],
-      this.cameraFront[1] + this.cameraOffset[1],
-      this.cameraFront[2] + this.cameraOffset[2],
+      this.cameraFront[0] + cameraOffset[0],
+      this.cameraFront[1] + cameraOffset[1],
+      this.cameraFront[2] + cameraOffset[2],
     );
 
     const cameraUp = vec3.fromValues(0.0, 0.0, 1.0);
 
     const viewMatrix = mat4.create();
-    mat4.lookAt(viewMatrix, this.cameraOffset, cameraTarget, cameraUp);
+    mat4.lookAt(viewMatrix, cameraOffset, cameraTarget, cameraUp);
 
     return viewMatrix;
   }
 
-  static getModelMatrix(xOffset: number, yOffset: number, zOffset: number): mat4 {
+  getModelMatrix(xOffset: number, yOffset: number, zOffset: number): mat4 {
     // const { startLatOffset, startLngOffset } = getStartOffset(this.position);
 
     const modelMatrix = mat4.create();
     mat4.identity(modelMatrix);
-    mat4.translate(modelMatrix, modelMatrix, vec3.fromValues(xOffset, yOffset, zOffset));
-
+    mat4.translate(
+      modelMatrix,
+      modelMatrix,
+      vec3.fromValues(xOffset * this.scale, yOffset * this.scale, zOffset),
+    );
+    mat4.scale(modelMatrix, modelMatrix, vec3.fromValues(this.scale, this.scale, 1));
     return modelMatrix;
+  }
+
+  setScale(scale: number): void {
+    this.scale = scale;
+    if (this.photo) {
+      this.photo.setScale(scale);
+    }
   }
 }
 

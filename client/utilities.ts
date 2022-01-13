@@ -217,6 +217,26 @@ export const terrainTileToLatLng = (x: number, y: number, dimension: number): L.
   return new L.LatLng(lat, lng);
 };
 
+export const latLngToMercator = (lat: number, lng: number): [number, number] => {
+  const latRad = degToRad(lat);
+  const lngRad = degToRad(lng);
+
+  const equatorialRadius = 6378137.0;
+  const a = equatorialRadius;
+  const f = 1 / 298.257223563;
+  const b = a * (1 - f); // WGS84 semi-minor axis
+  const e = Math.sqrt(1 - (b ** 2) / (a ** 2)); // ellipsoid eccentricity
+
+  const sinLatRad = Math.sin(latRad);
+
+  const c = ((1 - e * sinLatRad) / (1 + e * sinLatRad));
+
+  const x = lngRad * a;
+  const y = Math.log(((1 + sinLatRad) / (1 - sinLatRad)) * (c ** e)) * (a / 2);
+
+  return [x, y];
+};
+
 export const bilinearInterpolation = (
   f00: number, f10: number, f01: number, f11: number, x: number, y: number,
 ): number => {

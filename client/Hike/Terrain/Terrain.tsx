@@ -3,6 +3,7 @@ import React, {
   useEffect, useRef, useState,
 } from 'react';
 import { observer } from 'mobx-react-lite';
+import { ProgressBar } from 'react-bootstrap';
 import { LatLng } from '../../state/Types';
 import TerrainRenderer from './TerrainRenderer';
 import styles from './Terrain.module.css';
@@ -30,7 +31,8 @@ const Terrain: React.FC<PropsType> = observer(({
   const mouseRef = useRef<{ x: number, y: number} | null>(null);
   const [fps, setFps] = useState<number>(0);
   const [percentComplete, setPercentComplete] = useState<number>(0);
-  const [photoAlpha, setPhotoAlpha] = useState<number>(0);
+  const [photoAlpha, setPhotoAlpha] = useState<number>(editPhoto ? 50 : 0);
+  const [scale, setScale] = useState<number>(1);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -139,6 +141,21 @@ const Terrain: React.FC<PropsType> = observer(({
 
         const alpha = 1 - value / 100;
         renderer.setPhotoAlpha(alpha);
+      }
+    }
+  };
+
+  const handleScaleChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+    console.log(`scale = ${event.target.value}`);
+
+    const renderer = rendererRef.current;
+
+    if (renderer) {
+      const value = parseFloat(event.target.value);
+      if (!Number.isNaN(value)) {
+        setScale(value);
+
+        renderer.setScale(value);
       }
     }
   };
@@ -282,13 +299,16 @@ const Terrain: React.FC<PropsType> = observer(({
     event.preventDefault();
     event.stopPropagation();
   };
-
   return (
     <div className={styles.terrain}>
       {
         percentComplete === 1
           ? <div className={styles.frameRate}>{`${fps.toFixed(2)} fps`}</div>
-          : <div className={styles.loading}>{`Loading: ${(percentComplete * 100).toFixed(1)}% complete`}</div>
+          : (
+            <div className={styles.progressBar}>
+              <ProgressBar now={percentComplete} max={1} label={`${(percentComplete * 100).toFixed(2)}%`} />
+            </div>
+          )
       }
       <div className={styles.controls}>
         <div className={styles.button} onClick={onClose}>X</div>
@@ -328,7 +348,11 @@ const Terrain: React.FC<PropsType> = observer(({
                 <div className={styles.button} onClick={handleSaveClick}>Save</div>
                 <label className={styles.labeledInput}>
                   Transparency
-                  <input type="text" onChange={handleTransparencyChange} value={photoAlpha.toFixed(2)} />
+                  <input type="range" onChange={handleTransparencyChange} min={0} max={100} value={photoAlpha.toFixed(2)} />
+                </label>
+                <label className={styles.labeledInput}>
+                  Scale
+                  <input type="number" onChange={handleScaleChange} value={scale.toFixed(2)} step={0.01} />
                 </label>
               </>
             )

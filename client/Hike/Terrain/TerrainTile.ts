@@ -2,12 +2,14 @@ import { mat4 } from 'gl-matrix';
 import Http from '@mortvola/http';
 import L from 'leaflet';
 import {
-  bilinearInterpolation, latDistance, terrainTileToLatLng,
+  bilinearInterpolation, terrainTileToLatLng,
 } from '../../utilities';
-import { Points } from '../../../common/ResponseTypes';
+import { TerrainTileProps } from '../../../common/ResponseTypes';
 import Shader from './Shaders/TerrainShader';
 
 type TerrainData = {
+  xDimension: number,
+  yDimension: number,
   elevation: number[][],
   points: number[],
   indices: number[],
@@ -35,7 +37,9 @@ export interface TerrainRendererInterface {
 class TerrainTile {
   location: Location;
 
-  static dimension = (latDistance(-104, -103) / 3600) * (tileDimension - 1);
+  xDimension = 0;
+
+  yDimension = 0;
 
   renderer: TerrainRendererInterface;
 
@@ -87,17 +91,19 @@ class TerrainTile {
 
     if (!data) {
       const url = `${this.renderer.tileServerUrl}/tile/terrain3d/${this.location.dimension}/${this.location.x}/${this.location.y}`;
-      const response = await Http.get<Points>(url);
+      const response = await Http.get<TerrainTileProps>(url);
 
       if (response.ok) {
         try {
           const body = await response.body();
 
           data = {
+            xDimension: body.xDimension,
+            yDimension: body.yDimension,
             elevation: body.ele,
-            points: body.points,
-            indices: body.indices,
-            normals: body.normals,
+            points: body.objects[0].points,
+            indices: body.objects[0].indices,
+            normals: body.objects[0].normals,
           };
 
           terrainDataMap.set(locationKey(this.location), data);
@@ -112,14 +118,16 @@ class TerrainTile {
     }
 
     if (data) {
+      this.xDimension = data.xDimension;
+      this.yDimension = data.yDimension;
       this.elevation = data.elevation;
       this.initBuffers(data, shader);
     }
   }
 
   getElevation(x: number, y: number): number {
-    const pointX = (x / TerrainTile.dimension + 0.5) * (this.elevation[0].length - 1);
-    const pointY = (y / TerrainTile.dimension + 0.5) * (this.elevation.length - 1);
+    const pointX = (x / this.xDimension + 0.5) * (this.elevation[0].length - 1);
+    const pointY = (y / this.yDimension + 0.5) * (this.elevation.length - 1);
 
     const x1 = Math.floor(pointX);
     const y1 = Math.floor(pointY);
