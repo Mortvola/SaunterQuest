@@ -197,7 +197,12 @@ export default class PointsOfInterestController {
 
     items.forEach((i) => {
       if (i.transforms !== null) {
-        i.transforms = JSON.parse(i.transforms);
+        try {
+          i.transforms = JSON.parse(i.transforms);
+        }
+        catch (error) {
+          i.transforms = null;
+        }
       }
     });
 
