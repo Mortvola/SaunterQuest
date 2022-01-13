@@ -1,5 +1,6 @@
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const config = (folder, name, env) => ({
   name,
@@ -64,7 +65,17 @@ const config = (folder, name, env) => ({
   },
   plugins: [
     new MiniCssExtractPlugin({
-      filename: name === 'app' ? 'main.css' : 'welcome.css',
+      filename: name === 'app'
+        ? 'main.[contenthash].css'
+        : 'welcome.[contenthash].css',
+    }),
+    new HtmlWebpackPlugin({
+      inject: false,
+      publicPath: '/',
+      filename: `../resources/views/${name === 'app' ? 'home' : 'welcome'}-css.edge`,
+      templateContent: (param) => (
+        `<link rel="preload" href="${param.htmlWebpackPlugin.files.css}" as="style" onload="this.onload=null;this.rel='stylesheet'">`
+      ),
     }),
   ],
   resolve: {
