@@ -19,9 +19,7 @@ class BlogManager {
       const body = await response.body();
 
       runInAction(() => {
-        body.forEach((b) => {
-          this.blogs.push(new Blog(b));
-        });
+        this.blogs = body.map((b) => new Blog(b));
       });
     }
   }

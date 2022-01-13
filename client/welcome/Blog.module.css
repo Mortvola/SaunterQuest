@@ -13,3 +13,7 @@
 .pictures {
   overflow-y: auto;
 }
+
+.link {
+  cursor: pointer;
+}

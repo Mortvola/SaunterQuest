@@ -33,6 +33,10 @@ const Blog: React.FC<PropsType> = observer(({ tileServerUrl }) => {
     })();
   }, [history.location.pathname]);
 
+  const handleHomeClick = () => {
+    history.push('/');
+  };
+
   const handlePhotoClick = (p: PhotoInterface) => {
     setPhoto(p);
     setPosition(new L.LatLng(p.location[1], p.location[0]));
@@ -58,6 +62,7 @@ const Blog: React.FC<PropsType> = observer(({ tileServerUrl }) => {
 
     return (
       <div className={styles.blog}>
+        <div className={styles.link} onClick={handleHomeClick}>Home</div>
         <div className={styles.title}>
           {
             blog
