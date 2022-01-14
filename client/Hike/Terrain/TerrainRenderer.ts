@@ -414,6 +414,7 @@ class TerrainRenderer implements TerrainRendererInterface {
                 this.photoAlpha = 1 - eTime / this.photoFadeDuration;
                 if (this.photoAlpha < 0) {
                   this.photoAlpha = 0;
+                  this.fadePhoto = false;
                 }
               }
             }

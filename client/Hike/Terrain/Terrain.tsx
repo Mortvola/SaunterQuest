@@ -139,7 +139,7 @@ const Terrain: React.FC<PropsType> = observer(({
       if (!Number.isNaN(value)) {
         setPhotoAlpha(value);
 
-        const alpha = 1 - value / 100;
+        const alpha = value / 100;
         renderer.setPhotoAlpha(alpha);
       }
     }
@@ -299,6 +299,14 @@ const Terrain: React.FC<PropsType> = observer(({
     event.preventDefault();
     event.stopPropagation();
   };
+
+  const opacitySlider = (style = '') => (
+    <label className={style}>
+      Opacity
+      <input type="range" className={styles.slider} onChange={handleTransparencyChange} min={0} max={100} value={photoAlpha.toFixed(2)} />
+    </label>
+  );
+
   return (
     <div className={styles.terrain}>
       {
@@ -310,12 +318,12 @@ const Terrain: React.FC<PropsType> = observer(({
             </div>
           )
       }
-      <div className={styles.controls}>
-        <div className={styles.button} onClick={onClose}>X</div>
+      <div className={styles.upperRight}>
+        <div className={`${styles.button} ${styles.right}`} onClick={onClose}>X</div>
         {
           photo && editPhoto
             ? (
-              <>
+              <div className={styles.controls}>
                 <div className={styles.button} onClick={handleCenterClick}>Center</div>
                 <label className={styles.labeledInput}>
                   Offset
@@ -346,19 +354,14 @@ const Terrain: React.FC<PropsType> = observer(({
                   <input type="text" onChange={handleZTranslationChange} value={photo.translation[2].toFixed(2)} />
                 </label>
                 <div className={styles.button} onClick={handleSaveClick}>Save</div>
-                <label className={styles.labeledInput}>
-                  Transparency
-                  <input type="range" onChange={handleTransparencyChange} min={0} max={100} value={photoAlpha.toFixed(2)} />
-                </label>
-                <label className={styles.labeledInput}>
-                  Scale
-                  <input type="number" onChange={handleScaleChange} value={scale.toFixed(2)} step={0.01} />
-                </label>
-              </>
+              </div>
             )
             : null
-        }
+          }
       </div>
+      {
+        opacitySlider(`${styles.bottomCenter}`)
+      }
       <canvas
         ref={canvasRef}
         className={styles.canvas}
