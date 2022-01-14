@@ -54,6 +54,10 @@ function metersToFeet(meters: number | string): number {
   return Math.round(meters * 3.281);
 }
 
+export const metersToLocal = (m: number): string => (
+  `${metersToFeet(m).toFixed(1)} ft`
+);
+
 function gramsToOunces(grams: number): number {
   return grams * 0.035274;
 }

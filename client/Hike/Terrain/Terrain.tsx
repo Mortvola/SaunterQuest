@@ -8,6 +8,7 @@ import { LatLng } from '../../state/Types';
 import TerrainRenderer from './TerrainRenderer';
 import styles from './Terrain.module.css';
 import { PhotoInterface } from '../../welcome/state/Types';
+import { metersToLocal } from '../../utilities';
 
 type PropsType = {
   photoUrl: string,
@@ -32,7 +33,6 @@ const Terrain: React.FC<PropsType> = observer(({
   const [fps, setFps] = useState<number>(0);
   const [percentComplete, setPercentComplete] = useState<number>(0);
   const [photoAlpha, setPhotoAlpha] = useState<number>(editPhoto ? 50 : 0);
-  const [scale, setScale] = useState<number>(1);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -141,21 +141,6 @@ const Terrain: React.FC<PropsType> = observer(({
 
         const alpha = value / 100;
         renderer.setPhotoAlpha(alpha);
-      }
-    }
-  };
-
-  const handleScaleChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
-    console.log(`scale = ${event.target.value}`);
-
-    const renderer = rendererRef.current;
-
-    if (renderer) {
-      const value = parseFloat(event.target.value);
-      if (!Number.isNaN(value)) {
-        setScale(value);
-
-        renderer.setScale(value);
       }
     }
   };
@@ -300,24 +285,45 @@ const Terrain: React.FC<PropsType> = observer(({
     event.stopPropagation();
   };
 
-  const opacitySlider = (style = '') => (
-    <label className={style}>
-      Opacity
-      <input type="range" className={styles.slider} onChange={handleTransparencyChange} min={0} max={100} value={photoAlpha.toFixed(2)} />
-    </label>
-  );
+  const heading = (): string => {
+    let degrees = (((rendererRef.current?.yaw ?? 0) - 90) % 360.0);
+    if (degrees < 0) {
+      degrees += 360;
+    }
+    degrees = 360 - degrees;
+
+    const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'N'];
+    const direction = directions[Math.floor((degrees + 22.5) / 45)];
+
+    return `${direction} (${degrees.toFixed(1)})`;
+  };
 
   return (
     <div className={styles.terrain}>
-      {
-        percentComplete === 1
-          ? <div className={styles.frameRate}>{`${fps.toFixed(2)} fps`}</div>
-          : (
-            <div className={styles.progressBar}>
-              <ProgressBar now={percentComplete} max={1} label={`${(percentComplete * 100).toFixed(2)}%`} />
-            </div>
-          )
-      }
+      <div className={styles.upperLeft}>
+        {
+          percentComplete === 1
+            ? (
+              <>
+                <div>{`${fps.toFixed(2)} fps`}</div>
+                <div>{`${metersToLocal(rendererRef.current?.cameraOffset[2] ?? 0)}`}</div>
+                <div>{`${heading()}`}</div>
+              </>
+            )
+            : null
+        }
+      </div>
+      <div className={styles.upperCenter}>
+        {
+          percentComplete !== 1
+            ? (
+              <div className={styles.progressBar}>
+                <ProgressBar now={percentComplete} max={1} label={`${(percentComplete * 100).toFixed(2)}%`} />
+              </div>
+            )
+            : null
+        }
+      </div>
       <div className={styles.upperRight}>
         <div className={`${styles.button} ${styles.right}`} onClick={onClose}>X</div>
         {
@@ -359,9 +365,9 @@ const Terrain: React.FC<PropsType> = observer(({
             : null
           }
       </div>
-      {
-        opacitySlider(`${styles.bottomCenter}`)
-      }
+      <div className={styles.bottomCenter}>
+        <input type="range" className={styles.slider} onChange={handleTransparencyChange} min={0} max={100} value={photoAlpha.toFixed(2)} />
+      </div>
       <canvas
         ref={canvasRef}
         className={styles.canvas}
