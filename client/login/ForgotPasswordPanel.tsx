@@ -1,8 +1,16 @@
+/* eslint-disable jsx-a11y/label-has-associated-control */
 import React from 'react';
-import PropTypes from 'prop-types';
-import Errors from './Errors';
+import { Errors } from '@mortvola/forms';
+import { ErrorsType } from './submit';
 
-const ForgotPasswordPanel = ({
+type PropsType = {
+  onHide: () => void,
+  onRememberedPasswordClick: () => void,
+  requestResetLink: React.MouseEventHandler,
+  errors: ErrorsType,
+};
+
+const ForgotPasswordPanel = React.forwardRef<HTMLFormElement, PropsType>(({
   onHide,
   onRememberedPasswordClick,
   requestResetLink,
@@ -42,13 +50,8 @@ const ForgotPasswordPanel = ({
       </div>
     </div>
   </form>
-);
+));
 
-ForgotPasswordPanel.propTypes = {
-  onRememberedPasswordClick: PropTypes.func.isRequired,
-  requestResetLink: PropTypes.func.isRequired,
-  onHide: PropTypes.func.isRequired,
-  errors: PropTypes.shape().isRequired,
-};
+ForgotPasswordPanel.displayName = 'ForgotPasswordPanel';
 
-export default React.forwardRef(ForgotPasswordPanel);
+export default ForgotPasswordPanel;

@@ -1,8 +1,16 @@
+/* eslint-disable jsx-a11y/label-has-associated-control */
 import React from 'react';
-import PropTypes from 'prop-types';
-import Errors from './Errors';
+import { Errors } from '@mortvola/forms';
+import { ErrorsType } from './submit';
 
-const LoginPanel = ({
+type PropsType = {
+  onHide: () => void,
+  onLogin: () => void,
+  onForgotPasswordClick: () => void,
+  errors: ErrorsType,
+};
+
+const LoginPanel = React.forwardRef<HTMLFormElement, PropsType>(({
   onHide,
   onLogin,
   onForgotPasswordClick,
@@ -64,13 +72,8 @@ const LoginPanel = ({
       </div>
     </div>
   </form>
-);
+));
 
-LoginPanel.propTypes = {
-  onHide: PropTypes.func.isRequired,
-  onLogin: PropTypes.func.isRequired,
-  onForgotPasswordClick: PropTypes.func.isRequired,
-  errors: PropTypes.shape().isRequired,
-};
+LoginPanel.displayName = 'LoginPanel';
 
-export default React.forwardRef(LoginPanel);
+export default LoginPanel;

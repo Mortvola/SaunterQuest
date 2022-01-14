@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react';
-import PropTypes from 'prop-types';
 import { Modal } from 'react-bootstrap';
 import { submitForm, defaultErrors } from './submit';
 import LoginPanel from './LoginPanel';
@@ -7,7 +6,12 @@ import ForgotPasswordPanel from './ForgotPasswordPanel';
 import ResetEmailSentPanel from './ResetEmailSentPanel';
 import Waiting from './Waiting';
 
-const Login = ({
+type PropsType = {
+  show: boolean,
+  onHide: () => void,
+}
+
+const Login: React.FC<PropsType> = ({
   show,
   onHide,
 }) => {
@@ -15,7 +19,7 @@ const Login = ({
   const [resetMessage, setResetMessage] = useState('');
   const [waiting, setWaiting] = useState(false);
   const [errors, setErrors] = useState(defaultErrors);
-  const formRef = useRef(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const handleForgotPasswordClick = () => {
     setCard('forgot');
@@ -26,8 +30,17 @@ const Login = ({
   };
 
   const handleLogin = () => {
+    const form = formRef.current;
+
+    if (form === null) {
+      throw new Error('formRef is null');
+    }
+
     setWaiting(true);
-    submitForm(null, formRef.current, '/login',
+    submitForm(
+      null,
+      form,
+      '/login',
       (responseText) => {
         if (responseText) {
           setWaiting(false);
@@ -37,12 +50,19 @@ const Login = ({
       (err) => {
         setWaiting(false);
         setErrors({ ...defaultErrors, ...err });
-      });
+      },
+    );
   };
 
-  const requestResetLink = (event) => {
+  const requestResetLink: React.MouseEventHandler = (event) => {
+    const form = formRef.current;
+
+    if (form === null) {
+      throw new Error('formRef is null');
+    }
+
     setWaiting(true);
-    submitForm(event, formRef.current, '/password/email',
+    submitForm(event, form, '/password/email',
       (responseText) => {
         setResetMessage(responseText);
         setCard('reset');
@@ -87,7 +107,7 @@ const Login = ({
     case 'reset':
       title = 'Reset Link';
       panel = (
-        <ResetEmailSentPanel resetMessage={resetMessage} errors={errors} />
+        <ResetEmailSentPanel resetMessage={resetMessage} />
       );
       break;
     default:
@@ -105,11 +125,6 @@ const Login = ({
       </Modal.Body>
     </Modal>
   );
-};
-
-Login.propTypes = {
-  show: PropTypes.bool.isRequired,
-  onHide: PropTypes.func.isRequired,
 };
 
 export default Login;

@@ -1,8 +1,11 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { Spinner } from 'react-bootstrap';
 
-const Waiting = ({
+type PropsType = {
+  show: boolean,
+};
+
+const Waiting: React.FC<PropsType> = ({
   show,
 }) => (
   show
@@ -17,9 +20,5 @@ const Waiting = ({
     )
     : null
 );
-
-Waiting.propTypes = {
-  show: PropTypes.bool.isRequired,
-};
 
 export default Waiting;

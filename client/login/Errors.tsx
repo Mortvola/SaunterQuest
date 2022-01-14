@@ -1,9 +1,13 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import { Error } from '../../common/ResponseTypes';
 
 let key = 0;
 
-const Errors = ({
+type PropsType = {
+  errors: Error[],
+}
+
+const Errors: React.FC<PropsType> = ({
   errors,
 }) => (
   <>
@@ -15,9 +19,5 @@ const Errors = ({
     }
   </>
 );
-
-Errors.propTypes = {
-  errors: PropTypes.arrayOf(PropTypes.string).isRequired,
-};
 
 export default Errors;

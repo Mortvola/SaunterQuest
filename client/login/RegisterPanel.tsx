@@ -1,8 +1,15 @@
+/* eslint-disable jsx-a11y/label-has-associated-control */
 import React from 'react';
-import PropTypes from 'prop-types';
-import Errors from './Errors';
+import { Errors } from '@mortvola/forms';
+import { ErrorsType } from './submit';
 
-const RegisterPanel = ({
+type PropsType = {
+  onHide: () => void,
+  onRegister: () => void,
+  errors: ErrorsType,
+}
+
+const RegisterPanel = React.forwardRef<HTMLFormElement, PropsType>(({
   onHide,
   onRegister,
   errors,
@@ -65,12 +72,8 @@ const RegisterPanel = ({
       </div>
     </div>
   </form>
-);
+));
 
-RegisterPanel.propTypes = {
-  onHide: PropTypes.func.isRequired,
-  onRegister: PropTypes.func.isRequired,
-  errors: PropTypes.shape().isRequired,
-};
+RegisterPanel.displayName = 'RegisterPanel';
 
-export default React.forwardRef(RegisterPanel);
+export default RegisterPanel;
