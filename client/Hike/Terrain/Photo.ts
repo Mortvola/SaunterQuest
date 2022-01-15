@@ -94,9 +94,8 @@ class Photo {
 
   // eslint-disable-next-line class-methods-use-this
   initData(width: number, height: number): Data {
-    // const scale = 0.0078125;
-    const w = 31.5 / 2; // (width * scale) / 2;
-    const h = 23.625 / 2; // (height * scale) / 2;
+    const w = 15.75;
+    const h = (w / width) * height;
 
     const points = [
       0, w, h, 0, 0,
