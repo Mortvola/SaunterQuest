@@ -26,12 +26,6 @@ html, body {
     position: relative;
 }
 
-.top-right {
-    position: absolute;
-    right: 10px;
-    top: 18px;
-}
-
 .content {
     display: grid;
     justify-items: center;
@@ -111,14 +105,6 @@ html, body {
 .attribution {
     text-align:right;
     margin-top: 14px;
-}
-
-.welcome-button {
-  display: inline;
-  /* color: white; */
-  cursor: pointer;
-  text-transform: uppercase;
-  padding: 0 25px;
 }
 
 .text-link {

@@ -13,6 +13,8 @@ class Photo {
 
   gl: WebGL2RenderingContext;
 
+  image = new Image();
+
   vao: WebGLVertexArrayObject | null = null;
 
   shader: PhotoShader;
@@ -62,22 +64,20 @@ class Photo {
   }
 
   loadPhoto(photoUrl: string): Promise<void> {
-    const image = new Image();
-
     if (this.texture === null) {
       return new Promise((resolve) => {
-        image.onload = () => {
+        this.image.onload = () => {
           if (this === null || this.gl === null) {
             throw new Error('this or this.gl is null');
           }
 
-          this.data = this.initData(image.width, image.height);
+          this.data = this.initData(this.image.width, this.image.height);
 
           this.vao = this.gl.createVertexArray();
 
           this.gl.bindVertexArray(this.vao);
           this.initBuffers();
-          this.initTexture(image);
+          this.initTexture(this.image);
           this.gl.bindVertexArray(null);
 
           this.onPhotoLoaded();
@@ -85,7 +85,7 @@ class Photo {
           resolve();
         };
 
-        image.src = photoUrl;
+        this.image.src = photoUrl;
       });
     }
 
@@ -96,7 +96,8 @@ class Photo {
   initData(width: number, height: number): Data {
     const w = 15.75;
     const h = (w / width) * height;
-
+    console.log(h);
+    console.log(this.scale);
     const points = [
       0, w, h, 0, 0,
       0, w, -h, 0, 1,

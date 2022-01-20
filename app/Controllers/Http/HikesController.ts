@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/no-unresolved
 import { Exception } from '@adonisjs/core/build/standalone';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
-import Database from '@ioc:Adonis/Lucid/Database';
+import Database, { RawBuilderContract } from '@ioc:Adonis/Lucid/Database';
 import Hike from 'App/Models/Hike';
 import Drive from '@ioc:Adonis/Core/Drive';
 import { extname } from 'path';
@@ -110,7 +110,7 @@ export default class HikesController {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  public async photoUpload({
+  public async uploadPhoto({
     auth: {
       user,
     },
@@ -123,12 +123,17 @@ export default class HikesController {
 
     const { lat, lng, data } = request.body();
 
+    let latLng: RawBuilderContract | null = null;
+    if (lat !== undefined && lng !== undefined) {
+      latLng = Database.raw(`ST_Transform(ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326), 3857)`);
+    }
+
     const id = await Database.insertQuery()
       .table('hike_photos')
       .returning('id')
       .insert({
         hike_id: params.hikeId,
-        way: Database.raw(`ST_Transform(ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326), 3857)`),
+        way: latLng,
       });
 
     const photo = Buffer.from(data, 'base64');

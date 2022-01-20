@@ -545,8 +545,26 @@ class TerrainRenderer implements TerrainRendererInterface {
     }
   }
 
-  drawScene(): void {
-    const projectionMatrix = this.getProjectionMatrix(45); // 63.5);
+  drawScene(capturePhoto = false): void {
+    if (capturePhoto && this.photo) {
+      this.gl.canvas.width = (this.photo.image.width / this.photo.image.height)
+        * this.gl.canvas.height;
+    }
+    else {
+      this.gl.canvas.width = (this.gl.canvas.clientWidth / this.gl.canvas.clientHeight)
+        * this.gl.canvas.height;
+    }
+
+    this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
+
+    let projectionMatrix: mat4;
+
+    if (capturePhoto && this.photo) {
+      projectionMatrix = this.getProjectionMatrix(36.315746016);
+    }
+    else {
+      projectionMatrix = this.getProjectionMatrix(45);
+    }
     const viewMatrix = this.getViewMatrix();
 
     // Clear the canvas before we start drawing on it.
@@ -557,7 +575,9 @@ class TerrainRenderer implements TerrainRendererInterface {
 
     this.drawTerrain(projectionMatrix, viewMatrix);
 
-    this.drawPhoto(projectionMatrix, viewMatrix);
+    if (!capturePhoto) {
+      this.drawPhoto(projectionMatrix, viewMatrix);
+    }
   }
 
   drawTerrain(
@@ -684,7 +704,7 @@ class TerrainRenderer implements TerrainRendererInterface {
 
   getProjectionMatrix(fieldOfView: number): mat4 {
     // Set up the projection matrix
-    const aspect = this.gl.canvas.clientWidth / this.gl.canvas.clientHeight;
+    const aspect = this.gl.canvas.width / this.gl.canvas.height;
     const projectionMatrix = mat4.create();
 
     const zNear = 1;
@@ -712,7 +732,12 @@ class TerrainRenderer implements TerrainRendererInterface {
       this.cameraFront[2] + cameraOffset[2],
     );
 
-    const cameraUp = vec3.fromValues(0.0, 0.0, 1.0);
+    const cameraUp = vec3.rotateX(
+      vec3.create(),
+      vec3.fromValues(0.0, 0.0, 1.0),
+      vec3.create(),
+      degToRad(0.7),
+    );
 
     const viewMatrix = mat4.create();
     mat4.lookAt(viewMatrix, cameraOffset, cameraTarget, cameraUp);
@@ -739,6 +764,18 @@ class TerrainRenderer implements TerrainRendererInterface {
     if (this.photo) {
       this.photo.setScale(scale);
     }
+  }
+
+  async capture(): Promise<string> {
+    return new Promise<string>((resolve) => {
+      this.drawScene(true);
+      this.gl.canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          resolve(url);
+        }
+      });
+    });
   }
 }
 

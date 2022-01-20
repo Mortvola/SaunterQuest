@@ -28,6 +28,7 @@ const Controls = ({
     <div className={styles.controlsGridItem}>
       <select className="form-control" onChange={handleSelectChange}>
         <option value="schedule">Schedule</option>
+        <option value="photos">Photos</option>
         <option value="trailConditions">Trail Conditions</option>
         <option value="hikerProfiles">Hiker Profiles</option>
         <option value="equipment">Gear</option>

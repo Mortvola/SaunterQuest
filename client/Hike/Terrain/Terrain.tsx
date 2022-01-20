@@ -10,6 +10,12 @@ import styles from './Terrain.module.css';
 import { PhotoInterface } from '../../welcome/state/Types';
 import { metersToLocal } from '../../utilities';
 
+declare global {
+  interface Window {
+    showSaveFilePicker: () => any;
+  }
+}
+
 type PropsType = {
   photoUrl: string,
   photo: null | PhotoInterface,
@@ -33,6 +39,8 @@ const Terrain: React.FC<PropsType> = observer(({
   const [fps, setFps] = useState<number>(0);
   const [percentComplete, setPercentComplete] = useState<number>(0);
   const [photoAlpha, setPhotoAlpha] = useState<number>(editPhoto ? 50 : 0);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [aspectRatio, setAspectRatio] = useState<number>(853 / 480);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -72,6 +80,16 @@ const Terrain: React.FC<PropsType> = observer(({
 
   const handleSaveClick = () => {
     photo?.save();
+  };
+
+  const handleCaptureClick = async () => {
+    const canvas = canvasRef.current;
+    const renderer = rendererRef.current;
+
+    if (canvas && renderer && renderer.photo) {
+      const url = await renderer.capture();
+      setImageUrl(url);
+    }
   };
 
   const getFloat = (v: string) => {
@@ -360,6 +378,7 @@ const Terrain: React.FC<PropsType> = observer(({
                   <input type="text" onChange={handleZTranslationChange} value={photo.translation[2].toFixed(2)} />
                 </label>
                 <div className={styles.button} onClick={handleSaveClick}>Save</div>
+                <div className={styles.button} onClick={handleCaptureClick}>Capture</div>
               </div>
             )
             : null
@@ -368,11 +387,16 @@ const Terrain: React.FC<PropsType> = observer(({
       <div className={styles.bottomCenter}>
         <input type="range" className={styles.slider} onChange={handleTransparencyChange} min={0} max={100} value={photoAlpha.toFixed(2)} />
       </div>
+      {
+        imageUrl
+          ? <img className={styles.snapshot} src={imageUrl} alt="" />
+          : null
+      }
       <canvas
         ref={canvasRef}
         className={styles.canvas}
-        width="853"
-        height="480"
+        width={480 * aspectRatio}
+        height={480}
         tabIndex={0}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}

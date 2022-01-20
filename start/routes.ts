@@ -80,7 +80,7 @@ Route.group(() => {
         Route.get('/poi', 'PointsOfInterestController.get');
         Route.post('/poi', 'PointsOfInterestController.add');
 
-        Route.post('/photo-upload', 'HikesController.photoUpload');
+        Route.post('/photo-upload', 'HikesController.uploadPhoto');
         Route.get('/photo/:photoId', 'HikesController.getPhoto');
       })
         .prefix('/:hikeId');
