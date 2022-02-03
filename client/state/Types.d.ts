@@ -115,6 +115,8 @@ export interface PointOfInterestInterface {
   getTypeString(): string;
 
   getIcon(): string | null;
+
+  delete(): void;
 }
 
 export type MarkerType = 'start'

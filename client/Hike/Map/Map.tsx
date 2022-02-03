@@ -203,7 +203,7 @@ const Map: FC<Props> = ({
               ? (
                 <div>
                   <div>{`lat,lng: ${hike.map.temporaryMarkerLocation.lat}, ${hike.map.temporaryMarkerLocation.lng}`}</div>
-                  <button type="button" onClick={showIn3D}>Show in 3D</button>
+                  <button type="button" onClick={showIn3D}>View</button>
                 </div>
               )
               : null

@@ -41,7 +41,7 @@ const Marker: React.FC<PropsType> = ({ marker }) => {
         <div>{marker.name}</div>
         <div>{`lat,lng: ${marker.marker.latLng.lat}, ${marker.marker.latLng.lng}`}</div>
       </div>
-      <button type="button" onClick={showIn3D}>Show in 3D</button>
+      <button type="button" onClick={showIn3D}>View</button>
       <button type="button" onClick={respositionPhoto}>Edit</button>
       {
         marker.marker.deletable

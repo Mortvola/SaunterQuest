@@ -1,6 +1,6 @@
 import { makeObservable, observable, runInAction } from 'mobx';
 import {
-  LatLng, MapInterface, MarkerInterface, MarkerAttributeInterface, MarkerType,
+  LatLng, MapInterface, MarkerInterface, MarkerAttributeInterface, MarkerType, PointOfInterestInterface,
 } from './Types';
 
 class Marker implements MarkerInterface {
@@ -18,18 +18,22 @@ class Marker implements MarkerInterface {
 
   #map: MapInterface;
 
+  #poi: PointOfInterestInterface;
+
   constructor(
     type: MarkerType,
     latLng: LatLng,
     moveable: boolean,
     deletable: boolean,
     map: MapInterface,
+    poi: PointOfInterestInterface,
   ) {
     this.type = type;
     this.latLng = latLng;
     this.moveable = moveable;
     this.deletable = deletable;
     this.#map = map;
+    this.#poi = poi;
 
     makeObservable(this, {
       latLng: observable,
@@ -43,7 +47,8 @@ class Marker implements MarkerInterface {
 
   // eslint-disable-next-line class-methods-use-this
   delete(): void {
-    // todo
+    console.log(`delete marker: ${this.type}`);
+    this.#poi.delete();
   }
 
   remove(): void {

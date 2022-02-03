@@ -25,9 +25,13 @@ class PointOfInterest implements PointOfInterestInterface {
     this.id = id;
     this.name = name;
     this.marker = new Marker(
-      type, { lat: position.lat, lng: position.lng }, moveable, deletable, map,
+      type, { lat: position.lat, lng: position.lng }, moveable, deletable, map, this,
     );
     this.#map = map;
+  }
+
+  delete(): void {
+    console.log('poi delete');
   }
 
   setSelected(selected: boolean): void {
