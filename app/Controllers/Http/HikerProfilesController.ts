@@ -1,16 +1,19 @@
+import { Exception } from '@adonisjs/core/build/standalone';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import Hike from 'App/Models/Hike';
 import HikerProfile from 'App/Models/HikerProfile';
 
 export default class HikerProfilesController {
   // eslint-disable-next-line class-methods-use-this
-  public async get({ auth, params, response }: HttpContextContract) : Promise<void> {
-    if (auth.user) {
-      const hike = await Hike.findByOrFail('id', params.hikeId);
-      await hike.load('hikerProfiles');
-
-      response.send(JSON.stringify(hike.hikerProfiles));
+  public async get({ auth, params }: HttpContextContract) : Promise<HikerProfile[]> {
+    if (!auth.user) {
+      throw new Exception('user not authorized');
     }
+
+    const hike = await Hike.findByOrFail('id', params.hikeId);
+    await hike.load('hikerProfiles');
+
+    return hike.hikerProfiles;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -27,6 +30,12 @@ export default class HikerProfilesController {
       endDayExtension: hikerProfile.endDayExtension,
       hikeId: params.hikeId,
     });
+
+    if (params.hikeId) {
+      const hike = await Hike.findOrFail(parseInt(params.hikeId, 10));
+
+      await HikerProfilesController.markScheduleDirty(hike);
+    }
 
     profile.save();
 
@@ -46,6 +55,12 @@ export default class HikerProfilesController {
     hikerProfile.breakDuration = update.breakDuration;
     hikerProfile.endDayExtension = update.endDayExtension;
 
+    if (hikerProfile.hikeId) {
+      const hike = await Hike.findOrFail(hikerProfile.hikeId);
+
+      await HikerProfilesController.markScheduleDirty(hike);
+    }
+
     hikerProfile.save();
 
     response.send(hikerProfile.serialize());
@@ -56,5 +71,20 @@ export default class HikerProfilesController {
     const hikerProfile = await HikerProfile.findOrFail(params.profileId);
 
     hikerProfile.delete();
+
+    if (hikerProfile.hikeId) {
+      const hike = await Hike.findOrFail(hikerProfile.hikeId);
+
+      await HikerProfilesController.markScheduleDirty(hike);
+    }
+  }
+
+  private static async markScheduleDirty(hike: Hike) {
+    await hike.load('schedule');
+
+    if (hike.schedule) {
+      hike.schedule.update = true;
+      await hike.related('schedule').save(hike.schedule);
+    }
   }
 }

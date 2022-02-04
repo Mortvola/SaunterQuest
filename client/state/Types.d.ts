@@ -22,7 +22,7 @@ export interface HikerProfileInterface {
 
   breakDuration: number | null;
 
-  speedFactor: number | null;
+  metersPerHour: number | null;
 
   endDayExtension: number | null;
 
@@ -248,7 +248,7 @@ export interface ProfileProps {
   startTime: number | null;
   endTime: number | null;
   breakDuration: number | null;
-  speedFactor: number | null;
+  metersPerHour: number | null;
   endDayExtension: number | null;
 }
 

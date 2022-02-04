@@ -111,6 +111,7 @@ class Hike implements HikeInterface {
 
   addHikerProfile = async (profile: ProfileProps): Promise<void> => {
     type AddHikerProfileRequest = {
+      metersPerHour: number | null,
       startTime: number | null,
       endTime: number | null,
       startDay: number | null,
@@ -118,6 +119,7 @@ class Hike implements HikeInterface {
     }
 
     const response = await Http.post<AddHikerProfileRequest, ProfileProps>(`/api/hike/${this.id}/hiker-profile`, {
+      metersPerHour: profile.metersPerHour,
       startTime: profile.startTime,
       endTime: profile.endTime,
       startDay: profile.startDay,
@@ -139,18 +141,14 @@ class Hike implements HikeInterface {
     const response = await Http.delete<DeleteHikerProfileResponse>(`/api/hike/${this.id}/hiker-profile/${id}`);
 
     if (response.ok) {
-      const deleted = await response.body();
-
       runInAction(() => {
-        if (deleted) {
-          const index = this.hikerProfiles.findIndex((p) => p.id === id);
+        const index = this.hikerProfiles.findIndex((p) => p.id === id);
 
-          if (index !== -1) {
-            this.hikerProfiles = [
-              ...this.hikerProfiles.slice(0, index),
-              ...this.hikerProfiles.slice(index + 1),
-            ];
-          }
+        if (index !== -1) {
+          this.hikerProfiles = [
+            ...this.hikerProfiles.slice(0, index),
+            ...this.hikerProfiles.slice(index + 1),
+          ];
         }
       });
     }

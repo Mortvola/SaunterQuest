@@ -28,12 +28,7 @@ export default class RouteController {
 
       const result = hike.addEndpoint(point);
 
-      await hike.load('schedule');
-
-      if (hike.schedule) {
-        hike.schedule.update = true;
-        hike.related('schedule').save(hike.schedule);
-      }
+      await RouteController.markScheduleDirty(hike);
 
       return result;
     });
@@ -58,12 +53,7 @@ export default class RouteController {
 
       const result = hike.addWaypoint(point);
 
-      await hike.load('schedule');
-
-      if (hike.schedule) {
-        hike.schedule.update = true;
-        hike.related('schedule').save(hike.schedule);
-      }
+      await RouteController.markScheduleDirty(hike);
 
       return result;
     });
@@ -87,12 +77,7 @@ export default class RouteController {
 
       const result = hike.updateWaypointPosition(parseInt(params.waypointId, 10), point);
 
-      await hike.load('schedule');
-
-      if (hike.schedule) {
-        hike.schedule.update = true;
-        hike.related('schedule').save(hike.schedule);
-      }
+      await RouteController.markScheduleDirty(hike);
 
       return result;
     });
@@ -110,16 +95,20 @@ export default class RouteController {
 
       const result = hike.deleteWaypoint(parseInt(params.waypointId, 10));
 
-      await hike.load('schedule');
-
-      if (hike.schedule) {
-        hike.schedule.update = true;
-        hike.related('schedule').save(hike.schedule);
-      }
+      await RouteController.markScheduleDirty(hike);
 
       return result;
     });
 
     return updates;
+  }
+
+  private static async markScheduleDirty(hike: Hike) {
+    await hike.load('schedule');
+
+    if (hike.schedule) {
+      hike.schedule.update = true;
+      await hike.related('schedule').save(hike.schedule);
+    }
   }
 }

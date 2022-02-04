@@ -68,7 +68,7 @@ Route.group(() => {
         Route.put('/route/waypoint/:waypointId/position', 'RouteController.updateWaypointPosition');
 
         Route.group(() => {
-          Route.get('', 'HikerProfilesController.get').middleware('auth');
+          Route.get('', 'HikerProfilesController.get');
           Route.post('', 'HikerProfilesController.addProfile');
           Route.put('/:profileId', 'HikerProfilesController.updateProfile');
           Route.delete('/:profileId', 'HikerProfilesController.deleteProfile');

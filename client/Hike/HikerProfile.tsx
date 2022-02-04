@@ -1,8 +1,8 @@
-import React, { ReactElement } from 'react';
+import React from 'react';
 import { Card } from 'react-bootstrap';
 import { observer } from 'mobx-react-lite';
 import { HikeInterface, HikerProfileInterface } from '../state/Types';
-import { nvl, formatTime } from '../utilities';
+import { nvl, formatTime, metersToMiles } from '../utilities';
 import { useDeleteConfirmation } from '../DeleteConfirmation';
 import { useHikerProfileDialog } from './HikerProfileDialog';
 import IconButton from '../IconButton';
@@ -12,10 +12,10 @@ type PropsType = {
   profile: HikerProfileInterface,
 }
 
-const HikerProfile = ({
+const HikerProfile: React.FC<PropsType> = observer(({
   hike,
   profile,
-}: PropsType): ReactElement => {
+}) => {
   const [HikerProfilDialog, showHikerProfileDialog] = useHikerProfileDialog();
   const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
     'Are you sure you want to delete this profile?',
@@ -51,12 +51,12 @@ const HikerProfile = ({
         </span>
       </div>
       <div className="hiker-profile">
+        <div>Miles Per Hour</div>
+        <div>{metersToMiles(profile?.metersPerHour ?? 0).toFixed(2)}</div>
         <div>Start Day</div>
         <div>{startDay}</div>
         <div>End Day</div>
         <div>{endDay}</div>
-        <div>Pace Factor</div>
-        <div>{nvl(profile.speedFactor, '')}</div>
         <div>Start Time</div>
         <div>{formatTime(profile.startTime !== null ? profile.startTime * 60 : 0)}</div>
         <div>End Time</div>
@@ -70,6 +70,6 @@ const HikerProfile = ({
       <DeleteConfirmation />
     </Card>
   );
-};
+});
 
-export default observer(HikerProfile);
+export default HikerProfile;

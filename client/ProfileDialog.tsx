@@ -31,6 +31,7 @@ const ProfileDialog: React.FC<ModalProps> = ({
   }
 
   const flatGroundSpeed = 3.12968585912282;
+  const maxMetersPerHour = 5036.74271751148;
 
   const [profile, setProfile] = useState<Profile | null>(null);
 
@@ -69,7 +70,7 @@ const ProfileDialog: React.FC<ModalProps> = ({
     return (
       <FormModal<FormValues>
         initialValues={{
-          milesPerHour: metersToMiles(profile.metersPerHour ?? 5036.74271751148).toFixed(2),
+          milesPerHour: metersToMiles(profile.metersPerHour ?? maxMetersPerHour).toFixed(2),
           startTime: toTimeString(profile.startTime ?? 8) ?? '',
           endTime: toTimeString(profile.endTime ?? 18) ?? '',
           breakDuration: profile.breakDuration ?? 60,

@@ -16,7 +16,7 @@ class HikerProfile implements HikerProfileInterface {
 
   breakDuration: number | null;
 
-  speedFactor: number | null;
+  metersPerHour: number | null;
 
   endDayExtension: number | null;
 
@@ -29,7 +29,7 @@ class HikerProfile implements HikerProfileInterface {
     this.startTime = props.startTime;
     this.endTime = props.endTime;
     this.breakDuration = props.breakDuration;
-    this.speedFactor = props.speedFactor;
+    this.metersPerHour = props.metersPerHour;
     this.endDayExtension = props.endDayExtension;
     this.hike = hike;
 
@@ -39,7 +39,7 @@ class HikerProfile implements HikerProfileInterface {
   async update(profile: ProfileProps): Promise<void> {
     type UpdateHikerProfileRequest = {
       breakDuration: number | null,
-      speedFactor: number | null,
+      metersPerHour: number | null,
       endDayExtension: number | null,
       startTime: number | null,
       endTime: number | null,
@@ -47,9 +47,9 @@ class HikerProfile implements HikerProfileInterface {
       endDay: number | null,
     }
 
-    const response = await Http.put<UpdateHikerProfileRequest, ProfileProps>(`/hike/${this.hike.id}/hiker-profile/${this.id}`, {
+    const response = await Http.put<UpdateHikerProfileRequest, ProfileProps>(`/api/hike/${this.hike.id}/hiker-profile/${this.id}`, {
       breakDuration: profile.breakDuration,
-      speedFactor: profile.speedFactor,
+      metersPerHour: profile.metersPerHour,
       endDayExtension: profile.endDayExtension,
       startTime: profile.startTime,
       endTime: profile.endTime,
@@ -61,8 +61,11 @@ class HikerProfile implements HikerProfileInterface {
       const body = await response.body();
 
       runInAction(() => {
+        this.metersPerHour = body.metersPerHour;
         // this.hikerProfiles.push(new HikerProfile(body));
       });
+
+      this.hike.requestSchedule();
     }
   }
 }
