@@ -26,7 +26,16 @@ export default class RouteController {
       hike.useTransaction(trx);
       await hike.load('routePoints');
 
-      return hike.addEndpoint(point);
+      const result = hike.addEndpoint(point);
+
+      await hike.load('schedule');
+
+      if (hike.schedule) {
+        hike.schedule.update = true;
+        hike.related('schedule').save(hike.schedule);
+      }
+
+      return result;
     });
 
     response.header('content-type', 'application/json');
@@ -47,7 +56,16 @@ export default class RouteController {
       await hike.load('routePoints');
       await hike.loadTrails();
 
-      return hike.addWaypoint(point);
+      const result = hike.addWaypoint(point);
+
+      await hike.load('schedule');
+
+      if (hike.schedule) {
+        hike.schedule.update = true;
+        hike.related('schedule').save(hike.schedule);
+      }
+
+      return result;
     });
 
     response.header('content-type', 'application/json');
@@ -90,7 +108,16 @@ export default class RouteController {
       hike.useTransaction(trx);
       await hike.load('routePoints');
 
-      return hike.deleteWaypoint(parseInt(params.waypointId, 10));
+      const result = hike.deleteWaypoint(parseInt(params.waypointId, 10));
+
+      await hike.load('schedule');
+
+      if (hike.schedule) {
+        hike.schedule.update = true;
+        hike.related('schedule').save(hike.schedule);
+      }
+
+      return result;
     });
 
     return updates;
