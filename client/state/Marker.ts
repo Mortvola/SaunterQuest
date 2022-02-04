@@ -1,6 +1,7 @@
 import { makeObservable, observable, runInAction } from 'mobx';
 import {
-  LatLng, MapInterface, MarkerInterface, MarkerAttributeInterface, MarkerType, PointOfInterestInterface,
+  LatLng, MapInterface, MarkerInterface, MarkerAttributeInterface,
+  MarkerType, PointOfInterestInterface,
 } from './Types';
 
 class Marker implements MarkerInterface {
@@ -52,7 +53,7 @@ class Marker implements MarkerInterface {
   }
 
   remove(): void {
-    // this.#map.removeMarker(this);
+    this.#map.removeMarker(this.#poi);
   }
 
   async move(latLng: LatLng): Promise<LatLng> {

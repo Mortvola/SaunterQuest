@@ -228,7 +228,7 @@ const Map: FC<Props> = ({
       {
         hike.map.markers.map((m) => (
           <Marker
-            key={`${m.marker.latLng.lat},${m.marker.latLng.lng}`}
+            key={`${m.getTypeString()}-${m.id}`}
             marker={m}
             draggingLocked={draggingLocked}
             selections={poiSelections}
