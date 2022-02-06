@@ -2,6 +2,7 @@ export type HikeProps = {
   id: number,
   name: string,
   routeGroupId: number | null,
+  hikeLegs: { id: number, name: string }[],
 }
 
 export type TrailPointProps = {
@@ -112,6 +113,8 @@ export type DayProps = {
   meters: number,
   lat: number,
   lng: number,
+  endLat: number;
+  endLng: number;
   startTime: number | null,
   endTime: number | null,
   id: number,

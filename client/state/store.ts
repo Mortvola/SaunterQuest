@@ -2,16 +2,17 @@ import { createContext, useContext } from 'react';
 import Gear from './Gear';
 import Gpx from './Gpx';
 import HikeManager from './HikeManager';
+import { StoreInterface } from './Types';
 import UiState from './UiState';
 
-class Store {
+class Store implements StoreInterface {
   uiState = new UiState();
 
-  hikeManager = new HikeManager(this);
+  hikeManager: HikeManager = new HikeManager(this);
 
-  gear = new Gear(this);
+  gear: Gear = new Gear(this);
 
-  gpx = new Gpx();
+  gpx: Gpx = new Gpx();
 }
 
 const store = new Store();

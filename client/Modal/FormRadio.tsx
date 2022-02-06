@@ -21,7 +21,7 @@ function FormRadio<V = unknown, T = unknown>({
   onChange,
   children,
 }: PropsType<V, T>): ReactElement {
-  const [field, meta] = useField<V>(name)
+  const [field, meta] = useField<V>(name);
   const form = useFormikContext<T>();
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -29,7 +29,7 @@ function FormRadio<V = unknown, T = unknown>({
     if (onChange) {
       onChange(event, { field, form, meta });
     }
-  }
+  };
 
   let wrapperClassName = styles.childrenWrapper;
   if (typeof field.value !== 'string' || field.value !== value) {

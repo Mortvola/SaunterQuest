@@ -1,5 +1,7 @@
 import Marker from '../Marker';
-import { MapInterface, MarkerType, PointOfInterestInterface } from '../Types';
+import {
+  LatLng, MapInterface, MarkerType, PointOfInterestInterface,
+} from '../Types';
 import * as Icons from './Icons';
 
 class PointOfInterest implements PointOfInterestInterface {
@@ -30,8 +32,14 @@ class PointOfInterest implements PointOfInterestInterface {
     this.#map = map;
   }
 
+  // eslint-disable-next-line class-methods-use-this
   delete(): void {
     console.log('poi delete');
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  async move(_latLng: LatLng): Promise<LatLng> {
+    return Promise.resolve({ lat: 0, lng: 0 });
   }
 
   setSelected(selected: boolean): void {

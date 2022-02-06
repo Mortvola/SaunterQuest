@@ -1,19 +1,19 @@
 import React from 'react';
 import { Card } from 'react-bootstrap';
 import { observer } from 'mobx-react-lite';
-import { HikeInterface, HikerProfileInterface } from '../state/Types';
-import { nvl, formatTime, metersToMiles } from '../utilities';
-import { useDeleteConfirmation } from '../DeleteConfirmation';
+import { HikeLegInterface, HikerProfileInterface } from '../../state/Types';
+import { nvl, formatTime, metersToMiles } from '../../utilities';
+import { useDeleteConfirmation } from '../../DeleteConfirmation';
 import { useHikerProfileDialog } from './HikerProfileDialog';
-import IconButton from '../IconButton';
+import IconButton from '../../IconButton';
 
 type PropsType = {
-  hike: HikeInterface,
+  hikeLeg: HikeLegInterface,
   profile: HikerProfileInterface,
 }
 
 const HikerProfile: React.FC<PropsType> = observer(({
-  hike,
+  hikeLeg,
   profile,
 }) => {
   const [HikerProfilDialog, showHikerProfileDialog] = useHikerProfileDialog();
@@ -24,7 +24,7 @@ const HikerProfile: React.FC<PropsType> = observer(({
         throw new Error('hiker profile id is null');
       }
 
-      hike.deleteHikerProfile(profile.id);
+      hikeLeg.deleteHikerProfile(profile.id);
     },
   );
 
@@ -66,7 +66,7 @@ const HikerProfile: React.FC<PropsType> = observer(({
         <div>End of Day Extension</div>
         <div>{nvl(profile.endDayExtension, '')}</div>
       </div>
-      <HikerProfilDialog hike={hike} profile={profile} />
+      <HikerProfilDialog hikeLeg={hikeLeg} profile={profile} />
       <DeleteConfirmation />
     </Card>
   );

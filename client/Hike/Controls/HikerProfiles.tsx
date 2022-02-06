@@ -2,15 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import { useHikerProfileDialog } from './HikerProfileDialog';
 import HikerProfile from './HikerProfile';
-import IconButton from '../IconButton';
-import { HikeInterface } from '../state/Types';
+import IconButton from '../../IconButton';
+import { HikeLegInterface } from '../../state/Types';
 
 type PropsType = {
-  hike: HikeInterface,
+  hikeLeg: HikeLegInterface,
 }
 
 const HikerProfiles = ({
-  hike,
+  hikeLeg,
 }: PropsType) => {
   const [initialized, setInitialized] = useState(false);
   const [HikerProfilDialog, showHikerProfileDialog] = useHikerProfileDialog();
@@ -18,9 +18,9 @@ const HikerProfiles = ({
   useEffect(() => {
     if (!initialized) {
       setInitialized(true);
-      hike.requestHikerProfiles();
+      hikeLeg.requestHikerProfiles();
     }
-  }, [hike, initialized]);
+  }, [hikeLeg, initialized]);
 
   return (
     <div className="profiles">
@@ -30,18 +30,18 @@ const HikerProfiles = ({
       </div>
       <div className="profile-list">
         {
-          hike.hikerProfiles.length
-            ? hike.hikerProfiles.map((p) => (
+          hikeLeg.hikerProfiles.length
+            ? hikeLeg.hikerProfiles.map((p) => (
               <HikerProfile
                 key={p.id}
-                hike={hike}
+                hikeLeg={hikeLeg}
                 profile={p}
               />
             ))
             : null
         }
       </div>
-      <HikerProfilDialog hike={hike} />
+      <HikerProfilDialog hikeLeg={hikeLeg} />
     </div>
   );
 };

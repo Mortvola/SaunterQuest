@@ -88,24 +88,29 @@ class Anchor extends PointOfInterest implements PointOfInterestInterface {
   }
 
   async delete(): Promise<void> {
-    this.route.map.setWaiting(true);
+    try {
+      this.route.map.setWaiting(true);
 
-    const response = await Http.delete<RouteUpdateResponse>(`/api/hike/${this.route.hike.id}/route/waypoint/${this.id}`);
+      const response = await Http.delete<RouteUpdateResponse>(`/api/hike-leg/${this.route.hikeLeg.id}/route/waypoint/${this.id}`);
 
-    if (response.ok) {
-      const updates = await response.body();
+      if (response.ok) {
+        const updates = await response.body();
 
-      runInAction(() => {
-        if (updates) {
-          this.route.updateRoute(updates);
-        }
+        runInAction(() => {
+          if (updates) {
+            this.route.updateRoute(updates);
+          }
 
-        this.marker.remove();
+          this.marker.remove();
 
+          this.route.map.setWaiting(false);
+        });
+      }
+      else {
         this.route.map.setWaiting(false);
-      });
+      }
     }
-    else {
+    catch (error) {
       this.route.map.setWaiting(false);
     }
   }

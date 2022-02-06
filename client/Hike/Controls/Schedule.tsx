@@ -1,43 +1,39 @@
 import React, { ReactElement } from 'react';
 import { observer } from 'mobx-react-lite';
-import { positionMapToBounds } from './mapUtils';
+import { positionMapToBounds } from '../mapUtils';
 import {
   metersToFeet, gramsToPoundsAndOunces, metersToMilesRounded, formatTime,
-} from '../utilities';
-import { Day, HikeInterface } from '../state/Types';
+} from '../../utilities';
+import { Day, HikeLegInterface } from '../../state/Types';
 import styles from './Schedule.module.css';
 // import EndOfDayMarker from './trailMarker/EndOfDayMarker';
 
 type PropsType = {
-  hike: HikeInterface,
+  hikeLeg: HikeLegInterface,
 }
 
 const Schedule = ({
-  hike,
+  hikeLeg,
 }: PropsType): ReactElement => {
   const positionMapToDay = (d: number) => {
-    if (hike === null) {
-      throw new Error('hike is null');
-    }
-
     //
     // Position the map so that the two endpoints (today's and tomorrow's) are visible.
     // todo: take into account the area the whole path uses. Some paths go out of window
     // even though the two endpoints are within the window.
     //
-    if (hike.schedule && hike.map) {
-      const leafletMap = hike.map.getLeafLetMap();
+    if (hikeLeg.schedule && hikeLeg.map) {
+      const leafletMap = hikeLeg.map.getLeafLetMap();
       if (leafletMap) {
-        if (d < hike.schedule.length - 1) {
+        if (d < hikeLeg.schedule.length - 1) {
           positionMapToBounds(
-            leafletMap, hike.schedule[d].latLng, hike.schedule[d + 1].latLng,
+            leafletMap, hikeLeg.schedule[d].latLng, hikeLeg.schedule[d + 1].latLng,
           );
         }
         else {
           positionMapToBounds(
             leafletMap,
-            hike.schedule[d].latLng,
-            hike.route.anchors[hike.route.anchors.length - 1].latLng,
+            hikeLeg.schedule[d].latLng,
+            hikeLeg.route.anchors[hikeLeg.route.anchors.length - 1].latLng,
           );
         }
       }
@@ -76,9 +72,7 @@ const Schedule = ({
   return (
     <div className={styles.schedule}>
       {
-        hike && hike.schedule
-          ? hike.schedule.map((day, index) => renderDay(day, index))
-          : null
+        hikeLeg.schedule.map((day, index) => renderDay(day, index))
       }
     </div>
   );

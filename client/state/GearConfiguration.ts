@@ -2,8 +2,7 @@ import { makeAutoObservable, runInAction } from 'mobx';
 import Http from '@mortvola/http';
 import GearConfigurationItem from './GearConfigurationItem';
 import GearItem from './GearItem';
-import { Store } from './store';
-import { GearConfigItemProps, GearConfigProps } from './Types';
+import { GearConfigItemProps, GearConfigProps, StoreInterface } from './Types';
 
 class GearConfiguration {
   id: number;
@@ -16,11 +15,11 @@ class GearConfiguration {
 
   consumableWeight: number;
 
-  items: Array<GearConfigurationItem> = [];
+  items: GearConfigurationItem[] = [];
 
-  store: Store;
+  store: StoreInterface;
 
-  constructor(props: GearConfigProps, store: Store) {
+  constructor(props: GearConfigProps, store: StoreInterface) {
     this.id = props.id;
     this.name = props.name;
     this.wornWeight = props.wornWeight ?? 0;

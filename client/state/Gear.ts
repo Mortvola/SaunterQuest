@@ -2,19 +2,20 @@ import { makeAutoObservable, runInAction } from 'mobx';
 import Http from '@mortvola/http';
 import GearConfiguration from './GearConfiguration';
 import GearItem from './GearItem';
-import { Store } from './store';
-import { GearConfigProps, GearItemProps } from './Types';
+import {
+  GearConfigProps, GearItemProps, StoreInterface,
+} from './Types';
 
 class Gear {
-  inventory: Array<GearItem> = [];
+  inventory: GearItem[] = [];
 
   configurations: Array<GearConfiguration> = [];
 
-  store: Store;
+  store: StoreInterface;
 
   systems = new Map<string, boolean>();
 
-  constructor(store: Store) {
+  constructor(store: StoreInterface) {
     this.store = store;
 
     makeAutoObservable(this);

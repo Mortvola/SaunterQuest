@@ -1,7 +1,6 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import Http from '@mortvola/http';
-import Hike from './Hike';
-import { HikerProfileInterface, ProfileProps } from './Types';
+import { HikeLegInterface, HikerProfileInterface, ProfileProps } from './Types';
 
 class HikerProfile implements HikerProfileInterface {
   id: number | null;
@@ -20,9 +19,9 @@ class HikerProfile implements HikerProfileInterface {
 
   endDayExtension: number | null;
 
-  hike: Hike;
+  hikeLeg: HikeLegInterface;
 
-  constructor(props: ProfileProps, hike: Hike) {
+  constructor(props: ProfileProps, hikeLeg: HikeLegInterface) {
     this.id = props.id;
     this.startDay = props.startDay;
     this.endDay = props.endDay;
@@ -31,7 +30,7 @@ class HikerProfile implements HikerProfileInterface {
     this.breakDuration = props.breakDuration;
     this.metersPerHour = props.metersPerHour;
     this.endDayExtension = props.endDayExtension;
-    this.hike = hike;
+    this.hikeLeg = hikeLeg;
 
     makeAutoObservable(this);
   }
@@ -47,7 +46,7 @@ class HikerProfile implements HikerProfileInterface {
       endDay: number | null,
     }
 
-    const response = await Http.put<UpdateHikerProfileRequest, ProfileProps>(`/api/hike/${this.hike.id}/hiker-profile/${this.id}`, {
+    const response = await Http.put<UpdateHikerProfileRequest, ProfileProps>(`/api/hike-leg/${this.hikeLeg.id}/hiker-profile/${this.id}`, {
       breakDuration: profile.breakDuration,
       metersPerHour: profile.metersPerHour,
       endDayExtension: profile.endDayExtension,
@@ -65,7 +64,7 @@ class HikerProfile implements HikerProfileInterface {
         // this.hikerProfiles.push(new HikerProfile(body));
       });
 
-      this.hike.requestSchedule();
+      this.hikeLeg.requestSchedule();
     }
   }
 }

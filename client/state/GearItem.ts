@@ -1,6 +1,5 @@
 import { makeAutoObservable } from 'mobx';
-import { Store } from './store';
-import { GearItemProps } from './Types';
+import { GearItemProps, StoreInterface } from './Types';
 
 class GearItem {
   id: number | null = null;
@@ -17,9 +16,9 @@ class GearItem {
 
   weight = 0;
 
-  store: Store;
+  store: StoreInterface;
 
-  constructor(props: GearItemProps | null, store: Store) {
+  constructor(props: GearItemProps | null, store: StoreInterface) {
     if (props !== null) {
       this.id = props.id;
       this.consumable = props.consumable;

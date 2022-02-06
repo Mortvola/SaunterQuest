@@ -1,6 +1,6 @@
 import { Exception } from '@adonisjs/core/build/standalone';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
-import Hike from 'App/Models/Hike';
+import HikeLeg from 'App/Models/HikeLeg';
 import HikerProfile from 'App/Models/HikerProfile';
 
 export default class HikerProfilesController {
@@ -10,10 +10,10 @@ export default class HikerProfilesController {
       throw new Exception('user not authorized');
     }
 
-    const hike = await Hike.findByOrFail('id', params.hikeId);
-    await hike.load('hikerProfiles');
+    const leg = await HikeLeg.findByOrFail('id', params.hikeLegId);
+    await leg.load('hikerProfiles');
 
-    return hike.hikerProfiles;
+    return leg.hikerProfiles;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -28,13 +28,13 @@ export default class HikerProfilesController {
       endTime: hikerProfile.endTime,
       breakDuration: hikerProfile.breakDuration,
       endDayExtension: hikerProfile.endDayExtension,
-      hikeId: params.hikeId,
+      hikeLegId: params.hikeLegId,
     });
 
-    if (params.hikeId) {
-      const hike = await Hike.findOrFail(parseInt(params.hikeId, 10));
+    if (params.hikeLegId) {
+      const leg = await HikeLeg.findOrFail(parseInt(params.hikeLegId, 10));
 
-      await HikerProfilesController.markScheduleDirty(hike);
+      await HikerProfilesController.markScheduleDirty(leg);
     }
 
     profile.save();
@@ -55,10 +55,10 @@ export default class HikerProfilesController {
     hikerProfile.breakDuration = update.breakDuration;
     hikerProfile.endDayExtension = update.endDayExtension;
 
-    if (hikerProfile.hikeId) {
-      const hike = await Hike.findOrFail(hikerProfile.hikeId);
+    if (hikerProfile.hikeLegId) {
+      const leg = await HikeLeg.findOrFail(hikerProfile.hikeLegId);
 
-      await HikerProfilesController.markScheduleDirty(hike);
+      await HikerProfilesController.markScheduleDirty(leg);
     }
 
     hikerProfile.save();
@@ -72,19 +72,19 @@ export default class HikerProfilesController {
 
     hikerProfile.delete();
 
-    if (hikerProfile.hikeId) {
-      const hike = await Hike.findOrFail(hikerProfile.hikeId);
+    if (hikerProfile.hikeLegId) {
+      const leg = await HikeLeg.findOrFail(hikerProfile.hikeLegId);
 
-      await HikerProfilesController.markScheduleDirty(hike);
+      await HikerProfilesController.markScheduleDirty(leg);
     }
   }
 
-  private static async markScheduleDirty(hike: Hike) {
-    await hike.load('schedule');
+  private static async markScheduleDirty(leg: HikeLeg) {
+    await leg.load('schedule');
 
-    if (hike.schedule) {
-      hike.schedule.update = true;
-      await hike.related('schedule').save(hike.schedule);
+    if (leg.schedule) {
+      leg.schedule.update = true;
+      await leg.related('schedule').save(leg.schedule);
     }
   }
 }

@@ -48,7 +48,6 @@ class Marker implements MarkerInterface {
 
   // eslint-disable-next-line class-methods-use-this
   delete(): void {
-    console.log(`delete marker: ${this.type}`);
     this.#poi.delete();
   }
 
@@ -60,27 +59,36 @@ class Marker implements MarkerInterface {
     this.#map.setWaiting(true);
 
     try {
-      const anchor = this.#attributes.find((m) => ['waypoint', 'start', 'finish'].includes(m.type));
+      if (['waypoint', 'start', 'finish'].includes(this.type)) {
+        runInAction(async () => {
+          try {
+            const newLatLng = await this.#poi.move(latLng);
+            // this.#attributes.forEach((m) => {
+            //   if (m !== anchor) {
+            //     m.move(newLatLng);
+            //   }
+            // });
 
-      if (anchor) {
-        const newLatLng = await anchor.move(latLng);
+            this.latLng = newLatLng;
 
-        runInAction(() => {
-          this.#attributes.forEach((m) => {
-            if (m !== anchor) {
-              m.move(newLatLng);
-            }
-          });
-
-          this.latLng = newLatLng;
-
-          this.#map.setWaiting(false);
+            this.#map.setWaiting(false);
+          }
+          catch (error) {
+            this.#map.setWaiting(false);
+          }
         });
       }
       else {
-        this.#attributes.forEach((m) => m.move(latLng));
-        this.latLng = latLng;
-        this.#map.setWaiting(false);
+        runInAction(() => {
+          try {
+            this.#attributes.forEach((m) => m.move(latLng));
+            this.latLng = latLng;
+            this.#map.setWaiting(false);
+          }
+          catch (error) {
+            this.#map.setWaiting(false);
+          }
+        });
       }
     }
     catch (error) {

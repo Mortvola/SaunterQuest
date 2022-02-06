@@ -4,7 +4,7 @@ import {
   hasMany, HasMany,
 } from '@ioc:Adonis/Lucid/Orm'
 import Day from 'App/Models/Day';
-import Hike from './Hike';
+import HikeLeg from 'App/Models/HikeLeg';
 
 export default class Schedule extends BaseModel {
   @column({ isPrimary: true })
@@ -17,10 +17,10 @@ export default class Schedule extends BaseModel {
   public updatedAt: DateTime;
 
   @column({ serializeAs: null })
-  public hikeId: number;
+  public hikeLegId: number;
 
-  @belongsTo(() => Hike)
-  public hike: BelongsTo<typeof Hike>;
+  @belongsTo(() => HikeLeg)
+  public hikeLeg: BelongsTo<typeof HikeLeg>;
 
   @column({ serializeAs: null })
   public update: boolean;

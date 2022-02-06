@@ -22,7 +22,7 @@ export default class Day extends BaseModel {
   public scheduleId: number;
 
   @belongsTo(() => Schedule)
-  public hike: BelongsTo<typeof Schedule>;
+  public schedule: BelongsTo<typeof Schedule>;
 
   @column()
   public gain = 0;

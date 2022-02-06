@@ -26,6 +26,7 @@ export default class HikesController {
     }
 
     const hike = await Hike.findOrFail(params.hikeId);
+    await hike.load('hikeLegs');
 
     return hike;
   }

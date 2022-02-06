@@ -1,9 +1,7 @@
 import { makeObservable, observable, runInAction } from 'mobx';
 import Http from '@mortvola/http';
-import GearConfiguration from './GearConfiguration';
 import GearItem from './GearItem';
-import { Store } from './store';
-import { GearConfigItemProps } from './Types';
+import { GearConfigItemProps, GearConfigurationInterface, StoreInterface } from './Types';
 
 class GearConfigurationItem {
   id: number;
@@ -14,14 +12,14 @@ class GearConfigurationItem {
 
   worn: boolean;
 
-  configuration: GearConfiguration;
+  configuration: GearConfigurationInterface;
 
-  store: Store;
+  store: StoreInterface;
 
   constructor(
     props: GearConfigItemProps,
-    configuration: GearConfiguration,
-    store: Store,
+    configuration: GearConfigurationInterface,
+    store: StoreInterface,
   ) {
     this.id = props.id;
     this.configuration = configuration;

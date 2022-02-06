@@ -1,5 +1,3 @@
-import TrailMarker from './TrailMarker';
-
 export interface HikeManagerInterface {
   hikes: HikeItemInterface[];
 }
@@ -29,12 +27,8 @@ export interface HikerProfileInterface {
   update(profile: ProfileProps): Promise<void>;
 }
 
-export interface HikeInterface {
+export interface HikeLegInterface {
   id: number;
-
-  name: string;
-
-  routeGroupId: number | null;
 
   map: MapInterface;
 
@@ -44,8 +38,6 @@ export interface HikeInterface {
 
   hikerProfiles: HikerProfileInterface[];
 
-  updateSettings(name: string, routeGroupId: number | null): Promise<void>;
-
   requestSchedule(): Promise<void>;
 
   requestHikerProfiles(): Promise<void>;
@@ -53,6 +45,24 @@ export interface HikeInterface {
   deleteHikerProfile(id: number): Promise<void>;
 
   addHikerProfile: (profile: ProfileProps) => Promise<void>;
+
+  setElevationMarker(latLng: L.LatLng | null): void
+}
+
+export interface HikeInterface {
+  id: number;
+
+  name: string;
+
+  routeGroupId: number | null;
+
+  map: MapInterface;
+
+  hikeLegs: HikeLegInterface[];
+
+  currentLeg: HikeLegInterface;
+
+  updateSettings(name: string, routeGroupId: number | null): Promise<void>;
 }
 
 export interface MapInterface {
@@ -117,6 +127,8 @@ export interface PointOfInterestInterface {
   getIcon(): string | null;
 
   delete(): void;
+
+  move(latLng: LatLng): Promise<LatLng>;
 }
 
 export type MarkerType = 'start'
@@ -157,23 +169,23 @@ export interface TrailPoint extends LatLng {
   ele: number;
 }
 
-export interface DayProps {
-  id: number;
-  day: number;
-  lat: number;
-  lng: number;
-  endLat: number;
-  endLng: number;
-  ele: number;
-  marker: TrailMarker;
-  startMeters: number;
-  meters: number;
-  startTime: number;
-  endTime: number;
-  gain: number;
-  loss: number;
-  accumWeight: number;
-}
+// export interface DayProps {
+//   id: number;
+//   day: number;
+//   lat: number;
+//   lng: number;
+//   endLat: number;
+//   endLng: number;
+//   ele: number;
+//   marker: TrailMarker;
+//   startMeters: number;
+//   meters: number;
+//   startTime: number;
+//   endTime: number;
+//   gain: number;
+//   loss: number;
+//   accumWeight: number;
+// }
 
 export type Day = {
   id: number;
@@ -198,9 +210,11 @@ export interface RouteInterface {
 
   grade: Grade;
 
-  hike: HikeInterface;
+  hikeLeg: HikeLegInterface;
 
   map: MapInterface;
+
+  elevations: [number, number, number, number][];
 
   moveWaypoint: (id: number, point: LatLng) => Promise<LatLng>;
 
@@ -278,4 +292,20 @@ export interface PhotoInterface {
   setRotation(x: number | null, y: number | null, z: number | null): void;
 
   save(): void;
+}
+
+interface StoreInterface {
+  uiState: UiState;
+
+  hikeManager: HikeManager;
+
+  gear: Gear;
+
+  gpx: Gpx;
+}
+
+interface GearConfigurationInterface {
+  id: number;
+
+  deleteItem (item: GearConfigurationItem): Promise<void>;
 }

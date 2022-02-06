@@ -3,13 +3,13 @@ import Http from '@mortvola/http';
 import L from 'leaflet';
 import { metersToMiles, metersToFeet } from '../utilities';
 import {
-  Grade, HikeInterface, LatLng, MapInterface, MarkerType, RouteInterface, TrailPoint,
+  Grade, HikeLegInterface, LatLng, MapInterface, MarkerType, RouteInterface, TrailPoint,
 } from './Types';
 import { RouteUpdateResponse, AnchorProps } from '../../common/ResponseTypes';
 import Anchor, { resetWaypointLabel } from './PointsOfInterest/Anchor';
 
 class Route implements RouteInterface {
-  hike: HikeInterface;
+  hikeLeg: HikeLegInterface;
 
   anchors: Anchor[] = [];
 
@@ -21,23 +21,23 @@ class Route implements RouteInterface {
 
   map: MapInterface;
 
-  constructor(hike: HikeInterface, map: MapInterface) {
+  constructor(hikeLeg: HikeLegInterface, map: MapInterface) {
     this.map = map;
-    this.hike = hike;
+    this.hikeLeg = hikeLeg;
 
     makeAutoObservable(this);
   }
 
   async requestRoute(): Promise<void> {
     try {
-      const response = await Http.get<AnchorProps[]>(`/api/hike/${this.hike.id}/route`);
+      const response = await Http.get<AnchorProps[]>(`/api/hike-leg/${this.hikeLeg.id}/route`);
 
       if (response.ok) {
         const route = await response.body();
 
         runInAction(() => {
           if (route) {
-            const { map } = this.hike;
+            const { map } = this.hikeLeg;
 
             if (map === null) {
               throw new Error('map is null');
@@ -67,7 +67,7 @@ class Route implements RouteInterface {
               this.setElevations(this.computeElevations());
               this.bounds = this.computeBounds();
 
-              this.hike.requestSchedule();
+              this.hikeLeg.requestSchedule();
             }
           }
         });
@@ -81,13 +81,13 @@ class Route implements RouteInterface {
 
   updateRoute(updates: RouteUpdateResponse): void {
     this.receiveWaypointUpdates(updates);
-    this.hike.requestSchedule();
+    this.hikeLeg.requestSchedule();
   }
 
   async addStartWaypoint(position: LatLng): Promise<void> {
     this.map.setWaiting(true);
 
-    const response = await Http.post<LatLng, RouteUpdateResponse>(`/api/hike/${this.hike.id}/route/start-point`,
+    const response = await Http.post<LatLng, RouteUpdateResponse>(`/api/hike-leg/${this.hikeLeg.id}/route/start-point`,
       position);
 
     if (response.ok) {
@@ -110,26 +110,31 @@ class Route implements RouteInterface {
   }
 
   async addEndWaypoint(position: LatLng): Promise<void> {
-    this.map.setWaiting(true);
+    try {
+      this.map.setWaiting(true);
 
-    const response = await Http.post<LatLng, RouteUpdateResponse>(`/api/hike/${this.hike.id}/route/end-point`,
-      position);
+      const response = await Http.post<LatLng, RouteUpdateResponse>(`/api/hike-leg/${this.hikeLeg.id}/route/end-point`,
+        position);
 
-    if (response.ok) {
-      const updates = await response.body();
+      if (response.ok) {
+        const updates = await response.body();
 
-      runInAction(() => {
-        if (updates === null) {
-          this.requestRoute();
-        }
-        else {
-          this.updateRoute(updates);
-        }
+        runInAction(() => {
+          if (updates === null) {
+            this.requestRoute();
+          }
+          else {
+            this.updateRoute(updates);
+          }
 
+          this.map.setWaiting(false);
+        });
+      }
+      else {
         this.map.setWaiting(false);
-      });
+      }
     }
-    else {
+    catch (error) {
       this.map.setWaiting(false);
     }
   }
@@ -137,7 +142,7 @@ class Route implements RouteInterface {
   async addWaypoint(position: LatLng): Promise<void> {
     this.map.setWaiting(true);
 
-    const response = await Http.post<LatLng, RouteUpdateResponse>(`/api/hike/${this.hike.id}/route/waypoint`,
+    const response = await Http.post<LatLng, RouteUpdateResponse>(`/api/hike-leg/${this.hikeLeg.id}/route/waypoint`,
       position);
 
     if (response.ok) {
@@ -160,7 +165,7 @@ class Route implements RouteInterface {
   }
 
   async moveWaypoint(id: number, point: LatLng): Promise<LatLng> {
-    const response = await Http.put<LatLng, RouteUpdateResponse>(`/api/hike/${this.hike.id}/route/waypoint/${id}/position`,
+    const response = await Http.put<LatLng, RouteUpdateResponse>(`/api/hike-leg/${this.hikeLeg.id}/route/waypoint/${id}/position`,
       point);
 
     if (response.ok) {
@@ -197,7 +202,7 @@ class Route implements RouteInterface {
       const anchor = new Anchor('waypoint', u, this, this.map);
 
       if (u.type === 'waypoint') {
-        this.hike.map.addMarker(anchor);
+        this.hikeLeg.map.addMarker(anchor);
       }
 
       return anchor;

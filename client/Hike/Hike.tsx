@@ -1,10 +1,10 @@
 import React, {
-  useEffect, ReactElement, useState,
+  useEffect, ReactElement,
 } from 'react';
 import { observer } from 'mobx-react-lite';
 import { matchPath, useHistory } from 'react-router-dom';
 import Http from '@mortvola/http';
-import Controls from './Controls';
+import Controls from './Controls/Controls';
 import { useStores } from '../state/store';
 import MapContainer from './Map/MapContainer';
 import HikeData from '../state/Hike';
@@ -15,13 +15,11 @@ import { HikeProps } from '../../common/ResponseTypes';
 
 type Props = {
   tileServerUrl: string;
-  pathFinderUrl: string;
   extendedMenu: unknown;
 }
 
 const Hike = ({
   tileServerUrl,
-  pathFinderUrl,
   extendedMenu,
 }: Props): ReactElement | null => {
   const { uiState } = useStores();
@@ -71,7 +69,6 @@ const Hike = ({
           }
           <MapContainer
             tileServerUrl={tileServerUrl}
-            pathFinderUrl={pathFinderUrl}
             hike={uiState.hike}
             locationPopup={locationPopup}
           />

@@ -8,7 +8,6 @@ import {
 } from 'react-leaflet';
 import { observer } from 'mobx-react-lite';
 import ContextMenu, { MenuItem, showContextMenu, setMainContextMenu } from '@mortvola/leaflet-context-menu';
-import { runInAction } from 'mobx';
 import Route from './Route';
 import { useGotoLocationDialog } from '../GotoLocationDialog';
 import Graticule from '../Graticule';
@@ -29,14 +28,12 @@ import Poi from './PointsOfInterest/Poi';
 
 type Props = {
   tileServerUrl: string;
-  pathFinderUrl: string;
   hike: Hike,
   locationPopup?: L.LatLng | null,
 };
 
 const Map: FC<Props> = ({
   tileServerUrl,
-  pathFinderUrl,
   hike,
   locationPopup,
 }) => {
@@ -66,11 +63,11 @@ const Map: FC<Props> = ({
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    if (hike.route.bounds
+    if (hike.currentLeg.route.bounds
       && !initialized
     ) {
       try {
-        leafletMap.fitBounds(hike.route.bounds);
+        leafletMap.fitBounds(hike.currentLeg.route.bounds);
         const z = leafletMap.getZoom();
         if (z > 13) {
           leafletMap.setZoom(13);
@@ -82,7 +79,7 @@ const Map: FC<Props> = ({
         console.log(error);
       }
     }
-  }, [initialized, leafletMap, hike.route.bounds]);
+  }, [initialized, leafletMap, hike.currentLeg.route.bounds]);
 
   useEffect(() => {
     if (hike.map) {
@@ -91,34 +88,34 @@ const Map: FC<Props> = ({
   }, [hike.map, leafletMap]);
 
   const dropWaypoint = (event: L.LeafletMouseEvent) => {
-    hike.route.addEndWaypoint(event.latlng);
+    hike.currentLeg.route.addEndWaypoint(event.latlng);
   };
 
   const makeContextMenu = useCallback((position: L.LatLng): MenuItem[] => {
     const findSteepestPoint = () => {
-      const steepestPoint = hike.route.findSteepestPoint();
+      const steepestPoint = hike.currentLeg.route.findSteepestPoint();
     };
 
     const mapMenuItems: MenuItem[] = [];
 
-    if (hike.route.anchors.length === 0) {
+    if (hike.currentLeg.route.anchors.length === 0) {
       mapMenuItems.push({
-        label: 'Add Waypoint', callback: (latlng: L.LatLng) => hike.route.addStartWaypoint(latlng),
+        label: 'Add Waypoint', callback: (latlng: L.LatLng) => hike.currentLeg.route.addStartWaypoint(latlng),
       });
     }
-    else if (hike.route.anchors.length === 1) {
+    else if (hike.currentLeg.route.anchors.length === 1) {
       mapMenuItems.splice(
         mapMenuItems.length, 0,
-        { label: 'Prepend Waypoint', callback: (latlng: L.LatLng) => hike.route.addStartWaypoint(latlng) },
-        { label: 'Append Waypoint', callback: (latlng: L.LatLng) => hike.route.addEndWaypoint(latlng) },
+        { label: 'Prepend Waypoint', callback: (latlng: L.LatLng) => hike.currentLeg.route.addStartWaypoint(latlng) },
+        { label: 'Append Waypoint', callback: (latlng: L.LatLng) => hike.currentLeg.route.addEndWaypoint(latlng) },
       );
     }
     else {
       mapMenuItems.splice(
         mapMenuItems.length, 0,
-        { label: 'Prepend Waypoint', callback: (latlng: L.LatLng) => hike.route.addStartWaypoint(latlng) },
-        { label: 'Insert Waypoint', callback: (latlng: L.LatLng) => hike.route.addWaypoint(latlng) },
-        { label: 'Append Waypoint', callback: (latlng: L.LatLng) => hike.route.addEndWaypoint(latlng) },
+        { label: 'Prepend Waypoint', callback: (latlng: L.LatLng) => hike.currentLeg.route.addStartWaypoint(latlng) },
+        { label: 'Insert Waypoint', callback: (latlng: L.LatLng) => hike.currentLeg.route.addWaypoint(latlng) },
+        { label: 'Append Waypoint', callback: (latlng: L.LatLng) => hike.currentLeg.route.addEndWaypoint(latlng) },
       );
     }
 
@@ -209,16 +206,16 @@ const Map: FC<Props> = ({
               : null
           }
           <SelectedMarkers markers={hike.map.selectedMarkers} />
-          <ElevationChart hike={hike} />
+          <ElevationChart hikeLeg={hike.currentLeg} />
         </div>
       </MapDrawer>
-      <Route route={hike.route} />
+      <Route route={hike.currentLeg.route} />
       <Gpx />
       {
-        hike.elevationMarkerPos
+        hike.currentLeg.elevationMarkerPos
           ? (
             <LeafletMarker
-              position={hike.elevationMarkerPos}
+              position={hike.currentLeg.elevationMarkerPos}
               icon={hike.elevationMarkerIcon}
             />
           )

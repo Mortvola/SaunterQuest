@@ -59,23 +59,6 @@ Route.group(() => {
         Route.patch('/', 'HikesController.update');
         Route.delete('/', 'HikesController.delete');
         Route.get('/details', 'HikesController.getDetails');
-        Route.get('/route', 'RouteController.get');
-        Route.post('/route/start-point', 'RouteController.addWaypoint');
-        Route.post('/route/end-point', 'RouteController.addEndPoint');
-        Route.post('/route/waypoint', 'RouteController.addWaypoint');
-        Route.delete('/route/waypoint/:waypointId', 'RouteController.deleteWaypoint');
-
-        Route.put('/route/waypoint/:waypointId/position', 'RouteController.updateWaypointPosition');
-
-        Route.group(() => {
-          Route.get('', 'HikerProfilesController.get');
-          Route.post('', 'HikerProfilesController.addProfile');
-          Route.put('/:profileId', 'HikerProfilesController.updateProfile');
-          Route.delete('/:profileId', 'HikerProfilesController.deleteProfile');
-        })
-          .prefix('/hiker-profile');
-
-        Route.get('/schedule', 'SchedulesController.get');
 
         Route.get('/poi', 'PointsOfInterestController.get');
         Route.post('/poi', 'PointsOfInterestController.add');
@@ -86,6 +69,32 @@ Route.group(() => {
         .prefix('/:hikeId');
     })
       .prefix('/hike');
+
+    Route.group(() => {
+      Route.group(() => {
+        Route.get('/route', 'RouteController.get');
+        Route.get('/schedule', 'SchedulesController.get');
+
+        Route.group(() => {
+          Route.post('/start-point', 'RouteController.addWaypoint');
+          Route.post('/end-point', 'RouteController.addEndPoint');
+          Route.post('/waypoint', 'RouteController.addWaypoint');
+          Route.delete('/waypoint/:waypointId', 'RouteController.deleteWaypoint');
+          Route.put('/waypoint/:waypointId/position', 'RouteController.updateWaypointPosition');
+        })
+          .prefix('/route');
+
+        Route.group(() => {
+          Route.get('', 'HikerProfilesController.get');
+          Route.post('', 'HikerProfilesController.addProfile');
+          Route.put('/:profileId', 'HikerProfilesController.updateProfile');
+          Route.delete('/:profileId', 'HikerProfilesController.deleteProfile');
+        })
+          .prefix('/hiker-profile');
+      })
+        .prefix('/:hikeLegId');
+    })
+      .prefix('/hike-leg');
 
     Route.put('/photo/:photoId', 'HikesController.updatePhoto');
 

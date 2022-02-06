@@ -22,14 +22,12 @@ Leaflet.Icon.Default.imagePath = '//cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.4
 type PropsType = {
   username: string,
   tileServerUrl: string,
-  pathFinderUrl: string,
   extendedMenu: string,
 }
 
 const App = ({
   username,
   tileServerUrl,
-  pathFinderUrl,
   extendedMenu,
 }: PropsType): ReactElement => {
   usePageViews();
@@ -41,7 +39,6 @@ const App = ({
         <Route path="/hike">
           <Hike
             tileServerUrl={tileServerUrl}
-            pathFinderUrl={pathFinderUrl}
             extendedMenu={extendedMenu}
           />
         </Route>

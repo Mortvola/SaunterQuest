@@ -5,16 +5,16 @@ import { makeUseModal, ModalProps } from '@mortvola/usemodal';
 import { FormField, FormModal } from '@mortvola/forms';
 import {
   metersToMiles, milesToMeters, toTimeFloat, toTimeString,
-} from '../utilities';
-import { HikeInterface, HikerProfileInterface } from '../state/Types';
+} from '../../utilities';
+import { HikeLegInterface, HikerProfileInterface } from '../../state/Types';
 
 type PropsType = {
-  hike: HikeInterface,
+  hikeLeg: HikeLegInterface,
   profile?: HikerProfileInterface | null,
 }
 
 const HikerProfileDialog: React.FC<PropsType & ModalProps> = ({
-  hike,
+  hikeLeg,
   profile = null,
   setShow,
 }) => {
@@ -60,7 +60,7 @@ const HikerProfileDialog: React.FC<PropsType & ModalProps> = ({
       });
     }
     else {
-      hike.addHikerProfile({
+      hikeLeg.addHikerProfile({
         id: 0,
         breakDuration: parseInt(vals.breakDuration, 10),
         metersPerHour: milesToMeters(parseFloat(vals.pace)),

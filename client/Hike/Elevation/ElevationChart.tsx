@@ -5,15 +5,15 @@ import L from 'leaflet';
 import { observer } from 'mobx-react-lite';
 import Chart from 'react-google-charts';
 import { ReactGoogleChartEvent, GoogleChartWrapper, GoogleVizEventName } from 'react-google-charts/dist/types';
-import Hike from '../../state/Hike';
 import { GoogleChart } from './GoogleChart';
+import { HikeLegInterface } from '../../state/Types';
 
 type Props = {
-  hike: Hike;
+  hikeLeg: HikeLegInterface;
 }
 
 const ElevationChart = ({
-  hike,
+  hikeLeg,
 }: Props): ReactElement => {
   const [chart, setChart] = useState<GoogleChart | null>(null);
   const elevationData: Array<Array<unknown | number>> = [
@@ -23,7 +23,7 @@ const ElevationChart = ({
       { label: 'lat', role: 'data', type: 'number' },
       { label: 'lng', role: 'data', type: 'number' },
     ],
-    ...(hike.route.elevations || []),
+    ...(hikeLeg.route.elevations || []),
   ];
 
   const chartEvents: ReactGoogleChartEvent[] = [
@@ -40,7 +40,7 @@ const ElevationChart = ({
           if (elevationData[point.row + 1] !== undefined) {
             if (typeof elevationData[point.row + 1][2] === 'number'
             && typeof elevationData[point.row + 1][3] === 'number') {
-              hike.setElevationMarker(new L.LatLng(
+              hikeLeg.setElevationMarker(new L.LatLng(
                 elevationData[point.row + 1][2] as number,
                 elevationData[point.row + 1][3] as number,
               ));
@@ -58,7 +58,7 @@ const ElevationChart = ({
           readyChart as any,
           'onmouseout' as GoogleVizEventName,
           () => {
-            hike.setElevationMarker(null);
+            hikeLeg.setElevationMarker(null);
           },
         );
 

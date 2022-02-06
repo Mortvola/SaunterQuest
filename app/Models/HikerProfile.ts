@@ -14,7 +14,7 @@ export default class HikerProfile extends BaseModel {
   public updatedAt: DateTime
 
   @column({ serializeAs: null })
-  public hikeId: number;
+  public hikeLegId: number;
 
   @column({ serializeAs: 'startDay' })
   public startDay: number | null;

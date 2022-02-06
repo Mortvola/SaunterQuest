@@ -22,6 +22,9 @@ export default class RoutePoint extends BaseModel {
   public updatedAt: DateTime;
 
   @column()
+  public hikeLegId: number;
+
+  @column()
   public lat: number;
 
   @column()
@@ -45,13 +48,13 @@ export default class RoutePoint extends BaseModel {
   public nextFraction: number | null;
 
   @column({ serializeAs: null })
-  public hikeId: number;
+  public legId: number;
 
   @column({ serializeAs: null })
   public sortOrder: number;
 
   @computed()
-  public trail: Array<Point> | null;
+  public trail: Point[] | null;
 
   @computed()
   public trailLength = 0;

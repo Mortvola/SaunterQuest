@@ -1,6 +1,7 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import Database from '@ioc:Adonis/Lucid/Database';
 import Hike from 'App/Models/Hike';
+import HikeLeg from 'App/Models/HikeLeg';
 import RoutePoint from 'App/Models/RoutePoint';
 import Point from 'App/Types/Point';
 import { RouteUpdateResponse } from 'common/ResponseTypes';
@@ -8,9 +9,9 @@ import { RouteUpdateResponse } from 'common/ResponseTypes';
 export default class RouteController {
   // eslint-disable-next-line class-methods-use-this
   public async get({ params }: HttpContextContract) : Promise<RoutePoint[]> {
-    const hike = await Hike.findOrFail(params.hikeId);
+    const leg = await HikeLeg.findOrFail(params.hikeLegId);
 
-    return hike.getFullRoute();
+    return leg.getFullRoute();
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -22,13 +23,15 @@ export default class RouteController {
     const point = request.body() as Point;
 
     const updates = await Database.transaction(async (trx) => {
-      const hike = await Hike.findOrFail(params.hikeId);
-      hike.useTransaction(trx);
-      await hike.load('routePoints');
+      const leg = await HikeLeg.findOrFail(params.hikeLegId);
+      const hike = await Hike.findOrFail(leg.hikeId);
 
-      const result = hike.addEndpoint(point);
+      leg.useTransaction(trx);
+      await leg.load('routePoints');
 
-      await RouteController.markScheduleDirty(hike);
+      const result = leg.addEndpoint(hike.routeGroupId, point);
+
+      await RouteController.markScheduleDirty(leg);
 
       return result;
     });
@@ -46,14 +49,16 @@ export default class RouteController {
     const point = request.body() as Point;
 
     const updates = await Database.transaction(async (trx) => {
-      const hike = await Hike.findOrFail(parseInt(params.hikeId, 10));
-      hike.useTransaction(trx);
-      await hike.load('routePoints');
-      await hike.loadTrails();
+      const leg = await HikeLeg.findOrFail(parseInt(params.hikeLegId, 10));
+      const hike = await Hike.findOrFail(leg.hikeId);
 
-      const result = hike.addWaypoint(point);
+      leg.useTransaction(trx);
+      await leg.load('routePoints');
+      await leg.loadTrails();
 
-      await RouteController.markScheduleDirty(hike);
+      const result = leg.addWaypoint(hike.routeGroupId, point);
+
+      await RouteController.markScheduleDirty(leg);
 
       return result;
     });
@@ -71,13 +76,17 @@ export default class RouteController {
     const point = request.body() as Point;
 
     const updates = await Database.transaction(async (trx) => {
-      const hike = await Hike.findOrFail(parseInt(params.hikeId, 10));
-      hike.useTransaction(trx);
-      await hike.load('routePoints');
+      const leg = await HikeLeg.findOrFail(parseInt(params.hikeLegId, 10));
+      const hike = await Hike.findOrFail(leg.hikeId);
 
-      const result = hike.updateWaypointPosition(parseInt(params.waypointId, 10), point);
+      leg.useTransaction(trx);
+      await leg.load('routePoints');
 
-      await RouteController.markScheduleDirty(hike);
+      const result = leg.updateWaypointPosition(
+        hike.routeGroupId, parseInt(params.waypointId, 10), point,
+      );
+
+      await RouteController.markScheduleDirty(leg);
 
       return result;
     });
@@ -89,13 +98,15 @@ export default class RouteController {
   // eslint-disable-next-line class-methods-use-this
   public async deleteWaypoint({ params }: HttpContextContract): Promise<RouteUpdateResponse> {
     const updates = await Database.transaction(async (trx) => {
-      const hike = await Hike.findOrFail(parseInt(params.hikeId, 10));
-      hike.useTransaction(trx);
-      await hike.load('routePoints');
+      const leg = await HikeLeg.findOrFail(parseInt(params.hikeLegId, 10));
+      const hike = await Hike.findOrFail(leg.hikeId);
 
-      const result = hike.deleteWaypoint(parseInt(params.waypointId, 10));
+      leg.useTransaction(trx);
+      await leg.load('routePoints');
 
-      await RouteController.markScheduleDirty(hike);
+      const result = leg.deleteWaypoint(hike.routeGroupId, parseInt(params.waypointId, 10));
+
+      await RouteController.markScheduleDirty(leg);
 
       return result;
     });
@@ -103,12 +114,12 @@ export default class RouteController {
     return updates;
   }
 
-  private static async markScheduleDirty(hike: Hike) {
-    await hike.load('schedule');
+  private static async markScheduleDirty(hikeLeg: HikeLeg) {
+    await hikeLeg.load('schedule');
 
-    if (hike.schedule) {
-      hike.schedule.update = true;
-      await hike.related('schedule').save(hike.schedule);
+    if (hikeLeg.schedule) {
+      hikeLeg.schedule.update = true;
+      await hikeLeg.related('schedule').save(hikeLeg.schedule);
     }
   }
 }

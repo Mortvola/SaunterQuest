@@ -64,7 +64,7 @@ const MoreControl: FC<PropsType> = ({
 
   const handleSteepnessChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     if (event.target.checked) {
-      hike.route.generateGradeSegments();
+      hike.currentLeg.route.generateGradeSegments();
     }
 
     setSteepness(event.target.checked);
