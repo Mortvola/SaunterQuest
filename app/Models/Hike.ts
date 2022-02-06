@@ -8,7 +8,6 @@ import {
 // eslint-disable-next-line import/no-unresolved
 } from '@ioc:Adonis/Lucid/Orm';
 // eslint-disable-next-line import/no-unresolved
-import RoutePoint from 'App/Models/RoutePoint';
 import User from 'App/Models/User';
 import PointOfInterest from 'App/Models/PointOfInterest';
 import HikeLeg from 'App/Models/HikeLeg';
@@ -43,25 +42,28 @@ export default class Hike extends BaseModel {
   @hasMany(() => PointOfInterest)
   public pointsOfInterest: HasMany<typeof PointOfInterest>;
 
+  // eslint-disable-next-line class-methods-use-this
   public async getDuration(this: Hike): Promise<number> {
-    await this.load('schedule');
+    // await this.load('schedule');
 
-    if (this.schedule) {
-      const result = await this.schedule.related('days').query();
+    // if (this.schedule) {
+    //   const result = await this.schedule.related('days').query();
 
-      return result.length;
-    }
+    //   return result.length;
+    // }
 
     return 0;
   }
 
+  // eslint-disable-next-line class-methods-use-this
   public async getDistance(): Promise<number> {
-    const route = await this.getFullRoute();
+    // const route = await this.getFullRoute();
 
-    const distance = route.reduce((sum: number, routePoint: RoutePoint) => (
-      sum + routePoint.trailLength
-    ), 0);
+    // const distance = route.reduce((sum: number, routePoint: RoutePoint) => (
+    //   sum + routePoint.trailLength
+    // ), 0);
 
-    return distance;
+    // return distance;
+    return 0;
   }
 }
