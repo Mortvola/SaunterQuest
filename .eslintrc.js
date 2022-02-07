@@ -54,6 +54,8 @@ module.exports = {
       'plugin:react/recommended',
       'plugin:@typescript-eslint/eslint-recommended',
       'plugin:@typescript-eslint/recommended',
+      "plugin:import/recommended",
+      "plugin:import/typescript",
     ],
     parser: "@typescript-eslint/parser",
     parserOptions: {
@@ -91,6 +93,8 @@ module.exports = {
       'react/require-default-props': ['off'],
       'jsx-a11y/click-events-have-key-events': ['off'],
       'jsx-a11y/no-static-element-interactions': ['off'],
+      'jsx-a11y/label-has-associated-control': ['off'],
+      'react/function-component-definition': [2, { 'namedComponents': 'arrow-function' }],
     }
   }]
 };
