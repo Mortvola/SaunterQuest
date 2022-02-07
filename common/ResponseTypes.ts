@@ -129,3 +129,8 @@ export type BlogProps = {
   title: string,
   hikeId: number,
 };
+
+export type HikeLegProps = {
+  id: number,
+  name: string | null,
+};

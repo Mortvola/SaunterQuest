@@ -1,4 +1,6 @@
 import React, { ReactElement, useState } from 'react';
+import { Button } from 'react-bootstrap';
+import { observer } from 'mobx-react-lite';
 import { HikeInterface } from '../../state/Types';
 import Schedule from './Schedule';
 import HikerProfiles from './HikerProfiles';
@@ -12,28 +14,34 @@ type PropsType = {
   hike: HikeInterface,
 }
 
-const Controls = ({
+const Controls = observer(({
   hike,
 }: PropsType): ReactElement => {
-  // const handleResupplyClick = () => {
-  //   loadResupply(hike.id);
-  // };
   const [selection, setSelection] = useState<string>('schedule');
 
   const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelection(event.target.value);
   };
 
+  const handleAddLegClick: React.MouseEventHandler = () => {
+    hike.addLeg();
+  };
+
+  const handleLegChange: React.ChangeEventHandler<HTMLSelectElement> = (event) => {
+    hike.setCurrentLeg(parseInt(event.target.value, 10));
+  };
+
   return (
     <div className={styles.controlsGridItem}>
       <div>
-        <select>
+        <select value={hike.currentLeg?.id} onChange={handleLegChange}>
           {
             hike.hikeLegs.map((hl) => (
-              <option key={hl.id}>{hl.id}</option>
+              <option key={hl.id} value={hl.id}>{hl.id}</option>
             ))
           }
         </select>
+        <Button onClick={handleAddLegClick}>Add Leg</Button>
       </div>
       <div className={styles.legControls}>
         <select onChange={handleSelectChange}>
@@ -52,7 +60,9 @@ const Controls = ({
             switch (selection) {
               case 'schedule':
                 return (
-                  <Schedule hikeLeg={hike.currentLeg} />
+                  hike.currentLeg
+                    ? <Schedule hikeLeg={hike.currentLeg} />
+                    : null
                 );
 
               case 'trailConditions':
@@ -60,7 +70,9 @@ const Controls = ({
 
               case 'hikerProfiles':
                 return (
-                  <HikerProfiles hikeLeg={hike.currentLeg} />
+                  hike.currentLeg
+                    ? <HikerProfiles hikeLeg={hike.currentLeg} />
+                    : null
                 );
 
               case 'equipment':
@@ -92,6 +104,6 @@ const Controls = ({
       </div>
     </div>
   );
-};
+});
 
 export default Controls;

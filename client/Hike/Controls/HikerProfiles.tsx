@@ -9,18 +9,10 @@ type PropsType = {
   hikeLeg: HikeLegInterface,
 }
 
-const HikerProfiles = ({
+const HikerProfiles = observer(({
   hikeLeg,
 }: PropsType) => {
-  const [initialized, setInitialized] = useState(false);
   const [HikerProfilDialog, showHikerProfileDialog] = useHikerProfileDialog();
-
-  useEffect(() => {
-    if (!initialized) {
-      setInitialized(true);
-      hikeLeg.requestHikerProfiles();
-    }
-  }, [hikeLeg, initialized]);
 
   return (
     <div className="profiles">
@@ -44,6 +36,6 @@ const HikerProfiles = ({
       <HikerProfilDialog hikeLeg={hikeLeg} />
     </div>
   );
-};
+});
 
-export default observer(HikerProfiles);
+export default HikerProfiles;

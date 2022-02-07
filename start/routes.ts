@@ -20,6 +20,7 @@
 
 import HealthCheck from '@ioc:Adonis/Core/HealthCheck';
 import Route from '@ioc:Adonis/Core/Route';
+import HikesController from 'App/Controllers/Http/HikesController';
 
 Route.get('/', 'HomeController.index');
 Route.get('/gear', 'HomeController.index');
@@ -65,6 +66,8 @@ Route.group(() => {
 
         Route.post('/photo-upload', 'HikesController.uploadPhoto');
         Route.get('/photo/:photoId', 'HikesController.getPhoto');
+
+        Route.post('/hike-leg', 'HikesController.addLeg');
       })
         .prefix('/:hikeId');
     })

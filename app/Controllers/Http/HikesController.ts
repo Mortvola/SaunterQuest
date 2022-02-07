@@ -6,6 +6,8 @@ import Hike from 'App/Models/Hike';
 import Drive from '@ioc:Adonis/Core/Drive';
 import { extname } from 'path';
 import sharp from 'sharp';
+import { HikeLegProps } from 'common/ResponseTypes';
+import HikeLeg from 'App/Models/HikeLeg';
 
 export default class HikesController {
   // eslint-disable-next-line class-methods-use-this
@@ -188,5 +190,25 @@ export default class HikesController {
       })
       .from('hike_photos')
       .where('id', params.photoId);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async addLeg({
+    auth: {
+      user,
+    },
+    params,
+  }: HttpContextContract): Promise<HikeLegProps> {
+    if (!user) {
+      throw new Exception('user unauthorized');
+    }
+
+    const leg = await HikeLeg.create({
+      hikeId: parseInt(params.hikeId, 10),
+    });
+
+    await leg.save();
+
+    return leg;
   }
 }

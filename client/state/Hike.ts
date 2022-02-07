@@ -1,4 +1,4 @@
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, runInAction } from 'mobx';
 import Http from '@mortvola/http';
 import L from 'leaflet';
 import Map from './Map';
@@ -7,7 +7,7 @@ import {
 } from './Types';
 import { createIcon } from '../Hike/mapUtils';
 import { redCircle } from './PointsOfInterest/Icons';
-import { HikeProps } from '../../common/ResponseTypes';
+import { HikeLegProps, HikeProps } from '../../common/ResponseTypes';
 import Marker from './Marker';
 import HikeLeg from './HikeLeg';
 
@@ -26,7 +26,7 @@ class Hike implements HikeInterface {
 
   hikeLegs: HikeLeg[] = [];
 
-  currentLeg: HikeLeg;
+  currentLeg: HikeLeg | null = null;
 
   camps: Marker[] = [];
 
@@ -37,8 +37,6 @@ class Hike implements HikeInterface {
   elevationMarkerIcon = createIcon(redCircle);
 
   constructor(props: HikeProps) {
-    makeAutoObservable(this);
-
     this.map = new Map(this);
 
     this.id = props.id;
@@ -49,11 +47,11 @@ class Hike implements HikeInterface {
 
     this.hikeLegs = props.hikeLegs.map((hl) => new HikeLeg(hl, this.map));
 
-    [this.currentLeg] = this.hikeLegs;
-
-    this.currentLeg.load();
+    this.setCurrentLeg(this.hikeLegs[0]);
 
     this.requestPointsOfInterest();
+
+    makeAutoObservable(this);
   }
 
   async updateSettings(name: string, routeGroupId: number | null): Promise<void> {
@@ -81,7 +79,7 @@ class Hike implements HikeInterface {
     //     )));
     //   });
     // }
-  }
+  };
 
   // eslint-disable-next-line class-methods-use-this
   addCamp(latLng: L.LatLng): void {
@@ -108,10 +106,47 @@ class Hike implements HikeInterface {
 
   addWater = async (latLng: L.LatLng): Promise<void> => {
     this.addPOI(latLng, 'water');
-  }
+  };
 
   addResupply = async (latLng: L.LatLng): Promise<void> => {
     this.addPOI(latLng, 'resupply');
+  };
+
+  async addLeg(): Promise<void> {
+    const response = await Http.post<void, HikeLegProps>(`/api/hike/${this.id}/hike-leg`);
+
+    if (response.ok) {
+      const body = await response.body();
+
+      runInAction(() => {
+        const newLeg = new HikeLeg(body, this.map);
+        this.hikeLegs.push(newLeg);
+
+        this.setCurrentLeg(newLeg);
+      });
+    }
+  }
+
+  setCurrentLeg(leg: number | HikeLeg): void {
+    runInAction(() => {
+      let newLeg: number | HikeLeg | undefined = leg;
+      if (typeof leg === 'number') {
+        newLeg = this.hikeLegs.find((l) => l.id === leg);
+      }
+
+      if (newLeg) {
+        if (typeof newLeg === 'number') {
+          throw new Error('newLeg is a number');
+        }
+
+        if (this.currentLeg) {
+          this.currentLeg.unload();
+        }
+
+        this.currentLeg = newLeg;
+        this.currentLeg.load();
+      }
+    });
   }
 }
 

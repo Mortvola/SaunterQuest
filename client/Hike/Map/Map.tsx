@@ -63,7 +63,7 @@ const Map: FC<Props> = ({
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    if (hike.currentLeg.route.bounds
+    if (hike.currentLeg && hike.currentLeg.route.bounds
       && !initialized
     ) {
       try {
@@ -79,7 +79,7 @@ const Map: FC<Props> = ({
         console.log(error);
       }
     }
-  }, [initialized, leafletMap, hike.currentLeg.route.bounds]);
+  }, [initialized, leafletMap, hike.currentLeg, hike.currentLeg?.route.bounds]);
 
   useEffect(() => {
     if (hike.map) {
@@ -88,39 +88,42 @@ const Map: FC<Props> = ({
   }, [hike.map, leafletMap]);
 
   const dropWaypoint = (event: L.LeafletMouseEvent) => {
-    hike.currentLeg.route.addEndWaypoint(event.latlng);
+    hike.currentLeg?.route.addEndWaypoint(event.latlng);
   };
 
   const makeContextMenu = useCallback((position: L.LatLng): MenuItem[] => {
     const findSteepestPoint = () => {
-      const steepestPoint = hike.currentLeg.route.findSteepestPoint();
+      const steepestPoint = hike.currentLeg?.route.findSteepestPoint();
     };
 
     const mapMenuItems: MenuItem[] = [];
 
-    if (hike.currentLeg.route.anchors.length === 0) {
+    if (hike.currentLeg?.route.anchors.length === 0) {
       mapMenuItems.push({
-        label: 'Add Waypoint', callback: (latlng: L.LatLng) => hike.currentLeg.route.addStartWaypoint(latlng),
+        label: 'Add Waypoint', callback: (latlng: L.LatLng) => hike.currentLeg?.route.addStartWaypoint(latlng),
       });
     }
-    else if (hike.currentLeg.route.anchors.length === 1) {
+    else if (hike.currentLeg?.route.anchors.length === 1) {
       mapMenuItems.splice(
-        mapMenuItems.length, 0,
-        { label: 'Prepend Waypoint', callback: (latlng: L.LatLng) => hike.currentLeg.route.addStartWaypoint(latlng) },
-        { label: 'Append Waypoint', callback: (latlng: L.LatLng) => hike.currentLeg.route.addEndWaypoint(latlng) },
+        mapMenuItems.length,
+        0,
+        { label: 'Prepend Waypoint', callback: (latlng: L.LatLng) => hike.currentLeg?.route.addStartWaypoint(latlng) },
+        { label: 'Append Waypoint', callback: (latlng: L.LatLng) => hike.currentLeg?.route.addEndWaypoint(latlng) },
       );
     }
     else {
       mapMenuItems.splice(
-        mapMenuItems.length, 0,
-        { label: 'Prepend Waypoint', callback: (latlng: L.LatLng) => hike.currentLeg.route.addStartWaypoint(latlng) },
-        { label: 'Insert Waypoint', callback: (latlng: L.LatLng) => hike.currentLeg.route.addWaypoint(latlng) },
-        { label: 'Append Waypoint', callback: (latlng: L.LatLng) => hike.currentLeg.route.addEndWaypoint(latlng) },
+        mapMenuItems.length,
+        0,
+        { label: 'Prepend Waypoint', callback: (latlng: L.LatLng) => hike.currentLeg?.route.addStartWaypoint(latlng) },
+        { label: 'Insert Waypoint', callback: (latlng: L.LatLng) => hike.currentLeg?.route.addWaypoint(latlng) },
+        { label: 'Append Waypoint', callback: (latlng: L.LatLng) => hike.currentLeg?.route.addEndWaypoint(latlng) },
       );
     }
 
     mapMenuItems.splice(
-      mapMenuItems.length, 0,
+      mapMenuItems.length,
+      0,
       { type: 'separator', label: '', callback: () => null },
       { label: 'Add Camp', callback: (latlng: L.LatLng) => hike.addCamp(latlng) },
       { label: 'Add Water', callback: (latlng: L.LatLng) => hike.addWater(latlng) },
@@ -206,13 +209,21 @@ const Map: FC<Props> = ({
               : null
           }
           <SelectedMarkers markers={hike.map.selectedMarkers} />
-          <ElevationChart hikeLeg={hike.currentLeg} />
+          {
+            hike.currentLeg
+              ? <ElevationChart hikeLeg={hike.currentLeg} />
+              : null
+          }
         </div>
       </MapDrawer>
-      <Route route={hike.currentLeg.route} />
+      {
+        hike.currentLeg
+          ? <Route route={hike.currentLeg.route} />
+          : null
+      }
       <Gpx />
       {
-        hike.currentLeg.elevationMarkerPos
+        hike.currentLeg && hike.currentLeg.elevationMarkerPos
           ? (
             <LeafletMarker
               position={hike.currentLeg.elevationMarkerPos}

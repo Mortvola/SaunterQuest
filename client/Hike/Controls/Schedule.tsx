@@ -12,7 +12,7 @@ type PropsType = {
   hikeLeg: HikeLegInterface,
 }
 
-const Schedule = ({
+const Schedule = observer(({
   hikeLeg,
 }: PropsType): ReactElement => {
   const positionMapToDay = (d: number) => {
@@ -76,49 +76,6 @@ const Schedule = ({
       }
     </div>
   );
+});
 
-  // const processResponse = (days) => {
-
-  //     if (this.days != null) {
-  //         for (let d = 0; d < this.days.length; d += 1) {
-  //             if (d > 0) {
-  //                 // Add a day marker, if needed.
-  //                 if (d - 1 >= this.dayMarkers.length) {
-  //                     if (this.days[d].camp !== null) {
-  //                         if (this.days[d].camp.type === 'waypoint') {
-  //                             getRoute().setWaypointAsCamp(this.days[d].camp.id);
-  //                         }
-
-  //                         this.dayMarkers.push(null);
-  //                     }
-  //                     else {
-  //                         this.dayMarkers.push(
-  //                             new EndOfDayMarker(
-  //                                 this.map, this.days[d].camped ? campUrl : endOfDayUrl,
-  //                             ),
-  //                         );
-  //                     }
-  //                 }
-
-  //                 if (this.dayMarkers[d - 1]) {
-  //                     this.dayMarkers[d - 1].setDay(d, this.days[d]);
-  //                 }
-  //             }
-  //         }
-  //     }
-
-  //     //
-  //     // Remove any remaining markers at the end of the array that are in
-  //     // excess.
-  //     //
-  //     if (this.days != null && this.days.length < this.dayMarkers.length) {
-  //         for (let i = this.days.length - 1; i < this.dayMarkers.length; i += 1) {
-  //             this.dayMarkers[i].removeMarker();
-  //         }
-
-  //         this.dayMarkers.splice(this.days.length, this.dayMarkers.length - this.days.length);
-  //     }
-  // };
-};
-
-export default observer(Schedule);
+export default Schedule;

@@ -1,17 +1,12 @@
 import Http from '@mortvola/http';
 import { makeAutoObservable, runInAction } from 'mobx';
 import L from 'leaflet';
-import { DayProps } from '../../common/ResponseTypes';
+import { DayProps, HikeLegProps } from '../../common/ResponseTypes';
 import HikerProfile from './HikerProfile';
 import Map from './Map';
 import Route from './Route';
 import { HikeLegInterface, Day, ProfileProps } from './Types';
 import DayPoi from './PointsOfInterest/Day';
-
-type HikeLegProps = {
-  id: number,
-  name: string | null,
-}
 
 class HikeLeg implements HikeLegInterface {
   id: number;
@@ -40,6 +35,20 @@ class HikeLeg implements HikeLegInterface {
 
   load(): void {
     this.route.requestRoute();
+    this.requestHikerProfiles();
+  }
+
+  clearDayMarkers() {
+    this.schedule.forEach((d) => {
+      if (d.endOfDayPOI) {
+        d.endOfDayPOI.marker.remove();
+      }
+    });
+  }
+
+  unload() {
+    this.clearDayMarkers();
+    this.route.clearWaypoints();
   }
 
   async requestSchedule(): Promise<void> {
@@ -52,12 +61,7 @@ class HikeLeg implements HikeLegInterface {
         runInAction(() => {
           let meters = 0;
 
-          // Remove the current day markers
-          this.schedule.forEach((d) => {
-            if (d.endOfDayPOI) {
-              d.endOfDayPOI.marker.remove();
-            }
-          });
+          this.clearDayMarkers();
 
           this.schedule = schedule.map((d, index) => {
             const day: Day = {
@@ -162,7 +166,7 @@ class HikeLeg implements HikeLegInterface {
         this.hikerProfiles.push(new HikerProfile(body, this));
       });
     }
-  }
+  };
 
   async deleteHikerProfile(id: number): Promise<void> {
     type DeleteHikerProfileResponse = unknown;

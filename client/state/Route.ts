@@ -28,6 +28,14 @@ class Route implements RouteInterface {
     makeAutoObservable(this);
   }
 
+  clearWaypoints() {
+    this.anchors.forEach((a) => {
+      if (['start', 'finish', 'waypoint'].includes(a.marker.type)) {
+        this.hikeLeg.map.removeMarker(a);
+      }
+    });
+  }
+
   async requestRoute(): Promise<void> {
     try {
       const response = await Http.get<AnchorProps[]>(`/api/hike-leg/${this.hikeLeg.id}/route`);
@@ -42,6 +50,8 @@ class Route implements RouteInterface {
             if (map === null) {
               throw new Error('map is null');
             }
+
+            this.clearWaypoints();
 
             resetWaypointLabel();
             if (route.length > 0) {

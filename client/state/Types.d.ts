@@ -60,9 +60,13 @@ export interface HikeInterface {
 
   hikeLegs: HikeLegInterface[];
 
-  currentLeg: HikeLegInterface;
+  currentLeg: HikeLegInterface | null;
 
   updateSettings(name: string, routeGroupId: number | null): Promise<void>;
+
+  addLeg(): Promise<void>;
+
+  setCurrentLeg(id: number): void;
 }
 
 export interface MapInterface {
