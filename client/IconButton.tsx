@@ -1,7 +1,15 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
-const IconButton = ({
+type PropsType = {
+  icon: string;
+  invert?: boolean,
+  rotate?: boolean;
+  className?: string,
+  style?: React.CSSProperties,
+  onClick?: () => void;
+}
+
+const IconButton: React.FC<PropsType> = ({
   icon,
   invert,
   rotate,
@@ -29,22 +37,6 @@ const IconButton = ({
       <i className={iconClassName} />
     </div>
   );
-};
-
-IconButton.propTypes = {
-  icon: PropTypes.string.isRequired,
-  invert: PropTypes.bool,
-  onClick: PropTypes.func.isRequired,
-  rotate: PropTypes.bool,
-  className: PropTypes.string,
-  style: PropTypes.shape(),
-};
-
-IconButton.defaultProps = {
-  className: '',
-  rotate: false,
-  invert: false,
-  style: null,
 };
 
 export default IconButton;
