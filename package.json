@@ -71,7 +71,7 @@
     "@babel/core": "^7.17.0",
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-react": "^7.16.7",
-    "@types/google.visualization": "0.0.60",
+    "@types/google.visualization": "^0.0.68",
     "@types/jsonwebtoken": "^8.5.8",
     "@types/leaflet": "^1.7.9",
     "@types/leaflet.markercluster": "^1.4.6",
