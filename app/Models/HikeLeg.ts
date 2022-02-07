@@ -33,15 +33,19 @@ type SrcPoint = {
   }
 }
 
+type Path = {
+  anchors: SrcPoint[][],
+};
+
 export default class HikeLeg extends BaseModel {
   @column({ isPrimary: true })
-  public id: number
+  public id: number;
 
   @column.dateTime({ autoCreate: true, serializeAs: null })
-  public createdAt: DateTime
+  public createdAt: DateTime;
 
   @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
-  public updatedAt: DateTime
+  public updatedAt: DateTime;
 
   @column()
   public name: string;
@@ -311,7 +315,7 @@ export default class HikeLeg extends BaseModel {
     }
   }
 
-  private static async findPath(routeGroupId: number | null, anchors: RoutePoint[]) {
+  private static async findPath(routeGroupId: number | null, anchors: RoutePoint[]): Promise<Path> {
     const points = anchors.map((anchor) => ({ lat: anchor.lat, lng: anchor.lng }));
 
     const encodedPoints = encodeURIComponent(JSON.stringify(points));
@@ -326,7 +330,7 @@ export default class HikeLeg extends BaseModel {
       throw (new Error(`Fetch from pathFinder failed: ${response.statusText}`));
     }
 
-    const path = response.json();
+    const path = response.json() as Promise<Path>;
 
     if (path === null) {
       throw (new Error(`Path could not be determined from points: ${JSON.stringify(points)}`));

@@ -13,10 +13,10 @@ export default class RoutePoint extends BaseModel {
   public static table = 'route_point';
 
   @column({ isPrimary: true })
-  public id: number
+  public id: number;
 
   @column.dateTime({ autoCreate: true, serializeAs: null })
-  public createdAt: DateTime
+  public createdAt: DateTime;
 
   @column.dateTime({ autoCreate: true, autoUpdate: true, serializeAs: null })
   public updatedAt: DateTime;
@@ -103,8 +103,7 @@ export default class RoutePoint extends BaseModel {
           .map((c: DatabasePoint, index: number) => {
             if (index > 0) {
               distance += Router.haversineGreatCircleDistance(
-                coordinates[index - 1][1], coordinates[index - 1][0],
-                c[1], c[0],
+                coordinates[index - 1][1], coordinates[index - 1][0], c[1], c[0],
               );
             }
 
@@ -122,17 +121,14 @@ export default class RoutePoint extends BaseModel {
   }
 
   public static async getElevation(lat: number, lng: number) : Promise<number | null> {
-    const elevation = await fetch(`${Env.get('PATHFINDER_INTERNAL_URL')}/elevation/point?lat=${lat}&lng=${lng}`)
-      .then((response) => {
-        if (response.ok) {
-          return response.json();
-        }
+    const response = await fetch(`${Env.get('PATHFINDER_INTERNAL_URL')}/elevation/point?lat=${lat}&lng=${lng}`);
 
-        return null;
-      });
+    if (response.ok) {
+      const elevation = (await response.json()) as { ele: number };
 
-    if (elevation) {
-      return elevation.ele;
+      if (elevation) {
+        return elevation.ele;
+      }
     }
 
     return null;

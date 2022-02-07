@@ -46,7 +46,7 @@ class Router {
     const response = await fetch(`${Env.get('PATHFINDER_INTERNAL_URL')}/map/trail-from-point/${point.lat}/${point.lng}`);
 
     if (response.ok) {
-      const trailInfo = await response.json();
+      const trailInfo = (await response.json()) as TrailInfo;
 
       if (trailInfo === null) {
         throw (new Error(`Trail information could not be determined from point: ${JSON.stringify(point)}`));

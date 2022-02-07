@@ -95,6 +95,7 @@ module.exports = {
       'jsx-a11y/no-static-element-interactions': ['off'],
       'jsx-a11y/label-has-associated-control': ['off'],
       'react/function-component-definition': [2, { 'namedComponents': 'arrow-function' }],
+      'function-paren-newline': ['off'],
     }
   }]
 };
