@@ -1,5 +1,5 @@
 import React, {
-  ReactElement, useEffect, useRef, useState,
+  useEffect, useRef, useState,
 } from 'react';
 import L from 'leaflet';
 import { observer } from 'mobx-react-lite';
@@ -8,13 +8,13 @@ import { ReactGoogleChartEvent, GoogleChartWrapper, GoogleVizEventName } from 'r
 import { GoogleChart } from './GoogleChart';
 import { HikeLegInterface } from '../../state/Types';
 
-type Props = {
+type PropsType = {
   hikeLeg: HikeLegInterface;
 }
 
-const ElevationChart = ({
+const ElevationChart: React.FC<PropsType> = ({
   hikeLeg,
-}: Props): ReactElement => {
+}) => {
   const [chart, setChart] = useState<GoogleChart | null>(null);
   const elevationData: Array<Array<unknown | number>> = [
     [
