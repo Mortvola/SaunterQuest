@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
 import Http from '@mortvola/http';
 
-const EditableText = ({
+type PropsType = {
+  defaultValue: string,
+  url: string,
+  prop: string,
+}
+
+const EditableText: React.FC<PropsType> = ({
   defaultValue,
   url,
   prop,
@@ -10,7 +15,7 @@ const EditableText = ({
   const [value, setValue] = useState(defaultValue);
   const [editing, setEditing] = useState(false);
 
-  const handleChange = (event) => {
+  const handleChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     setValue(event.target.value);
   };
 
@@ -63,16 +68,6 @@ const EditableText = ({
       }
     </div>
   );
-};
-
-EditableText.propTypes = {
-  defaultValue: PropTypes.string,
-  url: PropTypes.string.isRequired,
-  prop: PropTypes.string.isRequired,
-};
-
-EditableText.defaultProps = {
-  defaultValue: null,
 };
 
 export default EditableText;
