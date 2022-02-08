@@ -8,6 +8,7 @@ import { extname } from 'path';
 import sharp from 'sharp';
 import { HikeLegProps } from 'common/ResponseTypes';
 import HikeLeg from 'App/Models/HikeLeg';
+import HikerProfile from 'App/Models/HikerProfile';
 
 export default class HikesController {
   // eslint-disable-next-line class-methods-use-this
@@ -203,11 +204,33 @@ export default class HikesController {
       throw new Exception('user unauthorized');
     }
 
-    const leg = await HikeLeg.create({
-      hikeId: parseInt(params.hikeId, 10),
-    });
+    const trx = await Database.transaction();
+
+    const leg = await HikeLeg.create(
+      { hikeId: parseInt(params.hikeId, 10) },
+      { client: trx },
+    );
 
     await leg.save();
+
+    const defaultProfile = await user.related('hikerProfile').query().first();
+
+    const profile = await HikerProfile.create(
+      {
+        startDay: 0,
+        startTime: defaultProfile?.startTime ?? 8,
+        endTime: defaultProfile?.endTime ?? 18,
+        metersPerHour: defaultProfile?.metersPerHour ?? 4023.36,
+        breakDuration: defaultProfile?.breakDuration ?? 60,
+        endDayExtension: defaultProfile?.endDayExtension ?? 60,
+        hikeLegId: leg.id,
+      },
+      { client: trx },
+    );
+
+    await profile.save();
+
+    trx.commit();
 
     return leg;
   }

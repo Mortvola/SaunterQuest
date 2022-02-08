@@ -61,6 +61,11 @@ class HikerProfile implements HikerProfileInterface {
 
       runInAction(() => {
         this.metersPerHour = body.metersPerHour;
+        this.startTime = body.startTime;
+        this.endTime = body.endTime;
+        this.startDay = body.startDay;
+        this.breakDuration = body.breakDuration;
+        this.endDayExtension = body.endDayExtension;
         // this.hikerProfiles.push(new HikerProfile(body));
       });
 

@@ -15,25 +15,25 @@ import GearItem from './GearItem';
 
 export default class User extends BaseModel {
   @column({ isPrimary: true })
-  public id: number
+  public id: number;
 
   @column()
-  public username: string
+  public username: string;
 
   @column()
-  public email: string
+  public email: string;
 
   @column({ serializeAs: null })
-  public password: string
+  public password: string;
 
   @column({ serializeAs: null })
-  public rememberMeToken?: string
+  public rememberMeToken?: string;
 
   @column.dateTime({ autoCreate: true })
-  public createdAt: DateTime
+  public createdAt: DateTime;
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
-  public updatedAt: DateTime
+  public updatedAt: DateTime;
 
   @column()
   public admin: boolean;
@@ -58,11 +58,11 @@ export default class User extends BaseModel {
   }
 
   @hasMany(() => Hike)
-  public hikes: HasMany<typeof Hike>
+  public hikes: HasMany<typeof Hike>;
 
   @hasMany(() => GearConfiguration)
-  public gearConfigurations: HasMany<typeof GearConfiguration>
+  public gearConfigurations: HasMany<typeof GearConfiguration>;
 
   @hasMany(() => GearItem)
-  public gearItems: HasMany<typeof GearItem>
+  public gearItems: HasMany<typeof GearItem>;
 }

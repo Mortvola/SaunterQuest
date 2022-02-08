@@ -7,6 +7,7 @@ import {
   metersToMiles, milesToMeters, toTimeFloat, toTimeString,
 } from '../../utilities';
 import { HikeLegInterface, HikerProfileInterface } from '../../state/Types';
+import styles from './HikerProfileDialog.module.css';
 
 type PropsType = {
   hikeLeg: HikeLegInterface,
@@ -97,40 +98,22 @@ const HikerProfileDialog: React.FC<PropsType & ModalProps> = ({
       validate={handleValidate}
       setShow={setShow}
     >
-      <div className="two-column">
+      <div className={styles.twoColumn}>
+        <FormField type="number" name="startDay" label="Effective Day:" />
+        <div />
+
         <FormField type="text" name="pace" label="Average Flat Ground Speed (mph):" />
-        <br />
+        <div />
 
-        <label>
-          Start Day:
-          <Field type="number" className="form-control" name="startDay" />
-        </label>
+        <FormField type="time" name="startTime" label="Daily Start Time" />
+        <FormField type="time" name="endTime" label="Daily End Time" />
 
-        <label>
-          End Day:
-          <Field type="number" className="form-control" name="endDay" />
-        </label>
+        <FormField type="number" name="breakDuration" label="Daily Break Duration (minutes):" />
+        <div />
 
-        <label>
-          Daily Start Time:
-          <Field type="time" className="form-control" name="startTime" />
-        </label>
+        <FormField type="number" name="endDayExtension" label="End of Day Extension (minutes):" />
+        <div />
 
-        <label>
-          Daily End Time:
-          <Field type="time" className="form-control" name="endTime" />
-        </label>
-
-        <label>
-          Daily Break Duration (minutes):
-          <Field type="number" className="form-control" name="breakDuration" />
-        </label>
-        <br />
-
-        <label>
-          End of Day Extension (minutes)
-          <Field type="number" className="form-control" name="endDayExtension" />
-        </label>
       </div>
     </FormModal>
   );

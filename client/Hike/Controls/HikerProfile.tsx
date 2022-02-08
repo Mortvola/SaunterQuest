@@ -29,7 +29,7 @@ const HikerProfile: React.FC<PropsType> = observer(({
   );
 
   // fixup start day.
-  let startDay = nvl(profile.startDay, '');
+  let startDay = profile.startDay ?? 0;
 
   if (typeof startDay === 'string' && startDay !== '') {
     startDay = parseInt(startDay, 10) + 1;
@@ -51,12 +51,10 @@ const HikerProfile: React.FC<PropsType> = observer(({
         </span>
       </div>
       <div className="hiker-profile">
+        <div>Effective Day</div>
+        <div>{startDay + 1}</div>
         <div>Miles Per Hour</div>
         <div>{metersToMiles(profile?.metersPerHour ?? 0).toFixed(2)}</div>
-        <div>Start Day</div>
-        <div>{startDay}</div>
-        <div>End Day</div>
-        <div>{endDay}</div>
         <div>Start Time</div>
         <div>{formatTime(profile.startTime !== null ? profile.startTime * 60 : 0)}</div>
         <div>End Time</div>

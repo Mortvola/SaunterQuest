@@ -11,9 +11,9 @@ export default class HikerProfilesController {
     }
 
     const leg = await HikeLeg.findByOrFail('id', params.hikeLegId);
-    await leg.load('hikerProfiles');
+    const profiles = leg.related('hikerProfiles').query().orderBy('startDay');
 
-    return leg.hikerProfiles;
+    return profiles;
   }
 
   // eslint-disable-next-line class-methods-use-this
