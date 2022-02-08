@@ -9,6 +9,8 @@ import TodoList from './TodoList';
 import Waypoints from './Waypoints';
 import TrailConditions from '../TrailConditions';
 import styles from './Controls.module.css';
+import IconButton from '../../IconButton';
+import { useDeleteConfirmation } from '../../DeleteConfirmation';
 
 type PropsType = {
   hike: HikeInterface,
@@ -18,6 +20,16 @@ const Controls = observer(({
   hike,
 }: PropsType): ReactElement => {
   const [selection, setSelection] = useState<string>('schedule');
+  const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
+    'Are you sure you want to delete this leg?',
+    () => {
+      if (hike.currentLeg === null) {
+        throw new Error('currentLeg is null');
+      }
+
+      hike.deleteLeg(hike.currentLeg);
+    },
+  );
 
   const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelection(event.target.value);
@@ -42,13 +54,15 @@ const Controls = observer(({
           }
         </select>
         <Button onClick={handleAddLegClick}>Add Leg</Button>
+        <IconButton icon="trash" onClick={handleDeleteClick} />
+        <DeleteConfirmation />
       </div>
       <div className={styles.legControls}>
         <select onChange={handleSelectChange}>
           <option value="schedule">Schedule</option>
+          <option value="hikerProfiles">Hiking Profiles</option>
           <option value="photos">Photos</option>
           <option value="trailConditions">Trail Conditions</option>
-          <option value="hikerProfiles">Hiker Profiles</option>
           <option value="equipment">Gear</option>
           <option value="resupply">Resupply</option>
           <option value="todoList">To-do</option>

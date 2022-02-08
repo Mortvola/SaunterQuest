@@ -67,6 +67,8 @@ export interface HikeInterface {
   addLeg(): Promise<void>;
 
   setCurrentLeg(id: number): void;
+
+  deleteLeg(leg: HikeLeg): Promise<void>;
 }
 
 export interface MapInterface {

@@ -75,6 +75,7 @@ Route.group(() => {
 
     Route.group(() => {
       Route.group(() => {
+        Route.delete('', 'HikesController.deleteLeg');
         Route.get('/route', 'RouteController.get');
         Route.get('/schedule', 'SchedulesController.get');
 

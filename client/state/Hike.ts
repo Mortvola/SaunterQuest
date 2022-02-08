@@ -148,6 +148,30 @@ class Hike implements HikeInterface {
       }
     });
   }
+
+  async deleteLeg(leg: HikeLeg): Promise<void> {
+    const index = this.hikeLegs.findIndex((l) => l === leg);
+
+    if (index !== -1) {
+      const response = await Http.delete(`/api/hike-leg/${leg.id}`);
+
+      if (response.ok) {
+        runInAction(() => {
+          this.hikeLegs = [
+            ...this.hikeLegs.slice(0, index),
+            ...this.hikeLegs.slice(index + 1),
+          ];
+
+          if (index > this.hikeLegs.length - 1) {
+            this.setCurrentLeg(this.hikeLegs[this.hikeLegs.length - 1]);
+          }
+          else {
+            this.setCurrentLeg(this.hikeLegs[index]);
+          }
+        });
+      }
+    }
+  }
 }
 
 export default Hike;
