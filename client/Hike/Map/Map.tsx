@@ -5,6 +5,7 @@ import 'leaflet.markercluster';
 import {
   TileLayer, useMap, Popup, LayersControl, useMapEvents,
   Marker as LeafletMarker,
+  Polyline,
 } from 'react-leaflet';
 import { observer } from 'mobx-react-lite';
 import ContextMenu, { MenuItem, showContextMenu, setMainContextMenu } from '@mortvola/leaflet-context-menu';
@@ -219,6 +220,11 @@ const Map: FC<Props> = ({
       {
         hike.currentLeg
           ? <Route route={hike.currentLeg.route} />
+          : null
+      }
+      {
+        hike.routeGroupTrail
+          ? <Polyline positions={hike.routeGroupTrail} color="red" />
           : null
       }
       <Gpx />

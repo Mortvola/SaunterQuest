@@ -1,6 +1,6 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import Http from '@mortvola/http';
-import L from 'leaflet';
+import L, { LatLng } from 'leaflet';
 import Map from './Map';
 import {
   HikeInterface, MarkerType,
@@ -21,6 +21,8 @@ class Hike implements HikeInterface {
   distance: number | null = null;
 
   routeGroupId: number | null = null;
+
+  routeGroupTrail: L.LatLng[][] | null = null;
 
   requesting = false;
 
@@ -50,6 +52,8 @@ class Hike implements HikeInterface {
     this.setCurrentLeg(this.hikeLegs[0]);
 
     this.requestPointsOfInterest();
+
+    this.requestRouteGroup();
 
     makeAutoObservable(this);
   }
@@ -168,6 +172,20 @@ class Hike implements HikeInterface {
           else {
             this.setCurrentLeg(this.hikeLegs[index]);
           }
+        });
+      }
+    }
+  }
+
+  async requestRouteGroup(): Promise<void> {
+    if (this.routeGroupId) {
+      const response = await Http.get<[number, number][][]>(`/api/route-group/${this.routeGroupId}`);
+
+      if (response.ok) {
+        const body = await response.body();
+
+        runInAction(() => {
+          this.routeGroupTrail = body.map((t) => t.map((t2) => new LatLng(t2[0], t2[1])));
         });
       }
     }

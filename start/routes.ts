@@ -125,6 +125,7 @@ Route.group(() => {
     Route.get('/cities', 'PointsOfInterestController.getCities');
 
     Route.get('/route-groups', 'RouteGroupsController.get');
+    Route.get('/route-group/:id', 'RouteGroupsController.getRouteGroup');
   })
     .middleware('auth');
 

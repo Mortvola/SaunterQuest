@@ -62,8 +62,7 @@ const Schedule = observer(({
         <div className="day-card-body">
           <div>{`Start: ${formatTime(day.startTime)}, mile ${metersToMilesRounded(day.startMeters)}`}</div>
           <div>{`Stop: ${formatTime(day.endTime)}, mile ${miles}`}</div>
-          <div>{`Gain/Loss (feet): ${metersToFeet(day.gain)}/${metersToFeet(day.loss)}`}</div>
-          <div>{`Food: ${gramsToPoundsAndOunces(day.accumWeight)}`}</div>
+          <div>{`Gain/Loss: ${metersToFeet(day.gain)}/${metersToFeet(day.loss)} feet`}</div>
         </div>
       </div>
     );
