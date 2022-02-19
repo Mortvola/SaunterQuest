@@ -35,8 +35,12 @@ const RvSites: React.FC<PropsType> = ({ show, bounds }) => {
             throw new Error('hike is null');
           }
 
+          if (uiState.hike.currentLeg === null) {
+            throw new Error('currentLeg is null');
+          }
+
           return new RV(
-            m.id, m.name, new L.LatLng(m.location[1], m.location[0]), uiState.hike.map,
+            m.id, m.name, new L.LatLng(m.location[1], m.location[0]), uiState.hike.currentLeg.map,
           );
         });
 

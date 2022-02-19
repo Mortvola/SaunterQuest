@@ -11,6 +11,7 @@ import TrailConditions from '../TrailConditions';
 import styles from './Controls.module.css';
 import IconButton from '../../IconButton';
 import { useDeleteConfirmation } from '../../DeleteConfirmation';
+import { useStores } from '../../state/store';
 
 type PropsType = {
   hike: HikeInterface,
@@ -19,6 +20,7 @@ type PropsType = {
 const Controls = observer(({
   hike,
 }: PropsType): ReactElement => {
+  const { uiState } = useStores();
   const [selection, setSelection] = useState<string>('schedule');
   const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
     'Are you sure you want to delete this leg?',
@@ -43,6 +45,10 @@ const Controls = observer(({
     hike.setCurrentLeg(parseInt(event.target.value, 10));
   };
 
+  const handleBlogClick: React.MouseEventHandler = () => {
+    uiState.viewBlog();
+  };
+
   return (
     <div className={styles.controlsGridItem}>
       <div>
@@ -55,6 +61,7 @@ const Controls = observer(({
         </select>
         <Button onClick={handleAddLegClick}>Add Leg</Button>
         <IconButton icon="trash" onClick={handleDeleteClick} />
+        <Button onClick={handleBlogClick}>Blog</Button>
         <DeleteConfirmation />
       </div>
       <div className={styles.legControls}>

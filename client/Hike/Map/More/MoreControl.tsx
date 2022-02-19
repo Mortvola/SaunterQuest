@@ -109,8 +109,8 @@ const MoreControl: FC<PropsType> = ({
             data: encodedPicture,
           });
 
-          if (response.ok) {
-            hike.map.setTemporaryMarkerLocation(
+          if (response.ok && hike.currentLeg) {
+            hike.currentLeg.map.setTemporaryMarkerLocation(
               new L.LatLng(result.tags.GPSLatitude, result.tags.GPSLongitude),
             );
           }

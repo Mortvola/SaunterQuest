@@ -31,11 +31,11 @@ export interface PhotoInterface {
 export interface BlogInterface {
   id: number;
 
-  title: string;
+  title: string | null;
 
   photos: PhotoInterface[];
 
-  hikeId: number;
+  hikeLegId: number | null;
 
   loadPhotos(): Promise<void>;
 }

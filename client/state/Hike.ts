@@ -34,12 +34,12 @@ class Hike implements HikeInterface {
 
   pointsOfInterest: Marker[] = [];
 
-  map: Map;
+  // map: Map;
 
   elevationMarkerIcon = createIcon(redCircle);
 
   constructor(props: HikeProps) {
-    this.map = new Map(this);
+    // this.map = new Map();
 
     this.id = props.id;
 
@@ -47,7 +47,7 @@ class Hike implements HikeInterface {
 
     this.routeGroupId = props.routeGroupId;
 
-    this.hikeLegs = props.hikeLegs.map((hl) => new HikeLeg(hl, this.map));
+    this.hikeLegs = props.hikeLegs.map((hl) => new HikeLeg(hl, new Map()));
 
     this.setCurrentLeg(this.hikeLegs[0]);
 
@@ -123,7 +123,7 @@ class Hike implements HikeInterface {
       const body = await response.body();
 
       runInAction(() => {
-        const newLeg = new HikeLeg(body, this.map);
+        const newLeg = new HikeLeg(body, new Map());
         this.hikeLegs.push(newLeg);
 
         this.setCurrentLeg(newLeg);

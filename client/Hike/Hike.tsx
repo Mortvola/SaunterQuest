@@ -48,8 +48,8 @@ const Hike = ({
   }, [history.location.pathname, uiState]);
 
   let locationPopup = null;
-  if (uiState.hike && uiState.hike.map) {
-    locationPopup = uiState.hike.map.locationPopup;
+  if (uiState.hike && uiState.hike.currentLeg && uiState.hike.currentLeg.map) {
+    locationPopup = uiState.hike.currentLeg.map.locationPopup;
   }
 
   if (uiState.hike) {

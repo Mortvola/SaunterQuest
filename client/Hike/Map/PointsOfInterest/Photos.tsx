@@ -35,8 +35,12 @@ const Photos: React.FC<PropsType> = ({ show, bounds }) => {
             throw new Error('hike is null');
           }
 
+          if (uiState.hike.currentLeg === null) {
+            throw new Error('currentLeg is null');
+          }
+
           return new Photo(
-            m, uiState.hike.map,
+            m, uiState.hike.currentLeg.map,
           );
         });
 

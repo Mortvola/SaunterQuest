@@ -57,6 +57,12 @@ const Map: FC<Props> = ({
     photos: true,
   });
 
+  const { currentLeg } = hike;
+
+  if (currentLeg === null) {
+    throw new Error('currentLeg is null');
+  }
+
   const handlePoiSelectionChange = (value: PoiSelections) => {
     setPoiSelections(value);
   };
@@ -64,11 +70,11 @@ const Map: FC<Props> = ({
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    if (hike.currentLeg && hike.currentLeg.route.bounds
+    if (currentLeg.route.bounds
       && !initialized
     ) {
       try {
-        leafletMap.fitBounds(hike.currentLeg.route.bounds);
+        leafletMap.fitBounds(currentLeg.route.bounds);
         const z = leafletMap.getZoom();
         if (z > 13) {
           leafletMap.setZoom(13);
@@ -80,45 +86,45 @@ const Map: FC<Props> = ({
         console.log(error);
       }
     }
-  }, [initialized, leafletMap, hike.currentLeg, hike.currentLeg?.route.bounds]);
+  }, [currentLeg.route.bounds, initialized, leafletMap]);
 
   useEffect(() => {
-    if (hike.map) {
-      hike.map.setLeafletMap(leafletMap);
+    if (currentLeg.map) {
+      currentLeg.map.setLeafletMap(leafletMap);
     }
-  }, [hike.map, leafletMap]);
+  }, [currentLeg, leafletMap]);
 
   const dropWaypoint = (event: L.LeafletMouseEvent) => {
-    hike.currentLeg?.route.addEndWaypoint(event.latlng);
+    currentLeg.route.addEndWaypoint(event.latlng);
   };
 
   const makeContextMenu = useCallback((position: L.LatLng): MenuItem[] => {
     const findSteepestPoint = () => {
-      const steepestPoint = hike.currentLeg?.route.findSteepestPoint();
+      const steepestPoint = currentLeg.route.findSteepestPoint();
     };
 
     const mapMenuItems: MenuItem[] = [];
 
-    if (hike.currentLeg?.route.anchors.length === 0) {
+    if (currentLeg.route.anchors.length === 0) {
       mapMenuItems.push({
-        label: 'Add Waypoint', callback: (latlng: L.LatLng) => hike.currentLeg?.route.addStartWaypoint(latlng),
+        label: 'Add Waypoint', callback: (latlng: L.LatLng) => currentLeg.route.addStartWaypoint(latlng),
       });
     }
-    else if (hike.currentLeg?.route.anchors.length === 1) {
+    else if (currentLeg.route.anchors.length === 1) {
       mapMenuItems.splice(
         mapMenuItems.length,
         0,
-        { label: 'Prepend Waypoint', callback: (latlng: L.LatLng) => hike.currentLeg?.route.addStartWaypoint(latlng) },
-        { label: 'Append Waypoint', callback: (latlng: L.LatLng) => hike.currentLeg?.route.addEndWaypoint(latlng) },
+        { label: 'Prepend Waypoint', callback: (latlng: L.LatLng) => currentLeg.route.addStartWaypoint(latlng) },
+        { label: 'Append Waypoint', callback: (latlng: L.LatLng) => currentLeg.route.addEndWaypoint(latlng) },
       );
     }
     else {
       mapMenuItems.splice(
         mapMenuItems.length,
         0,
-        { label: 'Prepend Waypoint', callback: (latlng: L.LatLng) => hike.currentLeg?.route.addStartWaypoint(latlng) },
-        { label: 'Insert Waypoint', callback: (latlng: L.LatLng) => hike.currentLeg?.route.addWaypoint(latlng) },
-        { label: 'Append Waypoint', callback: (latlng: L.LatLng) => hike.currentLeg?.route.addEndWaypoint(latlng) },
+        { label: 'Prepend Waypoint', callback: (latlng: L.LatLng) => currentLeg.route.addStartWaypoint(latlng) },
+        { label: 'Insert Waypoint', callback: (latlng: L.LatLng) => currentLeg.route.addWaypoint(latlng) },
+        { label: 'Append Waypoint', callback: (latlng: L.LatLng) => currentLeg.route.addEndWaypoint(latlng) },
       );
     }
 
@@ -134,25 +140,25 @@ const Map: FC<Props> = ({
     );
 
     return mapMenuItems;
-  }, [hike, showGotoLocationDialog]);
+  }, [currentLeg.route, hike, showGotoLocationDialog]);
 
   setMainContextMenu(makeContextMenu);
 
   const handleLocationPopupClose = () => {
-    if (hike.map === null) {
-      throw new Error('map in hike is null');
+    if (currentLeg.map === null) {
+      throw new Error('map in hike leg is null');
     }
 
-    hike.map.showLocationPopup(null);
+    currentLeg.map.showLocationPopup(null);
   };
 
   const handleMapClick: L.LeafletMouseEventHandlerFn = (e) => {
-    hike.map.setTemporaryMarkerLocation(e.latlng);
-    hike.map.clearSelectedMarkers();
+    currentLeg.map.setTemporaryMarkerLocation(e.latlng);
+    currentLeg.map.clearSelectedMarkers();
   };
 
   const showIn3D: React.MouseEventHandler = () => {
-    uiState.showIn3D(hike.map.temporaryMarkerLocation);
+    uiState.showIn3D(currentLeg.map.temporaryMarkerLocation);
   };
 
   useMapEvents({
@@ -168,6 +174,10 @@ const Map: FC<Props> = ({
       }
     },
   });
+
+  const handleElevationMarkerChange = (latlng: L.LatLng | null) => {
+    currentLeg.setElevationMarker(latlng);
+  };
 
   return (
     <>
@@ -200,26 +210,31 @@ const Map: FC<Props> = ({
       <MapDrawer>
         <div className={styles.drawerContents}>
           {
-            hike.map.temporaryMarkerLocation
+            currentLeg.map.temporaryMarkerLocation
               ? (
                 <div>
-                  <div>{`lat,lng: ${hike.map.temporaryMarkerLocation.lat}, ${hike.map.temporaryMarkerLocation.lng}`}</div>
+                  <div>{`lat,lng: ${currentLeg.map.temporaryMarkerLocation.lat}, ${currentLeg.map.temporaryMarkerLocation.lng}`}</div>
                   <button type="button" onClick={showIn3D}>View</button>
                 </div>
               )
               : null
           }
-          <SelectedMarkers markers={hike.map.selectedMarkers} />
+          <SelectedMarkers markers={currentLeg.map.selectedMarkers} />
           {
-            hike.currentLeg
-              ? <ElevationChart hikeLeg={hike.currentLeg} />
+            currentLeg
+              ? (
+                <ElevationChart
+                  elevations={currentLeg.route.elevations}
+                  onElevationMarkerChange={handleElevationMarkerChange}
+                />
+              )
               : null
           }
         </div>
       </MapDrawer>
       {
-        hike.currentLeg
-          ? <Route route={hike.currentLeg.route} />
+        currentLeg
+          ? <Route route={currentLeg.route} />
           : null
       }
       {
@@ -229,10 +244,10 @@ const Map: FC<Props> = ({
       }
       <Gpx />
       {
-        hike.currentLeg && hike.currentLeg.elevationMarkerPos
+        currentLeg && currentLeg.elevationMarkerPos
           ? (
             <LeafletMarker
-              position={hike.currentLeg.elevationMarkerPos}
+              position={currentLeg.elevationMarkerPos}
               icon={hike.elevationMarkerIcon}
             />
           )
@@ -240,7 +255,7 @@ const Map: FC<Props> = ({
       }
       <Poi selections={poiSelections} />
       {
-        hike.map.markers.map((m) => (
+        currentLeg.map.markers.map((m) => (
           <Marker
             key={`${m.getTypeString()}-${m.id}`}
             marker={m}
@@ -249,7 +264,7 @@ const Map: FC<Props> = ({
           />
         ))
       }
-      <GotoLocationDialog leafletMap={leafletMap} hike={hike} />
+      <GotoLocationDialog leafletMap={leafletMap} map={currentLeg.map} />
       {
         locationPopup
           ? (
@@ -260,13 +275,13 @@ const Map: FC<Props> = ({
           : null
       }
       {
-        hike.map.temporaryMarkerLocation
+        currentLeg.map.temporaryMarkerLocation
           ? (
-            <LeafletMarker position={hike.map.temporaryMarkerLocation} />
+            <LeafletMarker position={currentLeg.map.temporaryMarkerLocation} />
           )
           : null
       }
-      <PleaseWait show={hike.map.getWaiting()} />
+      <PleaseWait show={currentLeg.map.getWaiting()} />
     </>
   );
 };

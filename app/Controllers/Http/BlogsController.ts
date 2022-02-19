@@ -3,6 +3,8 @@ import Database from '@ioc:Adonis/Lucid/Database';
 import Drive from '@ioc:Adonis/Core/Drive';
 import { extname } from 'path';
 import Blog from 'App/Models/Blog';
+import { Exception } from '@adonisjs/core/build/standalone';
+import { DateTime } from 'luxon';
 
 export default class BlogsController {
   // eslint-disable-next-line class-methods-use-this
@@ -15,6 +17,48 @@ export default class BlogsController {
   // eslint-disable-next-line class-methods-use-this
   async getBlog({ params }: HttpContextContract): Promise<Blog> {
     const blog = Blog.findOrFail(params.blogId);
+
+    return blog;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  async create({ auth: { user } }: HttpContextContract): Promise<Blog> {
+    if (!user) {
+      throw new Exception('user unauthorized');
+    }
+
+    const blog = new Blog();
+
+    blog.fill({
+      userId: user.id,
+    });
+
+    await blog.save();
+
+    return blog;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  async update({ auth: { user }, request }: HttpContextContract): Promise<Blog> {
+    if (!user) {
+      throw new Exception('user unauthorized');
+    }
+
+    const {
+      id, published, title, hikeLegId, content,
+    } = request.body();
+
+    const blog = await Blog.findOrFail(id);
+
+    blog.merge({
+      title,
+      published,
+      publicationDate: !blog.published && published ? DateTime.now() : null,
+      hikeLegId,
+      content: JSON.stringify(content),
+    });
+
+    await blog.save();
 
     return blog;
   }

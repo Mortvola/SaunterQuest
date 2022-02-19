@@ -16,6 +16,7 @@ import Hike from './Hike/Hike';
 import { store, StoreContext } from './state/store';
 import Gear from './Gear/Gear';
 import usePageViews from './Tracker';
+import Blogs from './Blog/Blogs';
 
 Leaflet.Icon.Default.imagePath = '//cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.4/images/';
 
@@ -47,6 +48,9 @@ const App = ({
         </Route>
         <Route path="/food">
           <div />
+        </Route>
+        <Route path="/blog">
+          <Blogs />
         </Route>
         <Route path="/">
           <Hikes />

@@ -7,16 +7,16 @@ import { BlogInterface } from './Types';
 class Blog implements BlogInterface {
   id: number;
 
-  title: string;
+  title: string | null;
 
   photos: Photo[] = [];
 
-  hikeId: number;
+  hikeLegId: number | null;
 
   constructor(props: BlogProps) {
     this.id = props.id;
     this.title = props.title;
-    this.hikeId = props.hikeId;
+    this.hikeLegId = props.hikeLegId;
 
     makeAutoObservable(this);
   }

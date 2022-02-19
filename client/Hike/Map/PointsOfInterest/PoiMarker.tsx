@@ -42,7 +42,11 @@ const PoiMarker: React.FC<PropsType> = ({
             throw new Error('hike is null');
           }
 
-          uiState.hike.map.clearSelectedMarkers();
+          if (uiState.hike.currentLeg === null) {
+            throw new Error('currentLeg is null');
+          }
+
+          uiState.hike.currentLeg.map.clearSelectedMarkers();
           marker.setSelected(true);
           L.DomEvent.stop(event);
         },

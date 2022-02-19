@@ -1,0 +1,29 @@
+.text {
+  display: block;
+	min-height: 1rem;
+	width: 20rem;
+	background-color: white;
+	border: thin black solid;
+	/* min-width: 60rem;
+	max-width: 100%; */
+  /* word-break: break-all; */
+  resize: none;
+  /* overflow: hidden; */
+}
+
+.section {
+  margin-top: 1rem;
+}
+
+.title {
+	font-family: proxima-nova,Helvetica Neue,Arial,sans-serif;
+	font-size: 1.45rem;
+	line-height: 1.25em;
+	color: #2e2e2e;
+	font-weight: bold;
+	text-transform: none;
+	margin-top: 1.25rem;
+	margin-bottom: 1rem;
+  border: none;
+  padding: 0;
+}

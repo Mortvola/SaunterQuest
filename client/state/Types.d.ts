@@ -56,7 +56,7 @@ export interface HikeInterface {
 
   routeGroupId: number | null;
 
-  map: MapInterface;
+  // map: MapInterface;
 
   hikeLegs: HikeLegInterface[];
 
@@ -72,7 +72,7 @@ export interface HikeInterface {
 }
 
 export interface MapInterface {
-  hike: HikeInterface;
+  // hike: HikeInterface;
 
   markers: PointOfInterestInterface[];
 
@@ -211,7 +211,13 @@ export type Day = {
 
 export type Grade = L.LatLng[][][];
 
-export interface RouteInterface {
+export type ElevationPoint = [number, number, number, number];
+
+export interface BaseRouteInterface {
+  elevations: ElevationPoint[];
+}
+
+export interface RouteInterface extends BaseRouteInterface {
   anchors: Anchor[];
 
   grade: Grade;
@@ -219,8 +225,6 @@ export interface RouteInterface {
   hikeLeg: HikeLegInterface;
 
   map: MapInterface;
-
-  elevations: [number, number, number, number][];
 
   moveWaypoint: (id: number, point: LatLng) => Promise<LatLng>;
 
@@ -314,4 +318,43 @@ interface GearConfigurationInterface {
   id: number;
 
   deleteItem (item: GearConfigurationItem): Promise<void>;
+}
+
+export type BlogSectionTypes = 'markdown' | 'elevation' | 'map' | 'photo';
+
+interface BlogSectionInterface {
+  type: BlogSectionTypes;
+
+  text: string | null;
+
+  setType(type: string);
+  setText(text: string | null);
+}
+
+interface BlogInterface {
+  id: number;
+
+  published: boolean;
+
+  hikeLegId: number | null;
+
+  title: string | null;
+
+  sections: BlogSectionInterface[];
+
+  save(): Promise<void>;
+
+  setPublished(published: boolean): void;
+
+  setTitle(title: string | null): void;
+
+  addSectionAfter(afterSection: BlogSectionInterface | null): void;
+
+  deleteSection(section: BlogSectionInterface): void;
+
+  setHikeLegId(hikeLegId: number | null): void;
+}
+
+interface BlogManagerInterface {
+  blogs: BlogInterface[];
 }

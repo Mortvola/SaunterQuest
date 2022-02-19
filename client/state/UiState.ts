@@ -18,6 +18,8 @@ class UiState {
 
   editPhoto = false;
 
+  blog = false;
+
   toggleMarker(markerTypes: MarkerType): void {
     runInAction(() => {
       this.showMarkers.set(markerTypes, !this.showMarkers.get(markerTypes));
@@ -55,6 +57,12 @@ class UiState {
       this.photo = photo;
       this.editPhoto = true;
       this.location3d = position;
+    });
+  }
+
+  viewBlog(): void {
+    runInAction(() => {
+      this.blog = true;
     });
   }
 }

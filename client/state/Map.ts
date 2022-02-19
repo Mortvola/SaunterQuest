@@ -12,15 +12,11 @@ class Map implements MapInterface {
 
   #leafletMap: L.Map | null = null;
 
-  hike: HikeInterface;
-
   temporaryMarkerLocation: L.LatLng | null = null;
 
   waiting = false;
 
-  constructor(hike: HikeInterface) {
-    this.hike = hike;
-
+  constructor() {
     makeAutoObservable(this);
   }
 

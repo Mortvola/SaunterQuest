@@ -6,14 +6,16 @@ import { observer } from 'mobx-react-lite';
 import Chart from 'react-google-charts';
 import { ReactGoogleChartEvent, GoogleChartWrapper, GoogleVizEventName } from 'react-google-charts/dist/types';
 import { GoogleChart } from './GoogleChart';
-import { HikeLegInterface } from '../../state/Types';
+import { ElevationPoint } from '../../state/Types';
 
 type PropsType = {
-  hikeLeg: HikeLegInterface;
+  elevations: ElevationPoint[];
+  onElevationMarkerChange?: (latlng: L.LatLng | null) => void;
 }
 
-const ElevationChart: React.FC<PropsType> = ({
-  hikeLeg,
+const ElevationChart: React.FC<PropsType> = observer(({
+  elevations,
+  onElevationMarkerChange,
 }) => {
   const [chart, setChart] = useState<GoogleChart | null>(null);
   const elevationData: Array<Array<unknown | number>> = [
@@ -23,7 +25,7 @@ const ElevationChart: React.FC<PropsType> = ({
       { label: 'lat', role: 'data', type: 'number' },
       { label: 'lng', role: 'data', type: 'number' },
     ],
-    ...(hikeLeg.route.elevations || []),
+    ...(elevations || []),
   ];
 
   const chartEvents: ReactGoogleChartEvent[] = [
@@ -40,10 +42,12 @@ const ElevationChart: React.FC<PropsType> = ({
           if (elevationData[point.row + 1] !== undefined) {
             if (typeof elevationData[point.row + 1][2] === 'number'
             && typeof elevationData[point.row + 1][3] === 'number') {
-              hikeLeg.setElevationMarker(new L.LatLng(
-                elevationData[point.row + 1][2] as number,
-                elevationData[point.row + 1][3] as number,
-              ));
+              if (onElevationMarkerChange) {
+                onElevationMarkerChange(new L.LatLng(
+                  elevationData[point.row + 1][2] as number,
+                  elevationData[point.row + 1][3] as number,
+                ));
+              }
             }
           }
         };
@@ -58,7 +62,9 @@ const ElevationChart: React.FC<PropsType> = ({
           readyChart as any,
           'onmouseout' as GoogleVizEventName,
           () => {
-            hikeLeg.setElevationMarker(null);
+            if (onElevationMarkerChange) {
+              onElevationMarkerChange(null);
+            }
           },
         );
 
@@ -111,6 +117,6 @@ const ElevationChart: React.FC<PropsType> = ({
       />
     </div>
   );
-};
+});
 
-export default observer(ElevationChart);
+export default ElevationChart;

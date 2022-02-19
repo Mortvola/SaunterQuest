@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react';
+import BlogManager from './Blog/BlogManager';
 import Gear from './Gear';
 import Gpx from './Gpx';
 import HikeManager from './HikeManager';
@@ -13,6 +14,8 @@ class Store implements StoreInterface {
   gear: Gear = new Gear(this);
 
   gpx: Gpx = new Gpx();
+
+  blogManager = new BlogManager();
 }
 
 const store = new Store();

@@ -98,8 +98,8 @@ const Marker = ({
         draggable={draggingLocked ? false : draggable}
         eventHandlers={{
           click: (event: LeafletEvent) => {
-            if (uiState.hike) {
-              uiState.hike.map.clearSelectedMarkers();
+            if (uiState.hike && uiState.hike.currentLeg) {
+              uiState.hike.currentLeg.map.clearSelectedMarkers();
             }
             marker.setSelected(true);
             DomEvent.stop(event);

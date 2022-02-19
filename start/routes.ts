@@ -20,11 +20,11 @@
 
 import HealthCheck from '@ioc:Adonis/Core/HealthCheck';
 import Route from '@ioc:Adonis/Core/Route';
-import HikesController from 'App/Controllers/Http/HikesController';
 
 Route.get('/', 'HomeController.index');
 Route.get('/gear', 'HomeController.index');
 Route.get('/food', 'HomeController.index');
+Route.get('/blog', 'HomeController.index');
 Route.get('/hike/:id', 'HomeController.index');
 Route.get('/blog/:id', 'HomeController.index');
 
@@ -133,6 +133,8 @@ Route.group(() => {
 
   Route.get('/blogs', 'BlogsController.get');
   Route.get('/blog/:blogId', 'BlogsController.getBlog');
+  Route.post('/blog', 'BlogsController.create');
+  Route.put('/blog', 'BlogsController.update');
   Route.get('/blog/:blogId/photos', 'BlogsController.getPhotos');
   Route.get('/blog/:blogId/photo/:photoId', 'BlogsController.getPhoto');
 })

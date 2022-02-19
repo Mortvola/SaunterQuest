@@ -12,12 +12,19 @@ import HikerProfile from 'App/Models/HikerProfile';
 
 export default class HikesController {
   // eslint-disable-next-line class-methods-use-this
-  public async get({ auth: { user } }: HttpContextContract) : Promise<Hike[]> {
+  public async get({ auth: { user }, request }: HttpContextContract) : Promise<Hike[]> {
     if (!user) {
       throw new Exception('user unauthorized');
     }
 
-    const hikes = await user.related('hikes').query();
+    let query = user.related('hikes').query();
+
+    const { o } = request.qs();
+    if (o === 'legs') {
+      query = query.preload('hikeLegs');
+    }
+
+    const hikes = await query;
 
     return hikes;
   }

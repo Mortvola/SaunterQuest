@@ -39,8 +39,8 @@ const createCluster = (props: unknown, context: LeafletContextInterface) => {
 
   instance.on('clusterclick', (event: LeafletEvent) => {
     const cluster = event.propagatedFrom as LeafletMarkerCluster;
-    if (uiState.hike) {
-      uiState.hike.map.clearSelectedMarkers();
+    if (uiState.hike && uiState.hike.currentLeg) {
+      uiState.hike.currentLeg.map.clearSelectedMarkers();
     }
 
     cluster.getAllChildMarkers().forEach((m) => {
