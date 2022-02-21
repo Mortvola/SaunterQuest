@@ -1,5 +1,8 @@
 .blog {
   background-color: white;
+  height: 100%;
+  width: 45rem;
+  padding: 1rem;
 }
 
 .title {

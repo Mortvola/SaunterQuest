@@ -8,23 +8,13 @@ import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import './welcome.css';
 import BlogStore from './state/store';
 import Main from './Main';
-import Blog from './Blog';
 
 type PropsType = {
   tileServerUrl: string,
 }
 
 const Welcome: React.FC<PropsType> = ({ tileServerUrl }) => (
-  <>
-    <Switch>
-      <Route path="/blog">
-        <Blog tileServerUrl={tileServerUrl} />
-      </Route>
-      <Route path="/">
-        <Main />
-      </Route>
-    </Switch>
-  </>
+  <Main />
 );
 
 const appElement = document.querySelector('.app');
@@ -41,9 +31,7 @@ const initialProps = JSON.parse(initialPropsString) as PropsType;
 
 ReactDOM.render(
   <BlogStore>
-    <Router>
-      <Welcome tileServerUrl={initialProps.tileServerUrl} />
-    </Router>
+    <Welcome tileServerUrl={initialProps.tileServerUrl} />
   </BlogStore>,
   document.querySelector('.app'),
 );

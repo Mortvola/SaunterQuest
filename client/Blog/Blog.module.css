@@ -3,18 +3,41 @@
 }
 
 .title {
-	font-family: proxima-nova,Helvetica Neue,Arial,sans-serif;
-	font-size: 2rem;
-	line-height: 1.25em;
-	color: #2e2e2e;
-	font-weight: bold;
-	text-transform: none;
-	margin-top: 1.25rem;
-	margin-bottom: 1rem;
-  border: none;
-  padding: 0;
+  resize: none;
+  width: 100%;
 }
 
 .leg-selection {
   display: block;
+}
+
+.layout {
+  display: grid;
+  grid-template-rows: min-content minmax(0, 1fr);
+  height: 100%;
+}
+
+.editor {
+  max-width: 45rem;
+  padding: 1rem;
+}
+
+.controls {
+  padding-left: 1rem;
+}
+
+.control-row {
+  display: flex;
+}
+
+.control-row>* {
+  margin-right: 1rem;
+}
+
+.left-labeled-control {
+  margin-left: 0.5rem;
+}
+
+.right-labeled-control {
+  margin-right: 0.5rem;
 }

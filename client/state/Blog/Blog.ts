@@ -62,7 +62,7 @@ class Blog implements BlogInterface {
     if (afterSection === null) {
       runInAction(() => {
         this.sections = [
-          new BlogSection({ type: 'markdown', text: null }),
+          new BlogSection({ type: 'markdown', text: null, photoId: null }),
           ...this.sections,
         ];
       });
@@ -74,7 +74,7 @@ class Blog implements BlogInterface {
         if (index !== -1) {
           this.sections = [
             ...this.sections.slice(0, index + 1),
-            new BlogSection({ type: 'markdown', text: null }),
+            new BlogSection({ type: 'markdown', text: null, photoId: null }),
             ...this.sections.slice(index + 1),
           ];
         }

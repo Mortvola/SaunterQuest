@@ -15,8 +15,15 @@ export default class BlogsController {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  async getBlog({ params }: HttpContextContract): Promise<Blog> {
-    const blog = Blog.findOrFail(params.blogId);
+  async getBlog({ params }: HttpContextContract): Promise<Blog | null> {
+    let blog: Blog | null = null;
+
+    if (params.blogId === 'latest') {
+      blog = await Blog.query().where('published', true).orderBy('publicationDate', 'desc').first();
+    }
+    else {
+      blog = await Blog.findOrFail(params.blogId);
+    }
 
     return blog;
   }
@@ -64,6 +71,22 @@ export default class BlogsController {
   }
 
   // eslint-disable-next-line class-methods-use-this
+  async addPhoto({ auth: { user }, request }: HttpContextContract): Promise<{ id: number }> {
+    if (!user) {
+      throw new Exception('user unauthorized');
+    }
+
+    const [id] = await Database.insertQuery()
+      .table('blog_photos')
+      .returning('id')
+      .insert({
+        photo_id: request.body(),
+      });
+
+    return { id };
+  }
+
+  // eslint-disable-next-line class-methods-use-this
   async getPhotos({ params }: HttpContextContract): Promise<unknown> {
     const blog = await Blog.findOrFail(params.blogId);
 
@@ -93,7 +116,7 @@ export default class BlogsController {
   }: HttpContextContract): Promise<unknown> {
     const blog = await Blog.findOrFail(params.blogId);
 
-    const location = `./hikes/${blog.hikeId}/photos/${params.photoId}_small.jpg`;
+    const location = `./photos/${blog.userId}/${params.photoId}_small.jpg`;
 
     const { size } = await Drive.getStats(location);
 

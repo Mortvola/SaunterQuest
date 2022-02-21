@@ -79,8 +79,8 @@ const Blog: React.FC<PropsType> = observer(({ blog }) => {
     blog.deleteSection(section);
   };
 
-  const handlePreviewClick = () => {
-    setPreview((prev) => !prev);
+  const handlePreviewChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+    setPreview(event.target.checked);
   };
 
   const handleSaveClick = () => {
@@ -120,17 +120,22 @@ const Blog: React.FC<PropsType> = observer(({ blog }) => {
   }
 
   return (
-    <div>
-      <div>
-        <label>
-          <input type="checkbox" checked={blog.published} onChange={handlePublishedChange}/>
-          Published
-        </label>
-        <button type="button" onClick={handlePreviewClick}>{preview ? 'Edit' : 'Preview'}</button>
-        <button type="button" onClick={handleSaveClick}>Save</button>
+    <div className={styles.layout}>
+      <div className={styles.controls}>
+        <div className={styles.controlRow}>
+          <label>
+            <input className={styles.rightLabeledControl} type="checkbox" checked={blog.published} onChange={handlePublishedChange} />
+            Published
+          </label>
+          <label>
+            <input className={styles.rightLabeledControl} type="checkbox" checked={preview} onChange={handlePreviewChange} />
+            Preview
+          </label>
+          <button type="button" onClick={handleSaveClick}>Save</button>
+        </div>
         <label className={styles.legSelection}>
           Associated Hike/Leg:
-          <select onChange={handleHikeChange} value={hikeId}>
+          <select className={styles.leftLabeledControl} onChange={handleHikeChange} value={hikeId}>
             <option value={-1}>None</option>
             {
               hikes.map((h) => (
@@ -156,8 +161,8 @@ const Blog: React.FC<PropsType> = observer(({ blog }) => {
         preview
           ? <FormattedBlog blog={blog} />
           : (
-            <>
-              <TextareaAutosize value={blog.title ?? ''} onChange={handleTitleChange} />
+            <div className={styles.editor}>
+              <TextareaAutosize className={styles.title} value={blog.title ?? ''} onChange={handleTitleChange} />
               <button type="button" className={styles.addButton} onClick={handleAddFirstSection}>Add Section</button>
               {
                 blog.sections.map((s, index) => (
@@ -165,12 +170,13 @@ const Blog: React.FC<PropsType> = observer(({ blog }) => {
                     // eslint-disable-next-line react/no-array-index-key
                     key={index}
                     section={s}
+                    blogId={blog.id}
                     onAddSection={handleAddSection}
                     onDeleteSection={handleDeleteSection}
                   />
                 ))
               }
-            </>
+            </div>
           )
       }
     </div>

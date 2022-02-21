@@ -54,7 +54,7 @@ const FormattedBlog: React.FC<PropsType> = ({ blog }) => {
             case 'photo':
               return (
                 // eslint-disable-next-line react/no-array-index-key
-                <Photo key={index} section={s} />
+                <Photo key={index} section={s} blogId={blog.id} />
               );
 
             default:

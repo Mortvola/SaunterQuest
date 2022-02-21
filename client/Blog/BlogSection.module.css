@@ -1,14 +1,10 @@
 .text {
   display: block;
 	min-height: 1rem;
-	width: 20rem;
+	width: 100%;
 	background-color: white;
 	border: thin black solid;
-	/* min-width: 60rem;
-	max-width: 100%; */
-  /* word-break: break-all; */
   resize: none;
-  /* overflow: hidden; */
 }
 
 .section {

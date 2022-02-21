@@ -104,7 +104,7 @@ const ElevationChart: React.FC<PropsType> = observer(({
           legend: { position: 'none' },
           focusTarget: 'datum',
           chartArea: {
-            left: 40,
+            left: 60,
             top: 20,
             bottom: 30,
             right: 0,

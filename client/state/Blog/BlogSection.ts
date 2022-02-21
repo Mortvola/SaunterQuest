@@ -7,9 +7,12 @@ class BlogSection implements BlogSectionInterface {
 
   text: string | null;
 
+  photoId: number | null;
+
   constructor(props: BlogSectionProps) {
     this.type = props.type;
     this.text = props.text;
+    this.photoId = props.photoId;
 
     makeAutoObservable(this);
   }
@@ -26,10 +29,17 @@ class BlogSection implements BlogSectionInterface {
     });
   }
 
+  setPhoto(photoId: number | null) {
+    runInAction(() => {
+      this.photoId = photoId;
+    });
+  }
+
   serialize(): BlogSectionProps {
     return ({
       type: this.type,
       text: this.text,
+      photoId: this.photoId,
     });
   }
 }

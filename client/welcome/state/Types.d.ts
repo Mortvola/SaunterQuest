@@ -27,15 +27,3 @@ export interface PhotoInterface {
 
   save(): void;
 }
-
-export interface BlogInterface {
-  id: number;
-
-  title: string | null;
-
-  photos: PhotoInterface[];
-
-  hikeLegId: number | null;
-
-  loadPhotos(): Promise<void>;
-}

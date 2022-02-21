@@ -19,5 +19,3 @@ declare module '*.svg' {
 }
 
 declare module 'exif-parser';
-
-declare module 'react-markdown-it';

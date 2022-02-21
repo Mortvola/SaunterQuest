@@ -1,0 +1,17 @@
+.text {
+  display: block;
+	min-height: 1rem;
+	width: 100%;
+	background-color: white;
+	border: thin black solid;
+  resize: none;
+}
+
+.image {
+  max-width: 100%;
+  cursor: pointer;
+}
+
+.photo-wrapper {
+  width: max-content;
+}

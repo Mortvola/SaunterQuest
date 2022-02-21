@@ -76,8 +76,6 @@ Route.group(() => {
     Route.group(() => {
       Route.group(() => {
         Route.delete('', 'HikesController.deleteLeg');
-        Route.get('/route', 'RouteController.get');
-        Route.get('/schedule', 'SchedulesController.get');
 
         Route.group(() => {
           Route.post('/start-point', 'RouteController.addWaypoint');
@@ -89,7 +87,6 @@ Route.group(() => {
           .prefix('/route');
 
         Route.group(() => {
-          Route.get('', 'HikerProfilesController.get');
           Route.post('', 'HikerProfilesController.addProfile');
           Route.put('/:profileId', 'HikerProfilesController.updateProfile');
           Route.delete('/:profileId', 'HikerProfilesController.deleteProfile');
@@ -126,6 +123,12 @@ Route.group(() => {
 
     Route.get('/route-groups', 'RouteGroupsController.get');
     Route.get('/route-group/:id', 'RouteGroupsController.getRouteGroup');
+
+    Route.post('/photo', 'PhotosController.upload');
+
+    Route.post('/blog', 'BlogsController.create');
+    Route.put('/blog', 'BlogsController.update');
+    Route.post('/blog/:blogId/photo', 'BlogsController.addPhoto');
   })
     .middleware('auth');
 
@@ -133,9 +136,21 @@ Route.group(() => {
 
   Route.get('/blogs', 'BlogsController.get');
   Route.get('/blog/:blogId', 'BlogsController.getBlog');
-  Route.post('/blog', 'BlogsController.create');
-  Route.put('/blog', 'BlogsController.update');
   Route.get('/blog/:blogId/photos', 'BlogsController.getPhotos');
   Route.get('/blog/:blogId/photo/:photoId', 'BlogsController.getPhoto');
+
+  Route.group(() => {
+    Route.group(() => {
+      Route.get('/route', 'RouteController.get');
+      Route.get('/schedule', 'SchedulesController.get');
+
+      Route.group(() => {
+        Route.get('', 'HikerProfilesController.get');
+      })
+        .prefix('/hiker-profile');
+    })
+      .prefix('/:hikeLegId');
+  })
+    .prefix('/hike-leg');
 })
   .prefix('/api');

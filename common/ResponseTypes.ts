@@ -127,6 +127,7 @@ export type ScheduleResponse = DayProps[];
 export type BlogSectionProps = {
   type: 'markdown' | 'elevation' | 'map' | 'photo',
   text: string | null,
+  photoId: number | null,
 }
 
 export type BlogProps = {

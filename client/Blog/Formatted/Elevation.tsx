@@ -2,6 +2,7 @@ import { observer } from 'mobx-react-lite';
 import React from 'react';
 import ElevationChart from '../../Hike/Elevation/ElevationChart';
 import { BlogSectionInterface, HikeLegInterface } from '../../state/Types';
+import styles from './Elevation.module.css';
 
 type PropsType = {
   section: BlogSectionInterface,
@@ -10,7 +11,11 @@ type PropsType = {
 
 const Elevation: React.FC<PropsType> = observer(({ hikeLeg }) => (
   hikeLeg
-    ? <ElevationChart elevations={hikeLeg.route.elevations} />
+    ? (
+      <div className={styles.elevationWrapper}>
+        <ElevationChart elevations={hikeLeg.route.elevations} />
+      </div>
+    )
     : null
 ));
 

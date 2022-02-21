@@ -4,14 +4,21 @@ import TextareaAutosize from 'react-textarea-autosize';
 import IconButton from '../IconButton';
 import { BlogSectionInterface } from '../state/Types';
 import styles from './BlogSection.module.css';
+import Photo from './Photo';
 
 type PropsType = {
   section: BlogSectionInterface,
+  blogId: number,
   onAddSection: (afterSection: BlogSectionInterface) => void,
   onDeleteSection: (section: BlogSectionInterface) => void,
 }
 
-const BlogSection: React.FC<PropsType> = observer(({ section, onAddSection, onDeleteSection }) => {
+const BlogSection: React.FC<PropsType> = observer(({
+  section,
+  blogId,
+  onAddSection,
+  onDeleteSection,
+}) => {
   const handleAddSectionClick = () => {
     onAddSection(section);
   };
@@ -28,6 +35,29 @@ const BlogSection: React.FC<PropsType> = observer(({ section, onAddSection, onDe
     section.setType(event.target.value);
   };
 
+  const renderSectionControls = () => {
+    switch (section.type) {
+      case 'elevation':
+        return <div />;
+
+      case 'map':
+        return null;
+
+      case 'markdown':
+        return (
+          <TextareaAutosize className={styles.text} value={section.text ?? ''} onChange={handleChange} />
+        );
+
+      case 'photo':
+        return (
+          <Photo section={section} blogId={blogId} />
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className={styles.section}>
       <select onChange={handleSelectChange} value={section.type}>
@@ -38,9 +68,7 @@ const BlogSection: React.FC<PropsType> = observer(({ section, onAddSection, onDe
       </select>
       <IconButton icon="trash" onClick={handleDeleteClick} />
       {
-        section.type === 'markdown'
-          ? <TextareaAutosize className={styles.text} value={section.text ?? ''} onChange={handleChange} />
-          : <div />
+        renderSectionControls()
       }
       <button type="button" onClick={handleAddSectionClick}>Add Section</button>
     </div>

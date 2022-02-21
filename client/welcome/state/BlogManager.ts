@@ -1,11 +1,13 @@
 import Http from '@mortvola/http';
 import { makeAutoObservable, runInAction } from 'mobx';
 import { BlogProps } from '../../../common/ResponseTypes';
-import Blog from './Blog';
-import { BlogInterface } from './Types';
+import Blog from '../../state/Blog/Blog';
+import { BlogInterface } from '../../state/Types';
 
 class BlogManager {
   blogs: Blog[] = [];
+
+  latestBlog: Blog | null = null;
 
   constructor() {
     makeAutoObservable(this);
@@ -24,13 +26,21 @@ class BlogManager {
     }
   }
 
-  static async getBlog(blogId: number): Promise<BlogInterface | null> {
+  async getBlog(blogId: number | 'latest'): Promise<BlogInterface | null> {
     const response = await Http.get<BlogProps>(`/api/blog/${blogId}`);
 
     if (response.ok) {
       const body = await response.body();
 
-      return new Blog(body);
+      const blog = new Blog(body);
+
+      if (blogId === 'latest') {
+        runInAction(() => {
+          this.latestBlog = blog;
+        });
+      }
+
+      return blog;
     }
 
     return null;

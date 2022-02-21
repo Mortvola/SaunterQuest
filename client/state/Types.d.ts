@@ -327,8 +327,11 @@ interface BlogSectionInterface {
 
   text: string | null;
 
+  photoId: number | null;
+
   setType(type: string);
   setText(text: string | null);
+  setPhoto(photoId: number | null);
 }
 
 interface BlogInterface {

@@ -1,5 +1,5 @@
 import React from 'react';
-import MarkdownIt from 'react-markdown-it';
+import MarkdownIt from 'react-markdown';
 import { BlogSectionInterface } from '../../state/Types';
 import styles from './Markdown.module.css';
 
