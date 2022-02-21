@@ -14,11 +14,10 @@ const UploadFileButton = ({
   accept,
   label,
 }: PropsType): ReactElement => (
-  <label htmlFor="fileupload" className={styles.uploadButton}>
+  <label className={styles.uploadButton}>
     {label}
     <input
       type="file"
-      id="fileupload"
       accept={accept}
       multiple={multiple}
       style={{ opacity: 0, width: 0, height: 0 }}

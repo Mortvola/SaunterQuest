@@ -58,19 +58,19 @@ const Photo: React.FC<PropsType> = observer(({ section, blogId }) => {
       <button type="button">Select Photo</button>
       <div className={styles.photoWrapper}>
         {
-        section.photoId
-          ? (
-            <>
-              <img
-                className={styles.image}
-                src={`/api/blog/${blogId}/photo/${section.photoId}`}
-                alt=""
-              />
-              <TextareaAutosize className={styles.text} value={section.text ?? ''} onChange={handleChange} />
-            </>
-          )
-          : null
-      }
+          section.photoId
+            ? (
+              <>
+                <img
+                  className={styles.image}
+                  src={`/api/blog/${blogId}/photo/${section.photoId}`}
+                  alt=""
+                />
+                <TextareaAutosize className={styles.text} value={section.text ?? ''} onChange={handleChange} />
+              </>
+            )
+            : null
+        }
       </div>
     </>
   );

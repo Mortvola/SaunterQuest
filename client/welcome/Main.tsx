@@ -4,7 +4,6 @@ import { Offcanvas } from 'react-bootstrap';
 import Login from '../login/Login';
 import Register from '../login/Register';
 import { useStores } from './state/store';
-import Banner from './Banner/Banner';
 import Blog from '../Blog/Formatted/Blog';
 import styles from './Main.module.css';
 

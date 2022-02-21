@@ -1,6 +1,14 @@
 .layout {
   display: grid;
   grid-template-columns: minmax(0,1fr) minmax(0,4fr);
+  grid-template-rows: minmax(0,1fr);
   background-color: white;
 }
 
+.list>* {
+  margin-bottom: 0.5rem;
+}
+
+.list-wrapper {
+  border-right: solid black thin;
+}

@@ -2,7 +2,9 @@
   background-color: white;
   height: 100%;
   width: 45rem;
+  max-width: 100vw;
   padding: 1rem;
+  overflow-y: auto;
 }
 
 .title {

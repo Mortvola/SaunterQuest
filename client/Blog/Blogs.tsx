@@ -20,9 +20,9 @@ const Blogs: React.FC = observer(() => {
 
   return (
     <div className={styles.layout}>
-      <div>
+      <div className={styles.listWrapper}>
         <button type="button" onClick={handleAddBlog}>Add Blog</button>
-        <div>
+        <div className={styles.list}>
           {
             blogManager.blogs.map((b) => (
               <BlogListItem
