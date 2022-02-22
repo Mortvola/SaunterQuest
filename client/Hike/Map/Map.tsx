@@ -14,7 +14,6 @@ import { useGotoLocationDialog } from '../GotoLocationDialog';
 import Graticule from '../Graticule';
 import Hike from '../../state/Hike';
 import Marker from './Marker';
-import Gpx from '../Gpx';
 import useMediaQuery from '../../MediaQuery';
 import MapDrawer from './MapDrawer';
 import ElevationChart from '../Elevation/ElevationChart';
@@ -242,7 +241,6 @@ const Map: FC<Props> = ({
           ? <Polyline positions={hike.routeGroupTrail} color="red" />
           : null
       }
-      <Gpx />
       {
         currentLeg && currentLeg.elevationMarkerPos
           ? (

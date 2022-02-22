@@ -87,27 +87,27 @@ export default class BlogsController {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  async getPhotos({ params }: HttpContextContract): Promise<unknown> {
-    const blog = await Blog.findOrFail(params.blogId);
+  // async getPhotos({ params }: HttpContextContract): Promise<unknown> {
+  //   const blog = await Blog.findOrFail(params.blogId);
 
-    const photos = await Database.query()
-      .select(
-        'id',
-        'caption',
-        'transforms',
-        Database.raw('ST_AsGeoJSON(ST_Transform(way, 4326))::json->\'coordinates\' as location'),
-      )
-      .from('hike_photos')
-      .where('hike_id', blog.hikeId);
+  //   const photos = await Database.query()
+  //     .select(
+  //       'id',
+  //       'caption',
+  //       'transforms',
+  //       Database.raw('ST_AsGeoJSON(ST_Transform(way, 4326))::json->\'coordinates\' as location'),
+  //     )
+  //     .from('hike_photos')
+  //     .where('hike_id', blog.hikeId);
 
-    photos.forEach((i) => {
-      if (i.transforms !== null) {
-        i.transforms = JSON.parse(i.transforms);
-      }
-    });
+  //   photos.forEach((i) => {
+  //     if (i.transforms !== null) {
+  //       i.transforms = JSON.parse(i.transforms);
+  //     }
+  //   });
 
-    return photos;
-  }
+  //   return photos;
+  // }
 
   // eslint-disable-next-line class-methods-use-this
   public async getPhoto({

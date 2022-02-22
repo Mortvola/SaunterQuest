@@ -310,8 +310,6 @@ interface StoreInterface {
   hikeManager: HikeManager;
 
   gear: Gear;
-
-  gpx: Gpx;
 }
 
 interface GearConfigurationInterface {

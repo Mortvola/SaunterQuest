@@ -35,7 +35,7 @@
     "formik": "^2.2.9",
     "gl-matrix": "^3.4.3",
     "jsonwebtoken": "^8.5.1",
-    "leaflet": "git+https://github.com/Mortvola/Leaflet.git#6a6e49c9",
+    "leaflet": "git+https://git@github.com/Mortvola/Leaflet.git#6a6e49c9",
     "leaflet.markercluster": "^1.5.3",
     "luxon": "^2.3.0",
     "mobx": "^6.3.13",
@@ -44,7 +44,6 @@
     "pg": "^8.7.3",
     "phc-argon2": "^1.1.2",
     "phc-bcrypt": "^1.0.7",
-    "popper": "^1.0.1",
     "prop-types": "^15.8.1",
     "proxy-addr": "^2.0.7",
     "quaternion": "^1.2.1",
@@ -65,8 +64,7 @@
     "sharp": "^0.29.3",
     "source-map-support": "^0.5.21",
     "stream": "0.0.2",
-    "timers": "^0.1.1",
-    "xml2js": "^0.4.23"
+    "timers": "^0.1.1"
   },
   "devDependencies": {
     "@adonisjs/assembler": "^5.4.1",
@@ -105,7 +103,6 @@
     "lodash": "^4.17.21",
     "mini-css-extract-plugin": "^2.5.3",
     "pino-pretty": "^4.8.0",
-    "popper.js": "^1.16.1",
     "postcss": "^8.4.6",
     "postcss-loader": "^6.2.1",
     "resolve-url-loader": "^5.0.0",

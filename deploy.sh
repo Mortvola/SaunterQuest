@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 . $HOME/.bash_aliases
 
 npm run welcome-build
