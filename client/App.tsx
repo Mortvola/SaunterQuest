@@ -32,15 +32,26 @@ const App = ({
   extendedMenu,
 }: PropsType): ReactElement => {
   usePageViews();
+  const [showOffcanvas, setShowOffcanvas] = React.useState<boolean>(false);
+
+  const handleShowOffcanvas = () => {
+    setShowOffcanvas(true);
+  };
+
+  const handleHidecanvas = () => {
+    setShowOffcanvas(false);
+  };
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <Menubar username={username} />
+      <Menubar username={username} onShowOffcanvas={handleShowOffcanvas} />
       <Switch>
         <Route path="/hike">
           <Hike
             tileServerUrl={tileServerUrl}
             extendedMenu={extendedMenu}
+            showOffcanvas={showOffcanvas}
+            onHideOffcanvas={handleHidecanvas}
           />
         </Route>
         <Route path="/gear">

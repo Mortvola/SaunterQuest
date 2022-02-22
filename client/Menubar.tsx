@@ -7,6 +7,7 @@ import Http from '@mortvola/http';
 import { useProfileDialog } from './ProfileDialog';
 import { useAccountDialog } from './AccountDialog';
 import { useChangePasswordDialog } from './ChangePasswordDialog';
+import useMediaQuery from './MediaQuery';
 import styles from './Menubar.module.css';
 
 const MENU_EVENT_KEY_PROFILE = 'MENU_EVENT_KEY_PROFILE';
@@ -16,14 +17,17 @@ const MENU_EVENT_KEY_CHANGE_PASSWORD = 'MENU_EVENT_KEY_CHANGE_PASSWORD';
 
 type PropsType = {
   username: string,
+  onShowOffcanvas: () => void,
 }
 
 const Menubar = ({
   username,
+  onShowOffcanvas,
 }: PropsType): ReactElement => {
   const [ProfileDialog, showProfileDialog] = useProfileDialog();
   const [AccountDialog, showAccountDialog] = useAccountDialog();
   const [ChangePasswordDialog, showChangePasswordDialog] = useChangePasswordDialog();
+  const { isMobile } = useMediaQuery();
 
   const logout = async () => {
     const response = await Http.post('/logout');
@@ -59,7 +63,18 @@ const Menubar = ({
   return (
     <>
       <Navbar collapseOnSelect onSelect={handleSelect} expand="md">
-        <Navbar.Brand href="/">SaunterQuest</Navbar.Brand>
+        {
+          isMobile
+            ? (
+              <Navbar.Text>
+                <div className={styles.offcanvasToggle} onClick={onShowOffcanvas}>{'>'}</div>
+              </Navbar.Text>
+            )
+            : null
+        }
+        <Navbar.Brand href="/">
+          SaunterQuest
+        </Navbar.Brand>
         <Navbar.Toggle />
         <Navbar.Collapse style={{ justifyContent: 'space-between' }}>
           <Nav>

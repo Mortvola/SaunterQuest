@@ -45,10 +45,6 @@ const Controls = observer(({
     hike.setCurrentLeg(parseInt(event.target.value, 10));
   };
 
-  const handleBlogClick: React.MouseEventHandler = () => {
-    uiState.viewBlog();
-  };
-
   return (
     <div className={styles.controlsGridItem}>
       <div>
@@ -61,7 +57,6 @@ const Controls = observer(({
         </select>
         <Button onClick={handleAddLegClick}>Add Leg</Button>
         <IconButton icon="trash" onClick={handleDeleteClick} />
-        <Button onClick={handleBlogClick}>Blog</Button>
         <DeleteConfirmation />
       </div>
       <div className={styles.legControls}>
