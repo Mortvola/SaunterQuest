@@ -5,6 +5,7 @@ import TextareaAutosize from 'react-textarea-autosize';
 import UploadFileButton from '../Hike/UploadFileButton';
 import { BlogSectionInterface } from '../state/Types';
 import styles from './Photo.module.css';
+import PhotoSelector from './PhotoSelector';
 
 type PropsType = {
   section: BlogSectionInterface,
@@ -12,6 +13,8 @@ type PropsType = {
 }
 
 const Photo: React.FC<PropsType> = observer(({ section, blogId }) => {
+  const [showModal, setShowModal] = React.useState<boolean>(false);
+
   const handleFileSelection: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     const toBinaryString = (bytes: Uint8Array) => {
       let result = '';
@@ -49,13 +52,26 @@ const Photo: React.FC<PropsType> = observer(({ section, blogId }) => {
     section.setText(event.target.value);
   };
 
+  const handleSelectPhotoClick = () => {
+    setShowModal(true);
+  };
+
+  const handleHide = () => {
+    setShowModal(false);
+  };
+
+  const handleSelect = (id: number) => {
+    section.setPhoto(id);
+    setShowModal(false);
+  };
+
   return (
     <>
       <UploadFileButton
         onFileSelection={handleFileSelection}
         label="Upload Photo"
       />
-      <button type="button">Select Photo</button>
+      <button type="button" onClick={handleSelectPhotoClick}>Select Photo</button>
       <div className={styles.photoWrapper}>
         {
           section.photoId
@@ -72,6 +88,7 @@ const Photo: React.FC<PropsType> = observer(({ section, blogId }) => {
             : null
         }
       </div>
+      <PhotoSelector show={showModal} onHide={handleHide} onSelect={handleSelect} />
     </>
   );
 });

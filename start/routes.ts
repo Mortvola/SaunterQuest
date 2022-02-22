@@ -125,6 +125,8 @@ Route.group(() => {
     Route.get('/route-group/:id', 'RouteGroupsController.getRouteGroup');
 
     Route.post('/photo', 'PhotosController.upload');
+    Route.get('/photo/:photoId', 'PhotosController.getPhoto');
+    Route.get('/photos', 'PhotosController.getPhotoList');
 
     Route.post('/blog', 'BlogsController.create');
     Route.put('/blog', 'BlogsController.update');
