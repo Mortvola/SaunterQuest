@@ -31,7 +31,9 @@ const initialProps = JSON.parse(initialPropsString) as PropsType;
 
 ReactDOM.render(
   <BlogStore>
-    <Welcome tileServerUrl={initialProps.tileServerUrl} />
+    <Router>
+      <Welcome tileServerUrl={initialProps.tileServerUrl} />
+    </Router>
   </BlogStore>,
   document.querySelector('.app'),
 );

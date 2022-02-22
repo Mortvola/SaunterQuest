@@ -7,7 +7,7 @@ import { BlogInterface } from '../../state/Types';
 class BlogManager {
   blogs: Blog[] = [];
 
-  latestBlog: Blog | null = null;
+  current: Blog | null = null;
 
   constructor() {
     makeAutoObservable(this);
@@ -34,11 +34,9 @@ class BlogManager {
 
       const blog = new Blog(body);
 
-      if (blogId === 'latest') {
-        runInAction(() => {
-          this.latestBlog = blog;
-        });
-      }
+      runInAction(() => {
+        this.current = blog;
+      });
 
       return blog;
     }

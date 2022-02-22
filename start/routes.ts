@@ -26,7 +26,7 @@ Route.get('/gear', 'HomeController.index');
 Route.get('/food', 'HomeController.index');
 Route.get('/blog', 'HomeController.index');
 Route.get('/hike/:id', 'HomeController.index');
-Route.get('/blog/:id', 'HomeController.index');
+Route.get('/blog/:id', 'HomeController.blogPost');
 
 Route.get('/health', async ({ response }) => {
   const report = await HealthCheck.getReport();

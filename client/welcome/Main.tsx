@@ -1,6 +1,7 @@
 import { observer } from 'mobx-react-lite';
 import React, { useEffect, useState } from 'react';
 import { Offcanvas } from 'react-bootstrap';
+import { matchPath, useHistory } from 'react-router-dom';
 import Login from '../login/Login';
 import Register from '../login/Register';
 import { useStores } from './state/store';
@@ -12,13 +13,21 @@ const Main: React.FC = observer(() => {
   const [showRegister, setShowRegister] = useState(false);
   const { blogManager } = useStores();
   const [slideOutOpen, setSlideOutOpen] = useState(false);
+  const history = useHistory();
 
   useEffect(() => {
     (async () => {
-      blogManager.load();
-      blogManager.getBlog('latest');
+      if (blogManager.current === null) {
+        const match = matchPath<{ id: string }>(history.location.pathname, { path: '/blog/:id', exact: true });
+        if (match) {
+          blogManager.getBlog(parseInt(match.params.id, 10));
+        }
+        else {
+          blogManager.getBlog('latest');
+        }
+      }
     })();
-  }, [blogManager]);
+  }, [blogManager, history.location.pathname]);
 
   const handleLoginClick = () => {
     setShowLogin(true);
@@ -55,8 +64,8 @@ const Main: React.FC = observer(() => {
           </div>
         </div>
         {
-          blogManager.latestBlog
-            ? <Blog blog={blogManager.latestBlog} />
+          blogManager.current
+            ? <Blog blog={blogManager.current} />
             : null
         }
         <Login show={showLogin} onHide={handleLoginHide} />
