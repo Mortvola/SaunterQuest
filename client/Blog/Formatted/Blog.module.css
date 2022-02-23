@@ -1,7 +1,9 @@
 .blog {
+  display: grid;
+  color: black;
   background-color: white;
   height: 100%;
-  width: 45rem;
+  width: 55rem;
   max-width: 100vw;
   padding: 1rem;
   overflow-y: auto;

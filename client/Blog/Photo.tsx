@@ -3,16 +3,16 @@ import { observer } from 'mobx-react-lite';
 import React from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 import UploadFileButton from '../Hike/UploadFileButton';
-import { BlogSectionInterface } from '../state/Types';
+import { BlogPhotoInterface } from '../state/Types';
 import styles from './Photo.module.css';
 import PhotoSelector from './PhotoSelector';
 
 type PropsType = {
-  section: BlogSectionInterface,
+  photo: BlogPhotoInterface,
   blogId: number,
 }
 
-const Photo: React.FC<PropsType> = observer(({ section, blogId }) => {
+const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
   const [showModal, setShowModal] = React.useState<boolean>(false);
 
   const handleFileSelection: React.ChangeEventHandler<HTMLInputElement> = (event) => {
@@ -39,7 +39,7 @@ const Photo: React.FC<PropsType> = observer(({ section, blogId }) => {
 
           if (response.ok) {
             const body = await response.body();
-            section.setPhoto(body.id);
+            photo.setId(body.id);
           }
         }
       };
@@ -49,7 +49,7 @@ const Photo: React.FC<PropsType> = observer(({ section, blogId }) => {
   };
 
   const handleChange: React.ChangeEventHandler<HTMLTextAreaElement> = (event) => {
-    section.setText(event.target.value);
+    photo.setCaption(event.target.value);
   };
 
   const handleSelectPhotoClick = () => {
@@ -61,7 +61,7 @@ const Photo: React.FC<PropsType> = observer(({ section, blogId }) => {
   };
 
   const handleSelect = (id: number) => {
-    section.setPhoto(id);
+    photo.setId(id);
     setShowModal(false);
   };
 
@@ -74,15 +74,15 @@ const Photo: React.FC<PropsType> = observer(({ section, blogId }) => {
       <button type="button" onClick={handleSelectPhotoClick}>Select Photo</button>
       <div className={styles.photoWrapper}>
         {
-          section.photoId
+          photo.id
             ? (
               <>
                 <img
                   className={styles.image}
-                  src={`/api/blog/${blogId}/photo/${section.photoId}`}
+                  src={`/api/blog/${blogId}/photo/${photo.id}`}
                   alt=""
                 />
-                <TextareaAutosize className={styles.text} value={section.text ?? ''} onChange={handleChange} />
+                <TextareaAutosize className={styles.text} value={photo.caption ?? ''} onChange={handleChange} />
               </>
             )
             : null

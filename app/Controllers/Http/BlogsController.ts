@@ -52,13 +52,15 @@ export default class BlogsController {
     }
 
     const {
-      id, published, title, hikeLegId, content,
+      id, published, title, hikeLegId, content, titlePhoto,
     } = request.body();
 
     const blog = await Blog.findOrFail(id);
 
     blog.merge({
       title,
+      titlePhotoId: titlePhoto.id,
+      titlePhotoCaption: titlePhoto.caption,
       published,
       publicationDate: !blog.published && published ? DateTime.now() : null,
       hikeLegId,

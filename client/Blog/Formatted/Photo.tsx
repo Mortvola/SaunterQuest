@@ -1,24 +1,24 @@
 import React from 'react';
-import { BlogSectionInterface } from '../../state/Types';
+import { BlogPhotoInterface } from '../../state/Types';
 import styles from './Photo.module.css';
 
 type PropsType = {
-  section: BlogSectionInterface,
+  photo: BlogPhotoInterface,
   blogId: number,
 }
 
-const Photo: React.FC<PropsType> = ({ section, blogId }) => (
+const Photo: React.FC<PropsType> = ({ photo, blogId }) => (
   <div className={styles.frame}>
     {
-      section.photoId
+      photo.id
         ? (
           <>
             <img
               className={styles.image}
-              src={`/api/blog/${blogId}/photo/${section.photoId}`}
+              src={`/api/blog/${blogId}/photo/${photo.id}`}
               alt=""
             />
-            <div>{section.text}</div>
+            <div className={styles.caption}>{photo.caption}</div>
           </>
         )
         : null

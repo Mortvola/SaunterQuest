@@ -23,6 +23,8 @@ export default class HomeController {
     const blog = await Blog.query().where('published', true).orderBy('publicationDate', 'desc').first();
     const og = {
       title: blog?.title ?? '',
+      titlePhotoId: blog?.titlePhotoId ?? null,
+      blogId: blog?.id ?? null,
     };
 
     return view.render('welcome', { props, og });
@@ -48,6 +50,8 @@ export default class HomeController {
     const blog = await Blog.findOrFail(params.id);
     const og = {
       title: blog.title,
+      titlePhotoId: blog.titlePhotoId,
+      blogId: params.id,
     };
 
     return view.render('welcome', { props, og });

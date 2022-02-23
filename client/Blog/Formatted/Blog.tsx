@@ -28,6 +28,11 @@ const FormattedBlog: React.FC<PropsType> = ({ blog }) => {
     <div className={styles.blog}>
       <div className={styles.title}>{blog.title ?? ''}</div>
       {
+        blog.titlePhoto.id
+          ? <Photo photo={blog.titlePhoto} blogId={blog.id} />
+          : null
+      }
+      {
         blog.sections.map((s, index) => {
           switch (s.type) {
             case 'markdown':
@@ -54,7 +59,7 @@ const FormattedBlog: React.FC<PropsType> = ({ blog }) => {
             case 'photo':
               return (
                 // eslint-disable-next-line react/no-array-index-key
-                <Photo key={index} section={s} blogId={blog.id} />
+                <Photo key={index} photo={s.photo} blogId={blog.id} />
               );
 
             default:

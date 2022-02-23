@@ -6,6 +6,7 @@ import BlogSection from './BlogSection';
 import styles from './Blog.module.css';
 import { BlogInterface, BlogSectionInterface } from '../state/Types';
 import FormattedBlog from './Formatted/Blog';
+import Photo from './Photo';
 
 type PropsType = {
   blog: BlogInterface,
@@ -163,6 +164,7 @@ const Blog: React.FC<PropsType> = observer(({ blog }) => {
           : (
             <div className={styles.editor}>
               <TextareaAutosize className={styles.title} value={blog.title ?? ''} onChange={handleTitleChange} />
+              <Photo photo={blog.titlePhoto} blogId={blog.id} />
               <button type="button" className={styles.addButton} onClick={handleAddFirstSection}>Add Section</button>
               {
                 blog.sections.map((s, index) => (

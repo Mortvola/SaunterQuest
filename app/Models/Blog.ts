@@ -1,5 +1,5 @@
-import { DateTime } from 'luxon'
-import { BaseModel, column } from '@ioc:Adonis/Lucid/Orm'
+import { DateTime } from 'luxon';
+import { BaseModel, column, computed } from '@ioc:Adonis/Lucid/Orm';
 
 export default class Blog extends BaseModel {
   @column({ isPrimary: true })
@@ -23,9 +23,20 @@ export default class Blog extends BaseModel {
   @column()
   public title: string;
 
+  @column({ serializeAs: null })
+  public titlePhotoId: number | null;
+
+  @column({ serializeAs: null })
+  public titlePhotoCaption: string | null;
+
   @column({ serializeAs: 'hikeLegId' })
   public hikeLegId: number | null;
 
   @column()
   public content: string | null;
+
+  @computed({ serializeAs: 'titlePhoto' })
+  public get photo() {
+    return { id: this.titlePhotoId ?? null, caption: this.titlePhotoCaption ?? null };
+  }
 }

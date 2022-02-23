@@ -318,6 +318,14 @@ interface GearConfigurationInterface {
   deleteItem (item: GearConfigurationItem): Promise<void>;
 }
 
+export type BlogPhotoInterface = {
+  id: number | null,
+  caption: string | null,
+
+  setId(id: number): void;
+  setCaption(caption: string): void;
+}
+
 export type BlogSectionTypes = 'markdown' | 'elevation' | 'map' | 'photo';
 
 interface BlogSectionInterface {
@@ -325,11 +333,10 @@ interface BlogSectionInterface {
 
   text: string | null;
 
-  photoId: number | null;
+  photo: BlogPhotoInterface;
 
   setType(type: string);
   setText(text: string | null);
-  setPhoto(photoId: number | null);
 }
 
 interface BlogInterface {
@@ -340,6 +347,8 @@ interface BlogInterface {
   hikeLegId: number | null;
 
   title: string | null;
+
+  titlePhoto: BlogPhotoInterface;
 
   sections: BlogSectionInterface[];
 

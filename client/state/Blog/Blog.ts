@@ -2,6 +2,7 @@ import Http from '@mortvola/http';
 import { makeAutoObservable, runInAction } from 'mobx';
 import { BlogProps } from '../../../common/ResponseTypes';
 import { BlogInterface, BlogSectionInterface } from '../Types';
+import BlogPhoto from './BlogPhoto';
 import BlogSection from './BlogSection';
 
 class Blog implements BlogInterface {
@@ -10,6 +11,8 @@ class Blog implements BlogInterface {
   published: boolean;
 
   title: string | null;
+
+  titlePhoto: BlogPhoto;
 
   hikeLegId: number | null = null;
 
@@ -22,6 +25,7 @@ class Blog implements BlogInterface {
     this.published = props.published;
     this.title = props.title;
     this.hikeLegId = props.hikeLegId;
+    this.titlePhoto = new BlogPhoto(props.titlePhoto);
 
     if (props.content) {
       this.sections = props.content.map((s) => new BlogSection(s));
@@ -35,6 +39,7 @@ class Blog implements BlogInterface {
       id: this.id,
       published: this.published,
       title: this.title,
+      titlePhoto: this.titlePhoto,
       hikeLegId: this.hikeLegId,
       content: this.sections.map((s) => s.serialize()),
     });
@@ -62,7 +67,7 @@ class Blog implements BlogInterface {
     if (afterSection === null) {
       runInAction(() => {
         this.sections = [
-          new BlogSection({ type: 'markdown', text: null, photoId: null }),
+          new BlogSection({ type: 'markdown', text: null, photo: new BlogPhoto({ id: null, caption: null }) }),
           ...this.sections,
         ];
       });
@@ -74,7 +79,7 @@ class Blog implements BlogInterface {
         if (index !== -1) {
           this.sections = [
             ...this.sections.slice(0, index + 1),
-            new BlogSection({ type: 'markdown', text: null, photoId: null }),
+            new BlogSection({ type: 'markdown', text: null, photo: new BlogPhoto({ id: null, caption: null }) }),
             ...this.sections.slice(index + 1),
           ];
         }
