@@ -129,6 +129,7 @@ Route.group(() => {
     Route.get('/photos', 'PhotosController.getPhotoList');
 
     Route.post('/blog', 'BlogsController.create');
+    Route.post('/blog/publish', 'BlogsController.publish');
     Route.put('/blog', 'BlogsController.update');
     Route.post('/blog/:blogId/photo', 'BlogsController.addPhoto');
   })

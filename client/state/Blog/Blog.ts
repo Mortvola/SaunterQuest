@@ -22,13 +22,23 @@ class Blog implements BlogInterface {
 
   constructor(props: BlogProps) {
     this.id = props.id;
-    this.published = props.published;
-    this.title = props.title;
-    this.hikeLegId = props.hikeLegId;
-    this.titlePhoto = new BlogPhoto(props.titlePhoto);
+    this.published = props.publicationTime !== null;
 
-    if (props.content) {
-      this.sections = props.content.map((s) => new BlogSection(s));
+    let post = props.draftPost;
+    if (!post) {
+      post = props.publishedPost;
+    }
+
+    if (!post) {
+      throw new Error('post not defined');
+    }
+
+    this.title = post.title;
+    this.hikeLegId = post.hikeLegId;
+    this.titlePhoto = new BlogPhoto(post.titlePhoto);
+
+    if (post.content) {
+      this.sections = post.content.map((s) => new BlogSection(s));
     }
 
     makeAutoObservable(this);
@@ -37,18 +47,31 @@ class Blog implements BlogInterface {
   async save(): Promise<void> {
     Http.put<BlogProps, void>('/api/blog', {
       id: this.id,
-      published: this.published,
-      title: this.title,
-      titlePhoto: this.titlePhoto,
-      hikeLegId: this.hikeLegId,
-      content: this.sections.map((s) => s.serialize()),
+      draftPost: {
+        title: this.title,
+        titlePhoto: this.titlePhoto,
+        hikeLegId: this.hikeLegId,
+        content: this.sections.map((s) => s.serialize()),
+      },
     });
   }
 
-  setPublished(published: boolean): void {
-    runInAction(() => {
-      this.published = published;
+  async publish(): Promise<void> {
+    const response = await Http.post<BlogProps, void>('/api/blog/publish', {
+      id: this.id,
+      draftPost: {
+        title: this.title,
+        titlePhoto: this.titlePhoto,
+        hikeLegId: this.hikeLegId,
+        content: this.sections.map((s) => s.serialize()),
+      },
     });
+
+    if (response.ok) {
+      // runInAction(() => {
+      //   this.published = published;
+      // });
+    }
   }
 
   setTitle(title: string | null): void {

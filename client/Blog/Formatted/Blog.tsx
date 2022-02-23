@@ -1,6 +1,6 @@
 import React from 'react';
 import { BlogInterface } from '../../state/Types';
-import FormattedBlogSection from './Markdown';
+import Markdown from './Markdown';
 import styles from './Blog.module.css';
 import Elevation from './Elevation';
 import MapData from '../../state/Map';
@@ -25,48 +25,50 @@ const FormattedBlog: React.FC<PropsType> = ({ blog }) => {
   }, [blog.hikeLegId]);
 
   return (
-    <div className={styles.blog}>
-      <div className={styles.title}>{blog.title ?? ''}</div>
-      {
+    <div className={styles.blogWrapper}>
+      <div className={styles.blog}>
+        {
         blog.titlePhoto.id
-          ? <Photo photo={blog.titlePhoto} blogId={blog.id} />
+          ? <Photo photo={blog.titlePhoto} className="title-photo" blogId={blog.id} />
           : null
-      }
-      {
-        blog.sections.map((s, index) => {
-          switch (s.type) {
-            case 'markdown':
-              return (
-                <FormattedBlogSection
+        }
+        <div className={styles.title}>{blog.title ?? ''}</div>
+        {
+          blog.sections.map((s, index) => {
+            switch (s.type) {
+              case 'markdown':
+                return (
+                  <Markdown
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={index}
+                    section={s}
+                  />
+                );
+
+              case 'elevation':
+                return (
                   // eslint-disable-next-line react/no-array-index-key
-                  key={index}
-                  section={s}
-                />
-              );
+                  <Elevation key={index} section={s} hikeLeg={hikeLeg} />
+                );
 
-            case 'elevation':
-              return (
-                // eslint-disable-next-line react/no-array-index-key
-                <Elevation key={index} section={s} hikeLeg={hikeLeg} />
-              );
+              case 'map':
+                return (
+                  // eslint-disable-next-line react/no-array-index-key
+                  <Map key={index} section={s} />
+                );
 
-            case 'map':
-              return (
-                // eslint-disable-next-line react/no-array-index-key
-                <Map key={index} section={s} />
-              );
+              case 'photo':
+                return (
+                  // eslint-disable-next-line react/no-array-index-key
+                  <Photo key={index} photo={s.photo} blogId={blog.id} />
+                );
 
-            case 'photo':
-              return (
-                // eslint-disable-next-line react/no-array-index-key
-                <Photo key={index} photo={s.photo} blogId={blog.id} />
-              );
-
-            default:
-              return <div />;
-          }
-        })
-      }
+              default:
+                return <div />;
+            }
+          })
+        }
+      </div>
     </div>
   );
 };

@@ -29,7 +29,6 @@ const Blog: React.FC<PropsType> = observer(({ blog }) => {
   const [hike, setHike] = React.useState<Hike | null>(null);
 
   useEffect(() => {
-    console.log('mount');
     (async () => {
       const response = await Http.get<Hike[]>('/api/hikes?o=legs');
 
@@ -39,23 +38,15 @@ const Blog: React.FC<PropsType> = observer(({ blog }) => {
         setHikes(body);
       }
     })();
-
-    return (() => {
-      console.log('unmount');
-    });
   }, []);
 
   const getHike = React.useCallback(() => {
-    console.log('finding hike/hike leg');
     const selectedHike = hikes.find((h) => h.hikeLegs.some((l) => l.id === blog.hikeLegId));
 
     return selectedHike ?? null;
   }, [blog.hikeLegId, hikes]);
 
   useEffect(() => {
-    console.log('mount: blog changed');
-    console.log(`hike leg id: ${blog.hikeLegId}`);
-
     if (blog.hikeLegId == null) {
       setHike(null);
     }
@@ -63,9 +54,6 @@ const Blog: React.FC<PropsType> = observer(({ blog }) => {
       const h = getHike();
       setHike(h);
     }
-    return (() => {
-      console.log('unmount: blog changed');
-    });
   }, [blog, getHike]);
 
   const handleAddSection = (afterSection: BlogSectionInterface) => {
@@ -86,6 +74,10 @@ const Blog: React.FC<PropsType> = observer(({ blog }) => {
 
   const handleSaveClick = () => {
     blog.save();
+  };
+
+  const handlePublishClick = () => {
+    blog.publish();
   };
 
   const handleHikeChange: React.ChangeEventHandler<HTMLSelectElement> = async (event) => {
@@ -110,10 +102,6 @@ const Blog: React.FC<PropsType> = observer(({ blog }) => {
     blog.setTitle(event.target.value);
   };
 
-  const handlePublishedChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
-    blog.setPublished(event.target.checked);
-  };
-
   let hikeId = -1;
 
   if (hike) {
@@ -125,14 +113,12 @@ const Blog: React.FC<PropsType> = observer(({ blog }) => {
       <div className={styles.controls}>
         <div className={styles.controlRow}>
           <label>
-            <input className={styles.rightLabeledControl} type="checkbox" checked={blog.published} onChange={handlePublishedChange} />
-            Published
-          </label>
-          <label>
             <input className={styles.rightLabeledControl} type="checkbox" checked={preview} onChange={handlePreviewChange} />
             Preview
           </label>
           <button type="button" onClick={handleSaveClick}>Save</button>
+          <button type="button" onClick={handlePublishClick}>Publish</button>
+          <button type="button" onClick={handleSaveClick}>Unpublish</button>
         </div>
         <label className={styles.legSelection}>
           Associated Hike/Leg:

@@ -11,10 +11,14 @@
   width: 95%;
   justify-self: center;
   margin: 2rem;
-  /* box-shadow: 3px 3px 3px 5px rgba(0, 0, 0, 0.3);
-  border-radius: 8px;
-  overflow: clip; */
   border: #868484 2px solid;
+}
+
+.frame:global(.title-photo) {
+  width: 100%;
+  margin-top: 0;
+  margin-bottom: 0;
+  border: none;
 }
 
 .caption {

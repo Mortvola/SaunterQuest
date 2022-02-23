@@ -5,10 +5,11 @@ import styles from './Photo.module.css';
 type PropsType = {
   photo: BlogPhotoInterface,
   blogId: number,
+  className?: string,
 }
 
-const Photo: React.FC<PropsType> = ({ photo, blogId }) => (
-  <div className={styles.frame}>
+const Photo: React.FC<PropsType> = ({ photo, blogId, className = '' }) => (
+  <div className={`${className} ${styles.frame}`}>
     {
       photo.id
         ? (

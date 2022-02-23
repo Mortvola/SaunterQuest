@@ -2,6 +2,12 @@ import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Env from '@ioc:Adonis/Core/Env';
 import Blog from 'App/Models/Blog';
 
+type OpenGraph = {
+  title: string,
+  titlePhotoId: number | null,
+  blogId: number | null,
+};
+
 export default class HomeController {
   // eslint-disable-next-line class-methods-use-this
   public async index({ auth, view }: HttpContextContract) : Promise<string> {
@@ -20,12 +26,24 @@ export default class HomeController {
       tileServerUrl: Env.get('TILE_SERVER_URL'),
     };
 
-    const blog = await Blog.query().where('published', true).orderBy('publicationDate', 'desc').first();
-    const og = {
-      title: blog?.title ?? '',
-      titlePhotoId: blog?.titlePhotoId ?? null,
-      blogId: blog?.id ?? null,
+    const blog = await Blog.query().preload('publishedPost')
+      .whereNotNull('publishedPostId')
+      .orderBy('publicationTime', 'desc')
+      .first();
+
+    let og: OpenGraph = {
+      title: 'SaunterQuest: a hiking blog site',
+      titlePhotoId: null,
+      blogId: null,
     };
+
+    if (blog) {
+      og = {
+        title: blog.publishedPost.title ?? '',
+        titlePhotoId: blog.publishedPost.titlePhotoId,
+        blogId: blog.id,
+      };
+    }
 
     return view.render('welcome', { props, og });
   }
@@ -47,12 +65,24 @@ export default class HomeController {
       tileServerUrl: Env.get('TILE_SERVER_URL'),
     };
 
-    const blog = await Blog.findOrFail(params.id);
-    const og = {
-      title: blog.title,
-      titlePhotoId: blog.titlePhotoId,
-      blogId: params.id,
+    const blog = await Blog.query().preload('publishedPost')
+      .whereNotNull('publishedPostId')
+      .andWhere('id', params.id)
+      .first();
+
+    let og: OpenGraph = {
+      title: 'SaunterQuest: a hiking blog site',
+      titlePhotoId: null,
+      blogId: null,
     };
+
+    if (blog) {
+      og = {
+        title: blog.publishedPost.title,
+        titlePhotoId: blog.publishedPost.titlePhotoId,
+        blogId: params.id,
+      };
+    }
 
     return view.render('welcome', { props, og });
   }

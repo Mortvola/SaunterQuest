@@ -135,13 +135,19 @@ export type BlogSectionProps = {
   photo: BlogPhotoProps,
 }
 
-export type BlogProps = {
-  id: number,
-  published: boolean,
+export type DraftPostProps = {
   title: string | null,
   titlePhoto: BlogPhotoProps,
   hikeLegId: number | null,
   content: BlogSectionProps[] | null,
+}
+
+export type BlogProps = {
+  id: number,
+  publicationTime?: string | null,
+  publicationUpdateTIme?: string | null,
+  draftPost?: DraftPostProps,
+  publishedPost?: DraftPostProps,
 };
 
 export type HikeLegProps = {

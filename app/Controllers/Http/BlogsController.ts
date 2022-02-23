@@ -5,11 +5,12 @@ import { extname } from 'path';
 import Blog from 'App/Models/Blog';
 import { Exception } from '@adonisjs/core/build/standalone';
 import { DateTime } from 'luxon';
+import BlogPost from 'App/Models/BlogPost';
 
 export default class BlogsController {
   // eslint-disable-next-line class-methods-use-this
   async get() : Promise<Blog[]> {
-    const blogs = Blog.all();
+    const blogs = Blog.query().preload('draftPost');
 
     return blogs;
   }
@@ -19,10 +20,14 @@ export default class BlogsController {
     let blog: Blog | null = null;
 
     if (params.blogId === 'latest') {
-      blog = await Blog.query().where('published', true).orderBy('publicationDate', 'desc').first();
+      blog = await Blog.query().preload('publishedPost')
+        .whereNotNull('publishedPostId')
+        .orderBy('publicationTime', 'desc')
+        .first();
     }
     else {
       blog = await Blog.findOrFail(params.blogId);
+      await blog.load('publishedPost');
     }
 
     return blog;
@@ -52,22 +57,88 @@ export default class BlogsController {
     }
 
     const {
-      id, published, title, hikeLegId, content, titlePhoto,
+      id, draftPost,
     } = request.body();
 
-    const blog = await Blog.findOrFail(id);
+    const trx = await Database.transaction();
 
-    blog.merge({
-      title,
-      titlePhotoId: titlePhoto.id,
-      titlePhotoCaption: titlePhoto.caption,
-      published,
-      publicationDate: !blog.published && published ? DateTime.now() : null,
-      hikeLegId,
-      content: JSON.stringify(content),
+    const blog = await Blog.findOrFail(id, { client: trx });
+
+    await blog.related('draftPost').updateOrCreate({}, {
+      title: draftPost.title,
+      titlePhotoId: draftPost.titlePhoto.id,
+      titlePhotoCaption: draftPost.titlePhoto.caption,
+      hikeLegId: draftPost.hikeLegId,
+      content: JSON.stringify(draftPost.content),
     });
 
     await blog.save();
+
+    await blog.load('draftPost');
+
+    trx.commit();
+
+    return blog;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  async publish({ auth: { user }, request }: HttpContextContract): Promise<Blog> {
+    if (!user) {
+      throw new Exception('user unauthorized');
+    }
+
+    const {
+      id, draftPost,
+    } = request.body();
+
+    const trx = await Database.transaction();
+
+    const blog = await Blog.findOrFail(id, { client: trx });
+
+    await blog.related('draftPost').updateOrCreate({}, {
+      title: draftPost.title,
+      titlePhotoId: draftPost.titlePhoto.id,
+      titlePhotoCaption: draftPost.titlePhoto.caption,
+      hikeLegId: draftPost.hikeLegId,
+      content: draftPost.content,
+    });
+
+    if (blog.publishedPostId === null) {
+      const published = await BlogPost.create({
+        title: draftPost.title,
+        titlePhotoId: draftPost.titlePhoto.id,
+        titlePhotoCaption: draftPost.titlePhoto.caption,
+        hikeLegId: draftPost.hikeLegId,
+        content: JSON.stringify(draftPost.content),
+      }, {
+        client: trx,
+      });
+
+      blog.publishedPostId = published.id;
+    }
+    else {
+      await blog.related('publishedPost').updateOrCreate({}, {
+        title: draftPost.title,
+        titlePhotoId: draftPost.titlePhoto.id,
+        titlePhotoCaption: draftPost.titlePhoto.caption,
+        hikeLegId: draftPost.hikeLegId,
+        content: JSON.stringify(draftPost.content),
+      });
+    }
+
+    if (blog.publicationTime === null) {
+      blog.publicationTime = DateTime.now();
+    }
+    else {
+      blog.publicationUpdateTime = DateTime.now();
+    }
+
+    await blog.save();
+
+    await blog.load('draftPost');
+    await blog.load('publishedPost');
+
+    trx.commit();
 
     return blog;
   }

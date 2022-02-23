@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon';
-import { BaseModel, column, computed } from '@ioc:Adonis/Lucid/Orm';
+import { BaseModel, column, HasOne, hasOne } from '@ioc:Adonis/Lucid/Orm';
+import BlogPost from './BlogPost';
 
 export default class Blog extends BaseModel {
   @column({ isPrimary: true })
@@ -14,29 +15,27 @@ export default class Blog extends BaseModel {
   @column({ serializeAs: null })
   public userId: number;
 
-  @column()
-  public published: boolean;
+  @column({ serializeAs: 'publicationTime' })
+  public publicationTime: DateTime | null;
 
-  @column({ serializeAs: 'publicationDate' })
-  public publicationDate: DateTime | null;
-
-  @column()
-  public title: string;
+  @column({ serializeAs: 'publicationUpdateTime' })
+  public publicationUpdateTime: DateTime | null;
 
   @column({ serializeAs: null })
-  public titlePhotoId: number | null;
+  public publishedPostId: number | null;
 
   @column({ serializeAs: null })
-  public titlePhotoCaption: string | null;
+  public draftPostId: number | null;
 
-  @column({ serializeAs: 'hikeLegId' })
-  public hikeLegId: number | null;
+  @hasOne(() => BlogPost, {
+    localKey: 'publishedPostId',
+    foreignKey: 'id',
+  })
+  public publishedPost: HasOne<typeof BlogPost>;
 
-  @column()
-  public content: string | null;
-
-  @computed({ serializeAs: 'titlePhoto' })
-  public get photo() {
-    return { id: this.titlePhotoId ?? null, caption: this.titlePhotoCaption ?? null };
-  }
+  @hasOne(() => BlogPost, {
+    localKey: 'draftPostId',
+    foreignKey: 'id',
+  })
+  public draftPost: HasOne<typeof BlogPost>;
 }

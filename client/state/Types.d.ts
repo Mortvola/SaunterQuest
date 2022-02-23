@@ -354,7 +354,7 @@ interface BlogInterface {
 
   save(): Promise<void>;
 
-  setPublished(published: boolean): void;
+  publish(): Promise<void>;
 
   setTitle(title: string | null): void;
 

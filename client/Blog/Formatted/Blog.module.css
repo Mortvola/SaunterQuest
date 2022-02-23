@@ -1,3 +1,9 @@
+.blog-wrapper {
+  display: grid;
+  overflow-y: auto;
+  width: 100%;
+}
+
 .blog {
   display: grid;
   color: black;
@@ -5,8 +11,8 @@
   height: 100%;
   width: 55rem;
   max-width: 100vw;
-  padding: 1rem;
-  overflow-y: auto;
+  overflow-x: clip;
+  justify-self: center;
 }
 
 .title {
