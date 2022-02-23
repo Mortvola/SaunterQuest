@@ -30,15 +30,17 @@ class Blog implements BlogInterface {
     }
 
     if (!post) {
-      throw new Error('post not defined');
+      this.title = `Unnamed (${props.id})`;
+      this.titlePhoto = new BlogPhoto({ id: null, caption: null });
     }
+    else {
+      this.title = post.title;
+      this.hikeLegId = post.hikeLegId;
+      this.titlePhoto = new BlogPhoto(post.titlePhoto);
 
-    this.title = post.title;
-    this.hikeLegId = post.hikeLegId;
-    this.titlePhoto = new BlogPhoto(post.titlePhoto);
-
-    if (post.content) {
-      this.sections = post.content.map((s) => new BlogSection(s));
+      if (post.content) {
+        this.sections = post.content.map((s) => new BlogSection(s));
+      }
     }
 
     makeAutoObservable(this);

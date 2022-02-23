@@ -10,7 +10,13 @@ import BlogPost from 'App/Models/BlogPost';
 export default class BlogsController {
   // eslint-disable-next-line class-methods-use-this
   async get() : Promise<Blog[]> {
-    const blogs = Blog.query().preload('draftPost');
+    const blogs = await Blog.query();
+
+    await Promise.all(blogs.map(async (b) => {
+      if (b.draftPostId !== null) {
+        await b.load('draftPost');
+      }
+    }));
 
     return blogs;
   }
@@ -64,13 +70,28 @@ export default class BlogsController {
 
     const blog = await Blog.findOrFail(id, { client: trx });
 
-    await blog.related('draftPost').updateOrCreate({}, {
-      title: draftPost.title,
-      titlePhotoId: draftPost.titlePhoto.id,
-      titlePhotoCaption: draftPost.titlePhoto.caption,
-      hikeLegId: draftPost.hikeLegId,
-      content: JSON.stringify(draftPost.content),
-    });
+    if (blog.draftPostId === null) {
+      const published = await BlogPost.create({
+        title: draftPost.title,
+        titlePhotoId: draftPost.titlePhoto.id,
+        titlePhotoCaption: draftPost.titlePhoto.caption,
+        hikeLegId: draftPost.hikeLegId,
+        content: JSON.stringify(draftPost.content),
+      }, {
+        client: trx,
+      });
+
+      blog.draftPostId = published.id;
+    }
+    else {
+      await blog.related('draftPost').updateOrCreate({}, {
+        title: draftPost.title,
+        titlePhotoId: draftPost.titlePhoto.id,
+        titlePhotoCaption: draftPost.titlePhoto.caption,
+        hikeLegId: draftPost.hikeLegId,
+        content: JSON.stringify(draftPost.content),
+      });
+    }
 
     await blog.save();
 
