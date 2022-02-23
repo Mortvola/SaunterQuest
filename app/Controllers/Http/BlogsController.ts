@@ -1,5 +1,5 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import Database from '@ioc:Adonis/Lucid/Database';
+import Database, { TransactionClientContract } from '@ioc:Adonis/Lucid/Database';
 import Drive from '@ioc:Adonis/Core/Drive';
 import { extname } from 'path';
 import Blog from 'App/Models/Blog';
@@ -56,20 +56,7 @@ export default class BlogsController {
     return blog;
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  async update({ auth: { user }, request }: HttpContextContract): Promise<Blog> {
-    if (!user) {
-      throw new Exception('user unauthorized');
-    }
-
-    const {
-      id, draftPost,
-    } = request.body();
-
-    const trx = await Database.transaction();
-
-    const blog = await Blog.findOrFail(id, { client: trx });
-
+  static async createOrUpdateDraft(blog: Blog, draftPost: any, trx: TransactionClientContract) {
     if (blog.draftPostId === null) {
       const published = await BlogPost.create({
         title: draftPost.title,
@@ -92,6 +79,23 @@ export default class BlogsController {
         content: JSON.stringify(draftPost.content),
       });
     }
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  async update({ auth: { user }, request }: HttpContextContract): Promise<Blog> {
+    if (!user) {
+      throw new Exception('user unauthorized');
+    }
+
+    const {
+      id, draftPost,
+    } = request.body();
+
+    const trx = await Database.transaction();
+
+    const blog = await Blog.findOrFail(id, { client: trx });
+
+    await BlogsController.createOrUpdateDraft(blog, draftPost, trx);
 
     await blog.save();
 
@@ -116,13 +120,7 @@ export default class BlogsController {
 
     const blog = await Blog.findOrFail(id, { client: trx });
 
-    await blog.related('draftPost').updateOrCreate({}, {
-      title: draftPost.title,
-      titlePhotoId: draftPost.titlePhoto.id,
-      titlePhotoCaption: draftPost.titlePhoto.caption,
-      hikeLegId: draftPost.hikeLegId,
-      content: draftPost.content,
-    });
+    await BlogsController.createOrUpdateDraft(blog, draftPost, trx);
 
     if (blog.publishedPostId === null) {
       const published = await BlogPost.create({
@@ -162,6 +160,31 @@ export default class BlogsController {
     trx.commit();
 
     return blog;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  async unpublish({ auth: { user }, params }: HttpContextContract): Promise<void> {
+    if (!user) {
+      throw new Exception('user unauthorized');
+    }
+
+    const trx = await Database.transaction();
+
+    const blog = await Blog.findOrFail(params.id, { client: trx });
+
+    if (blog.publishedPostId) {
+      const post = await BlogPost.find(blog.publishedPostId, { client: trx });
+
+      await post?.delete();
+
+      blog.publishedPostId = null;
+      blog.publicationTime = null;
+      blog.publicationUpdateTime = null;
+
+      await blog.save();
+
+      trx.commit();
+    }
   }
 
   // eslint-disable-next-line class-methods-use-this

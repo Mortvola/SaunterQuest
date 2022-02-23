@@ -128,10 +128,14 @@ Route.group(() => {
     Route.get('/photo/:photoId', 'PhotosController.getPhoto');
     Route.get('/photos', 'PhotosController.getPhotoList');
 
-    Route.post('/blog', 'BlogsController.create');
-    Route.post('/blog/publish', 'BlogsController.publish');
-    Route.put('/blog', 'BlogsController.update');
-    Route.post('/blog/:blogId/photo', 'BlogsController.addPhoto');
+    Route.group(() => {
+      Route.post('', 'BlogsController.create');
+      Route.post('/publish', 'BlogsController.publish');
+      Route.post('/unpublish/:id', 'BlogsController.unpublish');
+      Route.put('', 'BlogsController.update');
+      Route.post('/:blogId/photo', 'BlogsController.addPhoto');
+    })
+      .prefix('/blog');
   })
     .middleware('auth');
 

@@ -356,6 +356,8 @@ interface BlogInterface {
 
   publish(): Promise<void>;
 
+  unpublish(): Promise<void>;
+
   setTitle(title: string | null): void;
 
   addSectionAfter(afterSection: BlogSectionInterface | null): void;

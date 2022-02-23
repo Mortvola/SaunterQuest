@@ -76,6 +76,10 @@ class Blog implements BlogInterface {
     }
   }
 
+  async unpublish(): Promise<void> {
+    await Http.post(`/api/blog/unpublish/${this.id}`);
+  }
+
   setTitle(title: string | null): void {
     runInAction(() => {
       this.title = title;

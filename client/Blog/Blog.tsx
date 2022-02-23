@@ -80,6 +80,10 @@ const Blog: React.FC<PropsType> = observer(({ blog }) => {
     blog.publish();
   };
 
+  const handleUnpublishClick = () => {
+    blog.unpublish();
+  };
+
   const handleHikeChange: React.ChangeEventHandler<HTMLSelectElement> = async (event) => {
     const hikeId = parseInt(event.target.value, 10);
     const selectedHike = hikes.find((h) => h.id === hikeId);
@@ -118,7 +122,7 @@ const Blog: React.FC<PropsType> = observer(({ blog }) => {
           </label>
           <button type="button" onClick={handleSaveClick}>Save</button>
           <button type="button" onClick={handlePublishClick}>Publish</button>
-          <button type="button" onClick={handleSaveClick}>Unpublish</button>
+          <button type="button" onClick={handleUnpublishClick}>Unpublish</button>
         </div>
         <label className={styles.legSelection}>
           Associated Hike/Leg:
