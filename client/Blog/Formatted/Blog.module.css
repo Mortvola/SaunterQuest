@@ -6,6 +6,7 @@
 
 .blog {
   display: grid;
+  grid-auto-rows: max-content;
   color: black;
   background-color: white;
   height: 100%;
