@@ -155,6 +155,8 @@ Route.group(() => {
         Route.get('', 'HikerProfilesController.get');
       })
         .prefix('/hiker-profile');
+
+      Route.get('/route-group', 'RouteGroupsController.getHikeLegRouteGroup');
     })
       .prefix('/:hikeLegId');
   })

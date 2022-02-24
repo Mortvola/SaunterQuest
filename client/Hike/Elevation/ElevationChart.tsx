@@ -107,7 +107,7 @@ const ElevationChart: React.FC<PropsType> = observer(({
             left: 60,
             top: 20,
             bottom: 30,
-            right: 0,
+            right: 20,
             width: '100%',
             height: '100%',
           },

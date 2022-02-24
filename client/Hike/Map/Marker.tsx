@@ -15,11 +15,11 @@ type Props = {
   selections: PoiSelections,
 }
 
-const Marker = ({
+const Marker: React.FC<Props> = observer(({
   marker,
   draggingLocked,
   selections,
-}: Props): ReactElement | null => {
+}) => {
   const { uiState } = useStores();
   const markerRef = useRef<L.Marker>(null);
   const { isMobile } = useMediaQuery();
@@ -116,6 +116,6 @@ const Marker = ({
   }
 
   return null;
-};
+});
 
-export default observer(Marker);
+export default Marker;

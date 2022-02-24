@@ -1,5 +1,8 @@
+import { Exception } from '@adonisjs/core/build/standalone';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Database from '@ioc:Adonis/Lucid/Database';
+import Hike from 'App/Models/Hike';
+import HikeLeg from 'App/Models/HikeLeg';
 import RouteGroup from 'App/Models/RouteGroup';
 
 export default class RouteGroupsController {
@@ -9,11 +12,7 @@ export default class RouteGroupsController {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  public async getRouteGroup({
-    params,
-  }: HttpContextContract): Promise<unknown> {
-    const id = parseInt(params.id, 10);
-
+  private static async queryRouteGroup(id: number): Promise<unknown> {
     const query = Database.query().select(
       Database.raw(`
         (select 
@@ -37,5 +36,30 @@ export default class RouteGroupsController {
     const results = await query;
 
     return results.map((r) => r.trail);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async getRouteGroup({
+    params,
+  }: HttpContextContract): Promise<unknown> {
+    const id = parseInt(params.id, 10);
+
+    return RouteGroupsController.queryRouteGroup(id);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async getHikeLegRouteGroup({
+    params,
+  }: HttpContextContract): Promise<unknown> {
+    const hikeLegId = parseInt(params.hikeLegId, 10);
+
+    const hikeLeg = await HikeLeg.findOrFail(hikeLegId);
+    const hike = await Hike.findOrFail(hikeLeg.hikeId);
+
+    if (hike.routeGroupId === null) {
+      throw new Exception('route group not set');
+    }
+
+    return RouteGroupsController.queryRouteGroup(hike.routeGroupId);
   }
 }

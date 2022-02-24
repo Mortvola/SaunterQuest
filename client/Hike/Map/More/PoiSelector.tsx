@@ -3,15 +3,15 @@ import Checkbox from './Checkbox';
 import styles from './PoiSelector.module.css';
 
 export type PoiSelections = {
-  waypoints: boolean,
-  campsites: boolean,
-  rvSites: boolean,
-  water: boolean,
-  resupply: boolean,
-  day: boolean,
-  postOffices: boolean,
-  cities: boolean,
-  photos: boolean,
+  waypoints?: boolean,
+  campsites?: boolean,
+  rvSites?: boolean,
+  water?: boolean,
+  resupply?: boolean,
+  day?: boolean,
+  postOffices?: boolean,
+  cities?: boolean,
+  photos?: boolean,
 }
 
 export type OnSelectionCallback = (selections: PoiSelections) => void;

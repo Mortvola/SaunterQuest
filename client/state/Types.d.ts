@@ -46,7 +46,9 @@ export interface HikeLegInterface {
 
   addHikerProfile: (profile: ProfileProps) => Promise<void>;
 
-  setElevationMarker(latLng: L.LatLng | null): void
+  setElevationMarker(latLng: L.LatLng | null): void;
+
+  requestRouteGroup(): Promise<L.LatLng[][] | null>;
 }
 
 export interface HikeInterface {

@@ -1,17 +1,16 @@
-import { Exception } from '@adonisjs/core/build/standalone';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
+import Hike from 'App/Models/Hike';
 import HikeLeg from 'App/Models/HikeLeg';
 import RoutePoint from 'App/Models/RoutePoint';
+import User from 'App/Models/User';
 import { ScheduleResponse } from 'common/ResponseTypes';
 
 export default class SchedulesController {
   // eslint-disable-next-line class-methods-use-this
-  public async get({ auth, params }: HttpContextContract) : Promise<ScheduleResponse> {
-    if (!auth.user) {
-      throw new Exception('user is not authorized');
-    }
-
-    const leg = await HikeLeg.findByOrFail('id', params.hikeLegId);
+  public async get({ params }: HttpContextContract) : Promise<ScheduleResponse> {
+    const leg = await HikeLeg.findOrFail(params.hikeLegId);
+    const hike = await Hike.findOrFail(leg.hikeId);
+    const user = await User.findOrFail(hike.userId);
 
     await leg.load('schedule', (query) => {
       query.preload('days');
@@ -26,7 +25,7 @@ export default class SchedulesController {
       await leg.load('routePoints');
       await leg.loadTrails();
       leg.assignDistances();
-      await leg.updateSchedule(auth.user);
+      await leg.updateSchedule(user);
     }
 
     if (leg.schedule) {

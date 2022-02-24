@@ -194,6 +194,18 @@ class HikeLeg implements HikeLegInterface {
       this.elevationMarkerPos = latLng;
     });
   }
+
+  async requestRouteGroup(): Promise<L.LatLng[][] | null> {
+    const response = await Http.get<[number, number][][]>(`/api/hike-leg/${this.id}/route-group`);
+
+    if (response.ok) {
+      const body = await response.body();
+
+      return body.map((t) => t.map((t2) => new L.LatLng(t2[0], t2[1])));
+    }
+
+    return null;
+  }
 }
 
 export default HikeLeg;

@@ -39,11 +39,11 @@ const Poi: React.FC<PropsType> = ({ selections }) => {
 
   return (
     <MarkerCluster>
-      <Campsites bounds={bounds} show={selections.campsites} />
-      <RvSites bounds={bounds} show={selections.rvSites} />
-      <PostOffices bounds={bounds} show={selections.postOffices} />
-      <Cities bounds={bounds} show={selections.cities} />
-      <Photos bounds={bounds} show={selections.photos} />
+      <Campsites bounds={bounds} show={selections.campsites ?? false} />
+      <RvSites bounds={bounds} show={selections.rvSites ?? false} />
+      <PostOffices bounds={bounds} show={selections.postOffices ?? false} />
+      <Cities bounds={bounds} show={selections.cities ?? false} />
+      <Photos bounds={bounds} show={selections.photos ?? false} />
     </MarkerCluster>
   );
 };
