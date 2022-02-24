@@ -33,9 +33,11 @@ class HikeLeg implements HikeLegInterface {
     makeAutoObservable(this);
   }
 
-  load(): void {
+  load(hikerProfiles = false): void {
     this.route.requestRoute();
-    this.requestHikerProfiles();
+    if (hikerProfiles) {
+      this.requestHikerProfiles();
+    }
   }
 
   clearDayMarkers() {

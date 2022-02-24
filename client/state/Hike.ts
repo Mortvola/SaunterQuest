@@ -148,7 +148,7 @@ class Hike implements HikeInterface {
         }
 
         this.currentLeg = newLeg;
-        this.currentLeg.load();
+        this.currentLeg.load(true);
       }
     });
   }
