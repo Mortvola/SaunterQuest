@@ -1,4 +1,5 @@
 import React from 'react';
+import { DateTime } from 'luxon';
 import { observer } from 'mobx-react-lite';
 import { BlogInterface } from '../../state/Types';
 import Markdown from './Markdown';
@@ -34,7 +35,33 @@ const FormattedBlog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) =>
           ? <Photo photo={blog.titlePhoto} className="title-photo" blogId={blog.id} />
           : null
         }
-        <div className={styles.title}>{blog.title ?? ''}</div>
+        <div className={styles.title}>
+          <div>{blog.title ?? ''}</div>
+          {
+            blog.publicationTime
+              ? (
+                <>
+                  <span className={styles.publishedDate}>
+                    {
+                      `Published ${blog.publicationTime.toLocaleString(DateTime.DATETIME_FULL)}`
+                    }
+                  </span>
+                  {
+                    blog.publicationUpdateTime
+                      ? (
+                        <span className={styles.publishedDate}>
+                          {
+                            `, Updated ${blog.publicationUpdateTime.toLocaleString(DateTime.DATETIME_FULL)}`
+                          }
+                        </span>
+                      )
+                      : null
+                  }
+                </>
+              )
+              : null
+          }
+        </div>
         {
           blog.sections.map((s, index) => {
             switch (s.type) {

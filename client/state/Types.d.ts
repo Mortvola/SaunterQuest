@@ -1,3 +1,5 @@
+import { DateTime } from 'luxon';
+
 export interface HikeManagerInterface {
   hikes: HikeItemInterface[];
 }
@@ -347,6 +349,10 @@ interface BlogInterface {
   id: number;
 
   published: boolean;
+
+  publicationTime: DateTime | null;
+
+  publicationUpdateTime: DateTime | null;
 
   hikeLegId: number | null;
 

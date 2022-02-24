@@ -1,4 +1,5 @@
 import Http from '@mortvola/http';
+import { DateTime } from 'luxon';
 import { makeAutoObservable, runInAction } from 'mobx';
 import { BlogProps } from '../../../common/ResponseTypes';
 import { BlogInterface, BlogSectionInterface } from '../Types';
@@ -9,6 +10,10 @@ class Blog implements BlogInterface {
   id: number;
 
   published: boolean;
+
+  publicationTime: DateTime | null = null;
+
+  publicationUpdateTime: DateTime | null = null;
 
   title: string | null;
 
@@ -23,6 +28,14 @@ class Blog implements BlogInterface {
   constructor(props: BlogProps) {
     this.id = props.id;
     this.published = props.publicationTime !== null;
+
+    if (props.publicationTime) {
+      this.publicationTime = DateTime.fromISO(props.publicationTime);
+
+      if (props.publicationUpdateTime) {
+        this.publicationUpdateTime = DateTime.fromISO(props.publicationUpdateTime);
+      }
+    }
 
     let post = props.draftPost;
     if (!post) {

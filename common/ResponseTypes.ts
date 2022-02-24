@@ -145,7 +145,7 @@ export type DraftPostProps = {
 export type BlogProps = {
   id: number,
   publicationTime?: string | null,
-  publicationUpdateTIme?: string | null,
+  publicationUpdateTime?: string | null,
   draftPost?: DraftPostProps,
   publishedPost?: DraftPostProps,
 };
