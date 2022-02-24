@@ -226,6 +226,8 @@ export interface RouteInterface extends BaseRouteInterface {
 
   map: MapInterface;
 
+  bounds: [L.LatLngTuple, L.LatLngTuple] | null;
+
   moveWaypoint: (id: number, point: LatLng) => Promise<LatLng>;
 
   generateGradeSegments(): void;

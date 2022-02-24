@@ -10,9 +10,10 @@ import Photo from './Photo';
 
 type PropsType = {
   blog: BlogInterface,
+  tileServerUrl: string,
 }
 
-const Blog: React.FC<PropsType> = observer(({ blog }) => {
+const Blog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) => {
   type HikeLeg = {
     id: number,
     name: string | null,
@@ -150,7 +151,7 @@ const Blog: React.FC<PropsType> = observer(({ blog }) => {
       </div>
       {
         preview
-          ? <FormattedBlog blog={blog} />
+          ? <FormattedBlog blog={blog} tileServerUrl={tileServerUrl} />
           : (
             <div className={styles.editor}>
               <TextareaAutosize className={styles.title} value={blog.title ?? ''} onChange={handleTitleChange} />

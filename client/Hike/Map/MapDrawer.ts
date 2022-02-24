@@ -2,6 +2,7 @@
 import L, { DomEvent } from 'leaflet';
 import React, { ReactNode } from 'react';
 import ReactDOM from 'react-dom';
+import { useMap } from 'react-leaflet';
 import styles from './MapDrawer.module.css';
 
 class DrawerHandler extends L.Handler {
@@ -53,8 +54,6 @@ class DrawerHandler extends L.Handler {
   }
 }
 
-L.Map.addInitHook('addHandler', 'drawer', DrawerHandler);
-
 type PropsType = {
   children?: ReactNode,
 }
@@ -62,6 +61,14 @@ type PropsType = {
 const MapDrawer: React.FC<PropsType> = ({
   children,
 }) => {
+  const [initialized, setInitialized] = React.useState(false);
+  const map = useMap();
+
+  if (!initialized) {
+    map.addHandler('drawer', DrawerHandler);
+    setInitialized(true);
+  }
+
   const portal = document.querySelector('#leaflet-drawer');
   if (portal) {
     return ReactDOM.createPortal(children, portal);

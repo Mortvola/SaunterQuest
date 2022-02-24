@@ -1,11 +1,11 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
 import Trail from './Trail';
-import RouteData from '../../state/Route';
 import Grade from './Grade';
+import { RouteInterface } from '../../state/Types';
 
 type PropsType = {
-  route: RouteData;
+  route: RouteInterface;
 }
 
 const Route: React.FC<PropsType> = observer(({

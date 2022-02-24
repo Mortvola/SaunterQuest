@@ -6,7 +6,11 @@ import Blog from './Blog';
 import BlogListItem from './BlogListItem';
 import styles from './Blogs.module.css';
 
-const Blogs: React.FC = observer(() => {
+type PropsType = {
+  tileServerUrl: string,
+}
+
+const Blogs: React.FC<PropsType> = observer(({ tileServerUrl }) => {
   const { blogManager } = useStores();
   const [selectedBlog, setSelectedBlog] = useState<BlogInterface | null>(null);
 
@@ -38,7 +42,7 @@ const Blogs: React.FC = observer(() => {
       <div>
         {
           selectedBlog
-            ? <Blog blog={selectedBlog} />
+            ? <Blog blog={selectedBlog} tileServerUrl={tileServerUrl} />
             : null
         }
       </div>

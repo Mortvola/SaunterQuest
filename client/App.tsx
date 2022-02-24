@@ -61,7 +61,7 @@ const App = ({
           <div />
         </Route>
         <Route path="/blog">
-          <Blogs />
+          <Blogs tileServerUrl={tileServerUrl} />
         </Route>
         <Route path="/">
           <Hikes />

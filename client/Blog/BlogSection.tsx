@@ -41,7 +41,7 @@ const BlogSection: React.FC<PropsType> = observer(({
         return <div />;
 
       case 'map':
-        return null;
+        return <div />;
 
       case 'markdown':
         return (

@@ -14,7 +14,7 @@ type PropsType = {
 }
 
 const Welcome: React.FC<PropsType> = ({ tileServerUrl }) => (
-  <Main />
+  <Main tileServerUrl={tileServerUrl} />
 );
 
 const appElement = document.querySelector('.app');

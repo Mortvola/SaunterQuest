@@ -8,7 +8,11 @@ import { useStores } from './state/store';
 import Blog from '../Blog/Formatted/Blog';
 import styles from './Main.module.css';
 
-const Main: React.FC = observer(() => {
+type PropsType = {
+  tileServerUrl: string,
+}
+
+const Main: React.FC<PropsType> = observer(({ tileServerUrl }) => {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const { blogManager } = useStores();
@@ -65,7 +69,7 @@ const Main: React.FC = observer(() => {
         </div>
         {
           blogManager.current
-            ? <Blog blog={blogManager.current} />
+            ? <Blog blog={blogManager.current} tileServerUrl={tileServerUrl} />
             : null
         }
         <Login show={showLogin} onHide={handleLoginHide} />

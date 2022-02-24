@@ -1,4 +1,5 @@
 import React from 'react';
+import { observer } from 'mobx-react-lite';
 import { BlogInterface } from '../../state/Types';
 import Markdown from './Markdown';
 import styles from './Blog.module.css';
@@ -10,9 +11,10 @@ import Map from './Map';
 
 type PropsType = {
   blog: BlogInterface,
+  tileServerUrl: string,
 }
 
-const FormattedBlog: React.FC<PropsType> = ({ blog }) => {
+const FormattedBlog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) => {
   const [hikeLeg, setHikeLeg] = React.useState<HikeLeg | null>(null);
 
   React.useEffect(() => {
@@ -53,8 +55,15 @@ const FormattedBlog: React.FC<PropsType> = ({ blog }) => {
 
               case 'map':
                 return (
-                  // eslint-disable-next-line react/no-array-index-key
-                  <Map key={index} section={s} />
+                  hikeLeg && hikeLeg.route.bounds
+                    ? (
+                      // eslint-disable-next-line react/no-array-index-key
+                      <Map key={index} tileServerUrl={tileServerUrl} hikeLeg={hikeLeg} />
+                    )
+                    : (
+                      // eslint-disable-next-line react/no-array-index-key
+                      <div key={index} />
+                    )
                 );
 
               case 'photo':
@@ -71,6 +80,6 @@ const FormattedBlog: React.FC<PropsType> = ({ blog }) => {
       </div>
     </div>
   );
-};
+});
 
 export default FormattedBlog;
