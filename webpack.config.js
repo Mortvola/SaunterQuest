@@ -1,6 +1,7 @@
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const RemovePlugin = require('remove-files-webpack-plugin');
 
 const config = (folder, name, env) => ({
   name,
@@ -64,6 +65,22 @@ const config = (folder, name, env) => ({
     ],
   },
   plugins: [
+    new RemovePlugin({
+      before: {
+        test: [
+          {
+            folder: './public',
+            method: (file) => (name === 'app' ? /main\..*\.css/.test(file) : false),
+            recursive: false,
+          },
+          {
+            folder: './public',
+            method: (file) => (name === 'welcome' ? /welcome\..*\.css/.test(file) : false),
+            recursive: false,
+          },
+        ],
+      },
+    }),
     new MiniCssExtractPlugin({
       filename: name === 'app'
         ? 'main.[contenthash].css'
