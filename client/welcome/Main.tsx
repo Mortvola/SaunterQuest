@@ -64,7 +64,9 @@ const Main: React.FC<PropsType> = observer(({ tileServerUrl }) => {
           <div className={styles.title}>SaunterQuest</div>
           <div className={styles.links}>
             <div className={styles.welcomeButton} onClick={handleLoginClick}>Login</div>
-            <div className={styles.welcomeButton} onClick={handleRegisterClick}>Register</div>
+            {
+              // <div className={styles.welcomeButton} onClick={handleRegisterClick}>Register</div>
+            }
           </div>
         </div>
         {

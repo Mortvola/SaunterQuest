@@ -17,14 +17,14 @@
 }
 
 .title {
-	font-family: proxima-nova,Helvetica Neue,Arial,sans-serif;
-	font-size: 2.5rem;
-	line-height: 0.75em;
-	color: #2e2e2e;
-	font-weight: bold;
-	text-transform: none;
-	margin-top: 1.25rem;
-	margin-bottom: 1rem;
+  font-family: proxima-nova,Helvetica Neue,Arial,sans-serif;
+  font-size: 2.5rem;
+  line-height: 0.75em;
+  color: #2e2e2e;
+  font-weight: bold;
+  text-transform: none;
+  margin-top: 1.25rem;
+  margin-bottom: 1rem;
 }
 
 .published-date {
@@ -34,8 +34,9 @@
 }
 
 .html {
-	width: max-content;
-	justify-self: center;
-	margin-top: 1rem;
-	margin-bottom: 1rem;
+  width: max-content;
+  justify-self: center;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  max-width: 100vw;
 }
