@@ -32,3 +32,10 @@
   font-weight: normal;
   line-height: 1rem;
 }
+
+.html {
+	width: max-content;
+	justify-self: center;
+	margin-top: 1rem;
+	margin-bottom: 1rem;
+}

@@ -332,8 +332,6 @@ export type BlogPhotoInterface = {
   setCaption(caption: string): void;
 }
 
-export type BlogSectionTypes = 'markdown' | 'elevation' | 'map' | 'photo';
-
 interface BlogSectionInterface {
   type: BlogSectionTypes;
 

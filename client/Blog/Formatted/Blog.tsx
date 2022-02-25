@@ -9,7 +9,7 @@ import MapData from '../../state/Map';
 import Photo from './Photo';
 import HikeLeg from '../../state/HikeLeg';
 import Map from './Map';
-import Comments from './Comments';
+import Comments from './Comments/Comments';
 
 type PropsType = {
   blog: BlogInterface,
@@ -98,6 +98,17 @@ const FormattedBlog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) =>
                 return (
                   // eslint-disable-next-line react/no-array-index-key
                   <Photo key={index} photo={s.photo} blogId={blog.id} />
+                );
+
+              case 'html':
+                return (
+                  <div
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={index}
+                    className={styles.html}
+                    // eslint-disable-next-line react/no-danger
+                    dangerouslySetInnerHTML={{ __html: s.text ?? '' }}
+                  />
                 );
 
               default:

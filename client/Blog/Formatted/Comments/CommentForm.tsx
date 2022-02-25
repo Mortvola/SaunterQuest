@@ -4,10 +4,9 @@ import {
 } from 'formik';
 import TextareaAutosize from 'react-textarea-autosize';
 import Http from '@mortvola/http';
-import { CommentProps, CommentRequest, isErrorResponse } from '../../../common/ResponseTypes';
+import { FormError, setFormErrors } from '@mortvola/forms';
+import { CommentProps, CommentRequest, isErrorResponse } from '../../../../common/ResponseTypes';
 import styles from './CommentForm.module.css';
-import { setFormErrors } from '../../Modal/Errors';
-import { FormError } from '@mortvola/forms';
 
 type PropsType = {
   blogId: number,

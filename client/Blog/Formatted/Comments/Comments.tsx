@@ -1,7 +1,6 @@
 import Http from '@mortvola/http';
-import { DateTime } from 'luxon';
 import React from 'react';
-import { CommentProps } from '../../../common/ResponseTypes';
+import { CommentProps } from '../../../../common/ResponseTypes';
 import Comment from './Comment';
 import CommentData from './CommentData';
 import CommentForm from './CommentForm';

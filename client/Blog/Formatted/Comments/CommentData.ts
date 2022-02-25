@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon';
 import { makeAutoObservable, runInAction } from 'mobx';
-import { CommentProps } from '../../../common/ResponseTypes';
+import { CommentProps } from '../../../../common/ResponseTypes';
 
 class CommentData {
   id: number;

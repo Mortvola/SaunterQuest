@@ -5,6 +5,7 @@ import IconButton from '../IconButton';
 import { BlogSectionInterface } from '../state/Types';
 import styles from './BlogSection.module.css';
 import Photo from './Photo';
+import HTML from './HTML';
 
 type PropsType = {
   section: BlogSectionInterface,
@@ -53,6 +54,11 @@ const BlogSection: React.FC<PropsType> = observer(({
           <Photo photo={section.photo} blogId={blogId} />
         );
 
+      case 'html':
+        return (
+          <HTML html={section.text} onChange={handleChange} />
+        );
+
       default:
         return null;
     }
@@ -65,6 +71,7 @@ const BlogSection: React.FC<PropsType> = observer(({
         <option value="elevation">Elevation Chart</option>
         <option value="map">Map</option>
         <option value="photo">Photo</option>
+        <option value="html">HTML</option>
       </select>
       <IconButton icon="trash" onClick={handleDeleteClick} />
       {

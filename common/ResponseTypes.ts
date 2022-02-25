@@ -129,8 +129,10 @@ export type BlogPhotoProps = {
   caption: string | null,
 }
 
+export type BlogSectionTypes = 'markdown' | 'elevation' | 'map' | 'photo' | 'html';
+
 export type BlogSectionProps = {
-  type: 'markdown' | 'elevation' | 'map' | 'photo',
+  type: BlogSectionTypes,
   text: string | null,
   photo: BlogPhotoProps,
 }
