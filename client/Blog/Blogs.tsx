@@ -1,44 +1,53 @@
 import { observer } from 'mobx-react-lite';
 import React, { useState } from 'react';
+import { Offcanvas } from 'react-bootstrap';
 import { useStores } from '../state/store';
 import { BlogInterface } from '../state/Types';
 import Blog from './Blog';
-import BlogListItem from './BlogListItem';
+import BlogList from './Bloglist';
+import useMediaQuery from '../MediaQuery';
 import styles from './Blogs.module.css';
 
 type PropsType = {
   tileServerUrl: string,
+  showOffcanvas: boolean,
+  onHideOffcanvas: () => void,
 }
 
-const Blogs: React.FC<PropsType> = observer(({ tileServerUrl }) => {
+const Blogs: React.FC<PropsType> = observer(({ tileServerUrl, showOffcanvas, onHideOffcanvas }) => {
   const { blogManager } = useStores();
   const [selectedBlog, setSelectedBlog] = useState<BlogInterface | null>(null);
+  const { isMobile, addMediaClass } = useMediaQuery();
 
-  const handleAddBlog = () => {
-    blogManager.addBlog();
-  };
-
-  const handleBlogListItemClick = (blog: BlogInterface) => {
+  const handleSelection = (blog: BlogInterface) => {
     setSelectedBlog(blog);
+    onHideOffcanvas();
   };
 
   return (
-    <div className={styles.layout}>
-      <div className={styles.listWrapper}>
-        <button type="button" onClick={handleAddBlog}>Add Blog</button>
-        <div className={styles.list}>
-          {
-            blogManager.blogs.map((b) => (
-              <BlogListItem
-                key={b.id}
-                blog={b}
-                onClick={handleBlogListItemClick}
-                selected={b === selectedBlog}
-              />
-            ))
-          }
-        </div>
-      </div>
+    <div className={addMediaClass(styles.layout)}>
+      {
+        !isMobile
+          ? (
+            <BlogList
+              blogManager={blogManager}
+              onSelection={handleSelection}
+              selectedBlog={selectedBlog}
+            />
+          )
+          : (
+            <Offcanvas show={showOffcanvas} onHide={onHideOffcanvas}>
+              <Offcanvas.Header closeButton />
+              <Offcanvas.Body>
+                <BlogList
+                  blogManager={blogManager}
+                  onSelection={handleSelection}
+                  selectedBlog={selectedBlog}
+                />
+              </Offcanvas.Body>
+            </Offcanvas>
+          )
+      }
       <div>
         {
           selectedBlog

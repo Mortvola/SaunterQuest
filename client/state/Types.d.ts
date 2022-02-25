@@ -377,4 +377,6 @@ interface BlogInterface {
 
 interface BlogManagerInterface {
   blogs: BlogInterface[];
+
+  addBlog(): Promise<void>;
 }

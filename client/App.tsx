@@ -61,7 +61,11 @@ const App = ({
           <div />
         </Route>
         <Route path="/blog">
-          <Blogs tileServerUrl={tileServerUrl} />
+          <Blogs
+            tileServerUrl={tileServerUrl}
+            showOffcanvas={showOffcanvas}
+            onHideOffcanvas={handleHidecanvas}
+          />
         </Route>
         <Route path="/">
           <Hikes />

@@ -1,0 +1,7 @@
+.list>* {
+  margin-bottom: 0.5rem;
+}
+
+.list-wrapper {
+  border-right: solid black thin;
+}
