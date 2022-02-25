@@ -1,11 +1,16 @@
-import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import Database, { TransactionClientContract } from '@ioc:Adonis/Lucid/Database';
 import Drive from '@ioc:Adonis/Core/Drive';
 import { extname } from 'path';
 import Blog from 'App/Models/Blog';
-import { Exception } from '@adonisjs/core/build/standalone';
+import { Exception, Response } from '@adonisjs/core/build/standalone';
 import { DateTime } from 'luxon';
 import BlogPost from 'App/Models/BlogPost';
+import BlogComment from 'App/Models/BlogComment';
+import { CommentProps } from 'common/ResponseTypes';
+import Mail from '@ioc:Adonis/Addons/Mail';
+import Env from '@ioc:Adonis/Core/Env';
+import { schema, rules } from '@ioc:Adonis/Core/Validator';
 
 export default class BlogsController {
   // eslint-disable-next-line class-methods-use-this
@@ -241,5 +246,147 @@ export default class BlogsController {
     response.header('content-length', size);
 
     return response.stream(await Drive.getStream(location));
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async comment({
+    request,
+    params,
+  }: HttpContextContract): Promise<BlogComment> {
+    const id = parseInt(params.blogId, 10);
+
+    const commentErrors: string[] = [
+      'Cat got your tongue?',
+      'Mums the word?',
+      'Did you forget something?',
+      'Are you the silent type?',
+      'Speechless?',
+    ];
+
+    const body = await request.validate({
+      schema: schema.create({
+        name: schema.string({ trim: true }, [
+          rules.required(),
+        ]),
+        email: schema.string({ trim: true }, [
+          rules.email(),
+        ]),
+        comment: schema.string({ trim: true }, [
+          rules.required(),
+        ]),
+        replyToId: schema.number.optional(),
+        notify: schema.boolean.optional(),
+      }),
+      messages: {
+        'name.required': 'A name is required',
+        'email.required': 'A valid email address is required',
+        'email.email': 'A valid email address is required',
+        'comment.required': commentErrors[Math.floor(Math.random() * commentErrors.length)],
+      },
+    });
+
+    const comment = new BlogComment();
+
+    comment.fill({
+      name: body.name,
+      email: body.email,
+      comment: body.comment,
+      blogId: id,
+      replyToId: body.replyToId,
+      notify: body.notify ?? false,
+    });
+
+    await comment.save();
+
+    if (body.replyToId !== null) {
+      const repliedToComment = await BlogComment.find(body.replyToId);
+
+      if (repliedToComment && repliedToComment.notify) {
+        const blog = await Blog.find(id);
+
+        if (blog) {
+          await blog.load('publishedPost');
+
+          const url = `${Env.get('APP_URL') as string}/blog/${blog.id}`;
+
+          Mail.send((message) => {
+            message
+              .from(Env.get('MAIL_FROM_ADDRESS') as string, Env.get('MAIL_FROM_NAME') as string)
+              .to(repliedToComment.email)
+              .subject('You received a reply to your comment')
+              .htmlView('emails/reply-notification', {
+                name: repliedToComment.name,
+                title: blog.publishedPost.title,
+                url,
+              });
+          });
+        }
+      }
+    }
+
+    return comment;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async getComments({ params }: HttpContextContract): Promise<CommentProps[]> {
+    const id = parseInt(params.blogId, 10);
+
+    const comments = await BlogComment.query().where('blogId', id).orderBy('createdAt', 'desc');
+
+    type TempCommentProps = {
+      id: number,
+      createdAt: string,
+      name: string,
+      comment: string,
+      replyToId: number | null,
+      notify: boolean,
+      replies: TempCommentProps[],
+    };
+
+    let response = comments.map<TempCommentProps>((c) => ({
+      id: c.id,
+      createdAt: c.createdAt.toISO(),
+      name: c.name,
+      comment: c.comment,
+      replyToId: c.replyToId,
+      notify: c.notify,
+      replies: [],
+    }));
+
+    for (let i = 0; i < response.length;) {
+      if (response[i].replyToId !== null) {
+        // This is a reply, remove it from the list
+        // and find the comment it is in reply to
+        // and add it to it's replies array
+        const reply = response[i];
+        response = [
+          ...response.slice(0, i),
+          ...response.slice(i + 1),
+        ];
+
+        const stack: TempCommentProps[] = [];
+        stack.push(...response);
+
+        while (stack.length > 0) {
+          const node = stack.pop();
+          if (node) {
+            if (node.id === reply.replyToId) {
+              // Found it!
+              node.replies.push(reply);
+              break;
+            }
+
+            if (node.replies && node.replies.length) {
+              stack.push(...node.replies);
+            }
+          }
+        }
+      }
+      else {
+        i += 1;
+      }
+    }
+
+    return response;
   }
 }

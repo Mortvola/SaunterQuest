@@ -142,9 +142,15 @@ Route.group(() => {
   Route.get('/poi/photos', 'PointsOfInterestController.getPhotos');
 
   Route.get('/blogs', 'BlogsController.get');
-  Route.get('/blog/:blogId', 'BlogsController.getBlog');
-  // Route.get('/blog/:blogId/photos', 'BlogsController.getPhotos');
-  Route.get('/blog/:blogId/photo/:photoId', 'BlogsController.getPhoto');
+
+  Route.group(() => {
+    Route.get('', 'BlogsController.getBlog');
+    // Route.get('/blog/:blogId/photos', 'BlogsController.getPhotos');
+    Route.get('/photo/:photoId', 'BlogsController.getPhoto');
+    Route.post('/comment', 'BlogsController.comment');
+    Route.get('/comments', 'BlogsController.getComments');
+  })
+    .prefix('/blog/:blogId');
 
   Route.group(() => {
     Route.group(() => {

@@ -154,3 +154,19 @@ export type HikeLegProps = {
   id: number,
   name: string | null,
 };
+
+export type CommentRequest = {
+  name: string,
+  email: string,
+  comment: string,
+  notify: boolean,
+  replyToId?: number,
+}
+
+export type CommentProps = {
+  id: number,
+  createdAt: string,
+  name: string,
+  comment: string,
+  replies: CommentProps[],
+};

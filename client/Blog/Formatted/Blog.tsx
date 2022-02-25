@@ -9,6 +9,7 @@ import MapData from '../../state/Map';
 import Photo from './Photo';
 import HikeLeg from '../../state/HikeLeg';
 import Map from './Map';
+import Comments from './Comments';
 
 type PropsType = {
   blog: BlogInterface,
@@ -104,6 +105,7 @@ const FormattedBlog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) =>
             }
           })
         }
+        <Comments blogId={blog.id} />
       </div>
     </div>
   );
