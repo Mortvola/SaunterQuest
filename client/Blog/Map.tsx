@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  LayersControl, MapConsumer, MapContainer, Polyline, TileLayer, useMap,
+  LayersControl, MapContainer, Polyline, TileLayer,
 } from 'react-leaflet';
 import Graticule from '../Hike/Graticule';
 import Route from '../Hike/Map/Route';

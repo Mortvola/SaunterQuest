@@ -23,13 +23,11 @@ Leaflet.Icon.Default.imagePath = '//cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.4
 type PropsType = {
   username: string,
   tileServerUrl: string,
-  extendedMenu: string,
 }
 
 const App = ({
   username,
   tileServerUrl,
-  extendedMenu,
 }: PropsType): ReactElement => {
   usePageViews();
   const [showOffcanvas, setShowOffcanvas] = React.useState<boolean>(false);
@@ -49,7 +47,6 @@ const App = ({
         <Route path="/hike">
           <Hike
             tileServerUrl={tileServerUrl}
-            extendedMenu={extendedMenu}
             showOffcanvas={showOffcanvas}
             onHideOffcanvas={handleHidecanvas}
           />

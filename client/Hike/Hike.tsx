@@ -16,14 +16,12 @@ import { HikeProps } from '../../common/ResponseTypes';
 
 type Props = {
   tileServerUrl: string,
-  extendedMenu: unknown,
   showOffcanvas: boolean,
   onHideOffcanvas: () => void,
 }
 
 const Hike = ({
   tileServerUrl,
-  extendedMenu,
   showOffcanvas,
   onHideOffcanvas,
 }: Props): ReactElement | null => {

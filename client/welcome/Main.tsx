@@ -41,17 +41,17 @@ const Main: React.FC<PropsType> = observer(({ tileServerUrl }) => {
     setShowLogin(false);
   };
 
-  const handleRegisterClick = () => {
-    setShowRegister(true);
-  };
+  // const handleRegisterClick = () => {
+  //   setShowRegister(true);
+  // };
 
   const handleRegisterHide = () => {
     setShowRegister(false);
   };
 
-  const handleSlideOutOpen = () => {
-    setSlideOutOpen(true);
-  };
+  // const handleSlideOutOpen = () => {
+  //   setSlideOutOpen(true);
+  // };
 
   const handleSlideOutClose = () => {
     setSlideOutOpen(false);
