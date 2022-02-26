@@ -1,11 +1,11 @@
 import { observer } from 'mobx-react-lite';
 import React, { useState } from 'react';
 import { Offcanvas } from 'react-bootstrap';
-import { useStores } from '../state/store';
-import { BlogInterface } from '../state/Types';
+import { useStores } from '../../state/store';
+import { BlogInterface } from '../../state/Types';
 import Blog from './Blog';
 import BlogList from './Bloglist';
-import useMediaQuery from '../MediaQuery';
+import useMediaQuery from '../../MediaQuery';
 import styles from './Blogs.module.css';
 
 type PropsType = {

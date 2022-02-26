@@ -16,7 +16,7 @@ import Hike from '../Hike/Hike';
 import { store, StoreContext } from '../state/store';
 import Gear from '../Gear/Gear';
 import usePageViews from '../Tracker';
-import Blogs from '../Blog/Blogs';
+import Blogs from './BlogEditor/Blogs';
 
 Leaflet.Icon.Default.imagePath = '//cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.4/images/';
 

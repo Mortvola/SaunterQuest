@@ -1,8 +1,8 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
 import TextareaAutosize from 'react-textarea-autosize';
-import IconButton from '../IconButton';
-import { BlogSectionInterface } from '../state/Types';
+import IconButton from '../../IconButton';
+import { BlogSectionInterface } from '../../state/Types';
 import styles from './BlogSection.module.css';
 import Photo from './Photo';
 import HTML from './HTML';

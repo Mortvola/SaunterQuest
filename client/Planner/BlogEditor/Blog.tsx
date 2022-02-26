@@ -4,8 +4,8 @@ import Http from '@mortvola/http';
 import TextareaAutosize from 'react-textarea-autosize';
 import BlogSection from './BlogSection';
 import styles from './Blog.module.css';
-import { BlogInterface, BlogSectionInterface } from '../state/Types';
-import FormattedBlog from './Formatted/Blog';
+import { BlogInterface, BlogSectionInterface } from '../../state/Types';
+import FormattedBlog from '../../Blog/Formatted/Blog';
 import Photo from './Photo';
 
 type PropsType = {

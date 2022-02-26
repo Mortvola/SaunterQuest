@@ -2,8 +2,8 @@ import Http from '@mortvola/http';
 import { observer } from 'mobx-react-lite';
 import React from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
-import UploadFileButton from '../Hike/UploadFileButton';
-import { BlogPhotoInterface } from '../state/Types';
+import UploadFileButton from '../../Hike/UploadFileButton';
+import { BlogPhotoInterface } from '../../state/Types';
 import styles from './Photo.module.css';
 import PhotoSelector from './PhotoSelector';
 
