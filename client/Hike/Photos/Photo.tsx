@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 import React from 'react';
-import { PhotoInterface } from '../../state/Types';
+import { PhotoInterface } from '../state/Types';
 import styles from './Photo.module.css';
 
 type PropsType = {

@@ -6,17 +6,17 @@ import Http from '@mortvola/http';
 import { useMap } from 'react-leaflet';
 import { City as CityResponse } from '../../../../common/ResponseTypes';
 import { createIcon } from '../../mapUtils';
-import { useStores } from '../../../state/store';
 import PoiMarker from './PoiMarker';
-import City from '../../../state/PointsOfInterest/City';
+import City from '../../state/PointsOfInterest/City';
+import { HikeInterface } from '../../state/Types';
 
 type PropsType = {
+  hike: HikeInterface,
   show: boolean,
   bounds: L.LatLngBounds | null,
 }
 
-const Cities: React.FC<PropsType> = ({ show, bounds }) => {
-  const { uiState } = useStores();
+const Cities: React.FC<PropsType> = ({ hike, show, bounds }) => {
   const [cities, setCities] = useState<City[]>([]);
   const leafletMap = useMap();
 
@@ -32,16 +32,16 @@ const Cities: React.FC<PropsType> = ({ show, bounds }) => {
         const body = await response.body();
 
         const markers = body.map((m) => {
-          if (!uiState.hike) {
+          if (!hike) {
             throw new Error('hike is null');
           }
 
-          if (uiState.hike.currentLeg === null) {
+          if (hike.currentLeg === null) {
             throw new Error('currentLeg is null');
           }
 
           return new City(
-            m.id, m.name, new L.LatLng(m.location[1], m.location[0]), uiState.hike.currentLeg.map,
+            m.id, m.name, new L.LatLng(m.location[1], m.location[0]), hike.currentLeg.map,
           );
         });
 
@@ -55,13 +55,14 @@ const Cities: React.FC<PropsType> = ({ show, bounds }) => {
     else {
       queryCities(bounds);
     }
-  }, [bounds, leafletMap, show, uiState.hike]);
+  }, [bounds, leafletMap, show, hike]);
 
   return (
     <>
       {
         cities.map((c) => (
           <PoiMarker
+            hike={hike}
             marker={c}
             key={c.id}
             icon={createIcon(c.getIcon())}

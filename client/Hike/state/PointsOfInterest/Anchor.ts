@@ -4,9 +4,9 @@ import Http from '@mortvola/http';
 import TrailMarker from '../TrailMarker';
 import {
   LatLng, MapInterface, MarkerType, RouteInterface,
-  TrailPoint, PointOfInterestInterface,
+  PointOfInterestInterface, TrailPoint,
 } from '../Types';
-import { AnchorProps, RouteUpdateResponse } from '../../../common/ResponseTypes';
+import { AnchorProps, RouteUpdateResponse } from '../../../../common/ResponseTypes';
 import PointOfInterest from './PointOfInterset';
 
 const wayPointUrl = 'compass.svg';

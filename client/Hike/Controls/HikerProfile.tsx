@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card } from 'react-bootstrap';
 import { observer } from 'mobx-react-lite';
-import { HikeLegInterface, HikerProfileInterface } from '../../state/Types';
+import { HikeLegInterface, HikerProfileInterface } from '../state/Types';
 import { nvl, formatTime, metersToMiles } from '../../utilities';
 import { useDeleteConfirmation } from '../../DeleteConfirmation';
 import { useHikerProfileDialog } from './HikerProfileDialog';

@@ -6,7 +6,7 @@ import { observer } from 'mobx-react-lite';
 import Chart from 'react-google-charts';
 import { ReactGoogleChartEvent, GoogleChartWrapper, GoogleVizEventName } from 'react-google-charts/dist/types';
 import { GoogleChart } from './GoogleChart';
-import { ElevationPoint } from '../../state/Types';
+import { ElevationPoint } from '../state/Types';
 
 type PropsType = {
   elevations: ElevationPoint[];

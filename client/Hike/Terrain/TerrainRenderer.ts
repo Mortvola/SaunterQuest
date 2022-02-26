@@ -1,8 +1,8 @@
 import { vec3, mat4 } from 'gl-matrix';
 import TerrainTile, { TerrainRendererInterface, Location, tileDimension } from './TerrainTile';
-import { LatLng } from '../../state/Types';
+import { LatLng } from '../state/Types';
 import {
-  degToRad, latLngToMercator, latLngToTerrainTile, latOffset, radToDeg, terrainTileToLatLng,
+  degToRad, latLngToMercator, latLngToTerrainTile, radToDeg, terrainTileToLatLng,
 } from '../../utilities';
 import TerrainShader from './Shaders/TerrainShader';
 import PhotoShader from './Shaders/PhotoShader';

@@ -1,11 +1,12 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import Http from '@mortvola/http';
 import L from 'leaflet';
-import { metersToMiles, metersToFeet } from '../utilities';
+import { metersToMiles, metersToFeet } from '../../utilities';
 import {
-  Grade, HikeLegInterface, LatLng, MapInterface, MarkerType, RouteInterface, TrailPoint,
+  Grade, HikeLegInterface, LatLng, MapInterface, MarkerType, RouteInterface,
+  TrailPoint,
 } from './Types';
-import { RouteUpdateResponse, AnchorProps } from '../../common/ResponseTypes';
+import { RouteUpdateResponse, AnchorProps } from '../../../common/ResponseTypes';
 import Anchor, { resetWaypointLabel } from './PointsOfInterest/Anchor';
 
 class Route implements RouteInterface {

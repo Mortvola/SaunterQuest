@@ -5,7 +5,7 @@ import { observer } from 'mobx-react-lite';
 import Configurations from './Configurations';
 import ConfigurationItems from './ConfigurationItems';
 import Inventory from './Inventory';
-import { useStores } from '../state/store';
+import { useStores } from '../Planner/state/store';
 
 // const mapStateToProps = (state) => ({
 //   selectedInventoryItem: state.gear.selectedInventoryItem,

@@ -5,7 +5,7 @@ import { runInAction } from 'mobx';
 import InventoryItem from './InventoryItem';
 import IconButton from '../IconButton';
 import { useUploadInventoryDialog } from './UploadInventoryDialog';
-import { useStores } from '../state/store';
+import { useStores } from '../Planner/state/store';
 import DropDownChecks from './DropDownChecks';
 
 const Inventory = ({

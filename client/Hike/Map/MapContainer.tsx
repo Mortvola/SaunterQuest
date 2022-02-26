@@ -1,7 +1,7 @@
 import React, { ReactElement } from 'react';
 import { MapContainer } from 'react-leaflet';
 import Map from './Map';
-import Hike from '../../state/Hike';
+import Hike from '../state/Hike';
 import './MapDrawer';
 import useMediaQuery from '../../MediaQuery';
 

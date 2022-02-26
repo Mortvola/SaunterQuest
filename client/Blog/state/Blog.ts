@@ -2,7 +2,7 @@ import Http from '@mortvola/http';
 import { DateTime } from 'luxon';
 import { makeAutoObservable, runInAction } from 'mobx';
 import { BlogProps } from '../../../common/ResponseTypes';
-import { BlogInterface, BlogSectionInterface } from '../Types';
+import { BlogInterface, BlogSectionInterface } from './Types';
 import BlogPhoto from './BlogPhoto';
 import BlogSection from './BlogSection';
 

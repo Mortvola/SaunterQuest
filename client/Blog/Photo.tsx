@@ -1,5 +1,5 @@
 import React from 'react';
-import { BlogPhotoInterface } from '../state/Types';
+import { BlogPhotoInterface } from './state/Types';
 import styles from './Photo.module.css';
 
 type PropsType = {

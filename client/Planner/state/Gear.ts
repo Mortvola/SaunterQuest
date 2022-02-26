@@ -31,7 +31,7 @@ class Gear {
         this.configurations = body.map((config) => new GearConfiguration(config, this.store));
       });
     }
-  }
+  };
 
   addGearConfiguration = async (): Promise<void> => {
     const response = await Http.post<void, GearConfigProps>('/gear/configuration');
@@ -41,7 +41,7 @@ class Gear {
 
       this.configurations.push(new GearConfiguration(body, this.store));
     }
-  }
+  };
 
   deleteConfiguration = async (configuration: GearConfiguration): Promise<void> => {
     const response = await Http.delete(`/gear/configuration/${configuration.id}`);
@@ -53,7 +53,7 @@ class Gear {
         this.configurations.splice(index, 1);
       }
     }
-  }
+  };
 
   requestGearInventory = async (): Promise<void> => {
     const response = await Http.get<GearItemProps[]>('/gear/item');
@@ -70,7 +70,7 @@ class Gear {
         this.inventory.sort((a, b) => a.name.localeCompare(b.name));
       });
     }
-  }
+  };
 
   addNewGearInventoryItem = (): GearItem => {
     const item = new GearItem(null, this.store);
@@ -80,8 +80,9 @@ class Gear {
     });
 
     return item;
-  }
+  };
 
+  // eslint-disable-next-line class-methods-use-this
   addInventoryItem = async (item: GearItem, values: GearItemProps): Promise<void> => {
     type AddGearItemRequest = {
       consumable: boolean,
@@ -114,8 +115,9 @@ class Gear {
         item.weight = values.weight;
       });
     }
-  }
+  };
 
+  // eslint-disable-next-line class-methods-use-this
   updateInventoryItem = async (item: GearItem, values: GearItemProps): Promise<void> => {
     type UpdateGearItemRequest = {
       id: number | null,
@@ -149,7 +151,7 @@ class Gear {
         item.weight = values.weight;
       });
     }
-  }
+  };
 
   private removeItem = (item: GearItem): void => {
     const index = this.inventory.findIndex((i) => i === item);
@@ -157,7 +159,7 @@ class Gear {
     if (index !== -1) {
       this.inventory.splice(index, 1);
     }
-  }
+  };
 
   deleteGearItem = async (item: GearItem): Promise<void> => {
     if (item.id !== null) {
@@ -174,7 +176,7 @@ class Gear {
         this.removeItem(item);
       });
     }
-  }
+  };
 }
 
 export default Gear;

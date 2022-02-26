@@ -2,9 +2,9 @@ import React, { ReactElement } from 'react';
 import { observer } from 'mobx-react-lite';
 import { positionMapToBounds } from '../mapUtils';
 import {
-  metersToFeet, gramsToPoundsAndOunces, metersToMilesRounded, formatTime,
+  metersToFeet, metersToMilesRounded, formatTime,
 } from '../../utilities';
-import { Day, HikeLegInterface } from '../../state/Types';
+import { HikeLegInterface, Day } from '../state/Types';
 import styles from './Schedule.module.css';
 // import EndOfDayMarker from './trailMarker/EndOfDayMarker';
 

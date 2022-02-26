@@ -1,6 +1,6 @@
 import L from 'leaflet';
 import { makeAutoObservable } from 'mobx';
-import { createIcon } from '../Hike/mapUtils';
+import { createIcon } from '../mapUtils';
 
 class TrailMarker {
   icon: L.DivIcon;

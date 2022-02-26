@@ -1,6 +1,6 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import { BlogSectionProps, BlogSectionTypes } from '../../../common/ResponseTypes';
-import { BlogSectionInterface } from '../Types';
+import { BlogSectionInterface } from './Types';
 import BlogPhoto from './BlogPhoto';
 
 class BlogSection implements BlogSectionInterface {

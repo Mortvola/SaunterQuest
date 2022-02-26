@@ -4,7 +4,7 @@ import React, {
 } from 'react';
 import { observer } from 'mobx-react-lite';
 import { ProgressBar } from 'react-bootstrap';
-import { LatLng } from '../../state/Types';
+import { LatLng } from '../state/Types';
 import TerrainRenderer from './TerrainRenderer';
 import styles from './Terrain.module.css';
 import { PhotoInterface } from '../../welcome/state/Types';

@@ -4,7 +4,7 @@ import {
 } from 'react-leaflet';
 import Graticule from '../Hike/Graticule';
 import Route from '../Hike/Map/Route';
-import { HikeLegInterface } from '../state/Types';
+import { HikeLegInterface } from '../Hike/state/Types';
 import styles from './Map.module.css';
 import Markers from './Markers';
 

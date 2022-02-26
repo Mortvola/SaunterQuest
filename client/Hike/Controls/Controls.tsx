@@ -1,7 +1,7 @@
 import React, { ReactElement, useState } from 'react';
 import { Button } from 'react-bootstrap';
 import { observer } from 'mobx-react-lite';
-import { HikeInterface } from '../../state/Types';
+import { HikeInterface } from '../state/Types';
 import Schedule from './Schedule';
 import HikerProfiles from './HikerProfiles';
 import Equipment from './Equipment';
@@ -11,7 +11,6 @@ import TrailConditions from '../TrailConditions';
 import styles from './Controls.module.css';
 import IconButton from '../../IconButton';
 import { useDeleteConfirmation } from '../../DeleteConfirmation';
-import { useStores } from '../../state/store';
 
 type PropsType = {
   hike: HikeInterface,
@@ -20,7 +19,6 @@ type PropsType = {
 const Controls = observer(({
   hike,
 }: PropsType): ReactElement => {
-  const { uiState } = useStores();
   const [selection, setSelection] = useState<string>('schedule');
   const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
     'Are you sure you want to delete this leg?',

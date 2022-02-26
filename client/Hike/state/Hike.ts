@@ -5,9 +5,9 @@ import Map from './Map';
 import {
   HikeInterface, MarkerType,
 } from './Types';
-import { createIcon } from '../Hike/mapUtils';
+import { createIcon } from '../mapUtils';
 import { redCircle } from './PointsOfInterest/Icons';
-import { HikeLegProps, HikeProps } from '../../common/ResponseTypes';
+import { HikeLegProps, HikeProps } from '../../../common/ResponseTypes';
 import Marker from './Marker';
 import HikeLeg from './HikeLeg';
 
@@ -67,6 +67,7 @@ class Hike implements HikeInterface {
     }
   }
 
+  // eslint-disable-next-line class-methods-use-this
   requestPointsOfInterest = async (): Promise<void> => {
     // const response = await Http.get<PointOfInterestProps[]>(`/api/hike/${this.id}/poi`);
 

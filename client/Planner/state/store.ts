@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import BlogManager from './Blog/BlogManager';
+import BlogManager from '../BlogEditor/state/BlogManager';
 import Gear from './Gear';
 import HikeManager from './HikeManager';
 import { StoreInterface } from './Types';

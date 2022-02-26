@@ -4,7 +4,7 @@ import { Formik, Form, Field } from 'formik';
 import { useDrag } from 'react-dnd';
 import IconButton from '../IconButton';
 import { useDeleteConfirmation } from '../DeleteConfirmation';
-import { useStores } from '../state/store';
+import { useStores } from '../Planner/state/store';
 import AutoSubmit from './AutoSubmit';
 
 const InventoryItem = React.forwardRef(({

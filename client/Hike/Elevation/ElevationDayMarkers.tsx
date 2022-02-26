@@ -1,8 +1,8 @@
 import React, { ReactElement } from 'react';
 import { observer } from 'mobx-react-lite';
 import ElevationDayMarker from './ElevationDayMarker';
-import { Day } from '../../state/Types';
-import { useStores } from '../../state/store';
+import { Day } from '../state/Types';
+import { useStores } from '../state/store';
 import { GoogleChart } from './GoogleChart';
 
 type Props = {

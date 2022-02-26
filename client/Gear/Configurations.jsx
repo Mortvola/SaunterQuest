@@ -2,7 +2,7 @@ import React from 'react';
 import { observer } from 'mobx-react-lite';
 import Configuration from './Configuration';
 import IconButton from '../IconButton';
-import { useStores } from '../state/store';
+import { useStores } from '../Planner/state/store';
 
 const Configurations = () => {
   const { gear } = useStores();

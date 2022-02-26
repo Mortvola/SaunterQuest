@@ -1,10 +1,10 @@
 import React from 'react';
 import L from 'leaflet';
 import IconButton from '../../../IconButton';
-import { useStores } from '../../../state/store';
-import { PointOfInterestInterface } from '../../../state/Types';
+import { useStores } from '../../state/store';
+import { PointOfInterestInterface } from '../../state/Types';
 import styles from './Marker.module.css';
-import PhotoPoi from '../../../state/PointsOfInterest/Photo';
+import PhotoPoi from '../../state/PointsOfInterest/Photo';
 
 type PropsType = {
   marker: PointOfInterestInterface,

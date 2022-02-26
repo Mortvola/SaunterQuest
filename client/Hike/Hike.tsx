@@ -6,9 +6,9 @@ import { matchPath, useHistory } from 'react-router-dom';
 import Http from '@mortvola/http';
 import { Offcanvas } from 'react-bootstrap';
 import Controls from './Controls/Controls';
-import { useStores } from '../state/store';
+import { useStores } from './state/store';
 import MapContainer from './Map/MapContainer';
-import HikeData from '../state/Hike';
+import HikeData from './state/Hike';
 import styles from './Hike.module.css';
 import useMediaQuery from '../MediaQuery';
 import Terrain from './Terrain/Terrain';
@@ -26,12 +26,13 @@ const Hike = ({
   onHideOffcanvas,
 }: Props): ReactElement | null => {
   const { uiState } = useStores();
+  const [hike, setHike] = React.useState<HikeData | null>(null);
   const history = useHistory();
   const { isMobile, addMediaClass } = useMediaQuery();
 
   useEffect(() => {
     (async () => {
-      if (uiState.hike === null) {
+      if (hike === null) {
         const match = matchPath<{ id: string }>(history.location.pathname, { path: '/hike/:id', exact: true });
         if (match) {
           const response = await Http.get<HikeProps>(`/api/hike/${parseInt(match.params.id, 10)}`);
@@ -39,23 +40,19 @@ const Hike = ({
           if (response.ok) {
             const body = await response.body();
 
-            uiState.setHike(new HikeData(body));
+            setHike(new HikeData(body));
           }
         }
       }
     })();
-
-    return (() => {
-      uiState.setHike(null);
-    });
-  }, [history.location.pathname, uiState]);
+  }, [hike, history.location.pathname, uiState]);
 
   let locationPopup = null;
-  if (uiState.hike && uiState.hike.currentLeg && uiState.hike.currentLeg.map) {
-    locationPopup = uiState.hike.currentLeg.map.locationPopup;
+  if (hike && hike.currentLeg && hike.currentLeg.map) {
+    locationPopup = hike.currentLeg.map.locationPopup;
   }
 
-  if (uiState.hike) {
+  if (hike) {
     const handleClose = () => {
       uiState.showIn3D(null);
     };
@@ -66,20 +63,20 @@ const Hike = ({
           {
             !isMobile
               ? (
-                <Controls hike={uiState.hike} />
+                <Controls hike={hike} />
               )
               : (
                 <Offcanvas show={showOffcanvas} onHide={onHideOffcanvas}>
                   <Offcanvas.Header closeButton />
                   <Offcanvas.Body>
-                    <Controls hike={uiState.hike} />
+                    <Controls hike={hike} />
                   </Offcanvas.Body>
                 </Offcanvas>
               )
           }
           <MapContainer
             tileServerUrl={tileServerUrl}
-            hike={uiState.hike}
+            hike={hike}
             locationPopup={locationPopup}
           />
         </div>
@@ -87,7 +84,7 @@ const Hike = ({
           uiState.location3d
             ? (
               <Terrain
-                photoUrl={`/api/hike/${uiState.hike.id}/photo`}
+                photoUrl={`/api/hike/${hike.id}/photo`}
                 photo={uiState.photo}
                 editPhoto={uiState.editPhoto}
                 tileServerUrl={tileServerUrl}

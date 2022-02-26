@@ -1,8 +1,8 @@
 import Http from '@mortvola/http';
 import { makeObservable, observable, runInAction } from 'mobx';
-import { BlogProps } from '../../../common/ResponseTypes';
-import { BlogManagerInterface } from '../Types';
-import Blog from './Blog';
+import { BlogProps } from '../../../../common/ResponseTypes';
+import { BlogManagerInterface } from '../../../Blog/state/Types';
+import Blog from '../../../Blog/state/Blog';
 
 class BlogManager implements BlogManagerInterface {
   blogs: Blog[] = [];

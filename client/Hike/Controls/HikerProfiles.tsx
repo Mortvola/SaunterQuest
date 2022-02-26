@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { useHikerProfileDialog } from './HikerProfileDialog';
 import HikerProfile from './HikerProfile';
 import IconButton from '../../IconButton';
-import { HikeLegInterface } from '../../state/Types';
+import { HikeLegInterface } from '../state/Types';
 
 type PropsType = {
   hikeLeg: HikeLegInterface,

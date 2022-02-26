@@ -6,17 +6,17 @@ import Http from '@mortvola/http';
 import { useMap } from 'react-leaflet';
 import { createIcon } from '../../mapUtils';
 import PoiMarker from './PoiMarker';
-import { useStores } from '../../../state/store';
-import Photo from '../../../state/PointsOfInterest/Photo';
+import Photo from '../../state/PointsOfInterest/Photo';
 import { PhotoProps } from '../../../../common/ResponseTypes';
+import { HikeInterface } from '../../state/Types';
 
 type PropsType = {
+  hike: HikeInterface,
   show: boolean,
   bounds: L.LatLngBounds | null,
 }
 
-const Photos: React.FC<PropsType> = ({ show, bounds }) => {
-  const { uiState } = useStores();
+const Photos: React.FC<PropsType> = ({ hike, show, bounds }) => {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const leafletMap = useMap();
 
@@ -31,16 +31,16 @@ const Photos: React.FC<PropsType> = ({ show, bounds }) => {
       if (response.ok) {
         const body = await response.body();
         const markers = body.map((m) => {
-          if (!uiState.hike) {
+          if (!hike) {
             throw new Error('hike is null');
           }
 
-          if (uiState.hike.currentLeg === null) {
+          if (hike.currentLeg === null) {
             throw new Error('currentLeg is null');
           }
 
           return new Photo(
-            m, uiState.hike.currentLeg.map,
+            m, hike.currentLeg.map,
           );
         });
 
@@ -54,13 +54,14 @@ const Photos: React.FC<PropsType> = ({ show, bounds }) => {
     else {
       queryCampsites(bounds);
     }
-  }, [bounds, leafletMap, show, uiState.hike]);
+  }, [bounds, leafletMap, show, hike]);
 
   return (
     <>
       {
         photos.map((c) => (
           <PoiMarker
+            hike={hike}
             marker={c}
             key={c.id}
             icon={createIcon(c.getIcon())}

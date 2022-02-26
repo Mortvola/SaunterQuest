@@ -2,7 +2,7 @@ import { makeAutoObservable, runInAction } from 'mobx';
 import Http from '@mortvola/http';
 import HikeItem from './HikeItem';
 import { HikeManagerInterface, StoreInterface } from './Types';
-import { HikeProps } from '../../common/ResponseTypes';
+import { HikeProps } from '../../../common/ResponseTypes';
 
 class HikeManager implements HikeManagerInterface {
   hikes: HikeItem[] = [];

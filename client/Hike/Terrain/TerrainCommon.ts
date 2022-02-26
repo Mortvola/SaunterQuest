@@ -1,5 +1,5 @@
 import { latDistance, lngDistance } from '../../utilities';
-import { LatLng } from '../../state/Types';
+import { LatLng } from '../state/Types';
 
 // eslint-disable-next-line import/prefer-default-export
 export const getStartOffset = (latLng: LatLng): {

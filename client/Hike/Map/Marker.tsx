@@ -1,15 +1,16 @@
-import React, { ReactElement, useRef } from 'react';
-import { Marker as LeafletMarker, Popup } from 'react-leaflet';
+import React, { useRef } from 'react';
+import { Marker as LeafletMarker } from 'react-leaflet';
 import { observer } from 'mobx-react-lite';
 import { MenuItems, showContextMenu } from '@mortvola/leaflet-context-menu';
 import { DomEvent, LeafletEvent, LeafletMouseEvent } from 'leaflet';
 import useMediaQuery from '../../MediaQuery';
 import { createIcon } from '../mapUtils';
-import { useStores } from '../../state/store';
-import { PointOfInterestInterface } from '../../state/Types';
+import { useStores } from '../state/store';
+import { HikeLegInterface, PointOfInterestInterface } from '../state/Types';
 import { PoiSelections } from './More/PoiSelector';
 
 type Props = {
+  hikeLeg: HikeLegInterface,
   marker: PointOfInterestInterface,
   draggingLocked: boolean,
   selections: PoiSelections,
@@ -17,6 +18,7 @@ type Props = {
 
 const Marker: React.FC<Props> = observer(({
   marker,
+  hikeLeg,
   draggingLocked,
   selections,
 }) => {
@@ -98,8 +100,8 @@ const Marker: React.FC<Props> = observer(({
         draggable={draggingLocked ? false : draggable}
         eventHandlers={{
           click: (event: LeafletEvent) => {
-            if (uiState.hike && uiState.hike.currentLeg) {
-              uiState.hike.currentLeg.map.clearSelectedMarkers();
+            if (hikeLeg) {
+              hikeLeg.map.clearSelectedMarkers();
             }
             marker.setSelected(true);
             DomEvent.stop(event);

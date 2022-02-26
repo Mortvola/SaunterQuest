@@ -6,7 +6,7 @@ import { makeUseModal, ModalProps } from '@mortvola/usemodal';
 import Http from '@mortvola/http';
 import { FormModal, FormField } from '@mortvola/forms';
 import { FormikErrors } from 'formik';
-import { HikeInterface } from '../state/Types';
+import { HikeInterface } from './state/Types';
 
 type PropsType = {
   hike: HikeInterface,
@@ -62,30 +62,28 @@ const HikeSettingsDialog: React.FC<PropsType & ModalProps> = ({
   };
 
   return (
-    <>
-      <FormModal<FormValues>
-        initialValues={{
-          name: hike.name,
-          routeGroupId: (hike.routeGroupId ?? -1).toString(),
-        }}
-        title="Hike Settings"
-        setShow={setShow}
-        onSubmit={handleSubmit}
-        validate={handleValidate}
-      >
-        <label>Name:</label>
-        <FormField type="text" name="name" />
-        <br />
-        <FormField as="select" name="routeGroupId" label="Preferred Trail">
-          <option value={-1}>None</option>
-          {
-            groups.map((g) => (
-              <option key={g.id} value={g.id}>{g.name}</option>
-            ))
-          }
-        </FormField>
-      </FormModal>
-    </>
+    <FormModal<FormValues>
+      initialValues={{
+        name: hike.name,
+        routeGroupId: (hike.routeGroupId ?? -1).toString(),
+      }}
+      title="Hike Settings"
+      setShow={setShow}
+      onSubmit={handleSubmit}
+      validate={handleValidate}
+    >
+      <label>Name:</label>
+      <FormField type="text" name="name" />
+      <br />
+      <FormField as="select" name="routeGroupId" label="Preferred Trail">
+        <option value={-1}>None</option>
+        {
+          groups.map((g) => (
+            <option key={g.id} value={g.id}>{g.name}</option>
+          ))
+        }
+      </FormField>
+    </FormModal>
   );
 };
 

@@ -3,7 +3,7 @@ import { useDrop } from 'react-dnd';
 import { observer } from 'mobx-react-lite';
 import ConfigurationItem from './ConfigurationItem';
 import IconButton from '../IconButton';
-import { useStores } from '../state/store';
+import { useStores } from '../Planner/state/store';
 import { gramsToPoundsAndOunces } from '../utilities';
 
 const ConfigurationItems = () => {

@@ -1,5 +1,5 @@
 import L from 'leaflet';
-import { LatLng } from '../state/Types';
+import { LatLng } from './state/Types';
 
 export function positionMapToBounds(map: L.Map, p1: LatLng, p2: LatLng): void {
   type Bounds = {

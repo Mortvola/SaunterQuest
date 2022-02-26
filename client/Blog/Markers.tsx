@@ -1,7 +1,7 @@
 import React from 'react';
 import { useMap, useMapEvent } from 'react-leaflet';
 import Marker from '../Hike/Map/Marker';
-import { HikeLegInterface } from '../state/Types';
+import { HikeLegInterface } from '../Hike/state/Types';
 
 type PropsType = {
   hikeLeg: HikeLegInterface,
@@ -23,6 +23,7 @@ const Markers: React.FC<PropsType> = ({ hikeLeg }) => {
             <Marker
               key={`${m.getTypeString()}-${m.id}`}
               marker={m}
+              hikeLeg={hikeLeg}
               draggingLocked
               selections={{ day: true }}
             />

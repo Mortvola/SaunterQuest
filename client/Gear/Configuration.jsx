@@ -5,7 +5,7 @@ import { runInAction } from 'mobx';
 import { Field, Form, Formik } from 'formik';
 import IconButton from '../IconButton';
 import { useDeleteConfirmation } from '../DeleteConfirmation';
-import { useStores } from '../state/store';
+import { useStores } from '../Planner/state/store';
 import { gramsToPoundsAndOunces } from '../utilities';
 import AutoSubmit from './AutoSubmit';
 

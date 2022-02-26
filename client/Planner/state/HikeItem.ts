@@ -42,11 +42,11 @@ class HikeItem {
         this.setRequesting(false);
       });
     }
-  }
+  };
 
   setRequesting = (requesting: boolean): void => {
     this.requesting = requesting;
-  }
+  };
 }
 
 export default HikeItem;

@@ -5,7 +5,7 @@ import { useHistory } from 'react-router-dom';
 import { metersToMilesRounded } from '../utilities';
 import EditableText from './EditableText';
 import { useDeleteConfirmation } from '../DeleteConfirmation';
-import HikeItem from '../state/HikeItem';
+import HikeItem from '../Planner/state/HikeItem';
 
 type PropsType = {
   hike: HikeItem;

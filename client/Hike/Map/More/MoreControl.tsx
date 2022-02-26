@@ -11,7 +11,7 @@ import MoreItem from './MoreItem';
 import PoiSelector, { PoiSelections, OnSelectionCallback } from './PoiSelector';
 import styles from './MoreControl.module.css';
 import { useHikeDialog } from '../../HikeSettingsDialog';
-import { HikeInterface } from '../../../state/Types';
+import { HikeInterface } from '../../state/Types';
 import Checkbox from './Checkbox';
 import UploadFileButton from '../../UploadFileButton';
 

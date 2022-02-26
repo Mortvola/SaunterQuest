@@ -7,6 +7,8 @@ import Register from '../login/Register';
 import { useStores } from './state/store';
 import Blog from '../Blog/Blog';
 import styles from './Main.module.css';
+import IconButton from '../IconButton';
+import BlogList from './BlogList';
 
 type PropsType = {
   tileServerUrl: string,
@@ -49,9 +51,9 @@ const Main: React.FC<PropsType> = observer(({ tileServerUrl }) => {
     setShowRegister(false);
   };
 
-  // const handleSlideOutOpen = () => {
-  //   setSlideOutOpen(true);
-  // };
+  const handleSlideOutOpen = () => {
+    setSlideOutOpen(true);
+  };
 
   const handleSlideOutClose = () => {
     setSlideOutOpen(false);
@@ -69,6 +71,7 @@ const Main: React.FC<PropsType> = observer(({ tileServerUrl }) => {
             }
           </div>
         </div>
+        <IconButton icon="angle-right" className={styles.offCanvasButton} onClick={handleSlideOutOpen} />
         {
           blogManager.current
             ? <Blog blog={blogManager.current} tileServerUrl={tileServerUrl} />
@@ -78,11 +81,13 @@ const Main: React.FC<PropsType> = observer(({ tileServerUrl }) => {
         <Register show={showRegister} onHide={handleRegisterHide} />
       </div>
       <Offcanvas show={slideOutOpen} onHide={handleSlideOutClose}>
-        <Offcanvas.Header closeButton>
-          This is a test.
-        </Offcanvas.Header>
+        <Offcanvas.Header closeButton />
         <Offcanvas.Body>
-          This is the body.
+          {
+            slideOutOpen
+              ? <BlogList />
+              : null
+          }
         </Offcanvas.Body>
       </Offcanvas>
     </>

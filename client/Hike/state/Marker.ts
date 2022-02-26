@@ -1,7 +1,8 @@
 import { makeObservable, observable, runInAction } from 'mobx';
 import {
-  LatLng, MapInterface, MarkerInterface, MarkerAttributeInterface,
+  LatLng, MapInterface, MarkerInterface,
   MarkerType, PointOfInterestInterface,
+  MarkerAttributeInterface,
 } from './Types';
 
 class Marker implements MarkerInterface {

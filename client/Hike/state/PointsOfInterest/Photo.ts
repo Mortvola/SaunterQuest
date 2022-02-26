@@ -1,8 +1,8 @@
 import L from 'leaflet';
-import { PhotoProps } from '../../../common/ResponseTypes';
+import { PhotoProps } from '../../../../common/ResponseTypes';
 import { MapInterface, PointOfInterestInterface } from '../Types';
 import PointOfInterest from './PointOfInterset';
-import PhotoData from '../../welcome/state/Photo';
+import PhotoData from '../../../welcome/state/Photo';
 
 class PhotoPoi extends PointOfInterest implements PointOfInterestInterface {
   photo: PhotoData;

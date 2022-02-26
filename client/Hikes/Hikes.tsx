@@ -3,8 +3,8 @@ import { observer } from 'mobx-react-lite';
 import { useHistory } from 'react-router-dom';
 import Hike from './Hike';
 import PleaseWait from './PleaseWait';
-import { useStores } from '../state/store';
-import HikeData from '../state/Hike';
+import { useStores } from '../Planner/state/store';
+import HikeData from '../Hike/state/Hike';
 import styles from './Hikes.module.css';
 
 const Hikes = () => {

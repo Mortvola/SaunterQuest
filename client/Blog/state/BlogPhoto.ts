@@ -1,6 +1,6 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import { BlogPhotoProps } from '../../../common/ResponseTypes';
-import { BlogPhotoInterface } from '../Types';
+import { BlogPhotoInterface } from './Types';
 
 class BlogPhoto implements BlogPhotoInterface {
   id: number | null;

@@ -7,12 +7,14 @@ import Cities from './Cities';
 import RvSites from './RvSites';
 import { PoiSelections } from '../More/PoiSelector';
 import Photos from './Photos';
+import { HikeInterface } from '../../state/Types';
 
 type PropsType = {
+  hike: HikeInterface,
   selections: PoiSelections,
 }
 
-const Poi: React.FC<PropsType> = ({ selections }) => {
+const Poi: React.FC<PropsType> = ({ hike, selections }) => {
   const leafletMap = useMap();
   const [bounds, setBounds] = useState<L.LatLngBounds | null>(null);
 
@@ -38,12 +40,12 @@ const Poi: React.FC<PropsType> = ({ selections }) => {
   }, [leafletMap]);
 
   return (
-    <MarkerCluster>
-      <Campsites bounds={bounds} show={selections.campsites ?? false} />
-      <RvSites bounds={bounds} show={selections.rvSites ?? false} />
-      <PostOffices bounds={bounds} show={selections.postOffices ?? false} />
-      <Cities bounds={bounds} show={selections.cities ?? false} />
-      <Photos bounds={bounds} show={selections.photos ?? false} />
+    <MarkerCluster hike={hike}>
+      <Campsites hike={hike} bounds={bounds} show={selections.campsites ?? false} />
+      <RvSites hike={hike} bounds={bounds} show={selections.rvSites ?? false} />
+      <PostOffices hike={hike} bounds={bounds} show={selections.postOffices ?? false} />
+      <Cities hike={hike} bounds={bounds} show={selections.cities ?? false} />
+      <Photos hike={hike} bounds={bounds} show={selections.photos ?? false} />
     </MarkerCluster>
   );
 };

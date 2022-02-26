@@ -1,6 +1,6 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import {
-  HikeInterface, MapInterface, PointOfInterestInterface,
+  MapInterface, PointOfInterestInterface,
 } from './Types';
 
 class Map implements MapInterface {

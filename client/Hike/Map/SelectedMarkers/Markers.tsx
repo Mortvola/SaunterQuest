@@ -1,5 +1,5 @@
 import React from 'react';
-import { PointOfInterestInterface } from '../../../state/Types';
+import { PointOfInterestInterface } from '../../state/Types';
 import Marker from './Marker';
 
 type PropsType = {

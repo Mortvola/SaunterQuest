@@ -1,5 +1,5 @@
 import React, { ReactElement } from 'react';
-import { Day } from '../../state/Types';
+import { Day } from '../state/Types';
 import { metersToFeet, metersToMilesRounded } from '../../utilities';
 import { GoogleChart } from './GoogleChart';
 

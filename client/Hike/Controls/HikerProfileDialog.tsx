@@ -6,7 +6,7 @@ import { FormField, FormModal } from '@mortvola/forms';
 import {
   metersToMiles, milesToMeters, toTimeFloat, toTimeString,
 } from '../../utilities';
-import { HikeLegInterface, HikerProfileInterface } from '../../state/Types';
+import { HikeLegInterface, HikerProfileInterface } from '../state/Types';
 import styles from './HikerProfileDialog.module.css';
 
 type PropsType = {

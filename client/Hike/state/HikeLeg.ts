@@ -1,11 +1,11 @@
 import Http from '@mortvola/http';
 import { makeAutoObservable, runInAction } from 'mobx';
 import L from 'leaflet';
-import { DayProps, HikeLegProps } from '../../common/ResponseTypes';
+import { DayProps, HikeLegProps } from '../../../common/ResponseTypes';
 import HikerProfile from './HikerProfile';
 import Map from './Map';
 import Route from './Route';
-import { HikeLegInterface, Day, ProfileProps } from './Types';
+import { HikeLegInterface, ProfileProps, Day } from './Types';
 import DayPoi from './PointsOfInterest/Day';
 
 class HikeLeg implements HikeLegInterface {

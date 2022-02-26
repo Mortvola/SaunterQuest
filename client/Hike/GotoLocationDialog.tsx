@@ -5,7 +5,7 @@ import { Modal, Button } from 'react-bootstrap';
 import { Formik, Form, Field } from 'formik';
 import { makeUseModal, ModalProps } from '@mortvola/usemodal';
 import L from 'leaflet';
-import Map from '../state/Map';
+import Map from './state/Map';
 
 type PropsType = {
   leafletMap: L.Map,

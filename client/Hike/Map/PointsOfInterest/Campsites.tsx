@@ -7,16 +7,16 @@ import { useMap } from 'react-leaflet';
 import { Campsite as CampsiteResponse } from '../../../../common/ResponseTypes';
 import { createIcon } from '../../mapUtils';
 import PoiMarker from './PoiMarker';
-import { useStores } from '../../../state/store';
-import Campsite from '../../../state/PointsOfInterest/Campsite';
+import Campsite from '../../state/PointsOfInterest/Campsite';
+import { HikeInterface } from '../../state/Types';
 
 type PropsType = {
+  hike: HikeInterface,
   show: boolean,
   bounds: L.LatLngBounds | null,
 }
 
-const Campsites: React.FC<PropsType> = ({ show, bounds }) => {
-  const { uiState } = useStores();
+const Campsites: React.FC<PropsType> = ({ hike, show, bounds }) => {
   const [campsites, setCampsites] = useState<Campsite[]>([]);
   const leafletMap = useMap();
 
@@ -31,16 +31,16 @@ const Campsites: React.FC<PropsType> = ({ show, bounds }) => {
       if (response.ok) {
         const body = await response.body();
         const markers = body.map((m) => {
-          if (!uiState.hike) {
+          if (!hike) {
             throw new Error('hike is null');
           }
 
-          if (uiState.hike.currentLeg === null) {
+          if (hike.currentLeg === null) {
             throw new Error('currentLeg is null');
           }
 
           return new Campsite(
-            m.id, m.name, new L.LatLng(m.location[1], m.location[0]), uiState.hike.currentLeg.map,
+            m.id, m.name, new L.LatLng(m.location[1], m.location[0]), hike.currentLeg.map,
           );
         });
 
@@ -54,13 +54,14 @@ const Campsites: React.FC<PropsType> = ({ show, bounds }) => {
     else {
       queryCampsites(bounds);
     }
-  }, [bounds, leafletMap, show, uiState.hike]);
+  }, [bounds, leafletMap, show, hike]);
 
   return (
     <>
       {
         campsites.map((c) => (
           <PoiMarker
+            hike={hike}
             marker={c}
             key={c.id}
             icon={createIcon(c.getIcon())}
