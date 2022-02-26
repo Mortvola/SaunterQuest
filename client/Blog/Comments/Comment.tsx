@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import React from 'react';
-import { CommentProps } from '../../../../common/ResponseTypes';
+import { CommentProps } from '../../../common/ResponseTypes';
 import styles from './Comment.module.css';
 import CommentData from './CommentData';
 import CommentForm from './CommentForm';

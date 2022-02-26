@@ -5,7 +5,7 @@ import { matchPath, useHistory } from 'react-router-dom';
 import Login from '../login/Login';
 import Register from '../login/Register';
 import { useStores } from './state/store';
-import Blog from '../Blog/Formatted/Blog';
+import Blog from '../Blog/Blog';
 import styles from './Main.module.css';
 
 type PropsType = {

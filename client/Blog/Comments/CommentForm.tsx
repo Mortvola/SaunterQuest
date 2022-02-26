@@ -5,7 +5,7 @@ import {
 import TextareaAutosize from 'react-textarea-autosize';
 import Http from '@mortvola/http';
 import { FormError, setFormErrors } from '@mortvola/forms';
-import { CommentProps, CommentRequest, isErrorResponse } from '../../../../common/ResponseTypes';
+import { CommentProps, CommentRequest, isErrorResponse } from '../../../common/ResponseTypes';
 import styles from './CommentForm.module.css';
 
 type PropsType = {

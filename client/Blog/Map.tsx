@@ -2,9 +2,9 @@ import React from 'react';
 import {
   LayersControl, MapConsumer, MapContainer, Polyline, TileLayer, useMap,
 } from 'react-leaflet';
-import Graticule from '../../Hike/Graticule';
-import Route from '../../Hike/Map/Route';
-import { HikeLegInterface } from '../../state/Types';
+import Graticule from '../Hike/Graticule';
+import Route from '../Hike/Map/Route';
+import { HikeLegInterface } from '../state/Types';
 import styles from './Map.module.css';
 import Markers from './Markers';
 

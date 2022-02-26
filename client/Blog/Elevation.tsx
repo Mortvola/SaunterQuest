@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react-lite';
 import React from 'react';
-import ElevationChart from '../../Hike/Elevation/ElevationChart';
-import { BlogSectionInterface, HikeLegInterface } from '../../state/Types';
+import ElevationChart from '../Hike/Elevation/ElevationChart';
+import { BlogSectionInterface, HikeLegInterface } from '../state/Types';
 import styles from './Elevation.module.css';
 
 type PropsType = {

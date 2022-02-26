@@ -5,7 +5,7 @@ import TextareaAutosize from 'react-textarea-autosize';
 import BlogSection from './BlogSection';
 import styles from './Blog.module.css';
 import { BlogInterface, BlogSectionInterface } from '../../state/Types';
-import FormattedBlog from '../../Blog/Formatted/Blog';
+import FormattedBlog from '../../Blog/Blog';
 import Photo from './Photo';
 
 type PropsType = {

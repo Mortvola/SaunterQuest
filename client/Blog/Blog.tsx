@@ -1,13 +1,13 @@
 import React from 'react';
 import { DateTime } from 'luxon';
 import { observer } from 'mobx-react-lite';
-import { BlogInterface } from '../../state/Types';
+import { BlogInterface } from '../state/Types';
 import Markdown from './Markdown';
 import styles from './Blog.module.css';
 import Elevation from './Elevation';
-import MapData from '../../state/Map';
+import MapData from '../state/Map';
 import Photo from './Photo';
-import HikeLeg from '../../state/HikeLeg';
+import HikeLeg from '../state/HikeLeg';
 import Map from './Map';
 import Comments from './Comments/Comments';
 

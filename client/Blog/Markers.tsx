@@ -1,7 +1,7 @@
 import React from 'react';
 import { useMap, useMapEvent } from 'react-leaflet';
-import Marker from '../../Hike/Map/Marker';
-import { HikeLegInterface } from '../../state/Types';
+import Marker from '../Hike/Map/Marker';
+import { HikeLegInterface } from '../state/Types';
 
 type PropsType = {
   hikeLeg: HikeLegInterface,
