@@ -2,9 +2,9 @@ import { observer } from 'mobx-react-lite';
 import React, { useState } from 'react';
 import { Offcanvas } from 'react-bootstrap';
 import { useStores } from '../state/store';
-import { BlogInterface } from '../../Blog/state/Types';
+import { BlogListItemInterface } from '../../Blog/state/Types';
 import Blog from './Blog';
-import BlogList from './Bloglist';
+import BlogList from './BlogList';
 import useMediaQuery from '../../MediaQuery';
 import styles from './Blogs.module.css';
 
@@ -16,11 +16,10 @@ type PropsType = {
 
 const Blogs: React.FC<PropsType> = observer(({ tileServerUrl, showOffcanvas, onHideOffcanvas }) => {
   const { blogManager } = useStores();
-  const [selectedBlog, setSelectedBlog] = useState<BlogInterface | null>(null);
   const { isMobile, addMediaClass } = useMediaQuery();
 
-  const handleSelection = (blog: BlogInterface) => {
-    setSelectedBlog(blog);
+  const handleSelection = (blog: BlogListItemInterface) => {
+    blogManager.setSelectedBlog(blog);
     onHideOffcanvas();
   };
 
@@ -32,7 +31,7 @@ const Blogs: React.FC<PropsType> = observer(({ tileServerUrl, showOffcanvas, onH
             <BlogList
               blogManager={blogManager}
               onSelection={handleSelection}
-              selectedBlog={selectedBlog}
+              selectedBlog={blogManager.selectedBlog}
             />
           )
           : (
@@ -42,7 +41,7 @@ const Blogs: React.FC<PropsType> = observer(({ tileServerUrl, showOffcanvas, onH
                 <BlogList
                   blogManager={blogManager}
                   onSelection={handleSelection}
-                  selectedBlog={selectedBlog}
+                  selectedBlog={blogManager.selectedBlog}
                 />
               </Offcanvas.Body>
             </Offcanvas>
@@ -50,8 +49,8 @@ const Blogs: React.FC<PropsType> = observer(({ tileServerUrl, showOffcanvas, onH
       }
       <div>
         {
-          selectedBlog
-            ? <Blog blog={selectedBlog} tileServerUrl={tileServerUrl} />
+          blogManager.blog
+            ? <Blog blog={blogManager.blog} tileServerUrl={tileServerUrl} />
             : null
         }
       </div>

@@ -172,3 +172,8 @@ export type CommentProps = {
   comment: string,
   replies: CommentProps[],
 };
+
+export type BlogListItemProps = {
+  id: number,
+  title: string | null,
+}

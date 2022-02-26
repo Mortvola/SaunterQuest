@@ -7,14 +7,25 @@ import { Exception } from '@adonisjs/core/build/standalone';
 import { DateTime } from 'luxon';
 import BlogPost from 'App/Models/BlogPost';
 import BlogComment from 'App/Models/BlogComment';
-import { CommentProps } from 'common/ResponseTypes';
+import { BlogListItemProps, CommentProps } from 'common/ResponseTypes';
 import Mail from '@ioc:Adonis/Addons/Mail';
 import Env from '@ioc:Adonis/Core/Env';
 import { schema, rules } from '@ioc:Adonis/Core/Validator';
 
 export default class BlogsController {
   // eslint-disable-next-line class-methods-use-this
-  async get() : Promise<Blog[]> {
+  async get({ request }) : Promise<BlogListItemProps[]> {
+    const { o } = request.qs();
+
+    if (o === 'published') {
+      const blogs = await Blog.query()
+        .preload('publishedPost')
+        .whereNotNull('publishedPostId')
+        .orderBy('publicationTime', 'desc');
+
+      return blogs.map<BlogListItemProps>((b) => ({ id: b.id, title: b.publishedPost.title }));
+    }
+
     const blogs = await Blog.query();
 
     await Promise.all(blogs.map(async (b) => {
@@ -23,11 +34,14 @@ export default class BlogsController {
       }
     }));
 
-    return blogs;
+    return blogs.map<BlogListItemProps>((b) => ({
+      id: b.id,
+      title: b.draftPost ? b.draftPost.title : null,
+    }));
   }
 
   // eslint-disable-next-line class-methods-use-this
-  async getBlog({ params }: HttpContextContract): Promise<Blog | null> {
+  async getBlog({ request, params }: HttpContextContract): Promise<Blog | null> {
     let blog: Blog | null = null;
 
     if (params.blogId === 'latest') {
@@ -38,7 +52,17 @@ export default class BlogsController {
     }
     else {
       blog = await Blog.findOrFail(params.blogId);
-      await blog.load('publishedPost');
+
+      const { o } = request.qs();
+
+      if (o === 'draft') {
+        if (blog.draftPostId !== null) {
+          await blog.load('draftPost');
+        }
+      }
+      else {
+        await blog.load('publishedPost');
+      }
     }
 
     return blog;

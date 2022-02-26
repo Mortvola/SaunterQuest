@@ -1,13 +1,13 @@
 import { observer } from 'mobx-react-lite';
 import React from 'react';
-import { BlogInterface, BlogManagerInterface } from '../../Blog/state/Types';
+import { BlogListItemInterface, BlogManagerInterface } from '../../Blog/state/Types';
 import styles from './BlogList.module.css';
 import BlogListItem from './BlogListItem';
 
 type PropsType = {
   blogManager: BlogManagerInterface,
-  onSelection: (blog: BlogInterface) => void,
-  selectedBlog: BlogInterface | null,
+  onSelection: (blog: BlogListItemInterface) => void,
+  selectedBlog: BlogListItemInterface | null,
 }
 
 const BlogList: React.FC<PropsType> = observer(({ blogManager, onSelection, selectedBlog }) => {

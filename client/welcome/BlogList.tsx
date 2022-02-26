@@ -1,17 +1,19 @@
 import Http from '@mortvola/http';
 import React, { useEffect } from 'react';
-import { BlogProps } from '../../common/ResponseTypes';
+import { BlogListItemProps } from '../../common/ResponseTypes';
+import { BlogListItemInterface } from '../Blog/state/Types';
+import styles from './BlogList.module.css';
+import BlogListItem from './BlogListItem';
 
-type BlogListItemProps = {
-  id: number,
-  name: string,
+type PropsType = {
+  onSelection: (blog: BlogListItemInterface) => void,
 }
 
-const BlogList: React.FC = () => {
+const BlogList: React.FC<PropsType> = ({ onSelection }) => {
   const [blogs, setBlogs] = React.useState<BlogListItemProps[] | null>(null);
 
   const load = async () => {
-    const response = await Http.get<BlogListItemProps[]>('/api/blogs');
+    const response = await Http.get<BlogListItemProps[]>('/api/blogs?o=published');
 
     if (response.ok) {
       const body = await response.body();
@@ -32,9 +34,12 @@ const BlogList: React.FC = () => {
         blogs
           ? (
             blogs.map((b) => (
-              <div key={b.id}>
-                { b.name }
-              </div>
+              <BlogListItem
+                key={b.id}
+                blog={b}
+                onClick={onSelection}
+                selected={false}
+              />
             ))
           )
           : null

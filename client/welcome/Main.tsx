@@ -9,6 +9,7 @@ import Blog from '../Blog/Blog';
 import styles from './Main.module.css';
 import IconButton from '../IconButton';
 import BlogList from './BlogList';
+import { BlogListItemInterface } from '../Blog/state/Types';
 
 type PropsType = {
   tileServerUrl: string,
@@ -59,6 +60,11 @@ const Main: React.FC<PropsType> = observer(({ tileServerUrl }) => {
     setSlideOutOpen(false);
   };
 
+  const handleSelection = (blog: BlogListItemInterface) => {
+    setSlideOutOpen(false);
+    window.location.replace(`/blog/${blog.id}`);
+  };
+
   return (
     <>
       <div className={styles.page}>
@@ -85,7 +91,7 @@ const Main: React.FC<PropsType> = observer(({ tileServerUrl }) => {
         <Offcanvas.Body>
           {
             slideOutOpen
-              ? <BlogList />
+              ? <BlogList onSelection={handleSelection} />
               : null
           }
         </Offcanvas.Body>

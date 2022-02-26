@@ -52,8 +52,14 @@ interface BlogInterface {
   setHikeLegId(hikeLegId: number | null): void;
 }
 
+interface BlogListItemInterface {
+  id: number;
+
+  title: string | null;
+}
+
 interface BlogManagerInterface {
-  blogs: BlogInterface[];
+  blogs: BlogListItemInterface[];
 
   addBlog(): Promise<void>;
 }

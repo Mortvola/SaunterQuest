@@ -49,8 +49,11 @@ class Scheduler {
     this.activeHikerProfile = this.activeHikerProfileGet();
 
     this.currentDayGet().initialize(
-      this.activeHikerProfile, point,
-      this.previousDayTotalMetersGet(), camp, startTime,
+      this.activeHikerProfile,
+      point,
+      this.previousDayTotalMetersGet(),
+      camp,
+      startTime,
     );
   }
 
@@ -503,7 +506,7 @@ class Scheduler {
     // }
   }
 
-  private applyTimeConstraints(point1: Point, timeConstraints: Array<TimeConstraint>) {
+  private applyTimeConstraints(point1: Point, timeConstraints: TimeConstraint[]) {
     if (timeConstraints !== null && timeConstraints !== undefined && timeConstraints.length > 0) {
       const camps = timeConstraints.filter((tc) => tc.type === 'camp');
 
@@ -545,7 +548,7 @@ class Scheduler {
     point2: Point,
     initialSegmentMeters: number,
     initialEle: number,
-    timeConstraints: Array<TimeConstraint> | null,
+    timeConstraints: TimeConstraint[] | null,
   ): [boolean, number] {
     let segmentMeters = initialSegmentMeters;
     let lastEle = initialEle;

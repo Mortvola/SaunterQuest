@@ -1,6 +1,7 @@
 import { observer } from 'mobx-react-lite';
 import React from 'react';
-import { BlogListItemInterface } from '../../Blog/state/Types';
+import { BlogListItemInterface } from '../Blog/state/Types';
+import styles from './BlogListItem.module.css';
 
 type PropsType = {
   blog: BlogListItemInterface,
@@ -14,7 +15,7 @@ const BlogListItem: React.FC<PropsType> = observer(({ blog, selected, onClick })
   };
 
   return (
-    <div onClick={handleClick}>
+    <div onClick={handleClick} className={styles.listItem}>
       {blog.title ?? `Untitled (${blog.id})`}
     </div>
   );

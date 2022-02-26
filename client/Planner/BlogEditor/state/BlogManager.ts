@@ -1,30 +1,54 @@
 import Http from '@mortvola/http';
-import { makeObservable, observable, runInAction } from 'mobx';
-import { BlogProps } from '../../../../common/ResponseTypes';
-import { BlogManagerInterface } from '../../../Blog/state/Types';
+import { makeAutoObservable, runInAction } from 'mobx';
+import { BlogListItemProps, BlogProps } from '../../../../common/ResponseTypes';
+import { BlogListItemInterface, BlogManagerInterface } from '../../../Blog/state/Types';
 import Blog from '../../../Blog/state/Blog';
 
 class BlogManager implements BlogManagerInterface {
-  blogs: Blog[] = [];
+  blogs: BlogListItemInterface[] = [];
+
+  selectedBlog: BlogListItemInterface | null = null;
+
+  blog: Blog | null = null;
 
   constructor() {
     this.load();
 
-    makeObservable(this, {
-      blogs: observable,
-    });
+    makeAutoObservable(this);
   }
 
   async load(): Promise<void> {
-    const response = await Http.get<BlogProps[]>('/api/blogs');
+    const response = await Http.get<BlogListItemProps[]>('/api/blogs');
 
     if (response.ok) {
       const body = await response.body();
 
       runInAction(() => {
-        this.blogs = body.map((b) => new Blog(b));
+        this.blogs = body;
       });
     }
+  }
+
+  async loadBlog(blog: BlogListItemInterface): Promise<void> {
+    const response = await Http.get<BlogProps>(`/api/blog/${blog.id}?o=draft`);
+
+    if (response.ok) {
+      const body = await response.body();
+
+      runInAction(() => {
+        this.blog = new Blog(body);
+      });
+    }
+  }
+
+  setSelectedBlog(blog: BlogListItemInterface | null): void {
+    runInAction(() => {
+      if (this.selectedBlog !== blog && blog !== null) {
+        this.loadBlog(blog);
+      }
+
+      this.selectedBlog = blog;
+    });
   }
 
   async addBlog(): Promise<void> {
