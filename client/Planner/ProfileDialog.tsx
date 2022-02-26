@@ -6,7 +6,7 @@ import Http from '@mortvola/http';
 import { FormModal, FormField } from '@mortvola/forms';
 import {
   metersToMiles, milesToMeters, toTimeFloat, toTimeString,
-} from './utilities';
+} from '../utilities';
 import styles from './ProfileDialog.module.css';
 
 type Profile = {

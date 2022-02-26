@@ -7,7 +7,7 @@ import Http from '@mortvola/http';
 import { useProfileDialog } from './ProfileDialog';
 import { useAccountDialog } from './AccountDialog';
 import { useChangePasswordDialog } from './ChangePasswordDialog';
-import useMediaQuery from './MediaQuery';
+import useMediaQuery from '../MediaQuery';
 import styles from './Menubar.module.css';
 
 const MENU_EVENT_KEY_PROFILE = 'MENU_EVENT_KEY_PROFILE';

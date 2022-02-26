@@ -6,7 +6,7 @@ import {
 } from 'formik';
 import { makeUseModal, ModalProps } from '@mortvola/usemodal';
 import Http from '@mortvola/http';
-import { isErrorResponse } from '../common/ResponseTypes';
+import { isErrorResponse } from '../../common/ResponseTypes';
 
 type ErrorProps = {
   name: string,

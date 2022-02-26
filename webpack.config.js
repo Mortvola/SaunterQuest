@@ -101,6 +101,6 @@ const config = (folder, name, env) => ({
 });
 
 module.exports = [
-  (env) => config('./client', 'app', env),
+  (env) => config('./client/Planner', 'app', env),
   (env) => config('./client/welcome', 'welcome', env),
 ];

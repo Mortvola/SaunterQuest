@@ -37,7 +37,7 @@ html, body {
 
 .background-picture {
   background-color: black;
-  background-image: url(./images/Forester.jpg);
+  background-image: url(../images/Forester.jpg);
   background-repeat: no-repeat;
   background-attachment: fixed;
   background-position: center;
