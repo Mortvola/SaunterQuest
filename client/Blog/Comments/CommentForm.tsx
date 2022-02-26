@@ -7,6 +7,7 @@ import Http from '@mortvola/http';
 import { FormError, setFormErrors } from '@mortvola/forms';
 import { CommentProps, CommentRequest, isErrorResponse } from '../../../common/ResponseTypes';
 import styles from './CommentForm.module.css';
+import SubmitButton from './SubmitButton';
 
 type PropsType = {
   blogId: number,
@@ -84,7 +85,7 @@ const CommentForm: React.FC<PropsType> = ({
           <Field as={TextareaAutosize} className={styles.commentText} placeholder="comment" name="comment" />
           <FormError name="comment" />
         </div>
-        <button type="submit" className={styles.button}>Post</button>
+        <SubmitButton />
       </Form>
     </Formik>
   );
