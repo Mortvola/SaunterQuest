@@ -11,6 +11,7 @@ import HikeLeg from '../Hike/state/HikeLeg';
 import Map from './Map';
 import Comments from './Comments/Comments';
 import YouTube from './YouTube';
+import SocialIcons from './SocialIcons';
 
 type PropsType = {
   blog: BlogInterface,
@@ -38,6 +39,7 @@ const FormattedBlog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) =>
           ? <Photo photo={blog.titlePhoto} className="title-photo" blogId={blog.id} />
           : null
         }
+        <SocialIcons blog={blog} />
         <div className={styles.title}>
           <div>{blog.title ?? ''}</div>
           {
@@ -130,6 +132,7 @@ const FormattedBlog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) =>
             }
           })
         }
+        <SocialIcons blog={blog} />
         <Comments blogId={blog.id} />
       </div>
     </div>

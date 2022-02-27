@@ -38,7 +38,7 @@ const Comments: React.FC<PropsType> = ({ blogId }) => {
   };
 
   return (
-    <>
+    <div className={styles.commentsWrapper}>
       <CommentForm blogId={blogId} onCommentAdded={handleCommentAdded} />
       {
         comments.length > 0
@@ -59,7 +59,7 @@ const Comments: React.FC<PropsType> = ({ blogId }) => {
           )
           : null
       }
-    </>
+    </div>
   );
 };
 

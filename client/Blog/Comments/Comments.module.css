@@ -1,3 +1,7 @@
+.comments-wrapper {
+  margin-top: 1rem;
+}
+
 .comment-list {
   border: 1.5rem solid wheat;
   margin-top: 1rem;
