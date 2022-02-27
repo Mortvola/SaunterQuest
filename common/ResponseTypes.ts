@@ -129,7 +129,7 @@ export type BlogPhotoProps = {
   caption: string | null,
 }
 
-export type BlogSectionTypes = 'markdown' | 'elevation' | 'map' | 'photo' | 'html';
+export type BlogSectionTypes = 'markdown' | 'elevation' | 'map' | 'photo' | 'html' | 'youTube';
 
 export type BlogSectionProps = {
   type: BlogSectionTypes,

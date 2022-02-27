@@ -10,6 +10,7 @@ import Photo from './Photo';
 import HikeLeg from '../Hike/state/HikeLeg';
 import Map from './Map';
 import Comments from './Comments/Comments';
+import YouTube from './YouTube';
 
 type PropsType = {
   blog: BlogInterface,
@@ -18,6 +19,7 @@ type PropsType = {
 
 const FormattedBlog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) => {
   const [hikeLeg, setHikeLeg] = React.useState<HikeLeg | null>(null);
+  const blogRef = React.useRef<HTMLDivElement | null>(null);
 
   React.useEffect(() => {
     if (blog.hikeLegId !== null) {
@@ -30,7 +32,7 @@ const FormattedBlog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) =>
 
   return (
     <div className={styles.blogWrapper}>
-      <div className={styles.blog}>
+      <div ref={blogRef} className={styles.blog}>
         {
         blog.titlePhoto.id
           ? <Photo photo={blog.titlePhoto} className="title-photo" blogId={blog.id} />
@@ -41,24 +43,18 @@ const FormattedBlog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) =>
           {
             blog.publicationTime
               ? (
-                <>
-                  <span className={styles.publishedDate}>
-                    {
-                      `Published ${blog.publicationTime.toLocaleString(DateTime.DATETIME_FULL)}`
-                    }
-                  </span>
+                <span className={styles.publishedDate}>
+                  {
+                    `Published ${blog.publicationTime.toLocaleString(DateTime.DATETIME_FULL)}`
+                  }
                   {
                     blog.publicationUpdateTime
                       ? (
-                        <span className={styles.publishedDate}>
-                          {
-                            `, Updated ${blog.publicationUpdateTime.toLocaleString(DateTime.DATETIME_FULL)}`
-                          }
-                        </span>
+                        `, Updated ${blog.publicationUpdateTime.toLocaleString(DateTime.DATETIME_FULL)}`
                       )
                       : null
                   }
-                </>
+                </span>
               )
               : null
           }
@@ -99,6 +95,24 @@ const FormattedBlog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) =>
                   // eslint-disable-next-line react/no-array-index-key
                   <Photo key={index} photo={s.photo} blogId={blog.id} />
                 );
+
+              case 'youTube': {
+                const element = blogRef.current;
+
+                if (element) {
+                  return (
+                    <YouTube
+                      // eslint-disable-next-line react/no-array-index-key
+                      key={index}
+                      url={s.text}
+                      width={element.clientWidth}
+                      height={element.clientWidth * (9 / 16)}
+                    />
+                  );
+                }
+
+                return null;
+              }
 
               case 'html':
                 return (

@@ -6,6 +6,7 @@ import { BlogSectionInterface } from '../../Blog/state/Types';
 import styles from './BlogSection.module.css';
 import Photo from './Photo';
 import HTML from './HTML';
+import YouTube from './YouTube';
 
 type PropsType = {
   section: BlogSectionInterface,
@@ -59,6 +60,11 @@ const BlogSection: React.FC<PropsType> = observer(({
           <HTML html={section.text} onChange={handleChange} />
         );
 
+      case 'youTube':
+        return (
+          <YouTube url={section.text} onChange={handleChange} />
+        );
+
       default:
         return null;
     }
@@ -71,6 +77,7 @@ const BlogSection: React.FC<PropsType> = observer(({
         <option value="elevation">Elevation Chart</option>
         <option value="map">Map</option>
         <option value="photo">Photo</option>
+        <option value="youTube">YouTube</option>
         <option value="html">HTML</option>
       </select>
       <IconButton icon="trash" onClick={handleDeleteClick} />
