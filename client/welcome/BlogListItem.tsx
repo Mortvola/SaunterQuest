@@ -1,3 +1,4 @@
+import { DateTime } from 'luxon';
 import { observer } from 'mobx-react-lite';
 import React from 'react';
 import { BlogListItemInterface } from '../Blog/state/Types';
@@ -16,7 +17,12 @@ const BlogListItem: React.FC<PropsType> = observer(({ blog, selected, onClick })
 
   return (
     <div onClick={handleClick} className={styles.listItem}>
-      {blog.title ?? `Untitled (${blog.id})`}
+      <div>
+        {blog.title ?? `Untitled (${blog.id})`}
+      </div>
+      <div>
+        {blog.publicationTime ? DateTime.fromISO(blog.publicationTime).toLocaleString() : null}
+      </div>
     </div>
   );
 });

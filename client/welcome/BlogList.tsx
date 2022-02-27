@@ -29,7 +29,7 @@ const BlogList: React.FC<PropsType> = ({ onSelection }) => {
   }, [blogs]);
 
   return (
-    <div>
+    <div className={styles.list}>
       {
         blogs
           ? (

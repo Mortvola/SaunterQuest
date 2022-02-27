@@ -56,6 +56,8 @@ interface BlogListItemInterface {
   id: number;
 
   title: string | null;
+
+  publicationTime?: string | null;
 }
 
 interface BlogManagerInterface {

@@ -23,7 +23,11 @@ export default class BlogsController {
         .whereNotNull('publishedPostId')
         .orderBy('publicationTime', 'desc');
 
-      return blogs.map<BlogListItemProps>((b) => ({ id: b.id, title: b.publishedPost.title }));
+      return blogs.map<BlogListItemProps>((b) => ({
+        id: b.id,
+        title: b.publishedPost.title,
+        publicationTime: b.publicationTime ? b.publicationTime.toISO() : null,
+      }));
     }
 
     const blogs = await Blog.query();

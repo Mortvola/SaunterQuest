@@ -60,7 +60,7 @@ class BlogManager implements BlogManagerInterface {
       runInAction(() => {
         this.blogs = [
           ...this.blogs,
-          new Blog(body),
+          { id: body.id, title: `Unknown (${body.id})` },
         ];
       });
     }

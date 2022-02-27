@@ -176,4 +176,5 @@ export type CommentProps = {
 export type BlogListItemProps = {
   id: number,
   title: string | null,
+  publicationTime?: string | null,
 }

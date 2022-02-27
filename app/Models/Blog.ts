@@ -15,10 +15,10 @@ export default class Blog extends BaseModel {
   @column({ serializeAs: null })
   public userId: number;
 
-  @column({ serializeAs: 'publicationTime' })
+  @column.dateTime({ serializeAs: 'publicationTime' })
   public publicationTime: DateTime | null;
 
-  @column({ serializeAs: 'publicationUpdateTime' })
+  @column.dateTime({ serializeAs: 'publicationUpdateTime' })
   public publicationUpdateTime: DateTime | null;
 
   @column({ serializeAs: null })
