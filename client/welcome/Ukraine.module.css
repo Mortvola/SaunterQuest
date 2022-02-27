@@ -1,0 +1,24 @@
+.ukraine-wrapper {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  font-size: 1.4rem;
+  font-weight: bolder;
+  line-height: normal;
+  text-align: center;
+  width: 100%;
+}
+
+.ukraine-wrapper div {
+  height: max-content;
+}
+
+.ukraine-wrapper div:first-child {
+  background-color: #0057b7ff;
+  color: #ffd700ff;
+}
+
+.ukraine-wrapper div:nth-child(2) {
+  background-color: #ffd700ff;
+  color: #0057b7ff;
+}

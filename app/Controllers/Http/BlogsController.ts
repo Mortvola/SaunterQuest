@@ -326,14 +326,16 @@ export default class BlogsController {
 
     await comment.save();
 
-    if (body.replyToId !== null) {
+    if ((body.replyToId ?? null) !== null) {
       const repliedToComment = await BlogComment.find(body.replyToId);
 
       if (repliedToComment && repliedToComment.notify) {
         const blog = await Blog.find(id);
 
         if (blog) {
-          await blog.load('publishedPost');
+          if (blog.publishedPostId) {
+            await blog.load('publishedPost');
+          }
 
           const url = `${Env.get('APP_URL') as string}/blog/${blog.id}`;
 
@@ -344,7 +346,7 @@ export default class BlogsController {
               .subject('You received a reply to your comment')
               .htmlView('emails/reply-notification', {
                 name: repliedToComment.name,
-                title: blog.publishedPost.title,
+                title: blog.publishedPost ? blog.publishedPost.title : '',
                 url,
               });
           });

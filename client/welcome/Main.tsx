@@ -10,6 +10,7 @@ import styles from './Main.module.css';
 import IconButton from '../IconButton';
 import BlogList from './BlogList';
 import { BlogListItemInterface } from '../Blog/state/Types';
+import Ukraine from './Ukraine';
 
 type PropsType = {
   tileServerUrl: string,
@@ -77,6 +78,7 @@ const Main: React.FC<PropsType> = observer(({ tileServerUrl }) => {
             }
           </div>
         </div>
+        <Ukraine />
         <IconButton icon="angle-right" className={styles.offCanvasButton} onClick={handleSlideOutOpen} />
         {
           blogManager.current
