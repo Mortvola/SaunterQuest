@@ -39,7 +39,7 @@ export default class PhotosController {
 
     const trx = await Database.transaction();
 
-    const [id] = await trx.insertQuery()
+    const [{ id }] = await trx.insertQuery()
       .table('photos')
       .returning('id')
       .insert({
@@ -50,7 +50,7 @@ export default class PhotosController {
 
     Drive.put(`./photos/${user.id}/${id}_original.jpg`, photo);
 
-    const smaller = await sharp(photo).resize(508).toBuffer();
+    const smaller = await sharp(photo).resize(1000).toBuffer();
 
     Drive.put(`./photos/${user.id}/${id}_small.jpg`, smaller);
 
