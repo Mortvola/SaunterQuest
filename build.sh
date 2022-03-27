@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -e
+
+npm run welcome-build
+npm run client-build
+npm run server-build
+
+rm -f build/.env
+

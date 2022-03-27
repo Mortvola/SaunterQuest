@@ -4,11 +4,7 @@ set -e
 
 . $HOME/.bash_aliases
 
-npm run welcome-build
-npm run client-build
-npm run server-build
-
-rm -f build/.env
+./build.sh
 
 FILE=saunter-quest-build.zip
 

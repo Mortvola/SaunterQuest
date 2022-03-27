@@ -15,7 +15,7 @@ import Menubar from './Menubar';
 import Hike from '../Hike/Hike';
 import { store, StoreContext } from './state/store';
 import { store as hikeStore, StoreContext as HikeStoreContent } from '../Hike/state/store';
-import Gear from '../Gear/Gear';
+// import Gear from '../Gear/Gear';
 import usePageViews from '../Tracker';
 import Blogs from './BlogEditor/Blogs';
 
@@ -53,7 +53,7 @@ const App = ({
           />
         </Route>
         <Route path="/gear">
-          <Gear />
+          <div />
         </Route>
         <Route path="/food">
           <div />
