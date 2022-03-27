@@ -7,6 +7,7 @@ export default class Blogs extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
 
+      table.bigInteger('user_id').notNullable();
       table.bigInteger('hike_id');
       table.string('title');
       table.boolean('published');

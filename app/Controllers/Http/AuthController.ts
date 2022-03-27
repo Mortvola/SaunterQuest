@@ -13,6 +13,7 @@ export default class AuthController {
      * Validate user details
      */
     const validationSchema = schema.create({
+      username: schema.string(),
       email: schema.string({ trim: true }, [
         rules.email(),
         rules.unique({ table: 'users', column: 'email' }),
@@ -30,6 +31,7 @@ export default class AuthController {
      * Create a new user
      */
     const user = new User();
+    user.username = userDetails.username;
     user.email = userDetails.email;
     user.password = userDetails.password;
     await user.save();
