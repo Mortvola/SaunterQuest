@@ -4,6 +4,7 @@ import Database from '@ioc:Adonis/Lucid/Database';
 import Drive from '@ioc:Adonis/Core/Drive';
 import sharp from 'sharp';
 import { extname } from 'path';
+import heicConvert from 'heic-convert';
 
 export default class PhotosController {
   // eslint-disable-next-line class-methods-use-this
@@ -22,6 +23,14 @@ export default class PhotosController {
       .where('user_id', user.id);
 
     return results.map((r) => r.id);
+  }
+
+  private static async savePhoto(userId: number, id: number, photo: Buffer) {
+    Drive.put(`./photos/${userId}/${id}_original.jpg`, photo);
+
+    const smaller = await sharp(photo).resize(1000).toBuffer();
+
+    Drive.put(`./photos/${userId}/${id}_small.jpg`, smaller);
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -46,15 +55,36 @@ export default class PhotosController {
         user_id: user.id,
       });
 
-    const photo = Buffer.from(data, 'base64');
+    let photo = Buffer.from(data, 'base64');
 
-    Drive.put(`./photos/${user.id}/${id}_original.jpg`, photo);
+    const fileTypeFromBuffer= (await import('file-type-cjs')).fromBuffer;
 
-    const smaller = await sharp(photo).resize(1000).toBuffer();
+    const fileType = await fileTypeFromBuffer(photo);
 
-    Drive.put(`./photos/${user.id}/${id}_small.jpg`, smaller);
+    if (!fileType) {
+      throw new Exception('unknown file type');
+    }
 
-    trx.commit();
+    switch (fileType.mime) {
+      case 'image/heic':
+        photo = await heicConvert({
+          buffer: photo,
+          format: 'JPEG',
+          quality: 1,
+        });
+  
+        break;
+
+      case 'image/jpeg':
+        break;
+
+      default:
+        throw new Exception(`unuspported image type: ${fileType ? fileType.mime : 'unknown'}`);
+    }
+
+    await PhotosController.savePhoto(user.id, id, photo);
+  
+    trx.commit();  
 
     return { id };
   }

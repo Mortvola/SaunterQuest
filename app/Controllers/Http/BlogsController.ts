@@ -226,7 +226,7 @@ export default class BlogsController {
       throw new Exception('user unauthorized');
     }
 
-    const [id] = await Database.insertQuery()
+    const [{ id }] = await Database.insertQuery()
       .table('blog_photos')
       .returning('id')
       .insert({

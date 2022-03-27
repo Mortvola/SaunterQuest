@@ -14,4 +14,5 @@
 
 .photo-wrapper {
   width: max-content;
+  max-width: 100%;
 }
