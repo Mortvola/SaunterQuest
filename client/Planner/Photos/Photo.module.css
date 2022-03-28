@@ -11,3 +11,8 @@
   background-color: black;
   object-fit: contain;
 }
+
+.toolbar {
+  display: flex;
+  justify-content: flex-start;
+}

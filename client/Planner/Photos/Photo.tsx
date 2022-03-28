@@ -2,6 +2,7 @@ import React from 'react';
 import IconButton from '../../IconButton';
 import { useDeleteConfirmation } from '../../DeleteConfirmation';
 import styles from './Photo.module.css';
+import Http from '@mortvola/http';
 
 type PropsType = {
   id: number,
@@ -16,6 +17,10 @@ const Photo: React.FC<PropsType> = ({ id, onDelete }) => {
     },
   );
 
+  const handleUpdateClick = async () => {
+    await Http.post(`/api/photo/${id}/regenerate`);
+  }
+
   return (
     <div className={styles.wrapper}>
       <img
@@ -23,7 +28,10 @@ const Photo: React.FC<PropsType> = ({ id, onDelete }) => {
         src={`/api/photo/${id}`}
         alt=""
       />
-      <IconButton icon="trash" invert onClick={handleDeleteClick} />
+      <div className={styles.toolbar}>
+        <IconButton icon="trash" invert onClick={handleDeleteClick} />
+        <IconButton icon="rotate-right" iconClass="fa-solid" invert onClick={handleUpdateClick} />
+      </div>
       <DeleteConfirmation />
     </div>
   );

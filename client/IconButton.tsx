@@ -3,6 +3,7 @@ import styles from './IconButton.module.css';
 
 type PropsType = {
   icon: string;
+  iconClass?: string;
   invert?: boolean,
   rotate?: boolean;
   className?: string,
@@ -12,13 +13,14 @@ type PropsType = {
 
 const IconButton: React.FC<PropsType> = ({
   icon,
+  iconClass = 'fas',
   invert,
   rotate,
   onClick,
   className = '',
   style,
 }) => {
-  let iconClassName = `fas fa-${icon}`;
+  let iconClassName = `${iconClass} fa-${icon}`;
 
   if (rotate) {
     iconClassName += ' rotate';

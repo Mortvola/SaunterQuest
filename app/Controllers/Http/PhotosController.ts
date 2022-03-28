@@ -8,6 +8,8 @@ import heicConvert from 'heic-convert';
 import Photo from 'App/Models/Photo';
 import BlogPost from 'App/Models/BlogPost';
 
+const smallWidth = 1000;
+
 export default class PhotosController {
   // eslint-disable-next-line class-methods-use-this
   public async getPhotoList({
@@ -31,7 +33,7 @@ export default class PhotosController {
   private static async savePhoto(userId: number, id: number, photo: Buffer) {
     Drive.put(`./photos/${userId}/${id}_original.jpg`, photo);
 
-    const smaller = await sharp(photo).resize(1000).toBuffer();
+    const smaller = await sharp(photo).resize(smallWidth).toBuffer();
 
     Drive.put(`./photos/${userId}/${id}_small.jpg`, smaller);
   }
@@ -152,5 +154,26 @@ export default class PhotosController {
     photo.deleted = true;
 
     await photo.save();
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async regenerate({
+    auth: {
+      user,
+    },
+    params,
+  }: HttpContextContract): Promise<void> {
+    if (!user) {
+      throw new Exception('user unauthorized');
+    }
+
+    const photo = await Drive.get(`./photos/${user.id}/${params.photoId}_original.jpg`);
+
+    const smaller = await sharp(photo).resize(smallWidth).toBuffer();
+
+    Drive.put(
+      `./photos/${user.id}/${params.photoId}_small.jpg`,
+      smaller,
+    );
   }
 }
