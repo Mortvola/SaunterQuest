@@ -1,6 +1,8 @@
 import React from 'react';
-import MarkdownIt from 'react-markdown';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { BlogSectionInterface } from './state/Types';
+import 'github-markdown-css/github-markdown-light.css';
 import styles from './Markdown.module.css';
 
 type PropsType = {
@@ -8,15 +10,15 @@ type PropsType = {
 }
 
 const Markdown: React.FC<PropsType> = ({ section }) => (
-  <div className={styles.section}>
+  <div className={`${styles.section} markdown-body`} >
     {
       section.text
         ? (
-          <MarkdownIt>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
             {
               section.text
             }
-          </MarkdownIt>
+          </ReactMarkdown>
         )
         : null
     }
