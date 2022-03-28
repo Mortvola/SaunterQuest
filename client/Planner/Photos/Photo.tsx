@@ -3,6 +3,7 @@ import IconButton from '../../IconButton';
 import { useDeleteConfirmation } from '../../DeleteConfirmation';
 import styles from './Photo.module.css';
 import Http from '@mortvola/http';
+import PleaseWait from '../../Hikes/PleaseWait';
 
 type PropsType = {
   id: number,
@@ -10,6 +11,7 @@ type PropsType = {
 }
 
 const Photo: React.FC<PropsType> = ({ id, onDelete }) => {
+  const [regenerating, setRegenerating] = React.useState<boolean>(false);
   const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
     'Are you sure you want to delete this photo?',
     () => {
@@ -18,16 +20,27 @@ const Photo: React.FC<PropsType> = ({ id, onDelete }) => {
   );
 
   const handleUpdateClick = async () => {
-    await Http.post(`/api/photo/${id}/regenerate`);
+    setRegenerating(true);
+
+    try {
+      await Http.post(`/api/photo/${id}/regenerate`);
+    }
+    catch(error) {
+    }
+    
+    setRegenerating(false);
   }
 
   return (
     <div className={styles.wrapper}>
-      <img
-        className={styles.photo}
-        src={`/api/photo/${id}`}
-        alt=""
-      />
+      <div className={styles.photoWrapper}>
+        <img
+          className={styles.photo}
+          src={`/api/photo/${id}`}
+          alt=""
+        />
+        <PleaseWait show={regenerating} />
+      </div>
       <div className={styles.toolbar}>
         <IconButton icon="trash" invert onClick={handleDeleteClick} />
         <IconButton icon="rotate-right" iconClass="fa-solid" invert onClick={handleUpdateClick} />
