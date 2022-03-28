@@ -16,11 +16,26 @@ const Photos: React.FC = () => {
     })();
   }, []);
 
+  const handleDelete = async (id: number) => {
+    const index = photos.findIndex((p) => p === id);
+
+    if (index !== -1) {
+      const response = await Http.delete(`/api/photo/${id}`);
+
+      if (response.ok) {
+        setPhotos([
+          ...photos.slice(0, index),
+          ...photos.slice(index + 1),
+        ])
+      }
+    }
+  }
+
   return (
     <div className={styles.list}>
       {
         photos.map((p) => (
-          <Photo key={p} id={p} />
+          <Photo key={p} id={p} onDelete={handleDelete} />
         ))
       }
     </div>

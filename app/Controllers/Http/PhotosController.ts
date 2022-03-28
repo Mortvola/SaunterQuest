@@ -5,6 +5,7 @@ import Drive from '@ioc:Adonis/Core/Drive';
 import sharp from 'sharp';
 import { extname } from 'path';
 import heicConvert from 'heic-convert';
+import Photo from 'App/Models/Photo';
 
 export default class PhotosController {
   // eslint-disable-next-line class-methods-use-this
@@ -20,7 +21,8 @@ export default class PhotosController {
     const results = await Database.query()
       .select('id')
       .from('photos')
-      .where('user_id', user.id);
+      .where('user_id', user.id)
+      .andWhere('deleted', false);
 
     return results.map((r) => r.id);
   }
@@ -109,5 +111,23 @@ export default class PhotosController {
     response.header('content-length', size);
 
     return response.stream(await Drive.getStream(location));
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async deletePhoto({
+    auth: {
+      user,
+    },
+    params,
+  }: HttpContextContract): Promise<void> {
+    if (!user) {
+      throw new Exception('user unauthorized');
+    }
+
+    const photo = await Photo.findOrFail(params.photoId);
+
+    photo.deleted = true;
+
+    await photo.save();
   }
 }
