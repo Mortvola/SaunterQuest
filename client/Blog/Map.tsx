@@ -11,9 +11,10 @@ import Markers from './Markers';
 type PropsType = {
   tileServerUrl: string,
   hikeLeg: HikeLegInterface,
+  onLoaded: () => void,
 }
 
-const Map: React.FC<PropsType> = ({ tileServerUrl, hikeLeg }) => {
+const Map: React.FC<PropsType> = ({ tileServerUrl, hikeLeg, onLoaded }) => {
   const [routeGroupTrail, setRouteGroupTrail] = React.useState<L.LatLng[][] | null>(null);
 
   React.useEffect(() => {
@@ -36,6 +37,8 @@ const Map: React.FC<PropsType> = ({ tileServerUrl, hikeLeg }) => {
           if (hikeLeg.route.bounds) {
             map.fitBounds(hikeLeg.route.bounds);
           }
+
+          onLoaded();
         }
       }
     >

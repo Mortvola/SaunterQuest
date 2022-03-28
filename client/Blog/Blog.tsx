@@ -12,6 +12,7 @@ import Map from './Map';
 import Comments from './Comments/Comments';
 import YouTube from './YouTube';
 import SocialIcons from './SocialIcons';
+import PleaseWait from '../Hikes/PleaseWait';
 
 type PropsType = {
   blog: BlogInterface,
@@ -20,6 +21,7 @@ type PropsType = {
 
 const FormattedBlog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) => {
   const [hikeLeg, setHikeLeg] = React.useState<HikeLeg | null>(null);
+  const [showMapPleaseWait, setShowMapPleaseWait] = React.useState<boolean>(true);
   const blogRef = React.useRef<HTMLDivElement | null>(null);
 
   React.useEffect(() => {
@@ -31,12 +33,21 @@ const FormattedBlog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) =>
     }
   }, [blog.hikeLegId]);
 
+  const handleMapLoaded = () => {
+    setShowMapPleaseWait(false);
+  }
+
   return (
     <div className={styles.blogWrapper}>
       <div ref={blogRef} className={styles.blog}>
         {
         blog.titlePhoto.id
-          ? <Photo photo={blog.titlePhoto} className="title-photo" blogId={blog.id} />
+          ? <Photo
+            photo={blog.titlePhoto}
+            className="title-photo"
+            blogId={blog.id}
+            loading="eager"
+          />
           : null
         }
         <SocialIcons blog={blog} />
@@ -84,11 +95,20 @@ const FormattedBlog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) =>
                   hikeLeg && hikeLeg.route.bounds
                     ? (
                       // eslint-disable-next-line react/no-array-index-key
-                      <Map key={index} tileServerUrl={tileServerUrl} hikeLeg={hikeLeg} />
+                      <Map
+                        key={index}
+                        tileServerUrl={tileServerUrl}
+                        hikeLeg={hikeLeg}
+                        onLoaded={handleMapLoaded}
+                      >
+                        <PleaseWait show={showMapPleaseWait} />
+                      </Map>
                     )
                     : (
                       // eslint-disable-next-line react/no-array-index-key
-                      <div key={index} />
+                      <div key={index} className={styles.mapPlaceholder}>
+                        <PleaseWait show={showMapPleaseWait} />
+                      </div>
                     )
                 );
 

@@ -12,6 +12,7 @@ type PropsType = {
 
 const Photo: React.FC<PropsType> = ({ id, onDelete }) => {
   const [regenerating, setRegenerating] = React.useState<boolean>(false);
+  const [imageLoading, setImageLoading] = React.useState<boolean>(true);
   const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
     'Are you sure you want to delete this photo?',
     () => {
@@ -31,6 +32,10 @@ const Photo: React.FC<PropsType> = ({ id, onDelete }) => {
     setRegenerating(false);
   }
 
+  const handleLoaded = () => {
+    setImageLoading(false);
+  }
+
   return (
     <div className={styles.wrapper}>
       <div className={styles.photoWrapper}>
@@ -38,8 +43,10 @@ const Photo: React.FC<PropsType> = ({ id, onDelete }) => {
           className={styles.photo}
           src={`/api/photo/${id}`}
           alt=""
+          loading="lazy"
+          onLoad={handleLoaded}
         />
-        <PleaseWait show={regenerating} />
+        <PleaseWait show={regenerating || imageLoading} />
       </div>
       <div className={styles.toolbar}>
         <IconButton icon="trash" invert onClick={handleDeleteClick} />
