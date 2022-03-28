@@ -9,14 +9,15 @@ import { BlogInterface } from './state/Types';
 
 type PropsType = {
   blog: BlogInterface,
+  style?: React.CSSProperties,
 }
 
-const SocialIcons: React.FC<PropsType> = ({ blog }) => {
+const SocialIcons: React.FC<PropsType> = ({ blog, style }) => {
   const blogUrl = `https://saunterquest.com/blog/${blog.id}`;
   const title = `SaunterQuest: ${blog.title}`;
 
   return (
-    <div className={styles.socialIcons}>
+    <div className={styles.socialIcons} style={style}>
       <FacebookShareButton url={blogUrl}>
         <FacebookIcon size={32} />
       </FacebookShareButton>

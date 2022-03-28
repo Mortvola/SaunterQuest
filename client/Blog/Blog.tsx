@@ -132,7 +132,7 @@ const FormattedBlog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) =>
             }
           })
         }
-        <SocialIcons blog={blog} />
+        <SocialIcons blog={blog} style={{ marginTop: '2rem' }} />
         <Comments blogId={blog.id} />
       </div>
     </div>
