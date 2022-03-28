@@ -27,7 +27,7 @@ export default class BlogPost extends BaseModel {
   public hikeLegId: number | null;
 
   @column()
-  public content: string | null;
+  public content: any | null;
 
   @computed({ serializeAs: 'titlePhoto' })
   public get photo() {

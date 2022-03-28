@@ -2,9 +2,11 @@ import React from 'react';
 import Http from '@mortvola/http';
 import styles from './Photos.module.css';
 import Photo from './Photo';
+import { Alert, Modal, ModalHeader } from 'react-bootstrap';
 
 const Photos: React.FC = () => {
   const [photos, setPhotos] = React.useState<number[]>([]);
+  const [showError, setShowError] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     (async () => {
@@ -28,6 +30,11 @@ const Photos: React.FC = () => {
           ...photos.slice(index + 1),
         ])
       }
+      else {
+        if (response.status === 405) {
+          setShowError(true);
+        }
+      }
     }
   }
 
@@ -38,6 +45,14 @@ const Photos: React.FC = () => {
           <Photo key={p} id={p} onDelete={handleDelete} />
         ))
       }
+      <Modal show={showError} onHide={() => setShowError(false)} backdrop="static">
+        <ModalHeader closeButton>
+          Delete Error
+        </ModalHeader>
+        <Alert variant="danger">
+          The photo is currently in use.
+        </Alert>
+      </Modal>
     </div>
   );
 };

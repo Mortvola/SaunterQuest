@@ -6,6 +6,7 @@ import sharp from 'sharp';
 import { extname } from 'path';
 import heicConvert from 'heic-convert';
 import Photo from 'App/Models/Photo';
+import BlogPost from 'App/Models/BlogPost';
 
 export default class PhotosController {
   // eslint-disable-next-line class-methods-use-this
@@ -122,6 +123,28 @@ export default class PhotosController {
   }: HttpContextContract): Promise<void> {
     if (!user) {
       throw new Exception('user unauthorized');
+    }
+
+    const photoId = parseInt(params.photoId, 10);
+
+    const posts = await BlogPost.all();
+
+    if (posts.some((b) => {
+      if (b.titlePhotoId === photoId) {
+        return true;
+      }
+
+      if (b.content) {
+        console.log(`post id ${b.id}`);
+
+        return b.content.some((section) => (
+          section.type === 'photo' && section.photo.id === photoId
+        ));
+      }
+
+      return false;
+    })) {
+      throw new Exception('photo is in use', 405);
     }
 
     const photo = await Photo.findOrFail(params.photoId);
