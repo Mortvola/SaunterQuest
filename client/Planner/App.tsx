@@ -18,6 +18,7 @@ import { store as hikeStore, StoreContext as HikeStoreContent } from '../Hike/st
 // import Gear from '../Gear/Gear';
 import usePageViews from '../Tracker';
 import Blogs from './BlogEditor/Blogs';
+import Photos from './Photos/Photos';
 
 Leaflet.Icon.Default.imagePath = '//cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.4/images/';
 
@@ -64,6 +65,9 @@ const App = ({
             showOffcanvas={showOffcanvas}
             onHideOffcanvas={handleHidecanvas}
           />
+        </Route>
+        <Route path="/photos">
+          <Photos />
         </Route>
         <Route path="/">
           <Hikes />

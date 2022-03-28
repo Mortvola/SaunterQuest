@@ -82,6 +82,7 @@ const Menubar = ({
             <Nav.Link as={Link} to="/food">Food</Nav.Link>
             <Nav.Link as={Link} to="/gear">Gear</Nav.Link>
             <Nav.Link as={Link} to="/blog">Blog</Nav.Link>
+            <Nav.Link as={Link} to="/photos">Photos</Nav.Link>
           </Nav>
           <Nav>
             <NavDropdown id="dropdown" className={styles.menubarZIndex} title={username} align="end">

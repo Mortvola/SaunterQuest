@@ -1,4 +1,5 @@
 import React from 'react';
+import styles from './IconButton.module.css';
 
 type PropsType = {
   icon: string;
@@ -14,7 +15,7 @@ const IconButton: React.FC<PropsType> = ({
   invert,
   rotate,
   onClick,
-  className,
+  className = '',
   style,
 }) => {
   let iconClassName = `fas fa-${icon}`;
@@ -25,12 +26,12 @@ const IconButton: React.FC<PropsType> = ({
 
   let invertClass = '';
   if (invert) {
-    invertClass += ' invert';
+    invertClass += ` ${styles.invert}`;
   }
 
   return (
     <div
-      className={`btn btn-sm icon-button ${invertClass} ${className}`}
+      className={`btn btn-sm ${styles.iconButton} ${invertClass} ${className}`}
       onClick={onClick}
       style={style && style}
     >

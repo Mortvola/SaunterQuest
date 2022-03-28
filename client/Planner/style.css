@@ -246,37 +246,6 @@ div.hike-card-header {
   justify-content: end;
 }
 
-.icon-button {
-  padding: .25rem .25rem;
-  display: inline-grid;
-  align-items: center;
-}
-
-.icon-button i {
-  color: rgba(0, 0, 0, 0.4);
-  font-size: smaller;
-}
-
-.icon-button.invert i {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: smaller;
-}
-
-.icon-button:hover i {
-  color: black;
-  cursor: pointer;
-}
-
-.icon-button:hover {
-  background-color: lightgray;
-  cursor: pointer;
-}
-
-.icon-button.i {
-  font-size: smaller;
-  color: inherit;
-}
-
 .profiles {
   display: grid;
   height: 100%;
