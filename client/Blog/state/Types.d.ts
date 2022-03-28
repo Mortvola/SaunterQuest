@@ -60,10 +60,14 @@ interface BlogListItemInterface {
   title: string | null;
 
   publicationTime?: string | null;
+
+  delete(): void;
 }
 
 interface BlogManagerInterface {
   blogs: BlogListItemInterface[];
 
   addBlog(): Promise<void>;
+
+  deleteBlog(blog: BlogListItemInterface): Promise<void>;
 }

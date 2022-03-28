@@ -19,6 +19,7 @@ export default class BlogsController {
 
     if (o === 'published') {
       const blogs = await Blog.query()
+        .where('deleted', false)
         .preload('publishedPost')
         .whereNotNull('publishedPostId')
         .orderBy('publicationTime', 'desc');
@@ -30,7 +31,7 @@ export default class BlogsController {
       }));
     }
 
-    const blogs = await Blog.query();
+    const blogs = await Blog.query().where('deleted', false);
 
     await Promise.all(blogs.map(async (b) => {
       if (b.draftPostId !== null) {
@@ -51,6 +52,7 @@ export default class BlogsController {
     if (params.blogId === 'latest') {
       blog = await Blog.query().preload('publishedPost')
         .whereNotNull('publishedPostId')
+        .andWhere('deleted', false)
         .orderBy('publicationTime', 'desc')
         .first();
     }
@@ -70,6 +72,14 @@ export default class BlogsController {
     }
 
     return blog;
+  }
+
+  async deleteBlog({ params }: HttpContextContract): Promise<void> {
+    const blog = await Blog.findOrFail(params.blogId);
+
+    blog.deleted = true;
+
+    await blog.save();
   }
 
   // eslint-disable-next-line class-methods-use-this

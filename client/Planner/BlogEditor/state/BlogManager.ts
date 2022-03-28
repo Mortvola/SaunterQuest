@@ -3,6 +3,7 @@ import { makeAutoObservable, runInAction } from 'mobx';
 import { BlogListItemProps, BlogProps } from '../../../../common/ResponseTypes';
 import { BlogListItemInterface, BlogManagerInterface } from '../../../Blog/state/Types';
 import Blog from '../../../Blog/state/Blog';
+import BlogListItem from './BlogListItem';
 
 class BlogManager implements BlogManagerInterface {
   blogs: BlogListItemInterface[] = [];
@@ -24,7 +25,7 @@ class BlogManager implements BlogManagerInterface {
       const body = await response.body();
 
       runInAction(() => {
-        this.blogs = body;
+        this.blogs = body.map((b) => new BlogListItem(b, this));
       });
     }
   }
@@ -60,9 +61,24 @@ class BlogManager implements BlogManagerInterface {
       runInAction(() => {
         this.blogs = [
           ...this.blogs,
-          { id: body.id, title: `Unknown (${body.id})` },
+          new BlogListItem({ id: body.id, title: `Unknown (${body.id})` }, this),
         ];
       });
+    }
+  }
+
+  async deleteBlog(blog: BlogListItemInterface): Promise<void> {
+    const response = await Http.delete(`/api/blog/${blog.id}`);
+
+    if (response.ok) {
+      const index = this.blogs.findIndex((b) => b.id === blog.id);
+
+      if (index !== -1) {
+        this.blogs = [
+          ...this.blogs.slice(0, index),
+          ...this.blogs.slice(index + 1),
+        ]
+      }
     }
   }
 }

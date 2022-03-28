@@ -27,6 +27,9 @@ export default class Blog extends BaseModel {
   @column({ serializeAs: null })
   public draftPostId: number | null;
 
+  @column({ serializeAs: null })
+  public deleted: boolean;
+
   @hasOne(() => BlogPost, {
     localKey: 'publishedPostId',
     foreignKey: 'id',

@@ -145,6 +145,7 @@ Route.group(() => {
 
   Route.group(() => {
     Route.get('', 'BlogsController.getBlog');
+    Route.delete('', 'BlogsController.deleteBlog');
     // Route.get('/blog/:blogId/photos', 'BlogsController.getPhotos');
     Route.get('/photo/:photoId', 'BlogsController.getPhoto');
     Route.post('/comment', 'BlogsController.comment');
