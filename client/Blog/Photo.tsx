@@ -20,7 +20,11 @@ const Photo: React.FC<PropsType> = ({ photo, blogId, className = '' }) => (
               alt=""
               style={{ transform: `rotate(${photo.orientation}deg)` }}
             />
-            <div className={styles.caption}>{photo.caption}</div>
+            {
+              photo.caption
+                ? <div className={styles.caption}>{photo.caption}</div>
+                : null
+            }
           </>
         )
         : null
