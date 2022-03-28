@@ -95,6 +95,7 @@ export default class BlogsController {
         title: draftPost.title,
         titlePhotoId: draftPost.titlePhoto.id,
         titlePhotoCaption: draftPost.titlePhoto.caption,
+        titlePhotoOrientation: draftPost.titlePhoto.orientation,
         hikeLegId: draftPost.hikeLegId,
         content: JSON.stringify(draftPost.content),
       }, {
@@ -108,6 +109,7 @@ export default class BlogsController {
         title: draftPost.title,
         titlePhotoId: draftPost.titlePhoto.id,
         titlePhotoCaption: draftPost.titlePhoto.caption,
+        titlePhotoOrientation: draftPost.titlePhoto.orientation,
         hikeLegId: draftPost.hikeLegId,
         content: JSON.stringify(draftPost.content),
       });
@@ -160,6 +162,7 @@ export default class BlogsController {
         title: draftPost.title,
         titlePhotoId: draftPost.titlePhoto.id,
         titlePhotoCaption: draftPost.titlePhoto.caption,
+        titlePhotoOrientation: draftPost.titlePhoto.orientation,
         hikeLegId: draftPost.hikeLegId,
         content: JSON.stringify(draftPost.content),
       }, {
@@ -173,6 +176,7 @@ export default class BlogsController {
         title: draftPost.title,
         titlePhotoId: draftPost.titlePhoto.id,
         titlePhotoCaption: draftPost.titlePhoto.caption,
+        titlePhotoOrientation: draftPost.titlePhoto.orientation,
         hikeLegId: draftPost.hikeLegId,
         content: JSON.stringify(draftPost.content),
       });

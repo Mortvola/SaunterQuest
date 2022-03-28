@@ -4,9 +4,11 @@ import { BlogSectionTypes } from '../../../common/ResponseTypes';
 export type BlogPhotoInterface = {
   id: number | null,
   caption: string | null,
+  orientation: number,
 
   setId(id: number): void;
   setCaption(caption: string): void;
+  setOrientation(orientation: number): void;
 }
 
 interface BlogSectionInterface {

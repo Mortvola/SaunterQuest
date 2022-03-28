@@ -20,6 +20,9 @@ export default class BlogPost extends BaseModel {
   @column({ serializeAs: null })
   public titlePhotoCaption: string | null;
 
+  @column({ serializeAs: null })
+  public titlePhotoOrientation: number | null;
+
   @column({ serializeAs: 'hikeLegId' })
   public hikeLegId: number | null;
 
@@ -28,6 +31,10 @@ export default class BlogPost extends BaseModel {
 
   @computed({ serializeAs: 'titlePhoto' })
   public get photo() {
-    return { id: this.titlePhotoId ?? null, caption: this.titlePhotoCaption ?? null };
+    return {
+      id: this.titlePhotoId ?? null,
+      caption: this.titlePhotoCaption ?? null,
+      orientation: this.titlePhotoOrientation ?? 0,
+    };
   }
 }

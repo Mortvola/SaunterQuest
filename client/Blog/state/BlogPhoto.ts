@@ -7,9 +7,12 @@ class BlogPhoto implements BlogPhotoInterface {
 
   caption: string | null;
 
+  orientation: number;
+
   constructor(props: BlogPhotoProps) {
     this.id = props.id;
     this.caption = props.caption;
+    this.orientation = props.orientation ?? 0;
 
     makeAutoObservable(this);
   }
@@ -24,6 +27,12 @@ class BlogPhoto implements BlogPhotoInterface {
     runInAction(() => {
       this.caption = caption;
     });
+  }
+
+  setOrientation(orientation: number): void {
+    runInAction(() => {
+      this.orientation = orientation;
+    })
   }
 }
 

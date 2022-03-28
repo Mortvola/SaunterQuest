@@ -18,6 +18,7 @@ const Photo: React.FC<PropsType> = ({ photo, blogId, className = '' }) => (
               className={styles.image}
               src={`/api/blog/${blogId}/photo/${photo.id}`}
               alt=""
+              style={{ transform: `rotate(${photo.orientation}deg)` }}
             />
             <div className={styles.caption}>{photo.caption}</div>
           </>

@@ -65,6 +65,10 @@ const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
     setShowModal(false);
   };
 
+  const handleOrientationChange: React.ChangeEventHandler<HTMLSelectElement> = (event) => {
+    photo.setOrientation(parseInt(event.target.value, 10));
+  }
+
   return (
     <>
       <UploadFileButton
@@ -72,6 +76,12 @@ const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
         label="Upload Photo"
       />
       <button type="button" onClick={handleSelectPhotoClick}>Select Photo</button>
+      <select value={photo.orientation} onChange={handleOrientationChange}>
+        <option value={0}>0 degrees</option>
+        <option value={90}>90 degrees</option>
+        <option value={180}>180 degrees</option>
+        <option value={270}>270 degrees</option>
+      </select>
       <div className={styles.photoWrapper}>
         {
           photo.id
@@ -81,6 +91,7 @@ const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
                   className={styles.image}
                   src={`/api/blog/${blogId}/photo/${photo.id}`}
                   alt=""
+                  style={{ transform: `rotate(${photo.orientation}deg)` }}
                 />
                 <TextareaAutosize className={styles.text} value={photo.caption ?? ''} onChange={handleChange} />
               </>
