@@ -1,25 +1,31 @@
+import { DateTime } from "luxon";
 import { BlogListItemProps } from "../../../../common/ResponseTypes";
 import { BlogListItemInterface, BlogManagerInterface } from "../../../Blog/state/Types";
 
 class BlogListItem implements BlogListItemInterface {
-    id: number;
+  id: number;
 
-    title: string | null;
+  title: string | null;
 
-    manager: BlogManagerInterface | null;
+  manager: BlogManagerInterface | null;
 
-    constructor(props: BlogListItemProps, manager: BlogManagerInterface | null) {
-        this.id = props.id;
-        this.title = props.title;
+  publicationTime: DateTime | null = null;
 
-        this.manager = manager;
+  constructor(props: BlogListItemProps, manager: BlogManagerInterface | null) {
+    this.id = props.id;
+    this.title = props.title;
+    if (props.publicationTime) {
+      this.publicationTime = DateTime.fromISO(props.publicationTime)
     }
 
-    delete(): void {
-        if (this.manager) {
-            this.manager.deleteBlog(this);
-        }
+    this.manager = manager;
+  }
+
+  delete(): void {
+    if (this.manager) {
+      this.manager.deleteBlog(this);
     }
+  }
 }
 
 export default BlogListItem;

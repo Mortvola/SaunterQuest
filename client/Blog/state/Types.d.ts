@@ -59,7 +59,7 @@ interface BlogListItemInterface {
 
   title: string | null;
 
-  publicationTime?: string | null;
+  publicationTime?: Datetime | null;
 
   delete(): void;
 }

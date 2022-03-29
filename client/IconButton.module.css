@@ -2,8 +2,8 @@
   padding: .25rem .25rem;
   display: inline-grid;
   align-items: center;
-  width: max-content;
-  height: max-content;
+  grid-template-columns: max-content;
+  grid-template-rows: max-content;
 }
 
 .icon-button i {
