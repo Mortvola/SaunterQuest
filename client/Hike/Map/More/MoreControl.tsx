@@ -13,7 +13,7 @@ import styles from './MoreControl.module.css';
 import { useHikeDialog } from '../../HikeSettingsDialog';
 import { HikeInterface } from '../../state/Types';
 import Checkbox from './Checkbox';
-import UploadFileButton from '../../UploadFileButton';
+import UploadFileButton from '../../../UploadFileButton';
 
 type PropsType = {
   hike: HikeInterface,

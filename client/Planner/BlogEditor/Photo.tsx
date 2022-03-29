@@ -2,7 +2,7 @@ import Http from '@mortvola/http';
 import { observer } from 'mobx-react-lite';
 import React from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
-import UploadFileButton from '../../Hike/UploadFileButton';
+import UploadFileButton from '../../UploadFileButton';
 import { BlogPhotoInterface } from '../../Blog/state/Types';
 import styles from './Photo.module.css';
 import PhotoSelector from './PhotoSelector';
@@ -57,7 +57,7 @@ const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
   }
 
   return (
-    <>
+    <div>
       <UploadFileButton
         onFileSelection={handleFileSelection}
         label="Upload Photo"
@@ -87,7 +87,7 @@ const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
         }
       </div>
       <PhotoSelector show={showModal} onHide={handleHide} onSelect={handleSelect} />
-    </>
+    </div>
   );
 });
 
