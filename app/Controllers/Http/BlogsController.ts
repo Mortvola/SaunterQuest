@@ -433,4 +433,33 @@ export default class BlogsController {
 
     return response;
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async getSitemap(): Promise<string> {
+    const blogs = await Blog.query()
+      .where('deleted', false)
+      .whereNotNull('publishedPostId')
+      .orderBy('publicationTime', 'desc');
+
+    let xmlString = '<?xml version="1.0" encoding="UTF-8"?>\n';
+    
+    xmlString += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+
+    xmlString += blogs.reduce((s, b) => {
+      s += '<url>\n';
+      s += `<loc>https://saunterquest.com/blog/${b.id}</loc>\n`;
+      
+      if (b.publicationTime) {
+        s += `<lastmod>${b.publicationTime?.toString()}</lastmod>\n`
+      }
+
+      s += '</url>\n';
+
+      return s;
+    }, '');
+  
+    xmlString += '</urlset>\n';
+
+    return xmlString;
+  }
 }

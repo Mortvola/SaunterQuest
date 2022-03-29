@@ -34,6 +34,8 @@ Route.get('/health', async ({ response }) => {
   return response.ok(report);
 });
 
+Route.get('/sitemap.xml', 'BlogsController.getSitemap');
+
 Route.get('/signin', 'HomeController.index');
 
 Route.post('register', 'AuthController.register');
