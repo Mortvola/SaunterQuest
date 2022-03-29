@@ -5,10 +5,11 @@ import Drive from '@ioc:Adonis/Core/Drive';
 import sharp from 'sharp';
 import { extname } from 'path';
 import heicConvert from 'heic-convert';
+import raw from 'raw-body';
 import Photo from 'App/Models/Photo';
 import BlogPost from 'App/Models/BlogPost';
 
-const smallWidth = 1000;
+const smallWidth = 1280;
 
 export default class PhotosController {
   // eslint-disable-next-line class-methods-use-this
@@ -30,10 +31,8 @@ export default class PhotosController {
     return results.map((r) => r.id);
   }
 
-  private static async savePhoto(userId: number, id: number, photo: Buffer) {
-    Drive.put(`./photos/${userId}/${id}_original.jpg`, photo);
-
-    const smaller = await sharp(photo).resize(smallWidth).toBuffer();
+  private static async saveScaledImages(userId: number, id: number, photo: Buffer) {
+    const smaller = await sharp(photo).resize(smallWidth).jpeg().toBuffer();
 
     Drive.put(`./photos/${userId}/${id}_small.jpg`, smaller);
   }
@@ -49,7 +48,12 @@ export default class PhotosController {
       throw new Exception('user unauthorized');
     }
 
-    const { data } = request.body();
+    // Get the raw data from the request.
+    let photo = await raw(request.request);
+
+    if (photo.length === 0) {
+      throw new Error('no image data');
+    }
 
     const trx = await Database.transaction();
 
@@ -60,8 +64,7 @@ export default class PhotosController {
         user_id: user.id,
       });
 
-    let photo = Buffer.from(data, 'base64');
-
+    // Determine the image type from the data
     const fileTypeFromBuffer= (await import('file-type-cjs')).fromBuffer;
 
     const fileType = await fileTypeFromBuffer(photo);
@@ -71,24 +74,38 @@ export default class PhotosController {
     }
 
     switch (fileType.mime) {
+      case 'image/tiff': {
+        Drive.put(`./photos/${user.id}/${id}_original.tiff`, photo);
+
+        break;
+      }
+
       case 'image/heic':
+        Drive.put(`./photos/${user.id}/${id}_original.heic`, photo);
+
         photo = await heicConvert({
           buffer: photo,
-          format: 'JPEG',
-          quality: 1,
+          format: 'PNG',
         });
   
         break;
 
       case 'image/jpeg':
+        Drive.put(`./photos/${user.id}/${id}_original.jpg`, photo);
+
+        break;
+
+      case 'image/png':
+        Drive.put(`./photos/${user.id}/${id}_original.png`, photo);
+
         break;
 
       default:
         throw new Exception(`unuspported image type: ${fileType ? fileType.mime : 'unknown'}`);
     }
 
-    await PhotosController.savePhoto(user.id, id, photo);
-  
+    await PhotosController.saveScaledImages(user.id, id, photo);
+
     trx.commit();  
 
     return { id };
@@ -167,13 +184,28 @@ export default class PhotosController {
       throw new Exception('user unauthorized');
     }
 
-    const photo = await Drive.get(`./photos/${user.id}/${params.photoId}_original.jpg`);
+    // Find the original file for this photo id by iterating over the list of
+    // supported extensions.
+    let ext: string | null = null;
+    for (let e of ['jpg', 'heic', 'tiff', 'png']) {
+      const exists = await Drive.exists(`./photos/${user.id}/${params.photoId}_original.${e}`);
+      if (exists) {
+        ext = e;
+        break;
+      }
+    }
 
-    const smaller = await sharp(photo).resize(smallWidth).toBuffer();
+    if (ext) {
+      let photo = await Drive.get(`./photos/${user.id}/${params.photoId}_original.${ext}`);
 
-    Drive.put(
-      `./photos/${user.id}/${params.photoId}_small.jpg`,
-      smaller,
-    );
+      if (ext === 'heic') {
+        photo = await heicConvert({
+          buffer: photo,
+          format: 'PNG',
+        });
+      }
+
+      await PhotosController.saveScaledImages(user.id, params.photoId, photo);  
+    }
   }
 }

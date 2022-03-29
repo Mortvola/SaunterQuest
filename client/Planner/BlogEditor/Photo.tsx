@@ -15,36 +15,23 @@ type PropsType = {
 const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
   const [showModal, setShowModal] = React.useState<boolean>(false);
 
-  const handleFileSelection: React.ChangeEventHandler<HTMLInputElement> = (event) => {
-    const toBinaryString = (bytes: Uint8Array) => {
-      let result = '';
-      for (let i = 0; i < bytes.length; i += 1) {
-        result += String.fromCharCode(bytes[i]);
-      }
-
-      return result;
-    };
-
+  const handleFileSelection: React.ChangeEventHandler<HTMLInputElement> = async (event) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        if (e.target && e.target.result !== null && typeof e.target.result !== 'string') {
-          const tmp = new Uint8Array(e.target.result);
-          const encodedPicture = btoa(toBinaryString(tmp));
+      const response = await fetch('/api/photo', {
+        method: 'POST',
+        headers: new Headers({
+          Accept: 'application/json',
+          'Content-Type': event.target.files[0].type,
+        }),
+        body: event.target.files[0],
+      });
 
-          const response = await Http.post<{ data: string }, { id: number }>('/api/photo', {
-            data: encodedPicture,
-          });
+      if (response.ok) {
+        const body = await response.json();
 
-          if (response.ok) {
-            const body = await response.body();
-            photo.setId(body.id);
-          }
-        }
-      };
-
-      reader.readAsArrayBuffer(file);
+        photo.setId(body.id);
+      }
     }
   };
 
