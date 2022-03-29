@@ -12,6 +12,10 @@
   cursor: pointer;
 }
 
+.wrapper {
+  position: relative;
+}
+
 .photo-wrapper {
   width: max-content;
   max-width: 100%;

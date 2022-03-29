@@ -6,6 +6,7 @@ import UploadFileButton from '../../UploadFileButton';
 import { BlogPhotoInterface } from '../../Blog/state/Types';
 import styles from './Photo.module.css';
 import PhotoSelector from './PhotoSelector';
+import PleaseWait from '../../Hikes/PleaseWait';
 
 type PropsType = {
   photo: BlogPhotoInterface,
@@ -14,9 +15,12 @@ type PropsType = {
 
 const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
   const [showModal, setShowModal] = React.useState<boolean>(false);
+  const [uploading, setUploading] = React.useState<boolean>(false);
 
   const handleFileSelection: React.ChangeEventHandler<HTMLInputElement> = async (event) => {
     if (event.target.files && event.target.files[0]) {
+      setUploading(true);
+
       const file = event.target.files[0];
       const response = await fetch('/api/photo', {
         method: 'POST',
@@ -32,6 +36,8 @@ const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
 
         photo.setId(body.id);
       }
+
+      setUploading(false);
     }
   };
 
@@ -57,7 +63,7 @@ const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
   }
 
   return (
-    <div>
+    <div className={styles.wrapper}>
       <UploadFileButton
         onFileSelection={handleFileSelection}
         label="Upload Photo"
@@ -87,6 +93,7 @@ const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
         }
       </div>
       <PhotoSelector show={showModal} onHide={handleHide} onSelect={handleSelect} />
+      <PleaseWait show={uploading} />
     </div>
   );
 });
