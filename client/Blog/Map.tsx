@@ -2,6 +2,7 @@ import React from 'react';
 import {
   LayersControl, MapContainer, Polyline, TileLayer,
 } from 'react-leaflet';
+import L from 'leaflet';
 import Graticule from '../Hike/Graticule';
 import Route from '../Hike/Map/Route';
 import { HikeLegInterface } from '../Hike/state/Types';
@@ -32,6 +33,8 @@ const Map: React.FC<PropsType> = ({ tileServerUrl, hikeLeg, onLoaded }) => {
       center={[40, -90]}
       zoom={5}
       className={styles.map}
+      dragging={!L.Browser.mobile}
+      scrollWheelZoom={false}
       whenCreated={
         (map) => {
           if (hikeLeg.route.bounds) {
