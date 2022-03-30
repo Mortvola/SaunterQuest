@@ -66,6 +66,11 @@ class Blog implements BlogInterface {
   onModified() {
     runInAction(() => {
       this.modified = true;
+      setTimeout(() => {
+        if (this.modified) {
+          this.save();
+        }
+      }, 15 * 1000);
     })
   }
 
@@ -114,7 +119,7 @@ class Blog implements BlogInterface {
     runInAction(() => {
       this.title = title;
 
-      this.modified = true;
+      this.onModified();
     });
   }
 
@@ -122,7 +127,7 @@ class Blog implements BlogInterface {
     runInAction(() => {
       this.hikeLegId = hikeLegId;
 
-      this.modified = true;  
+      this.onModified();  
     });
   }
 
@@ -143,7 +148,7 @@ class Blog implements BlogInterface {
           ...this.sections,
         ];
 
-        this.modified = true;
+        this.onModified();
       });
     }
     else {
@@ -164,7 +169,7 @@ class Blog implements BlogInterface {
             ...this.sections.slice(index + 1),
           ];
 
-          this.modified = true;
+          this.onModified();
         }
       });
     }
