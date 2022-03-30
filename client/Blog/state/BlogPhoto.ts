@@ -1,6 +1,6 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import { BlogPhotoProps } from '../../../common/ResponseTypes';
-import { BlogPhotoInterface } from './Types';
+import { BlogInterface, BlogPhotoInterface } from './Types';
 
 class BlogPhoto implements BlogPhotoInterface {
   id: number | null;
@@ -9,10 +9,13 @@ class BlogPhoto implements BlogPhotoInterface {
 
   orientation: number;
 
-  constructor(props: BlogPhotoProps) {
+  onModified: () => void;
+
+  constructor(props: BlogPhotoProps, onModified: () => void) {
     this.id = props.id;
     this.caption = props.caption;
     this.orientation = props.orientation ?? 0;
+    this.onModified = onModified;
 
     makeAutoObservable(this);
   }
@@ -20,18 +23,21 @@ class BlogPhoto implements BlogPhotoInterface {
   setId(id: number): void {
     runInAction(() => {
       this.id = id;
+      this.onModified();
     });
   }
 
   setCaption(caption: string): void {
     runInAction(() => {
       this.caption = caption;
+      this.onModified();
     });
   }
 
   setOrientation(orientation: number): void {
     runInAction(() => {
       this.orientation = orientation;
+      this.onModified();
     })
   }
 }

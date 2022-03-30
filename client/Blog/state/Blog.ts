@@ -25,7 +25,11 @@ class Blog implements BlogInterface {
 
   sections: BlogSection[] = [];
 
+  modified = false;
+
   constructor(props: BlogProps) {
+    this.onModified = this.onModified.bind(this);
+
     this.id = props.id;
     this.published = props.publicationTime !== null;
 
@@ -44,31 +48,43 @@ class Blog implements BlogInterface {
 
     if (!post) {
       this.title = `Unnamed (${props.id})`;
-      this.titlePhoto = new BlogPhoto({ id: null, caption: null });
+      this.titlePhoto = new BlogPhoto({ id: null, caption: null }, this.onModified);
     }
     else {
       this.title = post.title;
       this.hikeLegId = post.hikeLegId;
-      this.titlePhoto = new BlogPhoto(post.titlePhoto);
+      this.titlePhoto = new BlogPhoto(post.titlePhoto, this.onModified);
 
       if (post.content) {
-        this.sections = post.content.map((s) => new BlogSection(s));
+        this.sections = post.content.map((s) => new BlogSection(s, this.onModified));
       }
     }
 
     makeAutoObservable(this);
   }
 
+  onModified() {
+    runInAction(() => {
+      this.modified = true;
+    })
+  }
+
   async save(): Promise<void> {
-    Http.put<BlogProps, void>('/api/blog', {
+    const response = await Http.put<BlogProps, void>('/api/blog', {
       id: this.id,
       draftPost: {
         title: this.title,
         titlePhoto: this.titlePhoto,
         hikeLegId: this.hikeLegId,
-        content: this.sections.map((s) => s.serialize()),
+        content: this.sections.map((s) => s),
       },
     });
+
+    if (response.ok) {
+      runInAction(() => {
+        this.modified = false;
+      });
+    }
   }
 
   async publish(): Promise<void> {
@@ -78,14 +94,15 @@ class Blog implements BlogInterface {
         title: this.title,
         titlePhoto: this.titlePhoto,
         hikeLegId: this.hikeLegId,
-        content: this.sections.map((s) => s.serialize()),
+        content: this.sections.map((s) => s),
       },
     });
 
     if (response.ok) {
-      // runInAction(() => {
-      //   this.published = published;
-      // });
+      runInAction(() => {
+        // this.published = published;
+        this.modified = false;
+      });
     }
   }
 
@@ -96,11 +113,17 @@ class Blog implements BlogInterface {
   setTitle(title: string | null): void {
     runInAction(() => {
       this.title = title;
+
+      this.modified = true;
     });
   }
 
   setHikeLegId(hikeLegId: number | null) {
-    this.hikeLegId = hikeLegId;
+    runInAction(() => {
+      this.hikeLegId = hikeLegId;
+
+      this.modified = true;  
+    });
   }
 
   addSectionAfter(afterSection: BlogSectionInterface | null) {
@@ -109,9 +132,18 @@ class Blog implements BlogInterface {
     if (afterSection === null) {
       runInAction(() => {
         this.sections = [
-          new BlogSection({ type: 'markdown', text: null, photo: new BlogPhoto({ id: null, caption: null }) }),
+          new BlogSection(
+            {
+              type: 'markdown',
+              text: null,
+              photo: new BlogPhoto({ id: null, caption: null }, this.onModified),
+            },
+            this.onModified,
+          ),
           ...this.sections,
         ];
+
+        this.modified = true;
       });
     }
     else {
@@ -121,9 +153,18 @@ class Blog implements BlogInterface {
         if (index !== -1) {
           this.sections = [
             ...this.sections.slice(0, index + 1),
-            new BlogSection({ type: 'markdown', text: null, photo: new BlogPhoto({ id: null, caption: null }) }),
+            new BlogSection(
+              {
+                type: 'markdown',
+                text: null,
+                photo: new BlogPhoto({ id: null, caption: null }, this.onModified),
+              },
+              this.onModified,
+            ),
             ...this.sections.slice(index + 1),
           ];
+
+          this.modified = true;
         }
       });
     }
@@ -138,6 +179,8 @@ class Blog implements BlogInterface {
           ...this.sections.slice(0, index),
           ...this.sections.slice(index + 1),
         ];
+
+        this.modified = true;
       }
     });
   }

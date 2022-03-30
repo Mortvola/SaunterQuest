@@ -1,6 +1,6 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import { BlogSectionProps, BlogSectionTypes } from '../../../common/ResponseTypes';
-import { BlogSectionInterface } from './Types';
+import { BlogInterface, BlogSectionInterface } from './Types';
 import BlogPhoto from './BlogPhoto';
 
 class BlogSection implements BlogSectionInterface {
@@ -10,15 +10,18 @@ class BlogSection implements BlogSectionInterface {
 
   photo: BlogPhoto;
 
-  constructor(props: BlogSectionProps) {
+  onModified: () => void;
+
+  constructor(props: BlogSectionProps, onModified: () => void) {
     this.type = props.type;
     this.text = props.text;
+    this.onModified = onModified;
 
     if (props.photo) {
-      this.photo = new BlogPhoto(props.photo);
+      this.photo = new BlogPhoto(props.photo, onModified);
     }
     else {
-      this.photo = new BlogPhoto({ id: null, caption: null });
+      this.photo = new BlogPhoto({ id: null, caption: null }, onModified);
     }
 
     makeAutoObservable(this);
@@ -27,20 +30,14 @@ class BlogSection implements BlogSectionInterface {
   setType(type: BlogSectionTypes) {
     runInAction(() => {
       this.type = type;
+      this.onModified();
     });
   }
 
   setText(text: string | null) {
     runInAction(() => {
       this.text = text;
-    });
-  }
-
-  serialize(): BlogSectionProps {
-    return ({
-      type: this.type,
-      text: this.text,
-      photo: this.photo,
+      this.onModified();
     });
   }
 }

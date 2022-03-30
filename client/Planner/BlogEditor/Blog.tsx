@@ -121,7 +121,7 @@ const Blog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) => {
             <input className={styles.rightLabeledControl} type="checkbox" checked={preview} onChange={handlePreviewChange} />
             Preview
           </label>
-          <button type="button" onClick={handleSaveClick}>Save</button>
+          <button type="button" onClick={handleSaveClick} disabled={!blog.modified}>Save</button>
           <button type="button" onClick={handlePublishClick}>Publish</button>
           <button type="button" onClick={handleUnpublishClick}>Unpublish</button>
         </div>

@@ -39,6 +39,8 @@ interface BlogInterface {
 
   sections: BlogSectionInterface[];
 
+  modified: boolean;
+
   save(): Promise<void>;
 
   publish(): Promise<void>;
