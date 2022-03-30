@@ -20,6 +20,14 @@ const IconButton: React.FC<PropsType> = ({
   className = '',
   style,
 }) => {
+  const handleClick: React.MouseEventHandler<HTMLDivElement> = (event) => {
+    event.stopPropagation();
+
+    if (onClick) {
+      onClick();
+    }
+  };
+
   let iconClassName = `${iconClass} fa-${icon}`;
 
   if (rotate) {
@@ -34,7 +42,7 @@ const IconButton: React.FC<PropsType> = ({
   return (
     <div
       className={`btn btn-sm ${styles.iconButton} ${invertClass} ${className}`}
-      onClick={onClick}
+      onClick={handleClick}
       style={style && style}
     >
       <i className={iconClassName} />
