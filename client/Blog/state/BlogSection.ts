@@ -40,6 +40,33 @@ class BlogSection implements BlogSectionInterface {
       this.onModified();
     });
   }
+
+  toJSON(): unknown {
+    switch (this.type) {
+      case 'html':
+      case 'markdown':
+      case 'youTube':
+        return {
+          type: this.type,
+          text: this.text,
+        };
+
+      case 'photo':
+        return {
+          type: this.type,
+          photo: this.photo,
+        };
+
+      case 'map':
+      case 'elevation':
+        return {
+          type: this.type,
+        };
+        
+      default:
+        return this;
+    }
+  }
 }
 
 export default BlogSection;
