@@ -34,13 +34,25 @@ export default class PhotosController {
   }
 
   private static async saveScaledImages(photo: Photo, data: Buffer) {
-    const smaller = await sharp(data)
-      .rotate(photo.orientation ?? 0)
-      .resize(smallWidth)
-      .webp()
-      .toBuffer();
+    try {
+      const path = `./photos/${photo.userId}/${photo.id}_small.webp`;
 
-    Drive.put(`./photos/${photo.userId}/${photo.id}_small.webp`, smaller);
+      await sharp(data)
+        .rotate(photo.orientation ?? 0)
+        .resize(smallWidth)
+        .webp()
+        .toFile(path);
+
+      await sharp(data)
+        .rotate(photo.orientation ?? 0)
+        .resize(320)
+        .blur(4)
+        .webp()
+        .toFile(`./photos/${photo.userId}/${photo.id}_thumb.webp`);
+    }
+    catch(error) {
+      console.log(error.message);
+    }
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -70,13 +82,6 @@ export default class PhotosController {
       { client: trx },
     );
   
-    const [{ id }] = await trx.insertQuery()
-      .table('photos')
-      .returning('id')
-      .insert({
-        user_id: user.id,
-      });
-
     // Determine the image type from the data
     const fileTypeFromBuffer= (await import('file-type-cjs')).fromBuffer;
 
@@ -88,13 +93,13 @@ export default class PhotosController {
 
     switch (fileType.mime) {
       case 'image/tiff': {
-        Drive.put(`./photos/${user.id}/${id}_original.tiff`, data);
+        Drive.put(`./photos/${user.id}/${photo.id}_original.tiff`, data);
 
         break;
       }
 
       case 'image/heic':
-        Drive.put(`./photos/${user.id}/${id}_original.heic`, data);
+        Drive.put(`./photos/${user.id}/${photo.id}_original.heic`, data);
 
         data = await heicConvert({
           buffer: data,
@@ -104,12 +109,12 @@ export default class PhotosController {
         break;
 
       case 'image/jpeg':
-        Drive.put(`./photos/${user.id}/${id}_original.jpg`, data);
+        Drive.put(`./photos/${user.id}/${photo.id}_original.jpg`, data);
 
         break;
 
       case 'image/png':
-        Drive.put(`./photos/${user.id}/${id}_original.png`, data);
+        Drive.put(`./photos/${user.id}/${photo.id}_original.png`, data);
 
         break;
 
@@ -118,6 +123,8 @@ export default class PhotosController {
     }
 
     await PhotosController.saveScaledImages(photo, data);
+
+    const id = photo.id;
 
     trx.commit();  
 

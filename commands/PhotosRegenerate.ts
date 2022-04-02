@@ -74,7 +74,6 @@ export default class PhotosRegenerate extends BaseCommand {
     catch(error) {
       console.log(error.message);
     }
-    // Drive.put(, smaller);
   }
 
   private static async loadPhotoData(path: string, Drive: DriveManagerContract): Promise<Buffer | null> {
