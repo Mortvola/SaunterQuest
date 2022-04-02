@@ -276,11 +276,18 @@ export default class BlogsController {
   // eslint-disable-next-line class-methods-use-this
   public async getPhoto({
     params,
+    request,
     response,
   }: HttpContextContract): Promise<unknown> {
     const blog = await Blog.findOrFail(params.blogId);
 
-    const location = `./photos/${blog.userId}/${params.photoId}_small.jpg`;
+    let location = `./photos/${blog.userId}/${params.photoId}_small.webp`;
+
+    const { size: photoSize } = request.qs();
+
+    if (photoSize === 'thumb') {
+      location = `./photos/${blog.userId}/${params.photoId}_thumb.webp`;
+    }
 
     const { size } = await Drive.getStats(location);
 

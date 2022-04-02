@@ -24,7 +24,7 @@ const Photo: React.FC<PropsType> = ({ id, onDelete }) => {
     setRegenerating(true);
 
     try {
-      await Http.post(`/api/photo/${id}/regenerate`);
+      await Http.post(`/api/photo/${id}`, { command: 'regenerate' });
     }
     catch(error) {
     }
@@ -34,6 +34,14 @@ const Photo: React.FC<PropsType> = ({ id, onDelete }) => {
 
   const handleLoaded = () => {
     setImageLoading(false);
+  }
+
+  const handleRotateClick = async () => {
+    setRegenerating(true);
+
+    await Http.post(`/api/photo/${id}`, { command: 'rotate' });
+
+    setRegenerating(false);
   }
 
   return (
@@ -50,7 +58,8 @@ const Photo: React.FC<PropsType> = ({ id, onDelete }) => {
       </div>
       <div className={styles.toolbar}>
         <IconButton icon="trash" invert onClick={handleDeleteClick} />
-        <IconButton icon="rotate-right" iconClass="fa-solid" invert onClick={handleUpdateClick} />
+        <IconButton icon="rotate-right" iconClass="fa-solid" invert onClick={handleRotateClick} />
+        <IconButton icon="pencil" iconClass="fa-solid" invert onClick={handleUpdateClick} />
       </div>
       <DeleteConfirmation />
     </div>

@@ -11,10 +11,10 @@ type PropsType = {
 }
 
 const Photo: React.FC<PropsType> = ({ photo, blogId, className = '', loading = 'lazy' }) => {
-  const [imageLoading, setImageLoading] = React.useState<boolean>(true);
+  const [photoSize, setPhotoSize] = React.useState<boolean>(false);
   
   const handleLoaded = () => {
-    setImageLoading(false);
+    setPhotoSize(true);
   };
 
   return (
@@ -26,13 +26,12 @@ const Photo: React.FC<PropsType> = ({ photo, blogId, className = '', loading = '
               <div className={styles.imageWrapper}>
                 <img
                   className={styles.image}
-                  src={`/api/blog/${blogId}/photo/${photo.id}`}
+                  src={`/api/blog/${blogId}/photo/${photo.id}${!photoSize ? '?size=thumb' : ''}`}
                   alt=""
                   style={{ transform: `rotate(${photo.orientation}deg)` }}
                   loading={loading}
                   onLoad={handleLoaded}
                 />
-                <PleaseWait show={imageLoading} />
               </div>
               {
                 photo.caption

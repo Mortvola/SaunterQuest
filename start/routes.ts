@@ -107,7 +107,7 @@ Route.group(() => {
         Route.get('', 'PhotosController.getPhoto');
         Route.put('', 'HikesController.updatePhoto');
         Route.delete('', 'PhotosController.deletePhoto');
-        Route.post('/regenerate', 'PhotosController.regenerate');
+        Route.post('', 'PhotosController.process');
       })
         .prefix('/:photoId');  
     })

@@ -24,6 +24,18 @@
       "aliases": [],
       "flags": []
     },
+    "photos:regenerate": {
+      "settings": {
+        "loadApp": true,
+        "stayAlive": false
+      },
+      "commandPath": "./commands/PhotosRegenerate",
+      "commandName": "photos:regenerate",
+      "description": "Regenerate the scaled down photos from the originals",
+      "args": [],
+      "aliases": [],
+      "flags": []
+    },
     "dump:rcfile": {
       "settings": {},
       "commandPath": "@adonisjs/core/build/commands/DumpRc",

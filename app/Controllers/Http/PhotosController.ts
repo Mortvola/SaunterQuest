@@ -1,5 +1,6 @@
 import { Exception } from '@adonisjs/core/build/standalone';
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import { schema } from '@ioc:Adonis/Core/Validator';
 import Database from '@ioc:Adonis/Lucid/Database';
 import Drive from '@ioc:Adonis/Core/Drive';
 import sharp from 'sharp';
@@ -26,15 +27,20 @@ export default class PhotosController {
       .select('id')
       .from('photos')
       .where('user_id', user.id)
-      .andWhere('deleted', false);
+      .andWhere('deleted', false)
+      .orderBy('created_at', 'desc');
 
     return results.map((r) => r.id);
   }
 
-  private static async saveScaledImages(userId: number, id: number, photo: Buffer) {
-    const smaller = await sharp(photo).resize(smallWidth).jpeg().toBuffer();
+  private static async saveScaledImages(photo: Photo, data: Buffer) {
+    const smaller = await sharp(data)
+      .rotate(photo.orientation ?? 0)
+      .resize(smallWidth)
+      .webp()
+      .toBuffer();
 
-    Drive.put(`./photos/${userId}/${id}_small.jpg`, smaller);
+    Drive.put(`./photos/${photo.userId}/${photo.id}_small.webp`, smaller);
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -49,14 +55,21 @@ export default class PhotosController {
     }
 
     // Get the raw data from the request.
-    let photo = await raw(request.request);
+    let data = await raw(request.request);
 
-    if (photo.length === 0) {
+    if (data.length === 0) {
       throw new Error('no image data');
     }
 
     const trx = await Database.transaction();
 
+    const photo = await Photo.create(
+      {
+        userId: user.id,
+      },
+      { client: trx },
+    );
+  
     const [{ id }] = await trx.insertQuery()
       .table('photos')
       .returning('id')
@@ -67,7 +80,7 @@ export default class PhotosController {
     // Determine the image type from the data
     const fileTypeFromBuffer= (await import('file-type-cjs')).fromBuffer;
 
-    const fileType = await fileTypeFromBuffer(photo);
+    const fileType = await fileTypeFromBuffer(data);
 
     if (!fileType) {
       throw new Exception('unknown file type');
@@ -75,28 +88,28 @@ export default class PhotosController {
 
     switch (fileType.mime) {
       case 'image/tiff': {
-        Drive.put(`./photos/${user.id}/${id}_original.tiff`, photo);
+        Drive.put(`./photos/${user.id}/${id}_original.tiff`, data);
 
         break;
       }
 
       case 'image/heic':
-        Drive.put(`./photos/${user.id}/${id}_original.heic`, photo);
+        Drive.put(`./photos/${user.id}/${id}_original.heic`, data);
 
-        photo = await heicConvert({
-          buffer: photo,
+        data = await heicConvert({
+          buffer: data,
           format: 'PNG',
         });
   
         break;
 
       case 'image/jpeg':
-        Drive.put(`./photos/${user.id}/${id}_original.jpg`, photo);
+        Drive.put(`./photos/${user.id}/${id}_original.jpg`, data);
 
         break;
 
       case 'image/png':
-        Drive.put(`./photos/${user.id}/${id}_original.png`, photo);
+        Drive.put(`./photos/${user.id}/${id}_original.png`, data);
 
         break;
 
@@ -104,7 +117,7 @@ export default class PhotosController {
         throw new Exception(`unuspported image type: ${fileType ? fileType.mime : 'unknown'}`);
     }
 
-    await PhotosController.saveScaledImages(user.id, id, photo);
+    await PhotosController.saveScaledImages(photo, data);
 
     trx.commit();  
 
@@ -123,9 +136,18 @@ export default class PhotosController {
       throw new Exception('user unauthorized');
     }
 
-    const location = `./photos/${user.id}/${params.photoId}_small.jpg`;
-
-    const { size } = await Drive.getStats(location);
+    let location = '';
+    let size = 0;
+    try {
+      location = `./photos/${user.id}/${params.photoId}_thumb.webp`;
+      const stats = await Drive.getStats(location);
+      size = stats.size;
+    }
+    catch(error) {
+      location = `./photos/${user.id}/${params.photoId}_small.jpg`;
+      const stats = await Drive.getStats(location);
+      size = stats.size;
+    }
 
     response.type(extname(location));
     response.header('content-length', size);
@@ -174,15 +196,26 @@ export default class PhotosController {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  public async regenerate({
+  public async process({
     auth: {
       user,
     },
+    request,
     params,
   }: HttpContextContract): Promise<void> {
     if (!user) {
       throw new Exception('user unauthorized');
     }
+
+    const requestDetails = await request.validate({
+      schema: schema.create({
+        command: schema.string(),
+      }),
+    });
+    
+    const trx = await Database.transaction();
+
+    const photo = await Photo.findOrFail(params.photoId, { client: trx });
 
     // Find the original file for this photo id by iterating over the list of
     // supported extensions.
@@ -196,16 +229,28 @@ export default class PhotosController {
     }
 
     if (ext) {
-      let photo = await Drive.get(`./photos/${user.id}/${params.photoId}_original.${ext}`);
+      let data = await Drive.get(`./photos/${user.id}/${params.photoId}_original.${ext}`);
 
       if (ext === 'heic') {
-        photo = await heicConvert({
-          buffer: photo,
+        data = await heicConvert({
+          buffer: data,
           format: 'PNG',
         });
       }
 
-      await PhotosController.saveScaledImages(user.id, params.photoId, photo);  
+      if (requestDetails.command === 'rotate') {
+        photo.orientation = (photo.orientation ?? 0) + 90;
+
+        if (photo.orientation === 360) {
+          photo.orientation = 0;
+        }
+
+        photo.save();
+      }
+
+      await PhotosController.saveScaledImages(photo, data);
+
+      trx.commit();
     }
   }
 }

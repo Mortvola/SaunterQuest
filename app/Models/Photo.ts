@@ -13,4 +13,10 @@ export default class Photo extends BaseModel {
 
   @column({ serializeAs: null })
   public deleted: boolean;
+  
+  @column({ serializeAs: null })
+  public userId: number;
+
+  @column ()
+  public orientation: number | null;
 }
