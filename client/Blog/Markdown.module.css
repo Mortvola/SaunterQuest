@@ -3,13 +3,17 @@
   padding-right: 0.25rem;
 }
 
-.text {
+/* .text {
 	font-family: proxima-nova,Helvetica Neue,Arial,sans-serif;
 	font-size: 21px;
 	line-height: 1.5em;
 	color: rgba(0,0,0,0.75);
 	font-weight: 400;
 	letter-spacing: -.010em;
+} */
+
+.section p {
+	font-weight: 400;
 }
 
 .title {
