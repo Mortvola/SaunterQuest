@@ -41,6 +41,10 @@ interface BlogInterface {
 
   modified: boolean;
 
+  prevPostId: number | null;
+
+  nextPostId: number | null;
+
   save(): Promise<void>;
 
   publish(): Promise<void>;

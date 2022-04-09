@@ -151,6 +151,8 @@ export type BlogProps = {
   publicationUpdateTime?: string | null,
   draftPost?: DraftPostProps,
   publishedPost?: DraftPostProps,
+  prevPostId?: number | null,
+  nextPostId?: number | null,
 };
 
 export type HikeLegProps = {

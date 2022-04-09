@@ -13,6 +13,7 @@ import Comments from './Comments/Comments';
 import YouTube from './YouTube';
 import SocialIcons from './SocialIcons';
 import PleaseWait from '../Hikes/PleaseWait';
+import PrevNextButtons from './PrevNextButtons';
 
 type PropsType = {
   blog: BlogInterface,
@@ -100,9 +101,7 @@ const FormattedBlog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) =>
                         tileServerUrl={tileServerUrl}
                         hikeLeg={hikeLeg}
                         onLoaded={handleMapLoaded}
-                      >
-                        <PleaseWait show={showMapPleaseWait} />
-                      </Map>
+                      />
                     )
                     : (
                       // eslint-disable-next-line react/no-array-index-key
@@ -153,6 +152,7 @@ const FormattedBlog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) =>
           })
         }
         <SocialIcons blog={blog} style={{ marginTop: '2rem' }} />
+        <PrevNextButtons blog={blog} />
         <Comments blogId={blog.id} />
       </div>
     </div>

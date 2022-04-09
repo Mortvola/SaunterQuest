@@ -69,6 +69,22 @@ export default class BlogsController {
       else {
         await blog.load('publishedPost');
       }
+    }    
+
+    if (blog && blog.publicationTime !== null) {
+      const prev = await Blog.query()
+        .where('publicationTime', '<', blog.publicationTime.toISO())
+        .orderBy('publicationTime', 'desc')
+        .first();
+
+      blog.prevPostId = prev ? prev.id : null;
+
+      const next = await Blog.query()
+        .where('publicationTime', '>', blog.publicationTime.toISO())
+        .orderBy('publicationTime', 'asc')
+        .first();
+
+      blog.nextPostId = next ? next.id : null;
     }
 
     return blog;

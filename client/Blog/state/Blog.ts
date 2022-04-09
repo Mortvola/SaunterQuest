@@ -27,6 +27,10 @@ class Blog implements BlogInterface {
 
   modified = false;
 
+  prevPostId: number | null = null;
+
+  nextPostId: number | null = null;
+
   constructor(props: BlogProps) {
     this.onModified = this.onModified.bind(this);
 
@@ -59,6 +63,9 @@ class Blog implements BlogInterface {
         this.sections = post.content.map((s) => new BlogSection(s, this.onModified));
       }
     }
+
+    this.prevPostId = props.prevPostId ?? null;
+    this.nextPostId = props.nextPostId ?? null;
 
     makeAutoObservable(this);
   }

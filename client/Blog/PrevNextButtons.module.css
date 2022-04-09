@@ -1,0 +1,20 @@
+.wrapper {
+  display: flex;
+  width: 100%;
+  justify-content: space-around;
+  padding: 2rem 0 2rem 0;
+}
+
+.button {
+  border: thin solid black;
+  width: max-content;
+  padding: 0 1rem 0 1rem;
+  text-align: center;
+  cursor: pointer;
+}
+
+.button.disabled {
+  border: thin solid lightgray;
+  color: lightgray;
+  cursor: default;
+}

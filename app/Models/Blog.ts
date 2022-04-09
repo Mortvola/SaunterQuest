@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon';
-import { BaseModel, column, HasOne, hasOne } from '@ioc:Adonis/Lucid/Orm';
+import { BaseModel, column, computed, HasOne, hasOne } from '@ioc:Adonis/Lucid/Orm';
 import BlogPost from './BlogPost';
 
 export default class Blog extends BaseModel {
@@ -41,4 +41,10 @@ export default class Blog extends BaseModel {
     foreignKey: 'id',
   })
   public draftPost: HasOne<typeof BlogPost>;
+
+  @computed()
+  prevPostId: number | null = null;
+
+  @computed()
+  nextPostId: number | null = null;
 }

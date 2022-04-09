@@ -14,7 +14,7 @@ const Errors: React.FC<PropsType> = ({
     {
       errors.map((e) => {
         key += 1;
-        return <div key={key} style={{ fontSize: 'small' }}>{e}</div>;
+        return <div key={key} style={{ fontSize: 'small' }}>{e.message}</div>;
       })
     }
   </>
