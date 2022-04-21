@@ -19,7 +19,7 @@
     "@adonisjs/auth": "^8.0.10",
     "@adonisjs/core": "^5.4.2",
     "@adonisjs/lucid": "^17.1.0",
-    "@adonisjs/mail": "^7.2.4",
+    "@adonisjs/mail": "^8.0.1",
     "@adonisjs/repl": "^3.1.8",
     "@adonisjs/session": "^6.1.2",
     "@adonisjs/shield": "^7.0.7",

@@ -20,3 +20,4 @@ tmp
 /hikes/
 /resources/views/*-css.edge
 /photos
+/.npmrc
