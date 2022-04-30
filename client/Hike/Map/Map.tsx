@@ -25,6 +25,7 @@ import styles from './Map.module.css';
 import { useStores } from '../state/store';
 import SelectedMarkers from './SelectedMarkers/Markers';
 import Poi from './PointsOfInterest/Poi';
+import { HikeLegInterface } from '../state/Types';
 
 type Props = {
   tileServerUrl: string;
@@ -32,10 +33,10 @@ type Props = {
   locationPopup?: L.LatLng | null,
 };
 
-const Map: FC<Props> = ({
+const Map: FC<Props> = observer(({
   tileServerUrl,
   hike,
-  locationPopup,
+  locationPopup = null,
 }) => {
   const { uiState } = useStores();
   const leafletMap = useMap();
@@ -58,58 +59,35 @@ const Map: FC<Props> = ({
 
   const hikeLeg = hike.currentLeg;
 
-  if (hikeLeg === null) {
-    throw new Error('hikeLeg is null');
-  }
-
   const handlePoiSelectionChange = (value: PoiSelections) => {
     setPoiSelections(value);
   };
 
-  const [initialized, setInitialized] = useState(false);
-
   useEffect(() => {
-    if (hikeLeg.route.bounds
-      && !initialized
-    ) {
-      try {
-        leafletMap.fitBounds(hikeLeg.route.bounds);
-        const z = leafletMap.getZoom();
-        if (z > 13) {
-          leafletMap.setZoom(13);
-        }
-        setInitialized(true);
-        leafletMap.fireEvent('moveend');
-      }
-      catch (error) {
-        console.log(error);
-      }
-    }
-  }, [hikeLeg.route.bounds, initialized, leafletMap]);
-
-  useEffect(() => {
-    if (hikeLeg.map) {
+    if (hikeLeg && hikeLeg.map) {
       hikeLeg.map.setLeafletMap(leafletMap);
     }
   }, [hikeLeg, leafletMap]);
 
   const dropWaypoint = (event: L.LeafletMouseEvent) => {
-    hikeLeg.route.addEndWaypoint(event.latlng);
+    if (hikeLeg) {
+      hikeLeg.route.addEndWaypoint(event.latlng);
+    }
   };
 
   const makeContextMenu = useCallback((position: L.LatLng): MenuItem[] => {
     const findSteepestPoint = () => {
-      const steepestPoint = hikeLeg.route.findSteepestPoint();
+      const steepestPoint = hikeLeg ? hikeLeg.route.findSteepestPoint() : 0;
     };
 
     const mapMenuItems: MenuItem[] = [];
 
-    if (hikeLeg.route.anchors.length === 0) {
+    if (hikeLeg && hikeLeg.route.anchors.length === 0) {
       mapMenuItems.push({
         label: 'Add Waypoint', callback: (latlng: L.LatLng) => hikeLeg.route.addStartWaypoint(latlng),
       });
     }
-    else if (hikeLeg.route.anchors.length === 1) {
+    else if (hikeLeg && hikeLeg.route.anchors.length === 1) {
       mapMenuItems.splice(
         mapMenuItems.length,
         0,
@@ -121,9 +99,30 @@ const Map: FC<Props> = ({
       mapMenuItems.splice(
         mapMenuItems.length,
         0,
-        { label: 'Prepend Waypoint', callback: (latlng: L.LatLng) => hikeLeg.route.addStartWaypoint(latlng) },
-        { label: 'Insert Waypoint', callback: (latlng: L.LatLng) => hikeLeg.route.addWaypoint(latlng) },
-        { label: 'Append Waypoint', callback: (latlng: L.LatLng) => hikeLeg.route.addEndWaypoint(latlng) },
+        {
+          label: 'Prepend Waypoint',
+          callback: (latlng: L.LatLng) => {
+            if (hikeLeg) {
+              hikeLeg.route.addStartWaypoint(latlng);
+            }
+          }
+        },
+        {
+          label: 'Insert Waypoint',
+          callback: (latlng: L.LatLng) => {
+            if (hikeLeg) {
+              hikeLeg.route.addWaypoint(latlng);
+            }
+          }
+        },
+        {
+          label: 'Append Waypoint',
+          callback: (latlng: L.LatLng) => {
+            if (hikeLeg) {
+              hikeLeg.route.addEndWaypoint(latlng);
+            }
+          }
+        },
       );
     }
 
@@ -139,25 +138,29 @@ const Map: FC<Props> = ({
     );
 
     return mapMenuItems;
-  }, [hikeLeg.route, hike, showGotoLocationDialog]);
+  }, [hikeLeg, hike, showGotoLocationDialog]);
 
   setMainContextMenu(makeContextMenu);
 
   const handleLocationPopupClose = () => {
-    if (hikeLeg.map === null) {
-      throw new Error('map in hike leg is null');
+    if (hikeLeg === null || hikeLeg.map === null) {
+      throw new Error('hike leg or map in hike leg is null');
     }
 
     hikeLeg.map.showLocationPopup(null);
   };
 
   const handleMapClick: L.LeafletMouseEventHandlerFn = (e) => {
-    hikeLeg.map.setTemporaryMarkerLocation(e.latlng);
-    hikeLeg.map.clearSelectedMarkers();
+    if (hikeLeg) {
+      hikeLeg.map.setTemporaryMarkerLocation(e.latlng);
+      hikeLeg.map.clearSelectedMarkers();  
+    }
   };
 
   const showIn3D: React.MouseEventHandler = () => {
-    uiState.showIn3D(hikeLeg.map.temporaryMarkerLocation);
+    if (hikeLeg) {
+      uiState.showIn3D(hikeLeg.map.temporaryMarkerLocation);
+    }
   };
 
   useMapEvents({
@@ -175,8 +178,15 @@ const Map: FC<Props> = ({
   });
 
   const handleElevationMarkerChange = (latlng: L.LatLng | null) => {
-    hikeLeg.setElevationMarker(latlng);
+    if (hikeLeg) {
+      hikeLeg.setElevationMarker(latlng);
+    }
   };
+
+  if (hikeLeg === null) {
+    return null;
+    // throw new Error('hikeLeg is null');
+  }
 
   return (
     <>
@@ -283,10 +293,8 @@ const Map: FC<Props> = ({
       <PleaseWait show={hikeLeg.map.getWaiting()} />
     </>
   );
-};
+});
 
-Map.defaultProps = {
-  locationPopup: null,
-};
+Map.displayName = 'Map';
 
-export default observer(Map);
+export default Map;
