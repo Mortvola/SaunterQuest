@@ -3,8 +3,8 @@ import Http from '@mortvola/http';
 import L from 'leaflet';
 import {
   bilinearInterpolation, terrainTileToLatLng,
-} from '../../utilities';
-import { TerrainTileProps } from '../../../common/ResponseTypes';
+} from '../utilities';
+import { TerrainTileProps } from '../../common/ResponseTypes';
 import Shader from './Shaders/TerrainShader';
 
 type TerrainData = {

@@ -4,11 +4,11 @@ import React, {
 } from 'react';
 import { observer } from 'mobx-react-lite';
 import { ProgressBar } from 'react-bootstrap';
-import { LatLng } from '../state/Types';
+import { LatLng } from '../Hike/state/Types';
 import TerrainRenderer from './TerrainRenderer';
 import styles from './Terrain.module.css';
-import { PhotoInterface } from '../../welcome/state/Types';
-import { metersToLocal } from '../../utilities';
+import { PhotoInterface } from '../welcome/state/Types';
+import { metersToLocal } from '../utilities';
 
 declare global {
   interface Window {
@@ -17,9 +17,9 @@ declare global {
 }
 
 type PropsType = {
-  photoUrl: string,
-  photo: null | PhotoInterface,
-  editPhoto: boolean,
+  photoUrl?: string,
+  photo?: null | PhotoInterface,
+  editPhoto?: boolean,
   position: LatLng,
   tileServerUrl: string,
   onClose: () => void,
@@ -55,7 +55,8 @@ const Terrain: React.FC<PropsType> = observer(({
 
       if (rendererRef.current === null) {
         rendererRef.current = new TerrainRenderer(
-          gl, position, photoUrl, photo, editPhoto, tileServerUrl, setFps, setPercentComplete,
+          gl, position, tileServerUrl, setFps, setPercentComplete,
+          photoUrl, photo, editPhoto
         );
 
         rendererRef.current.start();

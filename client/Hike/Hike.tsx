@@ -11,7 +11,7 @@ import MapContainer from './Map/MapContainer';
 import HikeData from './state/Hike';
 import styles from './Hike.module.css';
 import useMediaQuery from '../MediaQuery';
-import Terrain from './Terrain/Terrain';
+import Terrain from '../Terrain/Terrain';
 import { HikeProps } from '../../common/ResponseTypes';
 
 type Props = {

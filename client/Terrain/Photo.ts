@@ -1,6 +1,6 @@
 import { mat4, vec3 } from 'gl-matrix';
-import { degToRad } from '../../utilities';
-import { PhotoInterface } from '../../welcome/state/Types';
+import { degToRad } from '../utilities';
+import { PhotoInterface } from '../welcome/state/Types';
 import PhotoShader from './Shaders/PhotoShader';
 
 type Data = {

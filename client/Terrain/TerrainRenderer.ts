@@ -1,13 +1,13 @@
 import { vec3, mat4 } from 'gl-matrix';
 import TerrainTile, { TerrainRendererInterface, Location, tileDimension } from './TerrainTile';
-import { LatLng } from '../state/Types';
+import { LatLng } from '../Hike/state/Types';
 import {
   degToRad, latLngToMercator, latLngToTerrainTile, radToDeg, terrainTileToLatLng,
-} from '../../utilities';
+} from '../utilities';
 import TerrainShader from './Shaders/TerrainShader';
 import PhotoShader from './Shaders/PhotoShader';
 import Photo from './Photo';
-import { PhotoInterface } from '../../welcome/state/Types';
+import { PhotoInterface } from '../welcome/state/Types';
 
 type Tile = {
   offset: { x: number, y: number},
@@ -69,11 +69,11 @@ class TerrainRenderer implements TerrainRendererInterface {
 
   onLoadChange: (percentComplete: number) => void;
 
-  photoUrl: string;
+  photoUrl?: string;
 
-  photoData: PhotoInterface | null = null;
+  photoData?: PhotoInterface | null = null;
 
-  editPhoto = false;
+  editPhoto? = false;
 
   photo: Photo | null = null;
 
@@ -94,12 +94,12 @@ class TerrainRenderer implements TerrainRendererInterface {
   constructor(
     gl: WebGL2RenderingContext,
     position: LatLng,
-    photoUrl: string,
-    photoData: null | PhotoInterface,
-    editPhoto: boolean,
     tileServerUrl: string,
     onFpsChange: (fps: number) => void,
     onLoadChange: (percentComplete: number) => void,
+    photoUrl?: string,
+    photoData?: null | PhotoInterface,
+    editPhoto?: boolean,
   ) {
     this.gl = gl;
     this.tileServerUrl = tileServerUrl;
@@ -307,6 +307,10 @@ class TerrainRenderer implements TerrainRendererInterface {
         xOffset + this.photoData.translation[0],
         yOffset + this.photoData.translation[1],
       ) ?? 0) + cameraZOffset;
+
+      if (!this.photoUrl) {
+        throw new Error('photoUrl not defined');
+      }
 
       this.photo = new Photo(
         this.photoData,
