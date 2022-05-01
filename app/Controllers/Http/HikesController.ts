@@ -241,19 +241,4 @@ export default class HikesController {
 
     return leg;
   }
-
-  // eslint-disable-next-line class-methods-use-this
-  public async deleteLeg({
-    auth: {
-      user,
-    },
-    params,
-  }: HttpContextContract): Promise<void> {
-    if (!user) {
-      throw new Exception('user unauthorized');
-    }
-
-    const leg = await HikeLeg.findOrFail(params.hikeLegId);
-    await leg.delete();
-  }
 }

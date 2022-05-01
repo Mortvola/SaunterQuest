@@ -15,7 +15,7 @@ type PropsType = {
 const HikeSettingsDialog: React.FC<PropsType & ModalProps> = ({
   hike,
   setShow,
-}): ReactElement => {
+}) => {
   type Group = {
     id: number,
     name: string,

@@ -11,6 +11,7 @@ import TrailConditions from '../TrailConditions';
 import styles from './Controls.module.css';
 import IconButton from '../../IconButton';
 import { useDeleteConfirmation } from '../../DeleteConfirmation';
+import HikeLegs from './HikeLegs';
 
 type PropsType = {
   hike: HikeInterface,
@@ -20,43 +21,14 @@ const Controls = observer(({
   hike,
 }: PropsType): ReactElement => {
   const [selection, setSelection] = useState<string>('schedule');
-  const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
-    'Are you sure you want to delete this leg?',
-    () => {
-      if (hike.currentLeg === null) {
-        throw new Error('currentLeg is null');
-      }
-
-      hike.deleteLeg(hike.currentLeg);
-    },
-  );
 
   const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelection(event.target.value);
   };
 
-  const handleAddLegClick: React.MouseEventHandler = () => {
-    hike.addLeg();
-  };
-
-  const handleLegChange: React.ChangeEventHandler<HTMLSelectElement> = (event) => {
-    hike.setCurrentLeg(parseInt(event.target.value, 10));
-  };
-
   return (
     <div className={styles.controlsGridItem}>
-      <div>
-        <select value={hike.currentLeg?.id} onChange={handleLegChange}>
-          {
-            hike.hikeLegs.map((hl) => (
-              <option key={hl.id} value={hl.id}>{hl.id}</option>
-            ))
-          }
-        </select>
-        <Button onClick={handleAddLegClick}>Add Leg</Button>
-        <IconButton icon="trash" onClick={handleDeleteClick} />
-        <DeleteConfirmation />
-      </div>
+      <HikeLegs hike={hike} />
       <div className={styles.legControls}>
         <select onChange={handleSelectChange}>
           <option value="schedule">Schedule</option>

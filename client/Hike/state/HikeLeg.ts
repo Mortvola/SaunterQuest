@@ -100,6 +100,18 @@ class HikeLeg implements HikeLegInterface {
     }
   }
 
+  async setName(name: string): Promise<void> {
+    const response = await Http.patch(`/api/hike-leg/${this.id}`, {
+      name,
+    })
+
+    if (response.ok) {
+      runInAction(() => {
+        this.name = name;
+      })  
+    }
+  }
+
   setSchedule(schedule: Day[]): void {
     this.schedule = schedule;
   }

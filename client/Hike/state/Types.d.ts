@@ -141,6 +141,8 @@ export interface HikerProfileInterface {
 export interface HikeLegInterface {
   id: number;
 
+  name: string | null;
+
   map: MapInterface;
 
   schedule: Day[];
@@ -160,6 +162,8 @@ export interface HikeLegInterface {
   setElevationMarker(latLng: L.LatLng | null): void;
 
   requestRouteGroup(): Promise<L.LatLng[][] | null>;
+
+  setName(name: string): Promise<void>;
 }
 
 export interface HikeInterface {

@@ -78,7 +78,8 @@ Route.group(() => {
 
     Route.group(() => {
       Route.group(() => {
-        Route.delete('', 'HikesController.deleteLeg');
+        Route.patch('', 'HikeLegsController.updateLeg');
+        Route.delete('', 'HikeLegsController.deleteLeg');
 
         Route.group(() => {
           Route.post('/start-point', 'RouteController.addWaypoint');
@@ -111,7 +112,7 @@ Route.group(() => {
       })
         .prefix('/:photoId');  
     })
-    .prefix('/photo');
+      .prefix('/photo');
 
     Route.group(() => {
       Route.get('/configuration', 'GearConfigurationsController.get');
