@@ -14,10 +14,15 @@ const HikeLegDialog: React.FC<PropsType & ModalProps> = ({
 }) => {
   type FormValues = {
     name: string,
+    startDate: string,
   };
 
   const handleSubmit = (values: FormValues) => {
-    hikeLeg.setName(values.name);
+    hikeLeg.update(
+      values.name,
+      values.startDate === '' ? null : values.startDate,
+    );
+
     setShow(false);
   };
 
@@ -35,6 +40,7 @@ const HikeLegDialog: React.FC<PropsType & ModalProps> = ({
     <FormModal<FormValues>
       initialValues={{
         name: hikeLeg.name ?? hikeLeg.id.toString(),
+        startDate: hikeLeg.startDate?.toISODate() ?? '',
       }}
       title="Hike Leg Settings"
       setShow={setShow}
@@ -43,6 +49,8 @@ const HikeLegDialog: React.FC<PropsType & ModalProps> = ({
     >
       <label>Name:</label>
       <FormField type="text" name="name" />
+      <label>Start Date:</label>
+      <FormField type="date" name="startDate" />
     </FormModal>
   );
 };

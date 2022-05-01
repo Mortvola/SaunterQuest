@@ -27,7 +27,7 @@ const FormattedBlog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) =>
 
   React.useEffect(() => {
     if (blog.hikeLegId !== null) {
-      const h = new HikeLeg({ id: blog.hikeLegId, name: null }, new MapData());
+      const h = new HikeLeg({ id: blog.hikeLegId, name: null, startDate: null }, new MapData());
       h.load();
 
       setHikeLeg(h);

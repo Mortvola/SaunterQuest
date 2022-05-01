@@ -1,3 +1,4 @@
+import { DateTime } from 'luxon';
 import { RouteUpdateResponse } from '../../../common/ResponseTypes';
 
 export interface LatLng {
@@ -143,6 +144,8 @@ export interface HikeLegInterface {
 
   name: string | null;
 
+  startDate: DateTime | null;
+
   map: MapInterface;
 
   schedule: Day[];
@@ -163,7 +166,7 @@ export interface HikeLegInterface {
 
   requestRouteGroup(): Promise<L.LatLng[][] | null>;
 
-  setName(name: string): Promise<void>;
+  update(name: string, startDate: string | null): Promise<void>;
 }
 
 export interface HikeInterface {

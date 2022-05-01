@@ -50,6 +50,12 @@ export default class HikeLeg extends BaseModel {
   @column()
   public name: string;
 
+  @column.date({
+    serializeAs: 'startDate',
+    serialize: (value: DateTime) => value?.toISODate() ?? null,
+  })
+  public startDate: DateTime | null;
+
   @column({ serializeAs: null })
   public hikeId: number;
 

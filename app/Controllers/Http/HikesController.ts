@@ -239,6 +239,10 @@ export default class HikesController {
 
     trx.commit();
 
-    return leg;
+    return {
+      id: leg.id,
+      name: leg.name,
+      startDate: leg.startDate?.toISODate() ?? null,
+    };
   }
 }

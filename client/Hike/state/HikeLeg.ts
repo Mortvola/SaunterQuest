@@ -7,11 +7,14 @@ import Map from './Map';
 import Route from './Route';
 import { HikeLegInterface, ProfileProps, Day } from './Types';
 import DayPoi from './PointsOfInterest/Day';
+import { DateTime } from 'luxon';
 
 class HikeLeg implements HikeLegInterface {
   id: number;
 
   name: string | null;
+
+  startDate: DateTime | null;
 
   map: Map;
 
@@ -26,6 +29,7 @@ class HikeLeg implements HikeLegInterface {
   constructor(props: HikeLegProps, map: Map) {
     this.id = props.id;
     this.name = props.name;
+    this.startDate = props.startDate === null ? null : DateTime.fromISO(props.startDate);
 
     this.map = map;
     this.route = new Route(this, map);
@@ -100,14 +104,16 @@ class HikeLeg implements HikeLegInterface {
     }
   }
 
-  async setName(name: string): Promise<void> {
+  async update(name: string, startDate: string | null): Promise<void> {
     const response = await Http.patch(`/api/hike-leg/${this.id}`, {
       name,
+      startDate,
     })
 
     if (response.ok) {
       runInAction(() => {
         this.name = name;
+        this.startDate = startDate === null ? null : DateTime.fromISO(startDate);
       })  
     }
   }

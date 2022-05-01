@@ -2,7 +2,7 @@ export type HikeProps = {
   id: number,
   name: string,
   routeGroupId: number | null,
-  hikeLegs: { id: number, name: string }[],
+  hikeLegs: { id: number, name: string, startDate: string | null }[],
 }
 
 export type TrailPointProps = {
@@ -158,6 +158,7 @@ export type BlogProps = {
 export type HikeLegProps = {
   id: number,
   name: string | null,
+  startDate: string | null,
 };
 
 export type CommentRequest = {
