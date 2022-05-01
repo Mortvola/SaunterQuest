@@ -45,22 +45,32 @@ const Map: FC<Props> = observer(({
   const [GotoLocationDialog, showGotoLocationDialog] = useGotoLocationDialog();
   const { isMobile } = useMediaQuery();
   const [draggingLocked, setDraggingLocked] = useState<boolean>(false);
-  const [poiSelections, setPoiSelections] = useState<PoiSelections>({
-    waypoints: true,
-    campsites: true,
-    rvSites: true,
-    water: true,
-    resupply: true,
-    day: true,
-    postOffices: true,
-    cities: true,
-    photos: true,
+  const [poiSelections, setPoiSelections] = useState<PoiSelections>(() => {
+    const poi = window.localStorage.getItem('poi');
+    
+    if (poi) {
+      return JSON.parse(poi);
+    }
+
+    return ({
+      waypoints: true,
+      campsites: true,
+      rvSites: true,
+      water: true,
+      resupply: true,
+      day: true,
+      postOffices: true,
+      cities: true,
+      photos: true,
+    });
   });
 
   const hikeLeg = hike.currentLeg;
 
   const handlePoiSelectionChange = (value: PoiSelections) => {
     setPoiSelections(value);
+
+    window.localStorage.setItem('poi', JSON.stringify(value));
   };
 
   useEffect(() => {

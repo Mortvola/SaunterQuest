@@ -88,35 +88,19 @@ export default class PointsOfInterestController {
 
     const items = await Database.query()
       .select(
-        'osm_id as id',
-        'name',
-        Database.raw('ST_AsGeoJSON(ST_Transform(way, 4326))::json->\'coordinates\' as location'),
+        'id',
+        Database.raw('data::json->\'name\' as name'),
+        Database.raw('ST_AsGeoJSON(ST_Transform(location, 4326))::json->\'coordinates\' as location'),
       )
-      .from('planet_osm_point')
-      .where('tourism', 'caravan_site')
+      .from('poi_rvs')
       .andWhereRaw(`ST_Intersects(
         ST_SetSRID(ST_MakeBox2D(
           ST_Transform(ST_SetSRID(ST_MakePoint(?, ?), 4326), 3857),
           ST_Transform(ST_SetSRID(ST_MakePoint(?, ?), 4326), 3857)
         ), 3857),
-        way)`, [w, n, e, s]);
+        location)`, [w, n, e, s]);
 
-    const polyItems = await Database.query()
-      .select(
-        'osm_id as id',
-        'name',
-        Database.raw('ST_AsGeoJSON(ST_Transform(ST_PointOnSurface(way), 4326))::json->\'coordinates\' as location'),
-      )
-      .from('planet_osm_polygon')
-      .where('tourism', 'caravan_site')
-      .andWhereRaw(`ST_Intersects(
-        ST_SetSRID(ST_MakeBox2D(
-          ST_Transform(ST_SetSRID(ST_MakePoint(?, ?), 4326), 3857),
-          ST_Transform(ST_SetSRID(ST_MakePoint(?, ?), 4326), 3857)
-        ), 3857),
-        way)`, [w, n, e, s]);
-
-    return items.concat(polyItems);
+    return items;
   }
 
   // eslint-disable-next-line class-methods-use-this

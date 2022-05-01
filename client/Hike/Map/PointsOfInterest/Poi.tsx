@@ -40,13 +40,13 @@ const Poi: React.FC<PropsType> = ({ hike, selections }) => {
   }, [leafletMap]);
 
   return (
-    <MarkerCluster hike={hike}>
+    <>
       <Campsites hike={hike} bounds={bounds} show={selections.campsites ?? false} />
       <RvSites hike={hike} bounds={bounds} show={selections.rvSites ?? false} />
       <PostOffices hike={hike} bounds={bounds} show={selections.postOffices ?? false} />
       <Cities hike={hike} bounds={bounds} show={selections.cities ?? false} />
       <Photos hike={hike} bounds={bounds} show={selections.photos ?? false} />
-    </MarkerCluster>
+    </>
   );
 };
 
