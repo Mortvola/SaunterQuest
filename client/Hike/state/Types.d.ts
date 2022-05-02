@@ -148,6 +148,8 @@ export interface HikeLegInterface {
 
   numberOfDays: number;
 
+  color: string;
+
   map: MapInterface;
 
   schedule: Day[];
@@ -168,7 +170,7 @@ export interface HikeLegInterface {
 
   requestRouteGroup(): Promise<L.LatLng[][] | null>;
 
-  update(name: string, startDate: string | null): Promise<void>;
+  update(name: string, startDate: string | null, color: string): Promise<void>;
 }
 
 export interface HikeInterface {

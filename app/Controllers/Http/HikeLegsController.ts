@@ -20,6 +20,7 @@ export default class HikeLegsController {
         schema: schema.create({
           name: schema.string(),
           startDate: schema.date.nullable(),
+          color: schema.string(),
         }),
       });
 
@@ -28,6 +29,7 @@ export default class HikeLegsController {
       leg.merge({
         name: requestData.name,
         startDate: requestData.startDate,
+        color: requestData.color,
       });
 
       await leg.save();

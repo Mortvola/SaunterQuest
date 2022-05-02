@@ -3,6 +3,7 @@ import { makeUseModal, ModalProps } from '@mortvola/usemodal';
 import { HikeLegInterface } from '../state/Types';
 import { FormField, FormModal } from '@mortvola/forms';
 import { FormikErrors } from 'formik';
+import styles from './HikeLegDialog.module.css';
 
 type PropsType = {
   hikeLeg: HikeLegInterface,
@@ -15,12 +16,14 @@ const HikeLegDialog: React.FC<PropsType & ModalProps> = ({
   type FormValues = {
     name: string,
     startDate: string,
+    color: string,
   };
 
   const handleSubmit = (values: FormValues) => {
     hikeLeg.update(
       values.name,
       values.startDate === '' ? null : values.startDate,
+      values.color,
     );
 
     setShow(false);
@@ -41,16 +44,18 @@ const HikeLegDialog: React.FC<PropsType & ModalProps> = ({
       initialValues={{
         name: hikeLeg.name ?? hikeLeg.id.toString(),
         startDate: hikeLeg.startDate?.toISODate() ?? '',
+        color: hikeLeg.color,
       }}
       title="Hike Leg Settings"
       setShow={setShow}
       onSubmit={handleSubmit}
       validate={handleValidate}
     >
-      <label>Name:</label>
-      <FormField type="text" name="name" />
-      <label>Start Date:</label>
-      <FormField type="date" name="startDate" />
+      <div className={styles.form}>
+        <FormField type="text" name="name" label="Name:" />
+        <FormField type="date" name="startDate" label="Start Date:" />
+        <FormField type="color" name="color" label="Color:" />
+      </div>
     </FormModal>
   );
 };

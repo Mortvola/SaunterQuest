@@ -252,6 +252,7 @@ export default class HikesController {
       id: leg.id,
       name: leg.name,
       startDate: leg.startDate?.toISODate() ?? null,
+      color: leg.color,
     };
   }
 }

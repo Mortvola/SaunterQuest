@@ -56,6 +56,9 @@ export default class HikeLeg extends BaseModel {
   })
   public startDate: DateTime | null;
 
+  @column()
+  public color: string;
+
   @column({ serializeAs: null })
   public hikeId: number;
 
