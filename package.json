@@ -39,7 +39,7 @@
     "gl-matrix": "^3.4.3",
     "heic-convert": "^1.2.4",
     "jsonwebtoken": "^8.5.1",
-    "leaflet": "git+https://git@github.com/Mortvola/Leaflet.git#6a6e49c9",
+    "leaflet": "^1.8.0",
     "leaflet.markercluster": "^1.5.3",
     "luxon": "^2.3.0",
     "mobx": "^6.3.13",
