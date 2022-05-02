@@ -11,5 +11,6 @@ FILE=saunter-quest-build.zip
 rm -f $FILE
 zip -r $FILE build
 # to-sq $FILE
+echo Uploading file...
 scp -i ~/.ssh/sq.pem $FILE saunterquest@saunterquest.com:
 

@@ -146,6 +146,8 @@ export interface HikeLegInterface {
 
   startDate: DateTime | null;
 
+  numberOfDays: number;
+
   map: MapInterface;
 
   schedule: Day[];

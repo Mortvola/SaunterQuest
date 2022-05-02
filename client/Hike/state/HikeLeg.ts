@@ -16,6 +16,8 @@ class HikeLeg implements HikeLegInterface {
 
   startDate: DateTime | null;
 
+  numberOfDays: number = 0;
+
   map: Map;
 
   route: Route;
@@ -30,6 +32,7 @@ class HikeLeg implements HikeLegInterface {
     this.id = props.id;
     this.name = props.name;
     this.startDate = props.startDate === null ? null : DateTime.fromISO(props.startDate);
+    this.numberOfDays = props.schedule?.numberOfDays ?? 0;
 
     this.map = map;
     this.route = new Route(this, map);

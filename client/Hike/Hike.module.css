@@ -1,10 +1,30 @@
 .hike-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
-  grid-template-rows: minmax(0, 1fr);
+  grid-template-rows: max-content minmax(0, 1fr);
+  grid-template-areas:
+    "controls title"
+    "controls map"
+  ;
   width: 100%;
+}
+
+.title-bar {
+  grid-area: title;
+  background-color: white;
+  display: flex;
+  flex-direction: row;
+}
+
+.title {
+  padding-right: 0.25rem;
+  padding-left: 0.25rem;
 }
 
 :global(.mobile).hike-grid {
   grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "title"
+    "map"
+  ;
 }

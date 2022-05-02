@@ -32,4 +32,10 @@ export default class Schedule extends BaseModel {
     const days = await this.related('days').query().count('*');
     return days.length;
   }
+
+  public serializeExtras() {
+    return {
+      numberOfDays: this.$extras.numberOfDays,
+    }
+  };
 }

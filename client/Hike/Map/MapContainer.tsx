@@ -9,12 +9,14 @@ type Props = {
   tileServerUrl: string;
   hike: Hike;
   locationPopup: L.LatLng | null;
+  style: React.CSSProperties;
 }
 
 const MyMapContainer = ({
   tileServerUrl,
   hike,
   locationPopup,
+  style,
 }: Props): ReactElement => {
   const { isMobile } = useMediaQuery();
 
@@ -26,6 +28,7 @@ const MyMapContainer = ({
       center={[40, -90]}
       zoom={5}
       contextMenuTimeout={610}
+      style={style}
     >
       <Map
         tileServerUrl={tileServerUrl}

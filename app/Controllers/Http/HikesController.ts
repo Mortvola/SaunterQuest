@@ -36,7 +36,16 @@ export default class HikesController {
     }
 
     const hike = await Hike.findOrFail(params.hikeId);
-    await hike.load('hikeLegs', (legsQuery) => legsQuery.orderBy('startDate', 'desc'));
+    await hike.load((loader) => {
+      loader.load(
+        'hikeLegs',
+        (leg) => leg
+          .orderBy('startDate', 'desc')
+          .preload('schedule', (query) => {
+            query.withCount('days', (query) => query.as('numberOfDays'));
+          }),
+      )
+    });
 
     return hike;
   }

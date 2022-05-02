@@ -125,7 +125,10 @@ class Hike implements HikeInterface {
 
       runInAction(() => {
         const newLeg = new HikeLeg(body, new Map());
-        this.hikeLegs.push(newLeg);
+        this.hikeLegs = [
+          ...this.hikeLegs.slice(),
+          newLeg,
+        ];
 
         this.setCurrentLeg(newLeg);
       });

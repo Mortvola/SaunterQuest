@@ -13,6 +13,10 @@ import styles from './Hike.module.css';
 import useMediaQuery from '../MediaQuery';
 import Terrain from '../Terrain/Terrain';
 import { HikeProps } from '../../common/ResponseTypes';
+import Calendar from './Calendar';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
+import HikeLeg from './state/HikeLeg';
+import IconButton from '../IconButton';
 
 type Props = {
   tileServerUrl: string,
@@ -20,7 +24,7 @@ type Props = {
   onHideOffcanvas: () => void,
 }
 
-const Hike = ({
+const Hike = observer(({
   tileServerUrl,
   showOffcanvas,
   onHideOffcanvas,
@@ -29,6 +33,7 @@ const Hike = ({
   const [hike, setHike] = React.useState<HikeData | null>(null);
   const history = useHistory();
   const { isMobile, addMediaClass } = useMediaQuery();
+  const [view, setView] = React.useState<'map' | 'calendar'>('map');
 
   useEffect(() => {
     (async () => {
@@ -47,6 +52,10 @@ const Hike = ({
     })();
   }, [hike, history.location.pathname, uiState]);
 
+  const handleCalendarToggle = () => {
+    setView((prev) => prev === 'map' ? 'calendar' : 'map');
+  };
+
   let locationPopup = null;
   if (hike && hike.currentLeg && hike.currentLeg.map) {
     locationPopup = hike.currentLeg.map.locationPopup;
@@ -63,7 +72,7 @@ const Hike = ({
           {
             !isMobile
               ? (
-                <Controls hike={hike} />
+                <Controls hike={hike} style={{ gridArea: 'controls' }} />
               )
               : (
                 <Offcanvas show={showOffcanvas} onHide={onHideOffcanvas}>
@@ -74,11 +83,28 @@ const Hike = ({
                 </Offcanvas>
               )
           }
-          <MapContainer
-            tileServerUrl={tileServerUrl}
-            hike={hike}
-            locationPopup={locationPopup}
-          />
+          <div className={styles.titleBar}>
+            <div className={styles.title}>{hike.name}</div>
+            {
+              view === 'map'
+                ? <IconButton icon="calendar" onClick={handleCalendarToggle} />
+                : <IconButton icon="map" onClick={handleCalendarToggle} />
+            }
+          </div>
+          {
+            view === 'map'
+              ? (
+                <MapContainer
+                  tileServerUrl={tileServerUrl}
+                  hike={hike}
+                  locationPopup={locationPopup}
+                  style={{ gridArea: 'map' }}
+                />    
+              )
+              : (
+                <Calendar hikeLegs={hike.hikeLegs} style={{ gridArea: 'map' }} />
+              )
+          }
         </div>
         {
           uiState.location3d
@@ -99,6 +125,6 @@ const Hike = ({
   }
 
   return null;
-};
+});
 
-export default observer(Hike);
+export default Hike;

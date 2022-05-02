@@ -159,6 +159,9 @@ export type HikeLegProps = {
   id: number,
   name: string | null,
   startDate: string | null,
+  schedule?: {
+    numberOfDays: number,
+  }
 };
 
 export type CommentRequest = {

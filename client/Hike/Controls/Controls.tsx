@@ -15,10 +15,12 @@ import HikeLegs from './HikeLegs';
 
 type PropsType = {
   hike: HikeInterface,
+  style?: React.CSSProperties,
 }
 
 const Controls = observer(({
   hike,
+  style,
 }: PropsType): ReactElement => {
   const [selection, setSelection] = useState<string>('schedule');
 
@@ -27,7 +29,7 @@ const Controls = observer(({
   };
 
   return (
-    <div className={styles.controlsGridItem}>
+    <div className={styles.controlsGridItem} style={style}>
       <HikeLegs hike={hike} />
       <div className={styles.legControls}>
         <select onChange={handleSelectChange}>
