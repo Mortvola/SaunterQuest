@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import 'regenerator-runtime/runtime';
 import '@mortvola/usemodal/dist/main.css';
 import '@mortvola/forms/dist/main.css';
@@ -29,11 +29,16 @@ if (initialPropsString === null) {
 
 const initialProps = JSON.parse(initialPropsString) as PropsType;
 
-ReactDOM.render(
-  <BlogStore>
-    <Router>
-      <Welcome tileServerUrl={initialProps.tileServerUrl} />
-    </Router>
-  </BlogStore>,
-  document.querySelector('.app'),
-);
+const rootElement = document.querySelector('.app');
+
+if (rootElement) {
+  const root = createRoot(rootElement);
+
+  root.render(
+    <BlogStore>
+      <Router>
+        <Welcome tileServerUrl={initialProps.tileServerUrl} />
+      </Router>
+    </BlogStore>
+  );  
+}

@@ -27,7 +27,6 @@ const MyMapContainer = ({
       maxZoom={16}
       center={[40, -90]}
       zoom={5}
-      contextMenuTimeout={610}
       style={style}
     >
       <Map

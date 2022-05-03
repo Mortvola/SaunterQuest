@@ -25,7 +25,6 @@ import styles from './Map.module.css';
 import { useStores } from '../state/store';
 import SelectedMarkers from './SelectedMarkers/Markers';
 import Poi from './PointsOfInterest/Poi';
-import { HikeLegInterface } from '../state/Types';
 
 type Props = {
   tileServerUrl: string;
@@ -287,7 +286,7 @@ const Map: FC<Props> = observer(({
       {
         locationPopup
           ? (
-            <Popup onClose={handleLocationPopupClose} position={locationPopup}>
+            <Popup position={locationPopup}>
               { `${locationPopup.lat}, ${locationPopup.lng}`}
             </Popup>
           )

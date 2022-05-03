@@ -1,5 +1,5 @@
 import React, { ReactElement } from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import 'regenerator-runtime/runtime';
@@ -91,13 +91,19 @@ const initialProps = JSON.parse(initialPropsString) as PropsType;
 
 const ConnectedApp = observer(App);
 
-ReactDOM.render(
-  <StoreContext.Provider value={store}>
-    <HikeStoreContent.Provider value={hikeStore}>
-      <Router>
-        <ConnectedApp {...initialProps} />
-      </Router>
-    </HikeStoreContent.Provider>
-  </StoreContext.Provider>,
-  document.querySelector('.app'),
-);
+const rootElement = document.querySelector('.app');
+
+if (rootElement) {
+  const root = createRoot(rootElement);
+
+  root.render(
+    <StoreContext.Provider value={store}>
+      <HikeStoreContent.Provider value={hikeStore}>
+        <Router>
+          <ConnectedApp {...initialProps} />
+        </Router>
+      </HikeStoreContent.Provider>
+    </StoreContext.Provider>,
+  );
+}
+

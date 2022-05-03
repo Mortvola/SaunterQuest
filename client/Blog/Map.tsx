@@ -35,12 +35,8 @@ const Map: React.FC<PropsType> = ({ tileServerUrl, hikeLeg, onLoaded }) => {
       className={styles.map}
       dragging={!L.Browser.mobile}
       scrollWheelZoom={false}
-      whenCreated={
-        (map) => {
-          if (hikeLeg.route.bounds) {
-            map.fitBounds(hikeLeg.route.bounds);
-          }
-
+      whenReady={
+        () => {
           onLoaded();
         }
       }
