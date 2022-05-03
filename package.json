@@ -27,7 +27,7 @@
     "@mortvola/forms": "^0.14.0",
     "@mortvola/http": "^0.1.4",
     "@mortvola/leaflet-context-menu": "^0.1.7",
-    "@mortvola/usemodal": "^0.2.0",
+    "@mortvola/usemodal": "^0.2.2",
     "@react-leaflet/core": "^2.0.0",
     "bootstrap": "^5.1.3",
     "caniuse-lite": "^1.0.30001309",
