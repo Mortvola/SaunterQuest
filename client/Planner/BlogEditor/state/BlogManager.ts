@@ -12,6 +12,8 @@ class BlogManager implements BlogManagerInterface {
 
   blog: Blog | null = null;
 
+  loadingBlog = false;
+
   constructor() {
     this.load();
 
@@ -31,6 +33,10 @@ class BlogManager implements BlogManagerInterface {
   }
 
   async loadBlog(blog: BlogListItemInterface): Promise<void> {
+    runInAction(() => {
+      this.loadingBlog = true;
+    });
+  
     const response = await Http.get<BlogProps>(`/api/blog/${blog.id}?o=draft`);
 
     if (response.ok) {
@@ -38,6 +44,12 @@ class BlogManager implements BlogManagerInterface {
 
       runInAction(() => {
         this.blog = new Blog(body);
+        this.loadingBlog = false;
+      });
+    }
+    else {
+      runInAction(() => {
+        this.loadingBlog = false;
       });
     }
   }

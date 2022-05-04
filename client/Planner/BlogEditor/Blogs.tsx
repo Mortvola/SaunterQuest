@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite';
-import React, { useState } from 'react';
+import React from 'react';
 import { Offcanvas } from 'react-bootstrap';
 import { useStores } from '../state/store';
 import { BlogListItemInterface } from '../../Blog/state/Types';
@@ -7,6 +7,7 @@ import Blog from './Blog';
 import BlogList from './BlogList';
 import useMediaQuery from '../../MediaQuery';
 import styles from './Blogs.module.css';
+import PleaseWait from '../../Hikes/PleaseWait';
 
 type PropsType = {
   tileServerUrl: string,
@@ -49,9 +50,15 @@ const Blogs: React.FC<PropsType> = observer(({ tileServerUrl, showOffcanvas, onH
       }
       <div>
         {
-          blogManager.blog
-            ? <Blog blog={blogManager.blog} tileServerUrl={tileServerUrl} />
-            : null
+          blogManager.loadingBlog
+            ? (
+              <PleaseWait show />
+            )
+            : (
+              blogManager.blog
+              ? <Blog blog={blogManager.blog} tileServerUrl={tileServerUrl} />
+              : null  
+            )
         }
       </div>
     </div>
