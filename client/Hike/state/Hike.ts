@@ -135,24 +135,33 @@ class Hike implements HikeInterface {
     }
   }
 
-  setCurrentLeg(leg: number | HikeLeg): void {
+  setCurrentLeg(leg: number | HikeLeg | null): void {
     runInAction(() => {
-      let newLeg: number | HikeLeg | undefined = leg;
-      if (typeof leg === 'number') {
-        newLeg = this.hikeLegs.find((l) => l.id === leg);
-      }
-
-      if (newLeg) {
-        if (typeof newLeg === 'number') {
-          throw new Error('newLeg is a number');
-        }
-
+      if (leg === null) {
         if (this.currentLeg) {
           this.currentLeg.unload();
         }
 
-        this.currentLeg = newLeg;
-        this.currentLeg.load(true);
+        this.currentLeg = null;
+      }
+      else {
+        let newLeg: number | HikeLeg | undefined = leg;
+        if (typeof leg === 'number') {
+          newLeg = this.hikeLegs.find((l) => l.id === leg);
+        }
+  
+        if (newLeg) {
+          if (typeof newLeg === 'number') {
+            throw new Error('newLeg is a number');
+          }
+  
+          if (this.currentLeg) {
+            this.currentLeg.unload();
+          }
+  
+          this.currentLeg = newLeg;
+          this.currentLeg.load(true);
+        }  
       }
     });
   }

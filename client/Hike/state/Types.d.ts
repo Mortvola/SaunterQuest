@@ -190,7 +190,7 @@ export interface HikeInterface {
 
   addLeg(): Promise<void>;
 
-  setCurrentLeg(id: number): void;
+  setCurrentLeg(id: number | null): void;
 
   deleteLeg(leg: HikeLegInterface): Promise<void>;
 }

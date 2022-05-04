@@ -3,9 +3,36 @@ import React from 'react';
 import { Button } from 'react-bootstrap';
 import { useDeleteConfirmation } from '../../DeleteConfirmation';
 import IconButton from '../../IconButton';
-import { HikeInterface } from '../state/Types';
+import { HikeInterface, HikeLegInterface } from '../state/Types';
 import { useHikeLegDialog } from './HikeLegDialog';
+import Select, { OptionProps } from 'react-select';
 import styles from './HikeLegs.module.css';
+
+type OptionValue = {
+  value: number,
+  label: string,
+  leg: HikeLegInterface,
+};
+
+const CustomOption = ({ innerProps, isDisabled, data }: OptionProps<OptionValue, false>) => (
+  !isDisabled
+    ? (
+      <div {...innerProps} className={styles.optionWrapper}>
+        <div className={styles.optionColor} style={{ backgroundColor: data.leg.color }}></div>
+        <div>
+          <div>{data.label}</div>
+          <div className={styles.date}>
+            {
+              data.leg.startDate === null
+                ? 'No start date specified'
+                : `From ${data.leg.startDate.toISODate()} to ${data.leg.startDate.plus({ days: data.leg.numberOfDays }).toISODate()}`
+            }
+          </div>
+        </div>
+      </div>
+    )
+    : null
+);
 
 type PropsType = {
   hike: HikeInterface,
@@ -32,21 +59,41 @@ const HikeLegs: React.FC<PropsType> = observer(({ hike }) => {
     showHikeLegDialog();
   };
 
-  const handleLegChange: React.ChangeEventHandler<HTMLSelectElement> = (event) => {
-    hike.setCurrentLeg(parseInt(event.target.value, 10));
+  const handleLegChange = (item: OptionValue | null) => {
+    if (item !== null) {
+      hike.setCurrentLeg(item.value);
+    }
+    else {
+      hike.setCurrentLeg(null);
+    }
   };
+
+  const options: OptionValue[] = hike.hikeLegs.map((hl) => ({
+    value: hl.id,
+    label: hl.name ?? hl.id.toString(),
+    leg: hl,
+  }));
 
   return (
     <div>
       <Button onClick={handleAddLegClick}>Add Leg</Button>
       <div className={styles.leg}>
-        <select value={hike.currentLeg?.id} onChange={handleLegChange}>
-          {
-            hike.hikeLegs.map((hl) => (
-              <option key={hl.id} value={hl.id}>{hl.name ?? hl.id}</option>
-            ))
+        <Select<OptionValue, false>
+          onChange={handleLegChange}
+          options={options}
+          value={
+            hike.currentLeg === null
+              ? null
+              : ({
+                value: hike.currentLeg.id,
+                label: hike.currentLeg.name ?? hike.currentLeg.id.toString(),
+                leg: hike.currentLeg,
+              })
           }
-        </select>
+          components={{
+            Option: CustomOption,
+          }}
+        />
         <IconButton icon="pencil" onClick={handleEditClick} />
         <IconButton icon="trash" onClick={handleDeleteClick} />
       </div>
