@@ -26,7 +26,7 @@
     "@adonisjs/view": "^6.1.1",
     "@mortvola/forms": "^0.14.0",
     "@mortvola/http": "^0.1.4",
-    "@mortvola/leaflet-context-menu": "^0.1.7",
+    "@mortvola/leaflet-context-menu": "^0.1.10",
     "@mortvola/usemodal": "^0.2.2",
     "@react-leaflet/core": "^2.0.0",
     "bootstrap": "^5.1.3",
