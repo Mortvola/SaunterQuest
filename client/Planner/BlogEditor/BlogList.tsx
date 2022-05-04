@@ -18,7 +18,7 @@ const BlogList: React.FC<PropsType> = observer(({ blogManager, onSelection, sele
   return (
     <div className={styles.listWrapper}>
       <button type="button" onClick={handleAddBlog}>Add Blog</button>
-      <div className={styles.list}>
+      <div>
         {
           blogManager.blogs.map((b) => (
             <BlogListItem

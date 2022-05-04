@@ -21,7 +21,7 @@ const BlogListItem: React.FC<PropsType> = observer(({ blog, selected, onClick })
         {blog.title ?? `Untitled (${blog.id})`}
       </div>
       <div>
-        {blog.publicationTime ? DateTime.fromISO(blog.publicationTime).toLocaleString() : null}
+        {blog.publicationTime ? blog.publicationTime.toLocaleString() : null}
       </div>
     </div>
   );

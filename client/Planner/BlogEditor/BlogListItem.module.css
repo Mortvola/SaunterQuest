@@ -2,4 +2,13 @@
     display: grid;
     grid-template-columns: minmax(0,1fr) max-content;
     cursor: pointer;
+    padding: 0.25rem;
+}
+
+.item.selected {
+    background-color: lightblue;
+}
+
+.publication-time {
+    font-size: 0.7rem;
 }

@@ -24,9 +24,14 @@ const BlogListItem: React.FC<PropsType> = observer(({ blog, selected, onClick })
   };
 
   return (
-    <div className={styles.item}>
+    <div className={`${styles.item} ${selected ? styles.selected : ''}`}>
       <div onClick={handleClick}>
-        {blog.title ?? `Untitled (${blog.id})`}
+        <div>
+          {blog.title ?? `Untitled (${blog.id})`}
+        </div>
+        <div className={styles.publicationTime}>
+          {blog.publicationTime?.toLocaleString()}
+        </div>
       </div>
       <IconButton icon="trash" onClick={handleDeleteClick} />
       <DeleteConfirmation />

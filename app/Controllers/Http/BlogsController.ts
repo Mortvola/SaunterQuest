@@ -42,6 +42,7 @@ export default class BlogsController {
     return blogs.map<BlogListItemProps>((b) => ({
       id: b.id,
       title: b.draftPost ? b.draftPost.title : null,
+      publicationTime: (b.publicationUpdateTime ?? b.publicationTime)?.toISO(),
     }));
   }
 

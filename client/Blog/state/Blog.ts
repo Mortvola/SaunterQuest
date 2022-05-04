@@ -100,7 +100,7 @@ class Blog implements BlogInterface {
   }
 
   async publish(): Promise<void> {
-    const response = await Http.post<BlogProps, void>('/api/blog/publish', {
+    const response = await Http.post<BlogProps, BlogProps>('/api/blog/publish', {
       id: this.id,
       draftPost: {
         title: this.title,
@@ -111,15 +111,32 @@ class Blog implements BlogInterface {
     });
 
     if (response.ok) {
+      const body = await response.body();
+
       runInAction(() => {
         // this.published = published;
         this.modified = false;
+        this.published = body.publicationTime !== null;
+
+        if (body.publicationTime) {
+          this.publicationTime = DateTime.fromISO(body.publicationTime);
+    
+          if (body.publicationUpdateTime) {
+            this.publicationUpdateTime = DateTime.fromISO(body.publicationUpdateTime);
+          }
+        }
       });
     }
   }
 
   async unpublish(): Promise<void> {
-    await Http.post(`/api/blog/unpublish/${this.id}`);
+    const response = await Http.post(`/api/blog/unpublish/${this.id}`);
+
+    if (response.ok) {
+      this.published = false;
+      this.publicationTime = null;
+      this.publicationUpdateTime = null;
+    }
   }
 
   setTitle(title: string | null): void {

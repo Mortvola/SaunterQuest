@@ -122,8 +122,19 @@ const Blog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) => {
             Preview
           </label>
           <button type="button" onClick={handleSaveClick} disabled={!blog.modified}>Save</button>
-          <button type="button" onClick={handlePublishClick}>Publish</button>
-          <button type="button" onClick={handleUnpublishClick}>Unpublish</button>
+          <button
+            type="button"
+            onClick={handlePublishClick}
+          >
+            { blog.published ? 'Republish' : 'Publish' }
+          </button>
+          <button
+            type="button"
+            onClick={handleUnpublishClick}
+            disabled={!blog.published}
+          >
+            Unpublish
+          </button>
         </div>
         <label className={styles.legSelection}>
           Associated Hike/Leg:
