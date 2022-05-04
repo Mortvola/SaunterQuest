@@ -31,7 +31,10 @@ export default class BlogsController {
       }));
     }
 
-    const blogs = await Blog.query().where('deleted', false);
+    const blogs = await Blog.query()
+      .where('deleted', false)
+      .orderBy('publicationTime', 'desc')
+      .orderBy('createdAt', 'desc');
 
     await Promise.all(blogs.map(async (b) => {
       if (b.draftPostId !== null) {

@@ -30,7 +30,7 @@ const BlogListItem: React.FC<PropsType> = observer(({ blog, selected, onClick })
           {blog.title ?? `Untitled (${blog.id})`}
         </div>
         <div className={styles.publicationTime}>
-          {blog.publicationTime?.toLocaleString()}
+          {blog.publicationTime?.toLocaleString() ?? 'Unpublished'}
         </div>
       </div>
       <IconButton icon="trash" onClick={handleDeleteClick} />
