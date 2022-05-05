@@ -2,6 +2,7 @@ import React from 'react';
 import { BlogPhotoInterface } from './state/Types';
 import styles from './Photo.module.css';
 import PleaseWait from '../Hikes/PleaseWait';
+import Image from '../Image/Image';
 
 type PropsType = {
   photo: BlogPhotoInterface,
@@ -24,14 +25,7 @@ const Photo: React.FC<PropsType> = ({ photo, blogId, className = '', loading = '
           ? (
             <>
               <div className={styles.imageWrapper}>
-                <img
-                  className={styles.image}
-                  src={`/api/blog/${blogId}/photo/${photo.id}${!photoSize ? '?size=thumb' : ''}`}
-                  alt=""
-                  style={{ transform: `rotate(${photo.orientation}deg)` }}
-                  loading={loading}
-                  onLoad={handleLoaded}
-                />
+                <Image blogId={blogId} photo={photo} />
               </div>
               {
                 photo.caption

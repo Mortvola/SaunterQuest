@@ -1,4 +1,3 @@
-import Http from '@mortvola/http';
 import { observer } from 'mobx-react-lite';
 import React from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
@@ -7,6 +6,7 @@ import { BlogPhotoInterface } from '../../Blog/state/Types';
 import styles from './Photo.module.css';
 import PhotoSelector from './PhotoSelector';
 import PleaseWait from '../../Hikes/PleaseWait';
+import Image from '../../Image/Image';
 
 type PropsType = {
   photo: BlogPhotoInterface,
@@ -63,6 +63,7 @@ const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
       <UploadFileButton
         onFileSelection={handleFileSelection}
         label="Upload Photo"
+        accept="image/heic,image/tiff,image/x-adobe-dng,image/jpeg"
       />
       <button type="button" onClick={handleSelectPhotoClick}>Select Photo</button>
       <div className={styles.photoWrapper}>
@@ -70,12 +71,7 @@ const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
           photo.id
             ? (
               <>
-                <img
-                  className={styles.image}
-                  src={`/api/blog/${blogId}/photo/${photo.id}`}
-                  alt=""
-                  style={{ transform: `rotate(${photo.orientation}deg)` }}
-                />
+                <Image blogId={blogId} photo={photo} />
                 <TextareaAutosize className={styles.text} value={photo.caption ?? ''} onChange={handleChange} />
               </>
             )
