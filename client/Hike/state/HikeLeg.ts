@@ -177,6 +177,8 @@ class HikeLeg implements HikeLegInterface {
       endTime: number | null,
       startDay: number | null,
       endDay: number | null,
+      breakDuration: number | null,
+      endDayExtension: number | null,
     }
 
     const response = await Http.post<AddHikerProfileRequest, ProfileProps>(`/api/hike-leg/${this.id}/hiker-profile`, {
@@ -185,6 +187,8 @@ class HikeLeg implements HikeLegInterface {
       endTime: profile.endTime,
       startDay: profile.startDay,
       endDay: profile.endDay,
+      breakDuration: profile.breakDuration,
+      endDayExtension: profile.endDayExtension,
     });
 
     if (response.ok) {
