@@ -1,8 +1,8 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { Calendar as ReactCalendar, luxonLocalizer, Views } from 'react-big-calendar';
-import { HikeInterface, HikeLegInterface } from './state/Types';
 import { DateTime } from 'luxon';
+import { HikeInterface, HikeLegInterface } from './state/Types';
 
 const localizer = luxonLocalizer(DateTime);
 
@@ -39,7 +39,7 @@ const Calendar: React.FC<PropsType> = observer(({
 
   const selected = React.useMemo(() => (
     events.find((e) => e.leg === hike.currentLeg)
-  ), [hike.currentLeg]);
+  ), [events, hike.currentLeg]);
 
   const eventPropGetter = React.useCallback((
     event: Event,
@@ -51,11 +51,11 @@ const Calendar: React.FC<PropsType> = observer(({
       backgroundColor: event.color,
       border: isSelected ? '2px black solid' : 'none',
       padding: isSelected ? '2px' : '4px',
-    }
+    },
   }), []);
 
   const handleEventSelect = (event: Event) => {
-    hike.setCurrentLeg(event.leg.id)
+    hike.setCurrentLeg(event.leg.id);
   };
 
   return (
@@ -68,7 +68,7 @@ const Calendar: React.FC<PropsType> = observer(({
       onSelectEvent={handleEventSelect}
       selected={selected}
     />
-  )
+  );
 });
 
 export default Calendar;

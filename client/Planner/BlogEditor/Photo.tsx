@@ -21,7 +21,6 @@ const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
     if (event.target.files && event.target.files[0]) {
       setUploading(true);
 
-      const file = event.target.files[0];
       const response = await fetch('/api/photo', {
         method: 'POST',
         headers: new Headers({

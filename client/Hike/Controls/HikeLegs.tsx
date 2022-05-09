@@ -1,11 +1,11 @@
 import { observer } from 'mobx-react-lite';
 import React from 'react';
 import { Button } from 'react-bootstrap';
+import Select, { OptionProps } from 'react-select';
 import { useDeleteConfirmation } from '../../DeleteConfirmation';
 import IconButton from '../../IconButton';
 import { HikeInterface, HikeLegInterface } from '../state/Types';
 import { useHikeLegDialog } from './HikeLegDialog';
-import Select, { OptionProps } from 'react-select';
 import styles from './HikeLegs.module.css';
 
 type OptionValue = {
@@ -18,7 +18,7 @@ const CustomOption = ({ innerProps, isDisabled, data }: OptionProps<OptionValue,
   !isDisabled
     ? (
       <div {...innerProps} className={styles.optionWrapper}>
-        <div className={styles.optionColor} style={{ backgroundColor: data.leg.color }}></div>
+        <div className={styles.optionColor} style={{ backgroundColor: data.leg.color }} />
         <div>
           <div>{data.label}</div>
           <div className={styles.date}>
@@ -50,7 +50,7 @@ const HikeLegs: React.FC<PropsType> = observer(({ hike }) => {
       hike.deleteLeg(hike.currentLeg);
     },
   );
-  
+
   const handleAddLegClick: React.MouseEventHandler = () => {
     hike.addLeg();
   };

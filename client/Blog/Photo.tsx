@@ -11,9 +11,14 @@ type PropsType = {
   loading?: 'eager' | 'lazy',
 }
 
-const Photo: React.FC<PropsType> = ({ photo, blogId, className = '', loading = 'lazy' }) => {
+const Photo: React.FC<PropsType> = ({
+  photo,
+  blogId,
+  className = '',
+  loading = 'lazy',
+}) => {
   const [photoSize, setPhotoSize] = React.useState<boolean>(false);
-  
+
   const handleLoaded = () => {
     setPhotoSize(true);
   };

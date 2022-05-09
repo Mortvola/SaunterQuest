@@ -10,12 +10,12 @@ type PropsType = {
 
 const Image: React.FC<PropsType> = ({ blogId, photo, loading = 'lazy' }) => {
   const [photoSize, setPhotoSize] = React.useState<boolean>(false);
-  
+
   const handleLoaded = () => {
     setPhotoSize(true);
   };
 
-  return  (
+  return (
     <img
       className={styles.image}
       src={`/api/blog/${blogId}/photo/${photo.id}${!photoSize ? '?size=thumb' : ''}`}

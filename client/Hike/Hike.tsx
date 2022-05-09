@@ -15,7 +15,6 @@ import Terrain from '../Terrain/Terrain';
 import { HikeProps } from '../../common/ResponseTypes';
 import Calendar from './Calendar';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import HikeLeg from './state/HikeLeg';
 import IconButton from '../IconButton';
 
 type Props = {
@@ -53,7 +52,7 @@ const Hike = observer(({
   }, [hike, history.location.pathname, uiState]);
 
   const handleCalendarToggle = () => {
-    setView((prev) => prev === 'map' ? 'calendar' : 'map');
+    setView((prev) => (prev === 'map' ? 'calendar' : 'map'));
   };
 
   let locationPopup = null;
@@ -99,7 +98,7 @@ const Hike = observer(({
                   hike={hike}
                   locationPopup={locationPopup}
                   style={{ gridArea: 'map' }}
-                />    
+                />
               )
               : (
                 <Calendar hike={hike} style={{ gridArea: 'map' }} />

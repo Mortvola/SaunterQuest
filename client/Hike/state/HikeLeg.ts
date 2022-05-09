@@ -1,13 +1,13 @@
 import Http from '@mortvola/http';
 import { makeAutoObservable, runInAction } from 'mobx';
 import L from 'leaflet';
+import { DateTime } from 'luxon';
 import { DayProps, HikeLegProps } from '../../../common/ResponseTypes';
 import HikerProfile from './HikerProfile';
 import Map from './Map';
 import Route from './Route';
 import { HikeLegInterface, ProfileProps, Day } from './Types';
 import DayPoi from './PointsOfInterest/Day';
-import { DateTime } from 'luxon';
 
 class HikeLeg implements HikeLegInterface {
   id: number;
@@ -16,7 +16,7 @@ class HikeLeg implements HikeLegInterface {
 
   startDate: DateTime | null;
 
-  numberOfDays: number = 0;
+  numberOfDays = 0;
 
   color: string;
 
@@ -117,14 +117,14 @@ class HikeLeg implements HikeLegInterface {
       name,
       startDate,
       color,
-    })
+    });
 
     if (response.ok) {
       runInAction(() => {
         this.name = name;
         this.startDate = startDate === null ? null : DateTime.fromISO(startDate);
         this.color = color;
-      })  
+      });
     }
   }
 

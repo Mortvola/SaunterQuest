@@ -47,7 +47,7 @@ const Map: FC<Props> = observer(({
   const [draggingLocked, setDraggingLocked] = useState<boolean>(false);
   const [poiSelections, setPoiSelections] = useState<PoiSelections>(() => {
     const poi = window.localStorage.getItem('poi');
-    
+
     if (poi) {
       return JSON.parse(poi);
     }
@@ -85,11 +85,7 @@ const Map: FC<Props> = observer(({
     }
   };
 
-  const makeContextMenu = useCallback((position: L.LatLng): MenuItem[] => {
-    const findSteepestPoint = () => {
-      const steepestPoint = hikeLeg ? hikeLeg.route.findSteepestPoint() : 0;
-    };
-
+  const makeContextMenu = useCallback((): MenuItem[] => {
     const mapMenuItems: MenuItem[] = [];
 
     if (hikeLeg && hikeLeg.route.anchors.length === 0) {
@@ -115,7 +111,7 @@ const Map: FC<Props> = observer(({
             if (hikeLeg) {
               hikeLeg.route.addStartWaypoint(latlng);
             }
-          }
+          },
         },
         {
           label: 'Insert Waypoint',
@@ -123,7 +119,7 @@ const Map: FC<Props> = observer(({
             if (hikeLeg) {
               hikeLeg.route.addWaypoint(latlng);
             }
-          }
+          },
         },
         {
           label: 'Append Waypoint',
@@ -131,7 +127,7 @@ const Map: FC<Props> = observer(({
             if (hikeLeg) {
               hikeLeg.route.addEndWaypoint(latlng);
             }
-          }
+          },
         },
       );
     }
@@ -144,7 +140,6 @@ const Map: FC<Props> = observer(({
       { label: 'Add Water', callback: (latlng: L.LatLng) => hike.addWater(latlng) },
       { label: 'Add Resupply', callback: (latlng: L.LatLng) => hike.addResupply(latlng) },
       { label: 'Go to Location...', callback: showGotoLocationDialog },
-      { label: 'Find Steepest Point', callback: findSteepestPoint },
     );
 
     return mapMenuItems;
@@ -152,18 +147,10 @@ const Map: FC<Props> = observer(({
 
   setMainContextMenu(makeContextMenu);
 
-  const handleLocationPopupClose = () => {
-    if (hikeLeg === null || hikeLeg.map === null) {
-      throw new Error('hike leg or map in hike leg is null');
-    }
-
-    hikeLeg.map.showLocationPopup(null);
-  };
-
   const handleMapClick: L.LeafletMouseEventHandlerFn = (e) => {
     if (hikeLeg) {
       hikeLeg.map.setTemporaryMarkerLocation(e.latlng);
-      hikeLeg.map.clearSelectedMarkers();  
+      hikeLeg.map.clearSelectedMarkers();
     }
   };
 
