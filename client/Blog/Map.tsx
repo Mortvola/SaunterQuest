@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  LayersControl, MapContainer, Polyline, TileLayer,
+  LayersControl, MapContainer, Pane, Polyline, TileLayer,
 } from 'react-leaflet';
 import L from 'leaflet';
 import Graticule from '../Hike/Graticule';
@@ -62,11 +62,13 @@ const Map: React.FC<PropsType> = ({ tileServerUrl, hikeLeg, onLoaded }) => {
           ? <Route route={hikeLeg.route} />
           : null
       }
-      {
-        routeGroupTrail
-          ? <Polyline positions={routeGroupTrail} color="red" />
-          : null
-      }
+      <Pane name="routeGroupTrail" style={{ zIndex: 250 }}>
+        {
+          routeGroupTrail
+            ? <Polyline positions={routeGroupTrail} color="red" />
+            : null
+        }
+      </Pane>
       <Markers hikeLeg={hikeLeg} />
     </MapContainer>
   );

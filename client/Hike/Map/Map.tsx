@@ -6,6 +6,7 @@ import {
   TileLayer, useMap, Popup, LayersControl, useMapEvents,
   Marker as LeafletMarker,
   Polyline,
+  Pane,
 } from 'react-leaflet';
 import { observer } from 'mobx-react-lite';
 import ContextMenu, { MenuItem, showContextMenu, setMainContextMenu } from '@mortvola/leaflet-context-menu';
@@ -255,11 +256,13 @@ const Map: FC<Props> = observer(({
           ? <Route route={hikeLeg.route} />
           : null
       }
-      {
-        hike.routeGroupTrail
-          ? <Polyline positions={hike.routeGroupTrail} color="red" />
-          : null
-      }
+      <Pane name="routeGroupTrail" style={{ zIndex: 250 }}>
+        {
+          hike.routeGroupTrail
+            ? <Polyline positions={hike.routeGroupTrail} color="red" />
+            : null
+        }
+      </Pane>
       {
         hikeLeg && hikeLeg.elevationMarkerPos
           ? (
