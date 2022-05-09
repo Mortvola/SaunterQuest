@@ -102,7 +102,7 @@ const Hike = observer(({
                 />    
               )
               : (
-                <Calendar hikeLegs={hike.hikeLegs} style={{ gridArea: 'map' }} />
+                <Calendar hike={hike} style={{ gridArea: 'map' }} />
               )
           }
         </div>

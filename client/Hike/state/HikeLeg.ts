@@ -102,6 +102,8 @@ class HikeLeg implements HikeLegInterface {
 
             return day;
           });
+
+          this.numberOfDays = this.schedule.length;
         });
       }
     }
