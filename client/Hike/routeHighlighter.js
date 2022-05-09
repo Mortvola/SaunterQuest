@@ -102,9 +102,7 @@ class RouteHighlighter {
         this.polyLine.remove();
       }
 
-      const section = this.route.getSection(
-        this.markers[0].position, this.markers[1].position,
-      );
+      const section = this.route.getSection(this.markers[0].position, this.markers[1].position);
 
       this.polyLine = L.polyline(section, {
         color: this.color,

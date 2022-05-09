@@ -15,7 +15,7 @@ const UploadFileButton = ({
   label,
 }: PropsType): ReactElement => {
   const inputRef = React.useRef<HTMLInputElement>(null);
-  
+
   const handleClick = () => {
     const inputElement = inputRef.current;
 

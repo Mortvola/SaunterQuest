@@ -11,13 +11,13 @@ const PrevNextButtons: React.FC<PropsType> = ({ blog }) => {
     if (blog.prevPostId !== null) {
       window.location.replace(`/blog/${blog.prevPostId}`);
     }
-  }
+  };
 
   const handleNextClick = () => {
     if (blog.nextPostId !== null) {
       window.location.replace(`/blog/${blog.nextPostId}`);
     }
-  }
+  };
 
   return (
     <div className={styles.wrapper}>

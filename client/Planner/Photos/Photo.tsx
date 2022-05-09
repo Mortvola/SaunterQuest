@@ -1,8 +1,8 @@
 import React from 'react';
+import Http from '@mortvola/http';
 import IconButton from '../../IconButton';
 import { useDeleteConfirmation } from '../../DeleteConfirmation';
 import styles from './Photo.module.css';
-import Http from '@mortvola/http';
 import PleaseWait from '../../Hikes/PleaseWait';
 
 type PropsType = {
@@ -26,15 +26,15 @@ const Photo: React.FC<PropsType> = ({ id, onDelete }) => {
     try {
       await Http.post(`/api/photo/${id}`, { command: 'regenerate' });
     }
-    catch(error) {
+    catch (error) {
     }
-    
+
     setRegenerating(false);
-  }
+  };
 
   const handleLoaded = () => {
     setImageLoading(false);
-  }
+  };
 
   const handleRotateClick = async () => {
     setRegenerating(true);
@@ -42,7 +42,7 @@ const Photo: React.FC<PropsType> = ({ id, onDelete }) => {
     await Http.post(`/api/photo/${id}`, { command: 'rotate' });
 
     setRegenerating(false);
-  }
+  };
 
   return (
     <div className={styles.wrapper}>

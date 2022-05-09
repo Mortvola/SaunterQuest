@@ -78,7 +78,7 @@ class Blog implements BlogInterface {
           this.save();
         }
       }, 15 * 1000);
-    })
+    });
   }
 
   async save(): Promise<void> {
@@ -120,7 +120,7 @@ class Blog implements BlogInterface {
 
         if (body.publicationTime) {
           this.publicationTime = DateTime.fromISO(body.publicationTime);
-    
+
           if (body.publicationUpdateTime) {
             this.publicationUpdateTime = DateTime.fromISO(body.publicationUpdateTime);
           }
@@ -151,7 +151,7 @@ class Blog implements BlogInterface {
     runInAction(() => {
       this.hikeLegId = hikeLegId;
 
-      this.onModified();  
+      this.onModified();
     });
   }
 

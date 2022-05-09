@@ -36,7 +36,7 @@ class BlogManager implements BlogManagerInterface {
     runInAction(() => {
       this.loadingBlog = true;
     });
-  
+
     const response = await Http.get<BlogProps>(`/api/blog/${blog.id}?o=draft`);
 
     if (response.ok) {
@@ -89,7 +89,7 @@ class BlogManager implements BlogManagerInterface {
         this.blogs = [
           ...this.blogs.slice(0, index),
           ...this.blogs.slice(index + 1),
-        ]
+        ];
       }
     }
   }

@@ -62,7 +62,7 @@ class BlogSection implements BlogSectionInterface {
         return {
           type: this.type,
         };
-        
+
       default:
         return this;
     }

@@ -1,8 +1,8 @@
 import React from 'react';
 import { makeUseModal, ModalProps } from '@mortvola/usemodal';
-import { HikeLegInterface } from '../state/Types';
 import { FormField, FormModal } from '@mortvola/forms';
 import { FormikErrors } from 'formik';
+import { HikeLegInterface } from '../state/Types';
 import styles from './HikeLegDialog.module.css';
 
 type PropsType = {

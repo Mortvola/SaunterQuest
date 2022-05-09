@@ -149,19 +149,19 @@ class Hike implements HikeInterface {
         if (typeof leg === 'number') {
           newLeg = this.hikeLegs.find((l) => l.id === leg);
         }
-  
+
         if (newLeg) {
           if (typeof newLeg === 'number') {
             throw new Error('newLeg is a number');
           }
-  
+
           if (this.currentLeg) {
             this.currentLeg.unload();
           }
-  
+
           this.currentLeg = newLeg;
           this.currentLeg.load(true);
-        }  
+        }
       }
     });
   }

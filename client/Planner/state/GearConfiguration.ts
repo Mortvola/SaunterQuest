@@ -57,7 +57,7 @@ class GearConfiguration {
           break;
       }
     });
-  }
+  };
 
   private weight = (): { wornWeight: number, packWeight: number, consumableWeight: number } => {
     if (this.items.length > 0) {
@@ -86,7 +86,7 @@ class GearConfiguration {
       packWeight: this.packWeight,
       consumableWeight: this.consumableWeight,
     };
-  }
+  };
 
   getItems = async (): Promise<void> => {
     const response = await Http.get<GearConfigItemProps[]>(`/gear/configuration/${this.id}/items`);
@@ -102,7 +102,7 @@ class GearConfiguration {
         this.sortItems();
       });
     }
-  }
+  };
 
   addItem = async (item: GearItem): Promise<void> => {
     type AddGearConfigItemRequest = {
@@ -127,7 +127,7 @@ class GearConfiguration {
         this.sortItems();
       });
     }
-  }
+  };
 
   deleteItem = async (item: GearConfigurationItem): Promise<void> => {
     const response = await Http.delete(`/gear/configuration/${this.id}/item/${item.id}`);
@@ -141,7 +141,7 @@ class GearConfiguration {
         }
       });
     }
-  }
+  };
 
   update = async (name: string): Promise<void> => {
     const response = await Http.post(`/gear/configuration/${this.id}`, { name });
@@ -151,11 +151,11 @@ class GearConfiguration {
         this.name = name;
       });
     }
-  }
+  };
 
   delete = (): void => {
     this.store.gear.deleteConfiguration(this);
-  }
+  };
 }
 
 export default GearConfiguration;

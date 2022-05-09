@@ -55,8 +55,7 @@ const Terrain: React.FC<PropsType> = observer(({
 
       if (rendererRef.current === null) {
         rendererRef.current = new TerrainRenderer(
-          gl, position, tileServerUrl, setFps, setPercentComplete,
-          photoUrl, photo, editPhoto
+          gl, position, tileServerUrl, setFps, setPercentComplete, photoUrl, photo, editPhoto,
         );
 
         rendererRef.current.start();

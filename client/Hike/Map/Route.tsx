@@ -1,9 +1,9 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
+import { useMap } from 'react-leaflet';
 import Trail from './Trail';
 import Grade from './Grade';
 import { RouteInterface } from '../state/Types';
-import { useMap } from 'react-leaflet';
 
 type PropsType = {
   route: RouteInterface;
@@ -29,7 +29,7 @@ const Route: React.FC<PropsType> = observer(({
         }
         catch (error) {
           console.log(error);
-        }  
+        }
       }
     }
   }, [route, route.bounds, initialized, leafletMap]);

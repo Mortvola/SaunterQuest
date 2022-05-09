@@ -1,7 +1,7 @@
 import { compileProgram, loadShader } from './Common';
 
 class Shader {
-  gl: WebGL2RenderingContext
+  gl: WebGL2RenderingContext;
 
   projectionMatrix: WebGLUniformLocation | null;
 

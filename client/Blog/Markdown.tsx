@@ -10,7 +10,7 @@ type PropsType = {
 }
 
 const Markdown: React.FC<PropsType> = ({ section }) => (
-  <div className={`${styles.section} markdown-body`} >
+  <div className={`${styles.section} markdown-body`}>
     {
       section.text
         ? (

@@ -38,7 +38,7 @@ class BlogPhoto implements BlogPhotoInterface {
     runInAction(() => {
       this.orientation = orientation;
       this.onModified();
-    })
+    });
   }
 }
 

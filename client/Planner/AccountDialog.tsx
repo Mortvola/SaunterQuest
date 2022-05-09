@@ -1,35 +1,29 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import React, { ReactElement } from 'react';
+import React from 'react';
 import { Modal } from 'react-bootstrap';
 import { Formik, Form, Field } from 'formik';
 import { makeUseModal, ModalProps } from '@mortvola/usemodal';
-import Http from '@mortvola/http';
+// import Http from '@mortvola/http';
 
-type PropsType = {
-}
-
-const AccountDialog = ({
+const AccountDialog: React.FC<ModalProps> = ({
   onHide,
-}: PropsType & ModalProps): ReactElement => {
-  type ValuesType = {
-  };
+}) => {
+  const handleSubmit = async () => {
+    // const headers = new Headers();
 
-  const handleSubmit = async (vals: ValuesType) => {
-    const headers = new Headers();
+    // headers.append('Content-Type', 'application/json');
 
-    headers.append('Content-Type', 'application/json');
+    // const response = await Http.put('/user/account', { ...vals });
 
-    const response = await Http.put('/user/account', { ...vals });
-
-    if (response.ok) {
-      if (onHide) {
-        onHide();
-      }
-    }
+    // if (response.ok) {
+    //   if (onHide) {
+    //     onHide();
+    //   }
+    // }
   };
 
   return (
-    <Formik<ValuesType>
+    <Formik
       initialValues={{}}
       onSubmit={handleSubmit}
     >
@@ -53,7 +47,7 @@ const AccountDialog = ({
   );
 };
 
-const useAccountDialog = makeUseModal<PropsType>(AccountDialog);
+const useAccountDialog = makeUseModal(AccountDialog);
 
 export default AccountDialog;
 export { useAccountDialog };

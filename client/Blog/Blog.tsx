@@ -27,7 +27,9 @@ const FormattedBlog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) =>
 
   React.useEffect(() => {
     if (blog.hikeLegId !== null) {
-      const h = new HikeLeg({ id: blog.hikeLegId, name: null, startDate: null, color: '#3174ad' }, new MapData());
+      const h = new HikeLeg({
+        id: blog.hikeLegId, name: null, startDate: null, color: '#3174ad',
+      }, new MapData());
       h.load();
 
       setHikeLeg(h);
@@ -36,19 +38,21 @@ const FormattedBlog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) =>
 
   const handleMapLoaded = () => {
     setShowMapPleaseWait(false);
-  }
+  };
 
   return (
     <div className={styles.blogWrapper}>
       <div ref={blogRef} className={styles.blog}>
         {
         blog.titlePhoto.id
-          ? <Photo
-            photo={blog.titlePhoto}
-            className="title-photo"
-            blogId={blog.id}
-            loading="eager"
-          />
+          ? (
+            <Photo
+              photo={blog.titlePhoto}
+              className="title-photo"
+              blogId={blog.id}
+              loading="eager"
+            />
+          )
           : null
         }
         <SocialIcons blog={blog} />

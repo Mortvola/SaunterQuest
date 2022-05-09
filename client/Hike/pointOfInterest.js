@@ -133,8 +133,10 @@ function addPointOfInterest(poi) {
 
   setContextMenu(poi.marker, pointOfInterestCM);
 
-  poi.listener = attachInfoWindowMessage(poi,
-    getInfoWindowMessage(poi));
+  poi.listener = attachInfoWindowMessage(
+    poi,
+    getInfoWindowMessage(poi),
+  );
 
   pointsOfInterest.push(poi);
 }

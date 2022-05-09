@@ -36,7 +36,7 @@ class Gpx {
         ))
       ));
     });
-  }
+  };
 }
 
 export default Gpx;

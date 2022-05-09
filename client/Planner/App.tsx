@@ -106,4 +106,3 @@ if (rootElement) {
     </StoreContext.Provider>,
   );
 }
-

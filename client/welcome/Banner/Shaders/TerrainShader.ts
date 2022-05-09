@@ -15,19 +15,19 @@ class TerrainShader {
     fogNormalizationFactor: WebGLUniformLocation | null,
     lightVector: WebGLUniformLocation | null,
   } = {
-    projectionMatrix: null,
-    viewMatrix: null,
-    modelMatrix: null,
-    fogColor: null,
-    fogNormalizationFactor: null,
-    lightVector: null,
-  };
+      projectionMatrix: null,
+      viewMatrix: null,
+      modelMatrix: null,
+      fogColor: null,
+      fogNormalizationFactor: null,
+      lightVector: null,
+    };
 
   attribLocations: {
     vertexPosition: number | null,
     texCoord: number | null,
     vertexNormal: number | null,
-  } = { vertexPosition: null, texCoord: null, vertexNormal: null }
+  } = { vertexPosition: null, texCoord: null, vertexNormal: null };
 
   constructor(gl:WebGL2RenderingContext) {
     this.gl = gl;

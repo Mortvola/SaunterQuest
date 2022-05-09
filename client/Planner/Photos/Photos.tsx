@@ -1,8 +1,8 @@
 import React from 'react';
 import Http from '@mortvola/http';
+import { Alert, Modal, ModalHeader } from 'react-bootstrap';
 import styles from './Photos.module.css';
 import Photo from './Photo';
-import { Alert, Modal, ModalHeader } from 'react-bootstrap';
 
 const Photos: React.FC = () => {
   const [photos, setPhotos] = React.useState<number[]>([]);
@@ -28,15 +28,13 @@ const Photos: React.FC = () => {
         setPhotos([
           ...photos.slice(0, index),
           ...photos.slice(index + 1),
-        ])
+        ]);
       }
-      else {
-        if (response.status === 405) {
-          setShowError(true);
-        }
+      else if (response.status === 405) {
+        setShowError(true);
       }
     }
-  }
+  };
 
   return (
     <div className={styles.list}>

@@ -39,6 +39,6 @@ if (rootElement) {
       <Router>
         <Welcome tileServerUrl={initialProps.tileServerUrl} />
       </Router>
-    </BlogStore>
-  );  
+    </BlogStore>,
+  );
 }

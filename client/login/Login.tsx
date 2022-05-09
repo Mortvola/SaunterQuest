@@ -62,16 +62,14 @@ const Login: React.FC<PropsType> = ({
     }
 
     setWaiting(true);
-    submitForm(event, form, '/password/email',
-      (responseText) => {
-        setResetMessage(responseText);
-        setCard('reset');
-        setWaiting(false);
-      },
-      (err) => {
-        setWaiting(false);
-        setErrors({ ...defaultErrors, ...err });
-      });
+    submitForm(event, form, '/password/email', (responseText) => {
+      setResetMessage(responseText);
+      setCard('reset');
+      setWaiting(false);
+    }, (err) => {
+      setWaiting(false);
+      setErrors({ ...defaultErrors, ...err });
+    });
   };
 
   const handleExited = () => {

@@ -36,7 +36,7 @@ class GearItem {
 
   delete = (): void => {
     this.store.gear.deleteGearItem(this);
-  }
+  };
 }
 
 export default GearItem;

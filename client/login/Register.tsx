@@ -27,15 +27,13 @@ const Register: React.FC<PropsType> = ({
     }
 
     setWaiting(true);
-    submitForm(null, form, '/register',
-      () => {
-        setConfirmationSent(true);
-        setWaiting(false);
-      },
-      (err) => {
-        setWaiting(false);
-        setErrors({ ...defaultErrors, ...err });
-      });
+    submitForm(null, form, '/register', () => {
+      setConfirmationSent(true);
+      setWaiting(false);
+    }, (err) => {
+      setWaiting(false);
+      setErrors({ ...defaultErrors, ...err });
+    });
   };
 
   const handleExited = () => {

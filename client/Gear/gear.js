@@ -45,7 +45,10 @@ function addMenuItem(menu, text, func) {
 function addSubMenuItem(menu, text, func, context) {
   return addMenuItem(menu, text, function (event) {
     showMenu.call(
-      $(this), event, func, context,
+      $(this),
+      event,
+      func,
+      context,
       { left: $(this).offset().left + $(this).outerWidth(), top: $(this).offset().top },
       $(this),
     );
@@ -129,11 +132,19 @@ function createGearListMenu(item, insert) {
 function createConfigItemMenu(item) {
   menu.empty();
 
-  addSubMenuItem(menu, 'Insert row', (item) => createGearListMenu(item, true),
-    item);
+  addSubMenuItem(
+    menu,
+    'Insert row',
+    (item) => createGearListMenu(item, true),
+    item,
+  );
 
-  addSubMenuItem(menu, 'Change gear', (item) => createGearListMenu(item, false),
-    item);
+  addSubMenuItem(
+    menu,
+    'Change gear',
+    (item) => createGearListMenu(item, false),
+    item,
+  );
 
   addMenuItem(menu, 'Delete row', () => {
     if (item.data('timeoutId') !== undefined) {
@@ -430,7 +441,10 @@ function newGearItem() {
     .addClass('gear-menu')
     .on('click', function (event) {
       showMenu.call(
-        $(this), event, createGearItemMenu, row,
+        $(this),
+        event,
+        createGearItemMenu,
+        row,
         { left: $(this).offset().left, top: $(this).offset().top + $(this).outerHeight() },
       );
     })

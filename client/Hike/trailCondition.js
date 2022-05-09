@@ -156,9 +156,7 @@ function trailConditionMarkerSet(highlighter) {
 }
 
 function addTrailCondition() {
-  trailConditionRouteHighlighter = new RouteHighlighter(
-    getRoute(), null, trailConditionMarkerSet,
-  );
+  trailConditionRouteHighlighter = new RouteHighlighter(getRoute(), null, trailConditionMarkerSet);
 
   getRoute().setContextMenu(trailConditionMenuGet());
 

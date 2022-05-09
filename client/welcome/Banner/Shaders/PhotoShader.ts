@@ -12,15 +12,15 @@ class PhotoShader {
     viewMatrix: WebGLUniformLocation | null,
     modelMatrix: WebGLUniformLocation | null,
   } = {
-    projectionMatrix: null,
-    viewMatrix: null,
-    modelMatrix: null,
-  };
+      projectionMatrix: null,
+      viewMatrix: null,
+      modelMatrix: null,
+    };
 
   attribLocations: {
     vertexPosition: number | null,
     texCoord: number | null,
-  } = { vertexPosition: null, texCoord: null }
+  } = { vertexPosition: null, texCoord: null };
 
   constructor(gl:WebGL2RenderingContext) {
     this.gl = gl;

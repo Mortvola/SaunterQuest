@@ -56,8 +56,8 @@ const Blogs: React.FC<PropsType> = observer(({ tileServerUrl, showOffcanvas, onH
             )
             : (
               blogManager.blog
-              ? <Blog blog={blogManager.blog} tileServerUrl={tileServerUrl} />
-              : null  
+                ? <Blog blog={blogManager.blog} tileServerUrl={tileServerUrl} />
+                : null
             )
         }
       </div>

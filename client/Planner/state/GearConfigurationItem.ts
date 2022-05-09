@@ -58,11 +58,11 @@ class GearConfigurationItem {
         this.quantity = body.quantity;
       });
     }
-  }
+  };
 
   delete = (): void => {
     this.configuration.deleteItem(this);
-  }
+  };
 
   totalGrams = (): number => {
     let totalGrams = this.gearItem.weight * this.quantity;
