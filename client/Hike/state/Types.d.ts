@@ -254,3 +254,21 @@ export interface PhotoInterface {
 interface StoreInterface {
   uiState: UiState;
 }
+
+export interface BlackoutDatesInterface {
+  id: number;
+
+  name: string;
+
+  start: DateTime;
+
+  end: DateTime;
+
+  async update(name: string, start: DateTime, end: DateTime);
+}
+
+export interface BlackoutDatesManagerInterface {
+  addBlackoutDates(name: string, start: DateTime, end: DateTime): Promise<void>;
+
+  deleteBlackoutDates(blackoutDates: BlackoutDatesInterface): Promise<void>;
+}

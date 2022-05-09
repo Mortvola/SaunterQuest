@@ -186,3 +186,10 @@ export type BlogListItemProps = {
   title: string | null,
   publicationTime?: string | null,
 }
+
+export type BlackoutDatesProps = {
+  id: number,
+  name: string,
+  start: string,
+  end: string,
+};

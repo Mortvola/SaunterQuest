@@ -64,17 +64,32 @@ Route.group(() => {
         Route.delete('/', 'HikesController.delete');
         Route.get('/details', 'HikesController.getDetails');
 
-        Route.get('/poi', 'PointsOfInterestController.get');
-        Route.post('/poi', 'PointsOfInterestController.add');
+        Route.group(() => {
+          Route.get('', 'PointsOfInterestController.get');
+          Route.post('', 'PointsOfInterestController.add');
+        })
+          .prefix('/poi');
 
         Route.post('/photo-upload', 'HikesController.uploadPhoto');
         Route.get('/photo/:photoId', 'HikesController.getPhoto');
 
         Route.post('/hike-leg', 'HikesController.addLeg');
+
+        Route.group(() => {
+          Route.get('', 'HikesController.getBlackoutDates');
+          Route.post('', 'HikesController.addBlackoutDates');
+        })
+          .prefix('/blackout-dates');
       })
         .prefix('/:hikeId');
     })
       .prefix('/hike');
+
+    Route.group(() => {
+      Route.patch('/:id', 'HikesController.updateBlackoutDates');
+      Route.delete('/:id', 'HikesController.deleteBlackoutDates');
+    })
+      .prefix('/blackout-dates');
 
     Route.group(() => {
       Route.group(() => {
@@ -110,7 +125,7 @@ Route.group(() => {
         Route.delete('', 'PhotosController.deletePhoto');
         Route.post('', 'PhotosController.process');
       })
-        .prefix('/:photoId');  
+        .prefix('/:photoId');
     })
       .prefix('/photo');
 
@@ -153,10 +168,13 @@ Route.group(() => {
     Route.group(() => {
       Route.delete('', 'BlogsController.deleteBlog');
     })
-      .prefix('/blog/:blogId');    
+      .prefix('/blog/:blogId');
   })
-    .middleware('auth');
+    .prefix('/api');
+})
+  .middleware('auth');
 
+Route.group(() => {
   Route.get('/poi/photos', 'PointsOfInterestController.getPhotos');
 
   Route.get('/blogs', 'BlogsController.get');

@@ -73,7 +73,7 @@ export default class BlogsController {
       else {
         await blog.load('publishedPost');
       }
-    }    
+    }
 
     if (blog && blog.publicationTime !== null) {
       const prev = await Blog.query()
@@ -94,6 +94,7 @@ export default class BlogsController {
     return blog;
   }
 
+  // eslint-disable-next-line class-methods-use-this
   async deleteBlog({ params }: HttpContextContract): Promise<void> {
     const blog = await Blog.findOrFail(params.blogId);
 
@@ -469,22 +470,22 @@ export default class BlogsController {
       .orderBy('publicationTime', 'desc');
 
     let xmlString = '<?xml version="1.0" encoding="UTF-8"?>\n';
-    
+
     xmlString += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
 
     xmlString += blogs.reduce((s, b) => {
       s += '<url>\n';
       s += `<loc>https://saunterquest.com/blog/${b.id}</loc>\n`;
-      
+
       if (b.publicationTime) {
-        s += `<lastmod>${b.publicationTime?.toString()}</lastmod>\n`
+        s += `<lastmod>${b.publicationTime?.toString()}</lastmod>\n`;
       }
 
       s += '</url>\n';
 
       return s;
     }, '');
-  
+
     xmlString += '</urlset>\n';
 
     return xmlString;

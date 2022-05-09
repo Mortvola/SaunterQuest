@@ -4,11 +4,13 @@ import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import Database, { RawBuilderContract } from '@ioc:Adonis/Lucid/Database';
 import Hike from 'App/Models/Hike';
 import Drive from '@ioc:Adonis/Core/Drive';
+import { schema } from '@ioc:Adonis/Core/Validator';
 import { extname } from 'path';
 import sharp from 'sharp';
-import { HikeLegProps } from 'common/ResponseTypes';
+import { BlackoutDatesProps, HikeLegProps } from 'common/ResponseTypes';
 import HikeLeg from 'App/Models/HikeLeg';
 import HikerProfile from 'App/Models/HikerProfile';
+import HikeBlackoutDate from 'App/Models/HikeBlackoutDate';
 
 export default class HikesController {
   // eslint-disable-next-line class-methods-use-this
@@ -42,9 +44,9 @@ export default class HikesController {
         (leg) => leg
           .orderBy('startDate', 'desc')
           .preload('schedule', (query) => {
-            query.withCount('days', (query) => query.as('numberOfDays'));
+            query.withCount('days', (q2) => q2.as('numberOfDays'));
           }),
-      )
+      );
     });
 
     return hike;
@@ -254,5 +256,117 @@ export default class HikesController {
       startDate: leg.startDate?.toISODate() ?? null,
       color: leg.color,
     };
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async getBlackoutDates({
+    auth: {
+      user,
+    },
+    params,
+  }: HttpContextContract): Promise<BlackoutDatesProps[]> {
+    if (!user) {
+      throw new Exception('user unauthorized');
+    }
+
+    const dates = await HikeBlackoutDate.query().where('hikeId', parseInt(params.hikeId, 10));
+
+    return dates.map((d) => ({
+      id: d.id,
+      name: d.name,
+      start: d.start.toISODate(),
+      end: d.end.toISODate(),
+    }));
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async addBlackoutDates({
+    auth: {
+      user,
+    },
+    request,
+    params,
+  }: HttpContextContract): Promise<BlackoutDatesProps> {
+    if (!user) {
+      throw new Exception('user unauthorized');
+    }
+
+    const requestData = await request.validate({
+      schema: schema.create({
+        name: schema.string(),
+        start: schema.date(),
+        end: schema.date(),
+      }),
+    });
+
+    const dates = new HikeBlackoutDate();
+
+    dates.fill({
+      hikeId: params.hikeId,
+      ...requestData,
+    });
+
+    await dates.save();
+
+    return ({
+      id: dates.id,
+      name: dates.name,
+      start: dates.start.toISODate(),
+      end: dates.end.toISODate(),
+    });
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async updateBlackoutDates({
+    auth: {
+      user,
+    },
+    request,
+    params,
+  }: HttpContextContract): Promise<BlackoutDatesProps> {
+    if (!user) {
+      throw new Exception('user unauthorized');
+    }
+
+    const requestData = await request.validate({
+      schema: schema.create({
+        name: schema.string(),
+        start: schema.date(),
+        end: schema.date(),
+      }),
+    });
+
+    const dates = await HikeBlackoutDate.findOrFail(params.id);
+
+    dates.merge({
+      ...requestData,
+    });
+
+    await dates.save();
+
+    return ({
+      id: dates.id,
+      name: dates.name,
+      start: dates.start.toISODate(),
+      end: dates.end.toISODate(),
+    });
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async deleteBlackoutDates({
+    auth: {
+      user,
+    },
+    params,
+  }: HttpContextContract): Promise<void> {
+    if (!user) {
+      throw new Exception('user unauthorized');
+    }
+
+    const dates = await HikeBlackoutDate.findOrFail(params.id);
+
+    if (dates) {
+      await dates.delete();
+    }
   }
 }
