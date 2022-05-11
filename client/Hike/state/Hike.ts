@@ -3,7 +3,7 @@ import Http from '@mortvola/http';
 import L, { LatLng } from 'leaflet';
 import Map from './Map';
 import {
-  HikeInterface, MarkerType,
+  HikeInterface, HikeLegInterface, MarkerType,
 } from './Types';
 import { createIcon } from '../mapUtils';
 import { redCircle } from './PointsOfInterest/Icons';
@@ -49,9 +49,21 @@ class Hike implements HikeInterface {
 
     this.routeGroupId = props.routeGroupId;
 
-    const handleHikeLegUpdate = () => {
+    const handleHikeLegUpdate = (updatedLeg: HikeLegInterface) => {
       runInAction(() => {
         this.hikeLegs = this.hikeLegs.slice();
+
+        // Find legs that should no longer point to this changed leg
+        this.hikeLegs.forEach((l) => {
+          if (l !== updatedLeg) {
+            l.nextLegs = l.nextLegs.filter((l2) => l2 !== updatedLeg);
+          }
+        });
+
+        // Update leg that should point to the updated leg
+        if (updatedLeg.startType === 'afterLeg') {
+          this.linkPreviousLeg(updatedLeg);
+        }
       });
     };
 
@@ -68,13 +80,7 @@ class Hike implements HikeInterface {
           throw new Error('after hike leg id is null');
         }
 
-        const afterLeg = this.hikeLegs.find((l) => (
-          l.id === leg.afterHikeLegId
-        ));
-
-        if (afterLeg) {
-          afterLeg.nextLegs.push(leg);
-        }
+        this.linkPreviousLeg(leg);
       }
     });
 
@@ -85,6 +91,16 @@ class Hike implements HikeInterface {
     this.requestRouteGroup();
 
     makeAutoObservable(this);
+  }
+
+  linkPreviousLeg(leg: HikeLegInterface) {
+    const afterLeg = this.hikeLegs.find((l) => (
+      l.id === leg.afterHikeLegId
+    ));
+
+    if (afterLeg) {
+      afterLeg.nextLegs.push(leg);
+    }
   }
 
   async updateSettings(name: string, routeGroupId: number | null): Promise<void> {

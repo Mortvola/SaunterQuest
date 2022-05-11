@@ -150,7 +150,7 @@ export interface HikeLegInterface {
 
   afterHikeLegId: number | null;
 
-  nextLegs: HikeLeg[];
+  nextLegs: HikeLegInterface[];
 
   numberOfDays: number;
 

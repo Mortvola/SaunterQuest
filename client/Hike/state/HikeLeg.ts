@@ -9,6 +9,8 @@ import Route from './Route';
 import { HikeLegInterface, ProfileProps, Day } from './Types';
 import DayPoi from './PointsOfInterest/Day';
 
+export type HikeLegOnUpdate = (hikeLeg: HikeLegInterface) => void;
+
 class HikeLeg implements HikeLegInterface {
   id: number;
 
@@ -20,7 +22,7 @@ class HikeLeg implements HikeLegInterface {
 
   afterHikeLegId: number | null;
 
-  nextLegs: HikeLeg[] = [];
+  nextLegs: HikeLegInterface[] = [];
 
   numberOfDays = 0;
 
@@ -36,9 +38,9 @@ class HikeLeg implements HikeLegInterface {
 
   elevationMarkerPos: L.LatLng | null = null;
 
-  onUpdate: (() => void) | null = null;
+  onUpdate: HikeLegOnUpdate | null = null;
 
-  constructor(props: HikeLegProps, map: Map, onUpdate?: () => void) {
+  constructor(props: HikeLegProps, map: Map, onUpdate?: HikeLegOnUpdate) {
     this.id = props.id;
     this.name = props.name;
     this.startType = props.startType;
@@ -118,7 +120,7 @@ class HikeLeg implements HikeLegInterface {
           this.numberOfDays = this.schedule.length;
 
           if (this.onUpdate) {
-            this.onUpdate();
+            this.onUpdate(this);
           }
         });
       }
@@ -152,7 +154,7 @@ class HikeLeg implements HikeLegInterface {
         this.afterHikeLegId = afterHikeLegId;
 
         if (this.onUpdate) {
-          this.onUpdate();
+          this.onUpdate(this);
         }
       });
     }
