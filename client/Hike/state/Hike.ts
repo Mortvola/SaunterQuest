@@ -59,8 +59,7 @@ class Hike implements HikeInterface {
       (hl) => new HikeLeg(hl, new Map(), handleHikeLegUpdate),
     );
 
-    this.blackoutDatesManager = new BlackoutDatesManager(props.id);
-    this.blackoutDatesManager.setDates(props.hikeBlackoutDates);
+    this.blackoutDatesManager = new BlackoutDatesManager(props.id, props.hikeBlackoutDates);
 
     // Link the legs together
     this.hikeLegs.forEach((leg) => {

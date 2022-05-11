@@ -16,17 +16,15 @@ class BlackoutDatesManager implements BlackoutDatesManagerInterface {
     });
   };
 
-  constructor(hikeId: number) {
+  constructor(hikeId: number, blackoutDates: BlackoutDatesProps[]) {
     this.hikeId = hikeId;
 
-    makeAutoObservable(this);
-  }
-
-  setDates(blackoutDates: BlackoutDatesProps[]) {
     this.blackoutDates = blackoutDates.map((b) => (
       new BlackoutDates(b, this.handleBlackoutDateUpdate)
     ));
     this.sort();
+
+    makeAutoObservable(this);
   }
 
   sort() {
@@ -41,16 +39,6 @@ class BlackoutDatesManager implements BlackoutDatesManagerInterface {
 
       return 0;
     });
-  }
-
-  async load(): Promise<void> {
-    const response = await Http.get<BlackoutDatesProps[]>(`/api/hike/${this.hikeId}/blackout-dates`);
-
-    if (response.ok) {
-      const body = await response.body();
-
-      this.setDates(body);
-    }
   }
 
   async addBlackoutDates(name: string, start: DateTime, end: DateTime): Promise<void> {
