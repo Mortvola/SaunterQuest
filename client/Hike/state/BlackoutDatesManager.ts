@@ -1,6 +1,6 @@
 import Http from '@mortvola/http';
 import { DateTime } from 'luxon';
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, runInAction } from 'mobx';
 import { BlackoutDatesProps } from '../../../common/ResponseTypes';
 import BlackoutDates from './BlackoutDates';
 import { BlackoutDatesInterface, BlackoutDatesManagerInterface } from './Types';
@@ -10,6 +10,12 @@ class BlackoutDatesManager implements BlackoutDatesManagerInterface {
 
   blackoutDates: BlackoutDates[] = [];
 
+  handleBlackoutDateUpdate = () => {
+    runInAction(() => {
+      this.blackoutDates = this.blackoutDates.slice();
+    });
+  };
+
   constructor(hikeId: number) {
     this.hikeId = hikeId;
 
@@ -17,7 +23,9 @@ class BlackoutDatesManager implements BlackoutDatesManagerInterface {
   }
 
   setDates(blackoutDates: BlackoutDatesProps[]) {
-    this.blackoutDates = blackoutDates.map((b) => new BlackoutDates(b));
+    this.blackoutDates = blackoutDates.map((b) => (
+      new BlackoutDates(b, this.handleBlackoutDateUpdate)
+    ));
     this.sort();
   }
 
@@ -64,11 +72,13 @@ class BlackoutDatesManager implements BlackoutDatesManagerInterface {
     if (response.ok) {
       const body = await response.body();
 
-      this.blackoutDates = [
-        ...this.blackoutDates,
-        new BlackoutDates(body),
-      ];
-      this.sort();
+      runInAction(() => {
+        this.blackoutDates = [
+          ...this.blackoutDates,
+          new BlackoutDates(body, this.handleBlackoutDateUpdate),
+        ];
+        this.sort();
+      });
     }
   }
 
@@ -79,10 +89,12 @@ class BlackoutDatesManager implements BlackoutDatesManagerInterface {
       const index = this.blackoutDates.findIndex((b) => b.id === blackoutDates.id);
 
       if (index !== -1) {
-        this.blackoutDates = [
-          ...this.blackoutDates.slice(0, index),
-          ...this.blackoutDates.slice(index + 1),
-        ];
+        runInAction(() => {
+          this.blackoutDates = [
+            ...this.blackoutDates.slice(0, index),
+            ...this.blackoutDates.slice(index + 1),
+          ];
+        });
       }
     }
   }

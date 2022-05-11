@@ -1,5 +1,6 @@
 import Http from '@mortvola/http';
 import { DateTime } from 'luxon';
+import { makeAutoObservable, runInAction } from 'mobx';
 import { BlackoutDatesProps } from '../../../common/ResponseTypes';
 import { BlackoutDatesInterface } from './Types';
 
@@ -12,11 +13,17 @@ class BlackoutDates implements BlackoutDatesInterface {
 
   end: DateTime;
 
-  constructor(props: BlackoutDatesProps) {
+  onUpdate: (() => void) | null = null;
+
+  constructor(props: BlackoutDatesProps, onUpdate?: () => void) {
     this.id = props.id;
     this.name = props.name;
     this.start = DateTime.fromISO(props.start);
     this.end = DateTime.fromISO(props.end);
+
+    this.onUpdate = onUpdate ?? null;
+
+    makeAutoObservable(this);
   }
 
   async update(name: string, start: DateTime, end: DateTime) {
@@ -35,9 +42,15 @@ class BlackoutDates implements BlackoutDatesInterface {
     if (response.ok) {
       const body = await response.body();
 
-      this.name = body.name;
-      this.start = DateTime.fromISO(body.start);
-      this.end = DateTime.fromISO(body.end);
+      runInAction(() => {
+        this.name = body.name;
+        this.start = DateTime.fromISO(body.start);
+        this.end = DateTime.fromISO(body.end);
+
+        if (this.onUpdate) {
+          this.onUpdate();
+        }
+      });
     }
   }
 }

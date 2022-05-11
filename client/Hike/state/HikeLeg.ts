@@ -36,7 +36,9 @@ class HikeLeg implements HikeLegInterface {
 
   elevationMarkerPos: L.LatLng | null = null;
 
-  constructor(props: HikeLegProps, map: Map) {
+  onUpdate: (() => void) | null = null;
+
+  constructor(props: HikeLegProps, map: Map, onUpdate?: () => void) {
     this.id = props.id;
     this.name = props.name;
     this.startType = props.startType;
@@ -44,6 +46,8 @@ class HikeLeg implements HikeLegInterface {
     this.afterHikeLegId = props.afterHikeLegId;
     this.numberOfDays = props.schedule?.numberOfDays ?? 0;
     this.color = props.color;
+
+    this.onUpdate = onUpdate ?? null;
 
     this.map = map;
     this.route = new Route(this, map);
@@ -112,6 +116,10 @@ class HikeLeg implements HikeLegInterface {
           });
 
           this.numberOfDays = this.schedule.length;
+
+          if (this.onUpdate) {
+            this.onUpdate();
+          }
         });
       }
     }
@@ -142,6 +150,10 @@ class HikeLeg implements HikeLegInterface {
         this.startType = startType;
         this.startDate = startDate === null ? null : DateTime.fromISO(startDate);
         this.afterHikeLegId = afterHikeLegId;
+
+        if (this.onUpdate) {
+          this.onUpdate();
+        }
       });
     }
   }

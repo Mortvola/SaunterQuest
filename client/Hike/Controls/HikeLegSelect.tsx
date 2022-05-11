@@ -1,4 +1,5 @@
 import React from 'react';
+import { observer } from 'mobx-react-lite';
 import Select, { OptionProps } from 'react-select';
 import { HikeInterface, HikeLegInterface } from '../state/Types';
 import styles from './HikeLegSelect.module.css';
@@ -35,7 +36,7 @@ type PropsType = {
   onChange: (id: number | null) => void,
 }
 
-const HikeLegSelect: React.FC<PropsType> = ({ hike, value, onChange }) => {
+const HikeLegSelect: React.FC<PropsType> = observer(({ hike, value, onChange }) => {
   const options: OptionValue[] = React.useMemo(() => (hike.hikeLegs.map((hl) => ({
     value: hl.id,
     label: hl.name ?? hl.id.toString(),
@@ -68,6 +69,6 @@ const HikeLegSelect: React.FC<PropsType> = ({ hike, value, onChange }) => {
       }}
     />
   );
-};
+});
 
 export default HikeLegSelect;

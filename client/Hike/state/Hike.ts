@@ -49,7 +49,15 @@ class Hike implements HikeInterface {
 
     this.routeGroupId = props.routeGroupId;
 
-    this.hikeLegs = props.hikeLegs.map((hl) => new HikeLeg(hl, new Map()));
+    const handleHikeLegUpdate = () => {
+      runInAction(() => {
+        this.hikeLegs = this.hikeLegs.slice();
+      });
+    };
+
+    this.hikeLegs = props.hikeLegs.map(
+      (hl) => new HikeLeg(hl, new Map(), handleHikeLegUpdate),
+    );
 
     this.blackoutDatesManager = new BlackoutDatesManager(props.id);
     this.blackoutDatesManager.setDates(props.hikeBlackoutDates);
