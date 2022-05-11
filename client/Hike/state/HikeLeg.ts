@@ -2,7 +2,7 @@ import Http from '@mortvola/http';
 import { makeAutoObservable, runInAction } from 'mobx';
 import L from 'leaflet';
 import { DateTime } from 'luxon';
-import { DayProps, HikeLegProps } from '../../../common/ResponseTypes';
+import { DayProps, HikeLegProps, StartType } from '../../../common/ResponseTypes';
 import HikerProfile from './HikerProfile';
 import Map from './Map';
 import Route from './Route';
@@ -14,7 +14,13 @@ class HikeLeg implements HikeLegInterface {
 
   name: string | null;
 
+  startType: StartType;
+
   startDate: DateTime | null;
+
+  afterHikeLegId: number | null;
+
+  nextLegs: HikeLeg[] = [];
 
   numberOfDays = 0;
 
@@ -33,7 +39,9 @@ class HikeLeg implements HikeLegInterface {
   constructor(props: HikeLegProps, map: Map) {
     this.id = props.id;
     this.name = props.name;
+    this.startType = props.startType;
     this.startDate = props.startDate === null ? null : DateTime.fromISO(props.startDate);
+    this.afterHikeLegId = props.afterHikeLegId;
     this.numberOfDays = props.schedule?.numberOfDays ?? 0;
     this.color = props.color;
 
@@ -112,18 +120,28 @@ class HikeLeg implements HikeLegInterface {
     }
   }
 
-  async update(name: string, startDate: string | null, color: string): Promise<void> {
+  async update(
+    name: string,
+    color: string,
+    startType: StartType,
+    startDate: string | null,
+    afterHikeLegId: number | null,
+  ): Promise<void> {
     const response = await Http.patch(`/api/hike-leg/${this.id}`, {
       name,
-      startDate,
       color,
+      startType,
+      startDate,
+      afterHikeLegId,
     });
 
     if (response.ok) {
       runInAction(() => {
         this.name = name;
-        this.startDate = startDate === null ? null : DateTime.fromISO(startDate);
         this.color = color;
+        this.startType = startType;
+        this.startDate = startDate === null ? null : DateTime.fromISO(startDate);
+        this.afterHikeLegId = afterHikeLegId;
       });
     }
   }

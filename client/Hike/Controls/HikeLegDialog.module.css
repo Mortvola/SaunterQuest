@@ -4,6 +4,6 @@
   align-items: flex-start;
 }
 
-.form :first-child {
+.form:first-child {
   width: 100%;
 }

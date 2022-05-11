@@ -1,6 +1,5 @@
 import { LatLng } from 'leaflet';
 import { makeAutoObservable, runInAction } from 'mobx';
-import Hike from './Hike';
 import { MarkerType, PhotoInterface } from './Types';
 
 class UiState {

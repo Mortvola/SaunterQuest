@@ -5,7 +5,6 @@ import {
 } from 'react-big-calendar';
 import { DateTime } from 'luxon';
 import { BlackoutDatesInterface, HikeInterface, HikeLegInterface } from './state/Types';
-import BlackoutDatesManager from './state/BlackoutDatesManager';
 import { useBlackoutDialog } from './BlackoutDialog';
 
 const localizer = luxonLocalizer(DateTime);
@@ -19,11 +18,7 @@ const Calendar: React.FC<PropsType> = observer(({
   hike,
   style,
 }) => {
-  const [blackoutDatesManager] = React.useState<BlackoutDatesManager>(() => {
-    const manager = new BlackoutDatesManager(hike.id);
-    manager.load();
-    return manager;
-  });
+  const { blackoutDatesManager } = hike;
 
   const [dateRange, setDateRange] = React.useState<null | { start: DateTime, end: DateTime }>(null);
   const [BlackoutDialog, showBlackoutDialog] = useBlackoutDialog();
@@ -41,18 +36,62 @@ const Calendar: React.FC<PropsType> = observer(({
   };
 
   const events = React.useMemo(() => {
-    const e = hike.hikeLegs
-      .filter((hl) => hl.startDate !== null)
-      .map<Event>((hl) => ({
-        title: hl.name,
-        start: hl.startDate?.toJSDate(),
-        end: hl.startDate?.plus({ days: hl.numberOfDays }).toJSDate(),
-        allDay: true,
-        color: hl.color,
-        type: 'leg',
-        leg: hl,
-        blackoutDates: null,
-      }));
+    const e: Event[] = [];
+    hike.hikeLegs.forEach((leg) => {
+      if (leg.startType === 'date' && leg.startDate !== null) {
+        e.push({
+          title: leg.name,
+          start: leg.startDate?.toJSDate(),
+          end: leg.startDate?.plus({ days: leg.numberOfDays }).toJSDate(),
+          allDay: true,
+          color: leg.color,
+          type: 'leg',
+          leg,
+          blackoutDates: null,
+        });
+
+        let nextLegs: { startDate: DateTime, leg: HikeLegInterface}[] = [];
+
+        const getLegs = (startDate: DateTime, l: HikeLegInterface) => (
+          l.nextLegs.map((nl) => {
+            let newStartDate = startDate.plus({ days: l.numberOfDays + 1 });
+            let newEndDate = newStartDate.plus({ days: nl.numberOfDays - 1 });
+
+            blackoutDatesManager.blackoutDates.forEach((bld) => {
+              if (newStartDate <= bld.end && newEndDate >= bld.start) {
+                newStartDate = bld.end.plus({ days: 1 });
+                newEndDate = newStartDate.plus({ days: nl.numberOfDays - 1 });
+              }
+            });
+
+            return ({
+              startDate: newStartDate,
+              leg: nl,
+            });
+          })
+        );
+
+        nextLegs = nextLegs.concat(getLegs(leg.startDate, leg));
+
+        let nextLeg = nextLegs.pop();
+
+        while (nextLeg) {
+          e.push({
+            title: nextLeg.leg.name,
+            start: nextLeg.startDate?.toJSDate(),
+            end: nextLeg.startDate?.plus({ days: nextLeg.leg.numberOfDays }).toJSDate(),
+            allDay: true,
+            color: nextLeg.leg.color,
+            type: 'leg',
+            leg: nextLeg.leg,
+            blackoutDates: null,
+          });
+
+          nextLegs = nextLegs.concat(getLegs(nextLeg.startDate, nextLeg.leg));
+          nextLeg = nextLegs.pop();
+        }
+      }
+    });
 
     return [
       ...blackoutDatesManager.blackoutDates.map<Event>((b) => ({

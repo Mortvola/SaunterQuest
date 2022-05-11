@@ -19,7 +19,9 @@ export default class HikeLegsController {
     const requestData = await request.validate({
       schema: schema.create({
         name: schema.string(),
+        startType: schema.enum(['none', 'date', 'afterLeg'] as const),
         startDate: schema.date.nullable(),
+        afterHikeLegId: schema.number.nullable(),
         color: schema.string(),
       }),
     });
@@ -28,7 +30,9 @@ export default class HikeLegsController {
 
     leg.merge({
       name: requestData.name,
+      startType: requestData.startType,
       startDate: requestData.startDate,
+      afterHikeLegId: requestData.afterHikeLegId,
       color: requestData.color,
     });
 

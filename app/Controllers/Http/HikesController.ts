@@ -38,15 +38,17 @@ export default class HikesController {
     }
 
     const hike = await Hike.findOrFail(params.hikeId);
+    await hike.load('hikeBlackoutDates');
     await hike.load((loader) => {
-      loader.load(
-        'hikeLegs',
-        (leg) => leg
-          .orderBy('startDate', 'desc')
-          .preload('schedule', (query) => {
-            query.withCount('days', (q2) => q2.as('numberOfDays'));
-          }),
-      );
+      loader
+        .load(
+          'hikeLegs',
+          (leg) => leg
+            .orderBy('startDate', 'desc')
+            .preload('schedule', (query) => {
+              query.withCount('days', (q2) => q2.as('numberOfDays'));
+            }),
+        );
     });
 
     return hike;
@@ -253,7 +255,9 @@ export default class HikesController {
     return {
       id: leg.id,
       name: leg.name,
+      startType: leg.startType,
       startDate: leg.startDate?.toISODate() ?? null,
+      afterHikeLegId: leg.afterHikeLegId ?? null,
       color: leg.color,
     };
   }

@@ -144,7 +144,13 @@ export interface HikeLegInterface {
 
   name: string | null;
 
+  startType: StartType;
+
   startDate: DateTime | null;
+
+  afterHikeLegId: number | null;
+
+  nextLegs: HikeLeg[];
 
   numberOfDays: number;
 
@@ -170,7 +176,13 @@ export interface HikeLegInterface {
 
   requestRouteGroup(): Promise<L.LatLng[][] | null>;
 
-  update(name: string, startDate: string | null, color: string): Promise<void>;
+  update(
+    name: string,
+    color: string,
+    starType: StartType,
+    startDate: string | null,
+    afterHikeLegId: number | null,
+  ): Promise<void>;
 }
 
 export interface HikeInterface {
@@ -183,6 +195,8 @@ export interface HikeInterface {
   // map: MapInterface;
 
   hikeLegs: HikeLegInterface[];
+
+  blackoutDatesManager: BlackoutDatesManagerInterface;
 
   currentLeg: HikeLegInterface | null;
 
@@ -268,6 +282,8 @@ export interface BlackoutDatesInterface {
 }
 
 export interface BlackoutDatesManagerInterface {
+  blackoutDates: BlackoutDatesInterface[];
+
   addBlackoutDates(name: string, start: DateTime, end: DateTime): Promise<void>;
 
   deleteBlackoutDates(blackoutDates: BlackoutDatesInterface): Promise<void>;

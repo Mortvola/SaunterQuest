@@ -5,13 +5,13 @@ import {
 import Env from '@ioc:Adonis/Core/Env';
 import RoutePoint from 'App/Models/RoutePoint';
 import Point from 'App/Types/Point';
-import { RouteUpdateResponse, RouteUpdateType } from 'common/ResponseTypes';
 import Router from 'App/Services/Router';
 import fetch from 'node-fetch';
 import Scheduler from 'App/Services/Scheduler';
 import User from 'App/Models/User';
 import Schedule from 'App/Models/Schedule';
 import HikerProfile from 'App/Models/HikerProfile';
+import { RouteUpdateResponse, RouteUpdateType, StartType } from '../../common/ResponseTypes';
 
 const MAX_ORDER = 100000;
 
@@ -50,11 +50,17 @@ export default class HikeLeg extends BaseModel {
   @column()
   public name: string;
 
+  @column()
+  public startType: StartType;
+
   @column.date({
     serializeAs: 'startDate',
     serialize: (value: DateTime) => value?.toISODate() ?? null,
   })
   public startDate: DateTime | null;
+
+  @column()
+  public afterHikeLegId: number | null;
 
   @column()
   public color: string;

@@ -1,8 +1,16 @@
+export type BlackoutDatesProps = {
+  id: number,
+  name: string,
+  start: string,
+  end: string,
+};
+
 export type HikeProps = {
   id: number,
   name: string,
   routeGroupId: number | null,
-  hikeLegs: { id: number, name: string, startDate: string | null, color: string }[],
+  hikeLegs: HikeLegProps[],
+  hikeBlackoutDates: BlackoutDatesProps[],
 }
 
 export type TrailPointProps = {
@@ -155,10 +163,14 @@ export type BlogProps = {
   nextPostId?: number | null,
 };
 
+export type StartType = 'none' | 'date' | 'afterLeg';
+
 export type HikeLegProps = {
   id: number,
   name: string | null,
+  startType: StartType,
   startDate: string | null,
+  afterHikeLegId: number | null,
   color: string,
   schedule?: {
     numberOfDays: number,
@@ -186,10 +198,3 @@ export type BlogListItemProps = {
   title: string | null,
   publicationTime?: string | null,
 }
-
-export type BlackoutDatesProps = {
-  id: number,
-  name: string,
-  start: string,
-  end: string,
-};

@@ -10,6 +10,7 @@ import { redCircle } from './PointsOfInterest/Icons';
 import { HikeLegProps, HikeProps } from '../../../common/ResponseTypes';
 import Marker from './Marker';
 import HikeLeg from './HikeLeg';
+import BlackoutDatesManager from './BlackoutDatesManager';
 
 class Hike implements HikeInterface {
   id: number;
@@ -34,6 +35,7 @@ class Hike implements HikeInterface {
 
   pointsOfInterest: Marker[] = [];
 
+  blackoutDatesManager: BlackoutDatesManager;
   // map: Map;
 
   elevationMarkerIcon = createIcon(redCircle);
@@ -48,6 +50,26 @@ class Hike implements HikeInterface {
     this.routeGroupId = props.routeGroupId;
 
     this.hikeLegs = props.hikeLegs.map((hl) => new HikeLeg(hl, new Map()));
+
+    this.blackoutDatesManager = new BlackoutDatesManager(props.id);
+    this.blackoutDatesManager.setDates(props.hikeBlackoutDates);
+
+    // Link the legs together
+    this.hikeLegs.forEach((leg) => {
+      if (leg.startType === 'afterLeg') {
+        if (leg.afterHikeLegId === null) {
+          throw new Error('after hike leg id is null');
+        }
+
+        const afterLeg = this.hikeLegs.find((l) => (
+          l.id === leg.afterHikeLegId
+        ));
+
+        if (afterLeg) {
+          afterLeg.nextLegs.push(leg);
+        }
+      }
+    });
 
     this.setCurrentLeg(this.hikeLegs[0]);
 

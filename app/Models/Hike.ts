@@ -11,6 +11,7 @@ import {
 import User from 'App/Models/User';
 import PointOfInterest from 'App/Models/PointOfInterest';
 import HikeLeg from 'App/Models/HikeLeg';
+import HikeBlackoutDate from 'App/Models/HikeBlackoutDate';
 
 export default class Hike extends BaseModel {
   public static table = 'hike';
@@ -38,6 +39,9 @@ export default class Hike extends BaseModel {
 
   @hasMany(() => HikeLeg)
   public hikeLegs: HasMany<typeof HikeLeg>;
+
+  @hasMany(() => HikeBlackoutDate)
+  public hikeBlackoutDates: HasMany<typeof HikeBlackoutDate>;
 
   @hasMany(() => PointOfInterest)
   public pointsOfInterest: HasMany<typeof PointOfInterest>;
