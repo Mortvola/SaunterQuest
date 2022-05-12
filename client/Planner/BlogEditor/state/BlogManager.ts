@@ -1,7 +1,7 @@
 import Http from '@mortvola/http';
 import { makeAutoObservable, runInAction } from 'mobx';
 import { BlogListItemProps, BlogProps } from '../../../../common/ResponseTypes';
-import { BlogListItemInterface, BlogManagerInterface } from '../../../Blog/state/Types';
+import { BlogListItemInterface } from '../../../Blog/state/Types';
 import Blog from '../../../Blog/state/Blog';
 import BlogListItem from './BlogListItem';
 

@@ -38,7 +38,7 @@ const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
       if (response.ok) {
         const body = await response.json();
 
-        photo.setId(body.id);
+        photo.setInfo(body.id, body.width, body.height);
       }
       else {
         setUploadFailure(true);
@@ -61,26 +61,34 @@ const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
   };
 
   const handleSelect = (id: number) => {
-    photo.setId(id);
+    photo.setInfo(id);
     setShowModal(false);
   };
 
-  const handleRotateRightClick = async () => {
+  const handleRotate = async (command: string) => {
     setUploading(true);
 
-    await Http.post(`/api/photo/${photo.id}`, { command: 'rotate-right' });
+    const response = await Http.post<
+      { command: string },
+      { id: number, width?: number, height?: number }
+    >(`/api/photo/${photo.id}`, { command });
 
-    setVersion((prev) => prev + 1);
-    setUploading(false);
+    if (response.ok) {
+      const body = await response.body();
+
+      photo.setInfo(body.id, body.width, body.height);
+
+      setVersion((prev) => prev + 1);
+      setUploading(false);
+    }
+  };
+
+  const handleRotateRightClick = async () => {
+    handleRotate('rotate-right');
   };
 
   const handleRotateLeftClick = async () => {
-    setUploading(true);
-
-    await Http.post(`/api/photo/${photo.id}`, { command: 'rotate-left' });
-
-    setVersion((prev) => prev + 1);
-    setUploading(false);
+    handleRotate('rotate-left');
   };
 
   return (
@@ -103,7 +111,13 @@ const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
               <>
                 <IconButton icon="rotate-right" iconClass="fa-solid" onClick={handleRotateRightClick} />
                 <IconButton icon="rotate-left" iconClass="fa-solid" onClick={handleRotateLeftClick} />
-                <Image blogId={blogId} photoId={photo.id} version={version} />
+                <Image
+                  blogId={blogId}
+                  photoId={photo.id}
+                  version={version}
+                  width={photo.width}
+                  height={photo.height}
+                />
                 <TextareaAutosize className={styles.text} value={photo.caption ?? ''} onChange={handleChange} />
               </>
             )

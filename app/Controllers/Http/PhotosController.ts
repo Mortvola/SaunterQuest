@@ -8,7 +8,7 @@ import { extname } from 'path';
 import heicConvert from 'heic-convert';
 import raw from 'raw-body';
 import Photo from 'App/Models/Photo';
-import BlogPost from 'App/Models/BlogPost';
+import BlogPost, { isPhotoSection } from 'App/Models/BlogPost';
 
 const smallWidth = 1280;
 
@@ -35,11 +35,18 @@ export default class PhotosController {
 
   private static async saveScaledImages(photo: Photo, data: Buffer) {
     try {
+      const smallPath = `./photos/${photo.userId}/${photo.id}_small.webp`;
+
       await sharp(data)
         .rotate(photo.orientation ?? 0)
         .resize(smallWidth)
         .webp()
-        .toFile(`./photos/${photo.userId}/${photo.id}_small.webp`);
+        .toFile(smallPath);
+
+      const { width, height } = await sharp(smallPath).metadata();
+
+      photo.width = width ?? null;
+      photo.height = height ?? null;
 
       await sharp(data)
         .rotate(photo.orientation ?? 0)
@@ -59,7 +66,7 @@ export default class PhotosController {
       user,
     },
     request,
-  }: HttpContextContract): Promise<{ id: number }> {
+  }: HttpContextContract): Promise<{ id: number, width: number | null, height: number | null }> {
     if (!user) {
       throw new Exception('user unauthorized');
     }
@@ -73,61 +80,68 @@ export default class PhotosController {
 
     const trx = await Database.transaction();
 
-    const photo = await Photo.create(
-      {
-        userId: user.id,
-      },
-      { client: trx },
-    );
+    try {
+      const photo = await Photo.create(
+        {
+          userId: user.id,
+        },
+        { client: trx },
+      );
 
-    // Determine the image type from the data
-    const fileTypeFromBuffer = (await import('file-type-cjs')).fromBuffer;
+      // Determine the image type from the data
+      const fileTypeFromBuffer = (await import('file-type-cjs')).fromBuffer;
 
-    const fileType = await fileTypeFromBuffer(data);
+      const fileType = await fileTypeFromBuffer(data);
 
-    if (!fileType) {
-      throw new Exception('unknown file type');
-    }
-
-    switch (fileType.mime) {
-      case 'image/tiff':
-      case 'image/x-sony-arw': {
-        Drive.put(`./photos/${user.id}/${photo.id}_original.tiff`, data);
-
-        break;
+      if (!fileType) {
+        throw new Exception('unknown file type');
       }
 
-      case 'image/heic':
-        Drive.put(`./photos/${user.id}/${photo.id}_original.heic`, data);
+      switch (fileType.mime) {
+        case 'image/tiff':
+        case 'image/x-sony-arw': {
+          Drive.put(`./photos/${user.id}/${photo.id}_original.tiff`, data);
 
-        data = await heicConvert({
-          buffer: data,
-          format: 'PNG',
-        });
+          break;
+        }
 
-        break;
+        case 'image/heic':
+          Drive.put(`./photos/${user.id}/${photo.id}_original.heic`, data);
 
-      case 'image/jpeg':
-        Drive.put(`./photos/${user.id}/${photo.id}_original.jpg`, data);
+          data = await heicConvert({
+            buffer: data,
+            format: 'PNG',
+          });
 
-        break;
+          break;
 
-      case 'image/png':
-        Drive.put(`./photos/${user.id}/${photo.id}_original.png`, data);
+        case 'image/jpeg':
+          Drive.put(`./photos/${user.id}/${photo.id}_original.jpg`, data);
 
-        break;
+          break;
 
-      default:
-        throw new Exception(`unuspported image type: ${fileType ? fileType.mime : 'unknown'}`);
+        case 'image/png':
+          Drive.put(`./photos/${user.id}/${photo.id}_original.png`, data);
+
+          break;
+
+        default:
+          throw new Exception(`unuspported image type: ${fileType ? fileType.mime : 'unknown'}`);
+      }
+
+      await PhotosController.saveScaledImages(photo, data);
+
+      await photo.save();
+
+      await trx.commit();
+
+      return { id: photo.id, width: photo.width, height: photo.height };
     }
+    catch (error) {
+      await trx.rollback();
 
-    await PhotosController.saveScaledImages(photo, data);
-
-    const { id } = photo;
-
-    trx.commit();
-
-    return { id };
+      throw error;
+    }
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -181,10 +195,8 @@ export default class PhotosController {
       }
 
       if (b.content) {
-        console.log(`post id ${b.id}`);
-
         return b.content.some((section) => (
-          section.type === 'photo' && section.photo.id === photoId
+          isPhotoSection(section) && section.photo.id === photoId
         ));
       }
 
@@ -207,7 +219,9 @@ export default class PhotosController {
     },
     request,
     params,
-  }: HttpContextContract): Promise<void> {
+  }: HttpContextContract): Promise<{
+    id: number, width: number | null, height: number | null,
+  }> {
     if (!user) {
       throw new Exception('user unauthorized');
     }
@@ -220,22 +234,26 @@ export default class PhotosController {
 
     const trx = await Database.transaction();
 
-    const photo = await Photo.findOrFail(params.photoId, { client: trx });
+    try {
+      const photo = await Photo.findOrFail(params.photoId, { client: trx });
 
-    // Find the original file for this photo id by iterating over the list of
-    // supported extensions.
-    let ext: string | null = null;
-    // eslint-disable-next-line no-restricted-syntax
-    for (const e of ['jpg', 'heic', 'tiff', 'png']) {
-      // eslint-disable-next-line no-await-in-loop
-      const exists = await Drive.exists(`./photos/${user.id}/${params.photoId}_original.${e}`);
-      if (exists) {
-        ext = e;
-        break;
+      // Find the original file for this photo id by iterating over the list of
+      // supported extensions.
+      let ext: string | null = null;
+      // eslint-disable-next-line no-restricted-syntax
+      for (const e of ['jpg', 'heic', 'tiff', 'png']) {
+        // eslint-disable-next-line no-await-in-loop
+        const exists = await Drive.exists(`./photos/${user.id}/${params.photoId}_original.${e}`);
+        if (exists) {
+          ext = e;
+          break;
+        }
       }
-    }
 
-    if (ext) {
+      if (!ext) {
+        throw new Exception('file not found');
+      }
+
       let data = await Drive.get(`./photos/${user.id}/${params.photoId}_original.${ext}`);
 
       if (ext === 'heic') {
@@ -253,8 +271,6 @@ export default class PhotosController {
             photo.orientation = 0;
           }
 
-          photo.save();
-
           break;
         }
 
@@ -264,8 +280,6 @@ export default class PhotosController {
           if (photo.orientation < 0) {
             photo.orientation = 360 + photo.orientation;
           }
-
-          photo.save();
 
           break;
         }
@@ -277,7 +291,16 @@ export default class PhotosController {
 
       await PhotosController.saveScaledImages(photo, data);
 
-      trx.commit();
+      await photo.save();
+
+      await trx.commit();
+
+      return { id: photo.id, width: photo.width, height: photo.height };
+    }
+    catch (error) {
+      await trx.rollback();
+
+      throw error;
     }
   }
 }

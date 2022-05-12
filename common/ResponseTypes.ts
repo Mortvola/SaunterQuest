@@ -136,6 +136,8 @@ export type BlogPhotoProps = {
   id: number | null,
   caption: string | null,
   orientation?: number,
+  width?: number,
+  height?: number,
 }
 
 export type BlogSectionTypes = 'markdown' | 'elevation' | 'map' | 'photo' | 'html' | 'youTube';

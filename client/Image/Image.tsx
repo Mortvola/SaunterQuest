@@ -6,6 +6,8 @@ type PropsType = {
   photoId: number,
   loading?: 'eager' | 'lazy',
   version?: number,
+  width?: number,
+  height?: number,
 };
 
 const Image: React.FC<PropsType> = ({
@@ -13,6 +15,8 @@ const Image: React.FC<PropsType> = ({
   photoId,
   loading = 'lazy',
   version = 0,
+  width,
+  height,
 }) => {
   const [photoSize, setPhotoSize] = React.useState<boolean>(false);
 
@@ -31,6 +35,8 @@ const Image: React.FC<PropsType> = ({
       alt=""
       loading={loading}
       onLoad={handleLoaded}
+      width={width}
+      style={{ aspectRatio: `${width} / ${height}` }}
     />
   );
 };

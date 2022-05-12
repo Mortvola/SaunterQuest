@@ -1,12 +1,14 @@
 import { DateTime } from 'luxon';
 import { BlogSectionTypes } from '../../../common/ResponseTypes';
 
-export type BlogPhotoInterface = {
+export interface BlogPhotoInterface {
   id: number | null,
   caption: string | null,
   orientation: number,
+  width?: number,
+  height?: number,
 
-  setId(id: number): void;
+  setInfo(id: number, width?: number, height?: number): void;
   setCaption(caption: string): void;
   setOrientation(orientation: number): void;
 }
@@ -68,12 +70,4 @@ interface BlogListItemInterface {
   publicationTime?: DateTime | null;
 
   delete(): void;
-}
-
-interface BlogManagerInterface {
-  blogs: BlogListItemInterface[];
-
-  addBlog(): Promise<void>;
-
-  deleteBlog(blog: BlogListItemInterface): Promise<void>;
 }

@@ -5,12 +5,13 @@ import { extname } from 'path';
 import Blog from 'App/Models/Blog';
 import { Exception } from '@adonisjs/core/build/standalone';
 import { DateTime } from 'luxon';
-import BlogPost from 'App/Models/BlogPost';
+import BlogPost, { BlogContent, isPhotoSection } from 'App/Models/BlogPost';
 import BlogComment from 'App/Models/BlogComment';
 import { BlogListItemProps, CommentProps } from 'common/ResponseTypes';
 import Mail from '@ioc:Adonis/Addons/Mail';
 import Env from '@ioc:Adonis/Core/Env';
 import { schema, rules } from '@ioc:Adonis/Core/Validator';
+import Photo from 'App/Models/Photo';
 
 export default class BlogsController {
   // eslint-disable-next-line class-methods-use-this
@@ -75,20 +76,69 @@ export default class BlogsController {
       }
     }
 
-    if (blog && blog.publicationTime !== null) {
-      const prev = await Blog.query()
-        .where('publicationTime', '<', blog.publicationTime.toISO())
-        .orderBy('publicationTime', 'desc')
-        .first();
+    // Update blog data with additional info
+    if (blog) {
+      // Determine the ids of the previous and next blogs
+      if (blog.publicationTime !== null) {
+        const prev = await Blog.query()
+          .where('publicationTime', '<', blog.publicationTime.toISO())
+          .orderBy('publicationTime', 'desc')
+          .first();
 
-      blog.prevPostId = prev ? prev.id : null;
+        blog.prevPostId = prev?.id ?? null;
 
-      const next = await Blog.query()
-        .where('publicationTime', '>', blog.publicationTime.toISO())
-        .orderBy('publicationTime', 'asc')
-        .first();
+        const next = await Blog.query()
+          .where('publicationTime', '>', blog.publicationTime.toISO())
+          .orderBy('publicationTime', 'asc')
+          .first();
 
-      blog.nextPostId = next ? next.id : null;
+        blog.nextPostId = next?.id ?? null;
+      }
+
+      // Update photos with additional meta data.
+      const updatePhotos = async (post: BlogPost) => {
+        const updateContentPhotos = async (content: BlogContent) => (
+          Promise.all(content.map(async (s) => {
+            if (isPhotoSection(s) && s.photo.id !== null) {
+              const photo = await Photo.find(s.photo.id);
+
+              if (photo && photo.width && photo.height) {
+                s.photo.width = photo.width;
+                s.photo.height = photo.height;
+              }
+            }
+          }))
+        );
+
+        if (post.content) {
+          await updateContentPhotos(post.content);
+        }
+
+        post.titlePhoto = {
+          id: post.titlePhotoId ?? null,
+          caption: post.titlePhotoCaption ?? null,
+          orientation: post.titlePhotoOrientation ?? 0,
+          width: null,
+          height: null,
+        };
+
+        if (post.titlePhotoId !== null) {
+          const photo = await Photo.find(post.titlePhotoId);
+
+          if (photo && photo.width && photo.height) {
+            post.titlePhoto.width = photo.width;
+            post.titlePhoto.height = photo.height;
+          }
+        }
+      };
+
+      if (blog.publishedPost) {
+        await updatePhotos(blog.publishedPost);
+      }
+
+      if (blog.draftPost) {
+        await updatePhotos(blog.draftPost);
+      }
     }
 
     return blog;
@@ -128,7 +178,7 @@ export default class BlogsController {
         titlePhotoCaption: draftPost.titlePhoto.caption,
         titlePhotoOrientation: draftPost.titlePhoto.orientation,
         hikeLegId: draftPost.hikeLegId,
-        content: JSON.stringify(draftPost.content),
+        content: draftPost.content,
       }, {
         client: trx,
       });
@@ -142,7 +192,7 @@ export default class BlogsController {
         titlePhotoCaption: draftPost.titlePhoto.caption,
         titlePhotoOrientation: draftPost.titlePhoto.orientation,
         hikeLegId: draftPost.hikeLegId,
-        content: JSON.stringify(draftPost.content),
+        content: draftPost.content,
       });
     }
   }
@@ -195,7 +245,7 @@ export default class BlogsController {
         titlePhotoCaption: draftPost.titlePhoto.caption,
         titlePhotoOrientation: draftPost.titlePhoto.orientation,
         hikeLegId: draftPost.hikeLegId,
-        content: JSON.stringify(draftPost.content),
+        content: draftPost.content,
       }, {
         client: trx,
       });
@@ -209,7 +259,7 @@ export default class BlogsController {
         titlePhotoCaption: draftPost.titlePhoto.caption,
         titlePhotoOrientation: draftPost.titlePhoto.orientation,
         hikeLegId: draftPost.hikeLegId,
-        content: JSON.stringify(draftPost.content),
+        content: draftPost.content,
       });
     }
 

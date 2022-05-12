@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import React from 'react';
-import { BlogListItemInterface, BlogManagerInterface } from '../../Blog/state/Types';
+import { BlogListItemInterface } from '../../Blog/state/Types';
 import styles from './BlogList.module.css';
 import BlogListItem from './BlogListItem';
 

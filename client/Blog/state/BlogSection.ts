@@ -1,6 +1,6 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import { BlogSectionProps, BlogSectionTypes } from '../../../common/ResponseTypes';
-import { BlogInterface, BlogSectionInterface } from './Types';
+import { BlogSectionInterface } from './Types';
 import BlogPhoto from './BlogPhoto';
 
 class BlogSection implements BlogSectionInterface {
@@ -16,6 +16,15 @@ class BlogSection implements BlogSectionInterface {
     this.type = props.type;
     this.text = props.text;
     this.onModified = onModified;
+
+    if (this.type === undefined) {
+      if (props.photo) {
+        this.type = 'photo';
+      }
+      else {
+        this.type = 'markdown';
+      }
+    }
 
     if (props.photo) {
       this.photo = new BlogPhoto(props.photo, onModified);

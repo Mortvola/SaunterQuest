@@ -1,4 +1,4 @@
-import { BaseCommand } from '@adonisjs/core/build/standalone'
+import { BaseCommand } from '@adonisjs/core/build/standalone';
 import Photo from 'App/Models/Photo';
 import sharp from 'sharp';
 import heicConvert from 'heic-convert';
@@ -11,7 +11,7 @@ export default class PhotosRegenerate extends BaseCommand {
   /**
    * Command name is used to run the command
    */
-  public static commandName = 'photos:regenerate'
+  public static commandName = 'photos:regenerate';
 
   /**
    * Command description is displayed in the "help" output
@@ -21,20 +21,23 @@ export default class PhotosRegenerate extends BaseCommand {
   public static settings = {
     /**
      * Set the following value to true, if you want to load the application
-     * before running the command. Don't forget to call `node ace generate:manifest` 
+     * before running the command. Don't forget to call `node ace generate:manifest`
      * afterwards.
      */
     loadApp: true,
 
     /**
      * Set the following value to true, if you want this command to keep running until
-     * you manually decide to exit the process. Don't forget to call 
+     * you manually decide to exit the process. Don't forget to call
      * `node ace generate:manifest` afterwards.
      */
     stayAlive: false,
-  }
+  };
 
-  private async findFile(userId: number, photoId: number, Drive: DriveManagerContract): Promise<string | null> {
+  // eslint-disable-next-line class-methods-use-this
+  private async findFile(
+    userId: number, photoId: number, Drive: DriveManagerContract,
+  ): Promise<string | null> {
     const tests = ['jpg', 'heic', 'tiff', 'png'].map(async (e) => {
       const path = `./photos/${userId}/${photoId}_original.${e}`;
       console.log(`checking for ${path}`);
@@ -71,12 +74,14 @@ export default class PhotosRegenerate extends BaseCommand {
         .webp()
         .toFile(`./photos/${photo.userId}/${photo.id}_thumb.webp`);
     }
-    catch(error) {
+    catch (error) {
       console.log(error.message);
     }
   }
 
-  private static async loadPhotoData(path: string, Drive: DriveManagerContract): Promise<Buffer | null> {
+  private static async loadPhotoData(
+    path: string, Drive: DriveManagerContract,
+  ): Promise<Buffer | null> {
     console.log(`loading data for ${path}`);
     let data: Buffer | null = null;
 
@@ -88,11 +93,11 @@ export default class PhotosRegenerate extends BaseCommand {
 
       console.log(`finished Drive.get ${path}`);
     }
-    catch(error) {
+    catch (error) {
       console.log(error.message);
     }
 
-    console.log(`checking for heic: ${path}`)
+    console.log(`checking for heic: ${path}`);
     const ext = extname(path);
     if (data && ext === '.heic') {
       console.log(`file is heic: ${path}`);
@@ -101,9 +106,9 @@ export default class PhotosRegenerate extends BaseCommand {
         data = await heicConvert({
           buffer: data,
           format: 'PNG',
-        });  
+        });
       }
-      catch(error) {
+      catch (error) {
         data = null;
         console.log(`heic conversion failed: ${path}`);
       }

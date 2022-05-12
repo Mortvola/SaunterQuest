@@ -1,6 +1,27 @@
 import { DateTime } from 'luxon';
 import { BaseModel, column, computed } from '@ioc:Adonis/Lucid/Orm';
 
+interface BlogSection {
+  type: 'photo' | 'markdown' | 'map' | 'elevation';
+}
+
+export interface BlogPhoto {
+  id: number;
+  caption: string | null;
+  width: number;
+  height: number;
+}
+
+export interface BlogPhotoSection extends BlogSection {
+  photo: BlogPhoto;
+}
+
+export function isPhotoSection(section: BlogSection): section is BlogPhotoSection {
+  return section.type === 'photo';
+}
+
+export type BlogContent = BlogSection[];
+
 export default class BlogPost extends BaseModel {
   @column({ isPrimary: true })
   public id: number;
@@ -26,15 +47,15 @@ export default class BlogPost extends BaseModel {
   @column({ serializeAs: 'hikeLegId' })
   public hikeLegId: number | null;
 
-  @column()
-  public content: any | null;
+  @column({ prepare: (value) => JSON.stringify(value) })
+  public content: BlogContent | null;
 
   @computed({ serializeAs: 'titlePhoto' })
-  public get photo() {
-    return {
-      id: this.titlePhotoId ?? null,
-      caption: this.titlePhotoCaption ?? null,
-      orientation: this.titlePhotoOrientation ?? 0,
-    };
-  }
+  public titlePhoto: {
+    id: number | null,
+    caption: string | null,
+    orientation: number,
+    width: number | null,
+    height: number | null,
+  };
 }

@@ -29,9 +29,21 @@
         "loadApp": true,
         "stayAlive": false
       },
-      "commandPath": "./commands/PhotosRegenerate",
+      "commandPath": "./commands/PhotosRegenerate copy",
       "commandName": "photos:regenerate",
       "description": "Regenerate the scaled down photos from the originals",
+      "args": [],
+      "aliases": [],
+      "flags": []
+    },
+    "photos:update": {
+      "settings": {
+        "loadApp": true,
+        "stayAlive": false
+      },
+      "commandPath": "./commands/PhotosUpdate",
+      "commandName": "photos:update",
+      "description": "Updates the meta data in the photos table",
       "args": [],
       "aliases": [],
       "flags": []
@@ -47,7 +59,8 @@
     },
     "list:routes": {
       "settings": {
-        "loadApp": true
+        "loadApp": true,
+        "stayAlive": true
       },
       "commandPath": "@adonisjs/core/build/commands/ListRoutes/index",
       "commandName": "list:routes",

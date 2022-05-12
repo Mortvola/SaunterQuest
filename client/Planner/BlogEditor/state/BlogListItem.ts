@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon';
 import { BlogListItemProps } from '../../../../common/ResponseTypes';
-import { BlogListItemInterface, BlogManagerInterface } from '../../../Blog/state/Types';
+import { BlogListItemInterface } from '../../../Blog/state/Types';
 
 class BlogListItem implements BlogListItemInterface {
   id: number;

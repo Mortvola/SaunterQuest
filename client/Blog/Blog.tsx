@@ -55,7 +55,6 @@ const FormattedBlog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) =>
               photo={blog.titlePhoto}
               className="title-photo"
               blogId={blog.id}
-              loading="eager"
             />
           )
           : null
