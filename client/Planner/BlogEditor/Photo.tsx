@@ -103,7 +103,7 @@ const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
               <>
                 <IconButton icon="rotate-right" iconClass="fa-solid" onClick={handleRotateRightClick} />
                 <IconButton icon="rotate-left" iconClass="fa-solid" onClick={handleRotateLeftClick} />
-                <Image blogId={blogId} photo={photo} version={version} />
+                <Image blogId={blogId} photoId={photo.id} version={version} />
                 <TextareaAutosize className={styles.text} value={photo.caption ?? ''} onChange={handleChange} />
               </>
             )

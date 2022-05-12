@@ -136,24 +136,23 @@ export default class PhotosController {
       user,
     },
     params,
+    request,
     response,
   }: HttpContextContract): Promise<unknown> {
     if (!user) {
       throw new Exception('user unauthorized');
     }
 
-    let location = '';
-    let size = 0;
-    try {
+    let location = `./photos/${user.id}/${params.photoId}_small.webp`;
+
+    const { size: photoSize } = request.qs();
+
+    if (photoSize === 'thumb') {
       location = `./photos/${user.id}/${params.photoId}_thumb.webp`;
-      const stats = await Drive.getStats(location);
-      size = stats.size;
     }
-    catch (error) {
-      location = `./photos/${user.id}/${params.photoId}_small.jpg`;
-      const stats = await Drive.getStats(location);
-      size = stats.size;
-    }
+
+    const stats = await Drive.getStats(location);
+    const { size } = stats;
 
     response.type(extname(location));
     response.header('content-length', size);

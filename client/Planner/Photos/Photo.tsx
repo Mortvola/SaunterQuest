@@ -4,6 +4,7 @@ import IconButton from '../../IconButton';
 import { useDeleteConfirmation } from '../../DeleteConfirmation';
 import styles from './Photo.module.css';
 import PleaseWait from '../../Hikes/PleaseWait';
+import Image from '../../Image/Image';
 
 type PropsType = {
   id: number,
@@ -12,7 +13,6 @@ type PropsType = {
 
 const Photo: React.FC<PropsType> = ({ id, onDelete }) => {
   const [regenerating, setRegenerating] = React.useState<boolean>(false);
-  const [imageLoading, setImageLoading] = React.useState<boolean>(true);
   const [version, setVersion] = React.useState<number>(0);
   const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
     'Are you sure you want to delete this photo?',
@@ -32,10 +32,6 @@ const Photo: React.FC<PropsType> = ({ id, onDelete }) => {
     }
 
     setRegenerating(false);
-  };
-
-  const handleLoaded = () => {
-    setImageLoading(false);
   };
 
   const handleRotateRightClick = async () => {
@@ -65,14 +61,8 @@ const Photo: React.FC<PropsType> = ({ id, onDelete }) => {
         <IconButton icon="pencil" iconClass="fa-solid" invert onClick={handleUpdateClick} />
       </div>
       <div className={styles.photoWrapper}>
-        <img
-          className={styles.photo}
-          src={`/api/photo/${id}?v=${version}`}
-          alt=""
-          loading="lazy"
-          onLoad={handleLoaded}
-        />
-        <PleaseWait show={regenerating || imageLoading} />
+        <Image photoId={id} version={version} />
+        <PleaseWait show={regenerating} />
       </div>
       <DeleteConfirmation />
     </div>

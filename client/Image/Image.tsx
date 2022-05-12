@@ -1,17 +1,16 @@
 import React from 'react';
-import { BlogPhotoInterface } from '../Blog/state/Types';
 import styles from './Image.module.css';
 
 type PropsType = {
-  blogId: number,
-  photo: BlogPhotoInterface,
+  blogId?: number,
+  photoId: number,
   loading?: 'eager' | 'lazy',
   version?: number,
 };
 
 const Image: React.FC<PropsType> = ({
   blogId,
-  photo,
+  photoId,
   loading = 'lazy',
   version = 0,
 }) => {
@@ -24,9 +23,12 @@ const Image: React.FC<PropsType> = ({
   return (
     <img
       className={styles.image}
-      src={`/api/blog/${blogId}/photo/${photo.id}?v=${version}${!photoSize ? '&size=thumb' : ''}`}
+      src={
+        blogId === undefined
+          ? `/api/photo/${photoId}?v=${version}${!photoSize ? '&size=thumb' : ''}`
+          : `/api/blog/${blogId}/photo/${photoId}?v=${version}${!photoSize ? '&size=thumb' : ''}`
+      }
       alt=""
-      style={{ transform: `rotate(${photo.orientation}deg)` }}
       loading={loading}
       onLoad={handleLoaded}
     />

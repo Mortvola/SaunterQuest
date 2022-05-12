@@ -30,7 +30,7 @@ const Photo: React.FC<PropsType> = ({
           ? (
             <>
               <div className={styles.imageWrapper}>
-                <Image blogId={blogId} photo={photo} />
+                <Image blogId={blogId} photoId={photo.id} />
               </div>
               {
                 photo.caption
