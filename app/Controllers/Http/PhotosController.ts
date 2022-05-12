@@ -1,5 +1,5 @@
 import { Exception } from '@adonisjs/core/build/standalone';
-import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import { schema } from '@ioc:Adonis/Core/Validator';
 import Database from '@ioc:Adonis/Lucid/Database';
 import Drive from '@ioc:Adonis/Core/Drive';
@@ -35,13 +35,11 @@ export default class PhotosController {
 
   private static async saveScaledImages(photo: Photo, data: Buffer) {
     try {
-      const path = `./photos/${photo.userId}/${photo.id}_small.webp`;
-
       await sharp(data)
         .rotate(photo.orientation ?? 0)
         .resize(smallWidth)
         .webp()
-        .toFile(path);
+        .toFile(`./photos/${photo.userId}/${photo.id}_small.webp`);
 
       await sharp(data)
         .rotate(photo.orientation ?? 0)
@@ -50,7 +48,7 @@ export default class PhotosController {
         .webp()
         .toFile(`./photos/${photo.userId}/${photo.id}_thumb.webp`);
     }
-    catch(error) {
+    catch (error) {
       console.log(error.message);
     }
   }
@@ -81,9 +79,9 @@ export default class PhotosController {
       },
       { client: trx },
     );
-  
+
     // Determine the image type from the data
-    const fileTypeFromBuffer= (await import('file-type-cjs')).fromBuffer;
+    const fileTypeFromBuffer = (await import('file-type-cjs')).fromBuffer;
 
     const fileType = await fileTypeFromBuffer(data);
 
@@ -92,7 +90,8 @@ export default class PhotosController {
     }
 
     switch (fileType.mime) {
-      case 'image/tiff': {
+      case 'image/tiff':
+      case 'image/x-sony-arw': {
         Drive.put(`./photos/${user.id}/${photo.id}_original.tiff`, data);
 
         break;
@@ -105,7 +104,7 @@ export default class PhotosController {
           buffer: data,
           format: 'PNG',
         });
-  
+
         break;
 
       case 'image/jpeg':
@@ -124,9 +123,9 @@ export default class PhotosController {
 
     await PhotosController.saveScaledImages(photo, data);
 
-    const id = photo.id;
+    const { id } = photo;
 
-    trx.commit();  
+    trx.commit();
 
     return { id };
   }
@@ -150,7 +149,7 @@ export default class PhotosController {
       const stats = await Drive.getStats(location);
       size = stats.size;
     }
-    catch(error) {
+    catch (error) {
       location = `./photos/${user.id}/${params.photoId}_small.jpg`;
       const stats = await Drive.getStats(location);
       size = stats.size;
@@ -216,10 +215,10 @@ export default class PhotosController {
 
     const requestDetails = await request.validate({
       schema: schema.create({
-        command: schema.string(),
+        command: schema.enum(['rotate-right', 'rotate-left'] as const),
       }),
     });
-    
+
     const trx = await Database.transaction();
 
     const photo = await Photo.findOrFail(params.photoId, { client: trx });
@@ -227,7 +226,9 @@ export default class PhotosController {
     // Find the original file for this photo id by iterating over the list of
     // supported extensions.
     let ext: string | null = null;
-    for (let e of ['jpg', 'heic', 'tiff', 'png']) {
+    // eslint-disable-next-line no-restricted-syntax
+    for (const e of ['jpg', 'heic', 'tiff', 'png']) {
+      // eslint-disable-next-line no-await-in-loop
       const exists = await Drive.exists(`./photos/${user.id}/${params.photoId}_original.${e}`);
       if (exists) {
         ext = e;
@@ -245,14 +246,34 @@ export default class PhotosController {
         });
       }
 
-      if (requestDetails.command === 'rotate') {
-        photo.orientation = (photo.orientation ?? 0) + 90;
+      switch (requestDetails.command) {
+        case 'rotate-right': {
+          photo.orientation = (photo.orientation ?? 0) + 90;
 
-        if (photo.orientation === 360) {
-          photo.orientation = 0;
+          if (photo.orientation === 360) {
+            photo.orientation = 0;
+          }
+
+          photo.save();
+
+          break;
         }
 
-        photo.save();
+        case 'rotate-left': {
+          photo.orientation = (photo.orientation ?? 0) - 90;
+
+          if (photo.orientation < 0) {
+            photo.orientation = 360 + photo.orientation;
+          }
+
+          photo.save();
+
+          break;
+        }
+
+        default: {
+          throw new Exception('invalid command');
+        }
       }
 
       await PhotosController.saveScaledImages(photo, data);

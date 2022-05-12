@@ -13,6 +13,7 @@ type PropsType = {
 const Photo: React.FC<PropsType> = ({ id, onDelete }) => {
   const [regenerating, setRegenerating] = React.useState<boolean>(false);
   const [imageLoading, setImageLoading] = React.useState<boolean>(true);
+  const [version, setVersion] = React.useState<number>(0);
   const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
     'Are you sure you want to delete this photo?',
     () => {
@@ -27,6 +28,7 @@ const Photo: React.FC<PropsType> = ({ id, onDelete }) => {
       await Http.post(`/api/photo/${id}`, { command: 'regenerate' });
     }
     catch (error) {
+      console.log(error);
     }
 
     setRegenerating(false);
@@ -36,30 +38,41 @@ const Photo: React.FC<PropsType> = ({ id, onDelete }) => {
     setImageLoading(false);
   };
 
-  const handleRotateClick = async () => {
+  const handleRotateRightClick = async () => {
     setRegenerating(true);
 
-    await Http.post(`/api/photo/${id}`, { command: 'rotate' });
+    await Http.post(`/api/photo/${id}`, { command: 'rotate-right' });
 
+    setVersion((prev) => prev + 1);
+    setRegenerating(false);
+  };
+
+  const handleRotateLeftClick = async () => {
+    setRegenerating(true);
+
+    await Http.post(`/api/photo/${id}`, { command: 'rotate-left' });
+
+    setVersion((prev) => prev + 1);
     setRegenerating(false);
   };
 
   return (
     <div className={styles.wrapper}>
+      <div className={styles.toolbar}>
+        <IconButton icon="trash" invert onClick={handleDeleteClick} />
+        <IconButton icon="rotate-right" iconClass="fa-solid" invert onClick={handleRotateRightClick} />
+        <IconButton icon="rotate-left" iconClass="fa-solid" invert onClick={handleRotateLeftClick} />
+        <IconButton icon="pencil" iconClass="fa-solid" invert onClick={handleUpdateClick} />
+      </div>
       <div className={styles.photoWrapper}>
         <img
           className={styles.photo}
-          src={`/api/photo/${id}`}
+          src={`/api/photo/${id}?v=${version}`}
           alt=""
           loading="lazy"
           onLoad={handleLoaded}
         />
         <PleaseWait show={regenerating || imageLoading} />
-      </div>
-      <div className={styles.toolbar}>
-        <IconButton icon="trash" invert onClick={handleDeleteClick} />
-        <IconButton icon="rotate-right" iconClass="fa-solid" invert onClick={handleRotateClick} />
-        <IconButton icon="pencil" iconClass="fa-solid" invert onClick={handleUpdateClick} />
       </div>
       <DeleteConfirmation />
     </div>
