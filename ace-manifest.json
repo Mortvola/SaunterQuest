@@ -29,7 +29,7 @@
         "loadApp": true,
         "stayAlive": false
       },
-      "commandPath": "./commands/PhotosRegenerate copy",
+      "commandPath": "./commands/PhotosRegenerate",
       "commandName": "photos:regenerate",
       "description": "Regenerate the scaled down photos from the originals",
       "args": [],
