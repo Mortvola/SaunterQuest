@@ -1,5 +1,5 @@
 .ukraine-wrapper {
-  display: flex;
+  display: none;
   justify-content: center;
   flex-direction: column;
   font-size: 1.4rem;

@@ -21,6 +21,7 @@ const Main: React.FC<PropsType> = observer(({ tileServerUrl }) => {
   const [showRegister, setShowRegister] = useState(false);
   const { blogManager } = useStores();
   const [slideOutOpen, setSlideOutOpen] = useState(false);
+  const [smallTitle, setSmallTitle] = useState<boolean>(false);
   const history = useHistory();
 
   useEffect(() => {
@@ -66,11 +67,19 @@ const Main: React.FC<PropsType> = observer(({ tileServerUrl }) => {
     window.location.replace(`/blog/${blog.id}`);
   };
 
+  const handleScroll = (scrollTop: number) => {
+    setSmallTitle(scrollTop > 100);
+  };
+
   return (
     <>
       <div className={styles.page}>
         <div className={styles.main}>
-          <div className={styles.title}>SaunterQuest</div>
+          <div
+            className={`${styles.title} ${smallTitle ? styles.small : ''}`}
+          >
+            SaunterQuest
+          </div>
           <div className={styles.links}>
             <div className={styles.welcomeButton} onClick={handleLoginClick}>Login</div>
             {
@@ -82,7 +91,14 @@ const Main: React.FC<PropsType> = observer(({ tileServerUrl }) => {
         <IconButton icon="angle-right" className={styles.offCanvasButton} onClick={handleSlideOutOpen} />
         {
           blogManager.current
-            ? <Blog blog={blogManager.current} tileServerUrl={tileServerUrl} />
+            ? (
+              <Blog
+                blog={blogManager.current}
+                tileServerUrl={tileServerUrl}
+                onScroll={handleScroll}
+                smallTitle={smallTitle}
+              />
+            )
             : null
         }
         <Login show={showLogin} onHide={handleLoginHide} />

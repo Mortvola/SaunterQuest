@@ -1,5 +1,4 @@
 import React from 'react';
-import { DateTime } from 'luxon';
 import { observer } from 'mobx-react-lite';
 import { BlogInterface } from './state/Types';
 import Markdown from './Markdown';
@@ -14,13 +13,21 @@ import YouTube from './YouTube';
 import SocialIcons from './SocialIcons';
 import PleaseWait from '../Hikes/PleaseWait';
 import PrevNextButtons from './PrevNextButtons';
+import BlogTitle from './BlogTItle';
 
 type PropsType = {
   blog: BlogInterface,
   tileServerUrl: string,
+  onScroll?: (scrollTop: number) => void,
+  smallTitle?: boolean,
 }
 
-const FormattedBlog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) => {
+const FormattedBlog: React.FC<PropsType> = observer(({
+  blog,
+  tileServerUrl,
+  onScroll,
+  smallTitle = false,
+}) => {
   const [hikeLeg, setHikeLeg] = React.useState<HikeLeg | null>(null);
   const [showMapPleaseWait, setShowMapPleaseWait] = React.useState<boolean>(true);
   const blogRef = React.useRef<HTMLDivElement | null>(null);
@@ -45,42 +52,29 @@ const FormattedBlog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) =>
     setShowMapPleaseWait(false);
   };
 
+  const handleScroll: React.UIEventHandler<HTMLDivElement> = (event) => {
+    // console.log(`scrolling: ${event.currentTarget.scrollTop}`);
+    if (onScroll) {
+      onScroll(event.currentTarget.scrollTop);
+    }
+  };
+
   return (
-    <div className={styles.blogWrapper}>
+    <div className={styles.blogWrapper} onScroll={handleScroll}>
       <div ref={blogRef} className={styles.blog}>
-        {
-        blog.titlePhoto.id
-          ? (
-            <Photo
-              photo={blog.titlePhoto}
-              className="title-photo"
-              blogId={blog.id}
-            />
-          )
-          : null
-        }
+        <BlogTitle blog={blog} smallTitle={smallTitle} />
         <SocialIcons blog={blog} />
-        <div className={styles.title}>
-          <div>{blog.title ?? ''}</div>
-          {
-            blog.publicationTime
-              ? (
-                <span className={styles.publishedDate}>
-                  {
-                    `Published ${blog.publicationTime.toLocaleString(DateTime.DATETIME_FULL)}`
-                  }
-                  {
-                    blog.publicationUpdateTime
-                      ? (
-                        `, Updated ${blog.publicationUpdateTime.toLocaleString(DateTime.DATETIME_FULL)}`
-                      )
-                      : null
-                  }
-                </span>
-              )
-              : null
-          }
-        </div>
+        {
+          blog.titlePhoto.id
+            ? (
+              <Photo
+                photo={blog.titlePhoto}
+                className="title-photo"
+                blogId={blog.id}
+              />
+            )
+            : null
+        }
         {
           blog.sections.map((s, index) => {
             switch (s.type) {

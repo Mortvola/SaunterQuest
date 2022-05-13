@@ -16,27 +16,6 @@
   justify-self: center;
 }
 
-.title {
-  display: flex;
-  flex-direction: column;
-  font-family: proxima-nova,Helvetica Neue,Arial,sans-serif;
-  font-size: 2.5rem;
-  line-height: normal;
-  color: #2e2e2e;
-  font-weight: bold;
-  text-transform: none;
-  margin-top: 1.25rem;
-  margin-bottom: 1rem;
-  padding-left: 0.25rem;
-  padding-right: 0.25rem;
-}
-
-.published-date {
-  font-size: 0.75rem;
-  font-weight: normal;
-  line-height: normal;
-}
-
 .html {
   width: max-content;
   justify-self: center;
