@@ -136,8 +136,8 @@ export type BlogPhotoProps = {
   id: number | null,
   caption: string | null,
   orientation?: number,
-  width?: number,
-  height?: number,
+  width?: number | null,
+  height?: number | null,
 }
 
 export type BlogSectionTypes = 'markdown' | 'elevation' | 'map' | 'photo' | 'html' | 'youTube';
@@ -199,4 +199,5 @@ export type BlogListItemProps = {
   id: number,
   title: string | null,
   publicationTime?: string | null,
+  titlePhoto?: BlogPhotoProps,
 }

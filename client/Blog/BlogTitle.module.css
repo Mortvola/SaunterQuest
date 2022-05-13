@@ -10,11 +10,7 @@
   margin-bottom: 1rem;
   padding-left: 0.25rem;
   padding-right: 0.25rem;
-  position: sticky;
-  top: 0px;
-  z-index: 3000;
   background-color: #fff;
-  transition: font-size 1s ease-out;
 }
 
 .title.small {

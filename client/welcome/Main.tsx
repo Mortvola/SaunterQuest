@@ -1,6 +1,5 @@
 import { observer } from 'mobx-react-lite';
 import React, { useEffect, useState } from 'react';
-import { Offcanvas } from 'react-bootstrap';
 import { matchPath, useHistory } from 'react-router-dom';
 import Login from '../login/Login';
 import Register from '../login/Register';
@@ -11,6 +10,8 @@ import IconButton from '../IconButton';
 import BlogList from './BlogList';
 import { BlogListItemInterface } from '../Blog/state/Types';
 import Ukraine from './Ukraine';
+import Menu from './Menu';
+import { ItemId } from './MenuItem';
 
 type PropsType = {
   tileServerUrl: string,
@@ -71,50 +72,58 @@ const Main: React.FC<PropsType> = observer(({ tileServerUrl }) => {
     setSmallTitle(scrollTop > 100);
   };
 
+  const [active, setActive] = React.useState<ItemId>('home');
+
+  const handleSelect = (itemId: ItemId) => {
+    setActive(itemId);
+  };
+
+  const displayContent = () => {
+    switch (active) {
+      case 'home': {
+        return blogManager.current
+          ? (
+            <Blog
+              blog={blogManager.current}
+              tileServerUrl={tileServerUrl}
+              onScroll={handleScroll}
+              smallTitle={smallTitle}
+            />
+          )
+          : null;
+      }
+
+      case 'archives':
+        return <BlogList onSelection={handleSelection} />;
+
+      default:
+        return null;
+    }
+  };
+
   return (
-    <>
-      <div className={styles.page}>
-        <div className={styles.main}>
-          <div
-            className={`${styles.title} ${smallTitle ? styles.small : ''}`}
-          >
-            SaunterQuest
-          </div>
-          <div className={styles.links}>
-            <div className={styles.welcomeButton} onClick={handleLoginClick}>Login</div>
-            {
-              // <div className={styles.welcomeButton} onClick={handleRegisterClick}>Register</div>
-            }
-          </div>
+    <div className={styles.page}>
+      <div className={styles.main}>
+        <div
+          className={`${styles.title} ${smallTitle ? styles.small : ''}`}
+        >
+          SaunterQuest
         </div>
-        <Ukraine />
-        <IconButton icon="angle-right" className={styles.offCanvasButton} onClick={handleSlideOutOpen} />
-        {
-          blogManager.current
-            ? (
-              <Blog
-                blog={blogManager.current}
-                tileServerUrl={tileServerUrl}
-                onScroll={handleScroll}
-                smallTitle={smallTitle}
-              />
-            )
-            : null
-        }
-        <Login show={showLogin} onHide={handleLoginHide} />
-        <Register show={showRegister} onHide={handleRegisterHide} />
-      </div>
-      <Offcanvas show={slideOutOpen} onHide={handleSlideOutClose}>
-        <Offcanvas.Header closeButton />
-        <Offcanvas.Body>
+        <div className={styles.links}>
+          <div className={styles.welcomeButton} onClick={handleLoginClick}>Login</div>
           {
-            slideOutOpen
-              ? <BlogList onSelection={handleSelection} />
-              : null
+            // <div className={styles.welcomeButton} onClick={handleRegisterClick}>Register</div>
           }
-        </Offcanvas.Body>
-      </Offcanvas>
-    </>
+        </div>
+        <Menu active={active} onSelect={handleSelect} />
+      </div>
+      <IconButton icon="angle-right" className={styles.offCanvasButton} onClick={handleSlideOutOpen} />
+      {
+        displayContent()
+      }
+      <Login show={showLogin} onHide={handleLoginHide} />
+      <Register show={showRegister} onHide={handleRegisterHide} />
+    </div>
   );
 });
 

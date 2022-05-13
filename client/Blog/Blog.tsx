@@ -62,7 +62,7 @@ const FormattedBlog: React.FC<PropsType> = observer(({
   return (
     <div className={styles.blogWrapper} onScroll={handleScroll}>
       <div ref={blogRef} className={styles.blog}>
-        <BlogTitle blog={blog} smallTitle={smallTitle} />
+        <BlogTitle blog={blog} />
         <SocialIcons blog={blog} />
         {
           blog.titlePhoto.id

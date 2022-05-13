@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon';
-import { BlogSectionTypes } from '../../../common/ResponseTypes';
+import { BlogSectionTypes, PhotoProps } from '../../../common/ResponseTypes';
 
 export interface BlogPhotoInterface {
   id: number | null,
@@ -68,6 +68,8 @@ interface BlogListItemInterface {
   title: string | null;
 
   publicationTime?: DateTime | null;
+
+  titlePhoto?: BlogPhotoProps;
 
   delete(): void;
 }

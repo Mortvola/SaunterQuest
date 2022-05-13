@@ -52,7 +52,15 @@ class Blog implements BlogInterface {
 
     if (!post) {
       this.title = `Unnamed (${props.id})`;
-      this.titlePhoto = new BlogPhoto({ id: null, caption: null }, this.onModified);
+      this.titlePhoto = new BlogPhoto(
+        {
+          id: null,
+          caption: null,
+          width: null,
+          height: null,
+        },
+        this.onModified,
+      );
     }
     else {
       this.title = post.title;

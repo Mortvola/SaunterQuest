@@ -39,7 +39,6 @@ const BlogList: React.FC<PropsType> = ({ onSelection }) => {
                 key={b.id}
                 blog={b}
                 onClick={onSelection}
-                selected={false}
               />
             ))
           )

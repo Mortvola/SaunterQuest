@@ -1,6 +1,9 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import Database, { TransactionClientContract } from '@ioc:Adonis/Lucid/Database';
 import Drive from '@ioc:Adonis/Core/Drive';
+import Mail from '@ioc:Adonis/Addons/Mail';
+import Env from '@ioc:Adonis/Core/Env';
+import { schema, rules } from '@ioc:Adonis/Core/Validator';
 import { extname } from 'path';
 import Blog from 'App/Models/Blog';
 import { Exception } from '@adonisjs/core/build/standalone';
@@ -8,9 +11,6 @@ import { DateTime } from 'luxon';
 import BlogPost, { BlogContent, isPhotoSection } from 'App/Models/BlogPost';
 import BlogComment from 'App/Models/BlogComment';
 import { BlogListItemProps, CommentProps } from 'common/ResponseTypes';
-import Mail from '@ioc:Adonis/Addons/Mail';
-import Env from '@ioc:Adonis/Core/Env';
-import { schema, rules } from '@ioc:Adonis/Core/Validator';
 import Photo from 'App/Models/Photo';
 
 export default class BlogsController {
@@ -25,10 +25,15 @@ export default class BlogsController {
         .whereNotNull('publishedPostId')
         .orderBy('publicationTime', 'desc');
 
-      return blogs.map<BlogListItemProps>((b) => ({
-        id: b.id,
-        title: b.publishedPost.title,
-        publicationTime: b.publicationTime ? b.publicationTime.toISO() : null,
+      return Promise.all(blogs.map<Promise<BlogListItemProps>>(async (b) => {
+        await BlogsController.updateTitlePhoto(b.publishedPost);
+
+        return ({
+          id: b.id,
+          title: b.publishedPost.title,
+          publicationTime: b.publicationTime ? b.publicationTime.toISO() : null,
+          titlePhoto: b.publishedPost.titlePhoto,
+        });
       }));
     }
 
@@ -50,12 +55,32 @@ export default class BlogsController {
     }));
   }
 
+  static async updateTitlePhoto(post: BlogPost) {
+    post.titlePhoto = {
+      id: post.titlePhotoId ?? null,
+      caption: post.titlePhotoCaption ?? null,
+      orientation: post.titlePhotoOrientation ?? 0,
+      width: null,
+      height: null,
+    };
+
+    if (post.titlePhotoId !== null) {
+      const photo = await Photo.find(post.titlePhotoId);
+
+      if (photo && photo.width && photo.height) {
+        post.titlePhoto.width = photo.width;
+        post.titlePhoto.height = photo.height;
+      }
+    }
+  }
+
   // eslint-disable-next-line class-methods-use-this
   async getBlog({ request, params }: HttpContextContract): Promise<Blog | null> {
     let blog: Blog | null = null;
 
     if (params.blogId === 'latest') {
-      blog = await Blog.query().preload('publishedPost')
+      blog = await Blog.query()
+        .preload('publishedPost')
         .whereNotNull('publishedPostId')
         .andWhere('deleted', false)
         .orderBy('publicationTime', 'desc')
@@ -112,23 +137,8 @@ export default class BlogsController {
 
         if (post.content) {
           await updateContentPhotos(post.content);
-        }
 
-        post.titlePhoto = {
-          id: post.titlePhotoId ?? null,
-          caption: post.titlePhotoCaption ?? null,
-          orientation: post.titlePhotoOrientation ?? 0,
-          width: null,
-          height: null,
-        };
-
-        if (post.titlePhotoId !== null) {
-          const photo = await Photo.find(post.titlePhotoId);
-
-          if (photo && photo.width && photo.height) {
-            post.titlePhoto.width = photo.width;
-            post.titlePhoto.height = photo.height;
-          }
+          await BlogsController.updateTitlePhoto(post);
         }
       };
 

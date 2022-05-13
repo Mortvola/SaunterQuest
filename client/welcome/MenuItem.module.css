@@ -1,0 +1,18 @@
+.menu-item {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  cursor: pointer;
+  margin-top: 2px;
+  border-top: none;
+}
+
+.menu-item:hover {
+  color: rgb(48, 136, 48);
+  margin-top: 0;
+  border-top: 2px rgb(48, 136, 48) solid;
+}
+
+.menu-item.selected {
+  margin-top: 0;
+  border-top: 2px black solid;
+}

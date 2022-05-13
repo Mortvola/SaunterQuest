@@ -1,5 +1,15 @@
 .list-item {
   cursor: pointer;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0,1fr);
+  grid-template-rows: repeat(3, max-content);
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.date {
+  font-size: 0.75rem;
 }

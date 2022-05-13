@@ -1,6 +1,8 @@
 .list {
   overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  row-gap: 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  grid-template-rows: auto;
+  gap: 1rem;
+  padding: 1rem;
 }
