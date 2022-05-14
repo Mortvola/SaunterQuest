@@ -1,5 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import React from 'react';
+import { useMatch, useNavigate, useResolvedPath } from 'react-router-dom';
 import { BlogListItemInterface } from '../../Blog/state/Types';
 import IconButton from '../../IconButton';
 import { useDeleteConfirmation } from '../../DeleteConfirmation';
@@ -7,24 +8,29 @@ import styles from './BlogListItem.module.css';
 
 type PropsType = {
   blog: BlogListItemInterface,
-  selected: boolean,
   onClick: (blog: BlogListItemInterface) => void,
 }
 
-const BlogListItem: React.FC<PropsType> = observer(({ blog, selected, onClick }) => {
+const BlogListItem: React.FC<PropsType> = observer(({ blog, onClick }) => {
+  const resolved = useResolvedPath(blog.id.toString());
+  const match = useMatch({ path: resolved.pathname, end: true });
+  const navigate = useNavigate();
+
   const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
     'Are you sure you want to delete this blog post?',
     () => {
       blog.delete();
+      navigate('');
     },
   );
 
   const handleClick = () => {
     onClick(blog);
+    navigate(blog.id.toString());
   };
 
   return (
-    <div className={`${styles.item} ${selected ? styles.selected : ''}`}>
+    <div className={`${styles.item} ${match ? styles.selected : ''}`}>
       <div onClick={handleClick}>
         <div>
           {blog.title ?? `Untitled (${blog.id})`}

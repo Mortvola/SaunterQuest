@@ -1,7 +1,7 @@
 interface BlogManagerInterface {
   blogs: BlogListItemInterface[];
 
-  addBlog(): Promise<void>;
+  addBlog(): Promise<number | null>;
 
   deleteBlog(blog: BlogListItemInterface): Promise<void>;
 }

@@ -19,6 +19,7 @@ import { store as hikeStore, StoreContext as HikeStoreContent } from '../Hike/st
 import usePageViews from '../Tracker';
 import Blogs from './BlogEditor/Blogs';
 import Photos from './Photos/Photos';
+import Blog from './BlogEditor/Blog';
 
 Leaflet.Icon.Default.imagePath = '//cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.4/images/';
 
@@ -62,12 +63,13 @@ const App: React.FC<PropsType> = observer(({
           path="/blog"
           element={(
             <Blogs
-              tileServerUrl={tileServerUrl}
               showOffcanvas={showOffcanvas}
               onHideOffcanvas={handleHidecanvas}
             />
           )}
-        />
+        >
+          <Route path=":blogId" element={<Blog tileServerUrl={tileServerUrl} />} />
+        </Route>
         <Route path="/photos" element={<Photos />} />
         <Route path="/" element={<Hikes />} />
       </Routes>

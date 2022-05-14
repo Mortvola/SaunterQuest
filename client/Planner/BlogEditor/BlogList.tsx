@@ -1,5 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BlogListItemInterface } from '../../Blog/state/Types';
 import styles from './BlogList.module.css';
 import BlogListItem from './BlogListItem';
@@ -7,12 +8,17 @@ import BlogListItem from './BlogListItem';
 type PropsType = {
   blogManager: BlogManagerInterface,
   onSelection: (blog: BlogListItemInterface) => void,
-  selectedBlog: BlogListItemInterface | null,
 }
 
-const BlogList: React.FC<PropsType> = observer(({ blogManager, onSelection, selectedBlog }) => {
-  const handleAddBlog = () => {
-    blogManager.addBlog();
+const BlogList: React.FC<PropsType> = observer(({ blogManager, onSelection }) => {
+  const navigate = useNavigate();
+
+  const handleAddBlog = async () => {
+    const id = await blogManager.addBlog();
+
+    if (id !== null) {
+      navigate(id.toString());
+    }
   };
 
   return (
@@ -25,7 +31,6 @@ const BlogList: React.FC<PropsType> = observer(({ blogManager, onSelection, sele
               key={b.id}
               blog={b}
               onClick={onSelection}
-              selected={b === selectedBlog}
             />
           ))
         }

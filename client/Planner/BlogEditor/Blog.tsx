@@ -2,18 +2,21 @@ import React, { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import Http from '@mortvola/http';
 import TextareaAutosize from 'react-textarea-autosize';
+import { useParams } from 'react-router-dom';
 import BlogSection from './BlogSection';
 import styles from './Blog.module.css';
-import { BlogInterface, BlogSectionInterface } from '../../Blog/state/Types';
+import { BlogSectionInterface } from '../../Blog/state/Types';
 import FormattedBlog from '../../Blog/Blog';
 import Photo from './Photo';
+import { useStores } from '../state/store';
+import PleaseWait from '../../Hikes/PleaseWait';
+import ScrollWrapper from '../../ScrollWrapper';
 
 type PropsType = {
-  blog: BlogInterface,
   tileServerUrl: string,
 }
 
-const Blog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) => {
+const Blog: React.FC<PropsType> = observer(({ tileServerUrl }) => {
   type HikeLeg = {
     id: number,
     name: string | null,
@@ -25,10 +28,19 @@ const Blog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) => {
     hikeLegs: HikeLeg[],
   }
 
+  const params = useParams();
+  const { blogManager } = useStores();
   const [preview, setPreview] = React.useState<boolean>(false);
   const [hikes, setHikes] = React.useState<Hike[]>([]);
   const [hike, setHike] = React.useState<Hike | null>(null);
 
+  useEffect(() => {
+    if (params.blogId !== undefined) {
+      blogManager.loadBlog(parseInt(params.blogId, 10));
+    }
+  }, [blogManager, params.blogId]);
+
+  // Load the hikes with legs for the select drop downs
   useEffect(() => {
     (async () => {
       const response = await Http.get<Hike[]>('/api/hikes?o=legs');
@@ -42,31 +54,33 @@ const Blog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) => {
   }, []);
 
   const getHike = React.useCallback(() => {
-    const selectedHike = hikes.find((h) => h.hikeLegs.some((l) => l.id === blog.hikeLegId));
+    const selectedHike = hikes.find(
+      (h) => h.hikeLegs.some((l) => l.id === blogManager.blog?.hikeLegId),
+    );
 
     return selectedHike ?? null;
-  }, [blog.hikeLegId, hikes]);
+  }, [blogManager.blog?.hikeLegId, hikes]);
 
   useEffect(() => {
-    if (blog.hikeLegId == null) {
+    if (blogManager.blog?.hikeLegId == null) {
       setHike(null);
     }
     else {
       const h = getHike();
       setHike(h);
     }
-  }, [blog, getHike]);
+  }, [blogManager.blog?.hikeLegId, getHike]);
 
   const handleAddSection = (afterSection: BlogSectionInterface) => {
-    blog.addSectionAfter(afterSection);
+    blogManager.blog?.addSectionAfter(afterSection);
   };
 
   const handleAddFirstSection = () => {
-    blog.addSectionAfter(null);
+    blogManager.blog?.addSectionAfter(null);
   };
 
   const handleDeleteSection = (section: BlogSectionInterface) => {
-    blog.deleteSection(section);
+    blogManager.blog?.deleteSection(section);
   };
 
   const handlePreviewChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
@@ -74,15 +88,15 @@ const Blog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) => {
   };
 
   const handleSaveClick = () => {
-    blog.save();
+    blogManager.blog?.save();
   };
 
   const handlePublishClick = () => {
-    blog.publish();
+    blogManager.blog?.publish();
   };
 
   const handleUnpublishClick = () => {
-    blog.unpublish();
+    blogManager.blog?.unpublish();
   };
 
   const handleHikeChange: React.ChangeEventHandler<HTMLSelectElement> = async (event) => {
@@ -100,11 +114,11 @@ const Blog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) => {
     const hikLegId = parseInt(event.target.value, 10);
     const selectedHikeLeg = hike.hikeLegs.find((h) => h.id === hikLegId);
 
-    blog.setHikeLegId(selectedHikeLeg?.id ?? null);
+    blogManager.blog?.setHikeLegId(selectedHikeLeg?.id ?? null);
   };
 
   const handleTitleChange: React.ChangeEventHandler<HTMLTextAreaElement> = (event) => {
-    blog.setTitle(event.target.value);
+    blogManager.blog?.setTitle(event.target.value);
   };
 
   let hikeId = -1;
@@ -113,78 +127,96 @@ const Blog: React.FC<PropsType> = observer(({ blog, tileServerUrl }) => {
     hikeId = hike.id;
   }
 
-  return (
-    <div className={styles.layout}>
-      <div className={styles.controls}>
-        <div className={styles.controlRow}>
-          <label>
-            <input className={styles.rightLabeledControl} type="checkbox" checked={preview} onChange={handlePreviewChange} />
-            Preview
-          </label>
-          <button type="button" onClick={handleSaveClick} disabled={!blog.modified}>Save</button>
-          <button
-            type="button"
-            onClick={handlePublishClick}
-          >
-            { blog.published ? 'Republish' : 'Publish' }
-          </button>
-          <button
-            type="button"
-            onClick={handleUnpublishClick}
-            disabled={!blog.published}
-          >
-            Unpublish
-          </button>
-        </div>
-        <label className={styles.legSelection}>
-          Associated Hike/Leg:
-          <select className={styles.leftLabeledControl} onChange={handleHikeChange} value={hikeId}>
-            <option value={-1}>None</option>
-            {
-              hikes.map((h) => (
-                <option key={h.id} value={h.id}>{h.name}</option>
-              ))
-            }
-          </select>
-          <select onChange={handleHikeLegChange} value={blog.hikeLegId ?? -1}>
-            <option key={-1} value={-1}>None</option>
-            {
-              hike
-                ? (
-                  hike.hikeLegs.map((l) => (
-                    <option key={l.id} value={l.id}>{l.name ?? l.id}</option>
-                  ))
-                )
-                : null
-            }
-          </select>
-        </label>
-      </div>
-      {
-        preview
-          ? <FormattedBlog blog={blog} tileServerUrl={tileServerUrl} />
-          : (
-            <div className={styles.editor}>
-              <TextareaAutosize className={styles.title} value={blog.title ?? ''} onChange={handleTitleChange} />
-              <Photo photo={blog.titlePhoto} blogId={blog.id} />
-              <button type="button" className={styles.addButton} onClick={handleAddFirstSection}>Add Section</button>
+  if (blogManager.loadingBlog) {
+    return <PleaseWait show />;
+  }
+
+  if (blogManager.blog) {
+    const { blog } = blogManager;
+
+    return (
+      <div className={styles.layout}>
+        <div className={styles.controls}>
+          <div className={styles.controlRow}>
+            <label>
+              <input className={styles.rightLabeledControl} type="checkbox" checked={preview} onChange={handlePreviewChange} />
+              Preview
+            </label>
+            <button type="button" onClick={handleSaveClick} disabled={!blog.modified}>Save</button>
+            <button
+              type="button"
+              onClick={handlePublishClick}
+            >
+              { blog.published ? 'Republish' : 'Publish' }
+            </button>
+            <button
+              type="button"
+              onClick={handleUnpublishClick}
+              disabled={!blog.published}
+            >
+              Unpublish
+            </button>
+          </div>
+          <label className={styles.legSelection}>
+            Associated Hike/Leg:
+            <select
+              className={styles.leftLabeledControl}
+              onChange={handleHikeChange}
+              value={hikeId}
+            >
+              <option value={-1}>None</option>
               {
-                blog.sections.map((s, index) => (
-                  <BlogSection
-                    // eslint-disable-next-line react/no-array-index-key
-                    key={index}
-                    section={s}
-                    blogId={blog.id}
-                    onAddSection={handleAddSection}
-                    onDeleteSection={handleDeleteSection}
-                  />
+                hikes.map((h) => (
+                  <option key={h.id} value={h.id}>{h.name}</option>
                 ))
               }
-            </div>
-          )
-      }
-    </div>
-  );
+            </select>
+            <select onChange={handleHikeLegChange} value={blog.hikeLegId ?? -1}>
+              <option key={-1} value={-1}>None</option>
+              {
+                hike
+                  ? (
+                    hike.hikeLegs.map((l) => (
+                      <option key={l.id} value={l.id}>{l.name ?? l.id}</option>
+                    ))
+                  )
+                  : null
+              }
+            </select>
+          </label>
+        </div>
+        {
+          preview
+            ? (
+              <ScrollWrapper>
+                <FormattedBlog blog={blogManager.blog} tileServerUrl={tileServerUrl} />
+              </ScrollWrapper>
+            )
+            : (
+              <div className={styles.editor}>
+                <TextareaAutosize className={styles.title} value={blog.title ?? ''} onChange={handleTitleChange} />
+                <Photo photo={blog.titlePhoto} blogId={blog.id} />
+                <button type="button" className={styles.addButton} onClick={handleAddFirstSection}>Add Section</button>
+                {
+                  blog.sections.map((s, index) => (
+                    <BlogSection
+                      // eslint-disable-next-line react/no-array-index-key
+                      key={index}
+                      section={s}
+                      blogId={blog.id}
+                      onAddSection={handleAddSection}
+                      onDeleteSection={handleDeleteSection}
+                    />
+                  ))
+                }
+              </div>
+            )
+        }
+      </div>
+    );
+  }
+
+  return null;
 });
 
 export default Blog;
