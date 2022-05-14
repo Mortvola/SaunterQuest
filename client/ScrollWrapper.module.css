@@ -1,0 +1,5 @@
+.blog-wrapper {
+  display: grid;
+  overflow-y: auto;
+  width: 100%;
+}

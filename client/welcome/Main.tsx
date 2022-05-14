@@ -11,6 +11,7 @@ import { BlogListItemInterface } from '../Blog/state/Types';
 import Ukraine from './Ukraine';
 import Menu from './Menu';
 import { ItemId } from './MenuItem';
+import ScrollWrapper from '../ScrollWrapper';
 
 type PropsType = {
   tileServerUrl: string,
@@ -75,8 +76,6 @@ const Main: React.FC<PropsType> = observer(({ tileServerUrl }) => {
             <Blog
               blog={blogManager.current}
               tileServerUrl={tileServerUrl}
-              onScroll={handleScroll}
-              smallTitle={smallTitle}
             />
           )
           : null;
@@ -106,9 +105,11 @@ const Main: React.FC<PropsType> = observer(({ tileServerUrl }) => {
         </div>
         <Menu active={active} onSelect={handleSelect} />
       </div>
-      {
-        displayContent()
-      }
+      <ScrollWrapper onScroll={handleScroll}>
+        {
+          displayContent()
+        }
+      </ScrollWrapper>
       <Login show={showLogin} onHide={handleLoginHide} />
       <Register show={showRegister} onHide={handleRegisterHide} />
     </div>
