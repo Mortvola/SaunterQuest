@@ -52,7 +52,7 @@ const BlogSection: React.FC<PropsType> = observer(({
 
       case 'photo':
         return (
-          <Photo photo={section.photo} blogId={blogId} />
+          <Photo section={section} blogId={blogId} />
         );
 
       case 'html':

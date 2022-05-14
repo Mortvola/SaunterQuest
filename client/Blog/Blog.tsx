@@ -53,10 +53,10 @@ const FormattedBlog: React.FC<PropsType> = observer(({
       <BlogTitle blog={blog} />
       <SocialIcons blog={blog} />
       {
-        blog.titlePhoto
+        blog.photo
           ? (
             <Photo
-              photo={blog.titlePhoto}
+              photo={blog.photo}
               className="title-photo"
               blogId={blog.id}
             />

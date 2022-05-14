@@ -8,7 +8,7 @@ import styles from './PhotoSelector.module.css';
 type PropsType = {
   show: boolean,
   onHide: () => void,
-  onSelect: (id: number) => void,
+  onSelect: (id: number, width?: number | null, height?: number | null) => void,
 }
 
 const PhotoSelector: React.FC<PropsType> = ({ show, onHide, onSelect }) => {
@@ -37,7 +37,7 @@ const PhotoSelector: React.FC<PropsType> = ({ show, onHide, onSelect }) => {
               key={p.id}
               src={`/api/photo/${p.id}`}
               alt=""
-              onClick={() => onSelect(p.id)}
+              onClick={() => onSelect(p.id, p.width, p.height)}
             />
           ))
         }

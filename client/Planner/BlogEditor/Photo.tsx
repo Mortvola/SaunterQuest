@@ -3,19 +3,24 @@ import React from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 import Http from '@mortvola/http';
 import UploadFileButton from '../../UploadFileButton';
-import { BlogPhotoInterface } from '../../Blog/state/Types';
 import styles from './Photo.module.css';
 import PhotoSelector from './PhotoSelector';
 import PleaseWait from '../../Hikes/PleaseWait';
 import Image from '../../Image/Image';
 import IconButton from '../../IconButton';
+import BlogPhoto from '../../Blog/state/BlogPhoto';
+import { BlogPhotoInterface } from '../../Blog/state/Types';
+
+interface PhotoContainerInterface {
+  photo: BlogPhotoInterface | null;
+}
 
 type PropsType = {
-  photo: BlogPhotoInterface | null,
+  section: PhotoContainerInterface,
   blogId: number,
 }
 
-const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
+const Photo: React.FC<PropsType> = observer(({ section, blogId }) => {
   const [showModal, setShowModal] = React.useState<boolean>(false);
   const [uploading, setUploading] = React.useState<boolean>(false);
   const [uploadFailed, setUploadFailure] = React.useState<boolean>(false);
@@ -38,7 +43,7 @@ const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
       if (response.ok) {
         const body = await response.json();
 
-        photo?.setInfo(body.id, body.width, body.height);
+        section.photo = new BlogPhoto({ caption: null, ...body });
       }
       else {
         setUploadFailure(true);
@@ -49,7 +54,7 @@ const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
   };
 
   const handleChange: React.ChangeEventHandler<HTMLTextAreaElement> = (event) => {
-    photo?.setCaption(event.target.value);
+    section.photo?.setCaption(event.target.value);
   };
 
   const handleSelectPhotoClick = () => {
@@ -60,13 +65,15 @@ const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
     setShowModal(false);
   };
 
-  const handleSelect = (id: number) => {
-    photo?.setInfo(id);
+  const handleSelect = (id: number, width?: number | null, height?: number | null) => {
+    section.photo = new BlogPhoto({
+      id, caption: null, width, height,
+    });
     setShowModal(false);
   };
 
   const handleRotate = async (command: string) => {
-    if (photo === null) {
+    if (section.photo === null) {
       throw new Error('photo is null');
     }
 
@@ -75,12 +82,12 @@ const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
     const response = await Http.post<
       { command: string },
       { id: number, width?: number, height?: number }
-    >(`/api/photo/${photo.id}`, { command });
+    >(`/api/photo/${section.photo.id}`, { command });
 
     if (response.ok) {
       const body = await response.body();
 
-      photo.setInfo(body.id, body.width, body.height);
+      section.photo.setInfo(body.id, body.width, body.height);
 
       setVersion((prev) => prev + 1);
       setUploading(false);
@@ -110,19 +117,19 @@ const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
       }
       <div className={styles.photoWrapper}>
         {
-          photo
+          section.photo
             ? (
               <>
                 <IconButton icon="rotate-right" iconClass="fa-solid" onClick={handleRotateRightClick} />
                 <IconButton icon="rotate-left" iconClass="fa-solid" onClick={handleRotateLeftClick} />
                 <Image
                   blogId={blogId}
-                  photoId={photo.id}
+                  photoId={section.photo.id}
                   version={version}
-                  width={photo.width}
-                  height={photo.height}
+                  width={section.photo.width}
+                  height={section.photo.height}
                 />
-                <TextareaAutosize className={styles.text} value={photo.caption ?? ''} onChange={handleChange} />
+                <TextareaAutosize className={styles.text} value={section.photo.caption ?? ''} onChange={handleChange} />
               </>
             )
             : null

@@ -32,7 +32,7 @@ export default class BlogsController {
           id: b.id,
           title: b.publishedPost.title,
           publicationTime: b.publicationTime ? b.publicationTime.toISO() : null,
-          titlePhoto: b.publishedPost.titlePhoto,
+          titlePhoto: b.publishedPost.titlePhoto ?? undefined,
         });
       }));
     }
@@ -56,15 +56,17 @@ export default class BlogsController {
   }
 
   static async updateTitlePhoto(post: BlogPost) {
-    post.titlePhoto = {
-      id: post.titlePhotoId ?? null,
-      caption: post.titlePhotoCaption ?? null,
-      orientation: post.titlePhotoOrientation ?? 0,
-      width: null,
-      height: null,
-    };
+    post.titlePhoto = null;
 
     if (post.titlePhotoId !== null) {
+      post.titlePhoto = {
+        id: post.titlePhotoId,
+        caption: post.titlePhotoCaption,
+        orientation: post.titlePhotoOrientation ?? 0,
+        width: null,
+        height: null,
+      };
+
       const photo = await Photo.find(post.titlePhotoId);
 
       if (photo && photo.width && photo.height) {
@@ -184,9 +186,9 @@ export default class BlogsController {
     if (blog.draftPostId === null) {
       const published = await BlogPost.create({
         title: draftPost.title,
-        titlePhotoId: draftPost.titlePhoto.id,
-        titlePhotoCaption: draftPost.titlePhoto.caption,
-        titlePhotoOrientation: draftPost.titlePhoto.orientation,
+        titlePhotoId: draftPost.titlePhoto?.id ?? null,
+        titlePhotoCaption: draftPost.titlePhoto?.caption ?? null,
+        titlePhotoOrientation: draftPost.titlePhoto?.orientation ?? null,
         hikeLegId: draftPost.hikeLegId,
         content: draftPost.content,
       }, {
@@ -198,9 +200,9 @@ export default class BlogsController {
     else {
       await blog.related('draftPost').updateOrCreate({}, {
         title: draftPost.title,
-        titlePhotoId: draftPost.titlePhoto.id,
-        titlePhotoCaption: draftPost.titlePhoto.caption,
-        titlePhotoOrientation: draftPost.titlePhoto.orientation,
+        titlePhotoId: draftPost.titlePhoto?.id ?? null,
+        titlePhotoCaption: draftPost.titlePhoto?.caption ?? null,
+        titlePhotoOrientation: draftPost.titlePhoto?.orientation ?? null,
         hikeLegId: draftPost.hikeLegId,
         content: draftPost.content,
       });

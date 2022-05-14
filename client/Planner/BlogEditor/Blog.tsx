@@ -195,7 +195,7 @@ const Blog: React.FC<PropsType> = observer(({ tileServerUrl }) => {
             : (
               <div className={styles.editor}>
                 <TextareaAutosize className={styles.title} value={blog.title ?? ''} onChange={handleTitleChange} />
-                <Photo photo={blog.titlePhoto} blogId={blog.id} />
+                <Photo section={blog} blogId={blog.id} />
                 <button type="button" className={styles.addButton} onClick={handleAddFirstSection}>Add Section</button>
                 {
                   blog.sections.map((s, index) => (

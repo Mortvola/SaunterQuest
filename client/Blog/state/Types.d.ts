@@ -37,7 +37,7 @@ interface BlogInterface {
 
   title: string | null;
 
-  titlePhoto: BlogPhotoInterface | null;
+  photo: BlogPhotoInterface | null;
 
   sections: BlogSectionInterface[];
 
