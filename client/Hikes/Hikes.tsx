@@ -1,15 +1,15 @@
 import React, { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Hike from './Hike';
 import PleaseWait from './PleaseWait';
 import { useStores } from '../Planner/state/store';
 import HikeData from '../Hike/state/Hike';
 import styles from './Hikes.module.css';
 
-const Hikes = () => {
+const Hikes: React.FC = observer(() => {
   const { uiState, hikeManager } = useStores();
-  const history = useHistory();
+  const navigate = useNavigate();
 
   useEffect(() => {
     hikeManager.requestHikes();
@@ -23,7 +23,7 @@ const Hikes = () => {
     const hike = await hikeManager.addHike();
 
     uiState.setHike(new HikeData(hike));
-    history.push(`/hike/${hike.id}`);
+    navigate(`/hike/${hike.id}`);
   };
 
   return (
@@ -48,6 +48,6 @@ const Hikes = () => {
       <PleaseWait show={hikeManager.requesting} />
     </div>
   );
-};
+});
 
-export default observer(Hikes);
+export default Hikes;

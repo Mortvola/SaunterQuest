@@ -1,27 +1,28 @@
 import React from 'react';
+import { useMatch, useNavigate, useResolvedPath } from 'react-router-dom';
 import styles from './MenuItem.module.css';
-
-export type ItemId = 'home' | 'photos' | 'archives';
 
 type PropsType = {
   name: string,
-  itemId: ItemId,
-  onSelect: (id: ItemId) => void,
-  selected: boolean,
+  to: string,
+  matchFull?: boolean,
 }
 
 const MenuItem: React.FC<PropsType> = ({
   name,
-  itemId,
-  onSelect,
-  selected,
+  to,
+  matchFull = false,
 }) => {
+  const navigate = useNavigate();
+  const resolved = useResolvedPath(to);
+  const match = useMatch({ path: resolved.pathname, end: matchFull });
+
   const handleClick = () => {
-    onSelect(itemId);
+    navigate(to);
   };
 
   return (
-    <div className={`${styles.menuItem} ${selected ? styles.selected : ''}`} onClick={handleClick}>
+    <div className={`${styles.menuItem} ${match ? styles.selected : ''}`} onClick={handleClick}>
       {name}
     </div>
   );

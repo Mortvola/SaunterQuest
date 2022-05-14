@@ -6,11 +6,7 @@ import BlogListItem from '../Planner/BlogEditor/state/BlogListItem';
 import styles from './BlogList.module.css';
 import BlogListItemElement from './BlogListItem';
 
-type PropsType = {
-  onSelection: (blog: BlogListItemInterface) => void,
-}
-
-const BlogList: React.FC<PropsType> = ({ onSelection }) => {
+const BlogList: React.FC = () => {
   const [blogs, setBlogs] = React.useState<BlogListItemInterface[] | null>(null);
 
   const load = async () => {
@@ -38,7 +34,6 @@ const BlogList: React.FC<PropsType> = ({ onSelection }) => {
               <BlogListItemElement
                 key={b.id}
                 blog={b}
-                onClick={onSelection}
               />
             ))
           )

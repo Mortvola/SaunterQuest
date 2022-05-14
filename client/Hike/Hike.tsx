@@ -1,8 +1,6 @@
-import React, {
-  useEffect, ReactElement,
-} from 'react';
+import React, { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
-import { matchPath, useHistory } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import Http from '@mortvola/http';
 import { Offcanvas } from 'react-bootstrap';
 import Controls from './Controls/Controls';
@@ -17,29 +15,28 @@ import Calendar from './Calendar';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import IconButton from '../IconButton';
 
-type Props = {
+type PropsType = {
   tileServerUrl: string,
   showOffcanvas: boolean,
   onHideOffcanvas: () => void,
 }
 
-const Hike = observer(({
+const Hike: React.FC<PropsType> = observer(({
   tileServerUrl,
   showOffcanvas,
   onHideOffcanvas,
-}: Props): ReactElement | null => {
+}) => {
   const { uiState } = useStores();
   const [hike, setHike] = React.useState<HikeData | null>(null);
-  const history = useHistory();
+  const params = useParams();
   const { isMobile, addMediaClass } = useMediaQuery();
   const [view, setView] = React.useState<'map' | 'calendar'>('map');
 
   useEffect(() => {
     (async () => {
       if (hike === null) {
-        const match = matchPath<{ id: string }>(history.location.pathname, { path: '/hike/:id', exact: true });
-        if (match) {
-          const response = await Http.get<HikeProps>(`/api/hike/${parseInt(match.params.id, 10)}`);
+        if (params.hikeId !== undefined) {
+          const response = await Http.get<HikeProps>(`/api/hike/${parseInt(params.hikeId, 10)}`);
 
           if (response.ok) {
             const body = await response.body();
@@ -49,7 +46,7 @@ const Hike = observer(({
         }
       }
     })();
-  }, [hike, history.location.pathname, uiState]);
+  }, [hike, params.hikeId]);
 
   const handleCalendarToggle = () => {
     setView((prev) => (prev === 'map' ? 'calendar' : 'map'));

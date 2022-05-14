@@ -1,17 +1,19 @@
 import { observer } from 'mobx-react-lite';
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BlogListItemInterface } from '../Blog/state/Types';
 import Image from '../Image/Image';
 import styles from './BlogListItem.module.css';
 
 type PropsType = {
   blog: BlogListItemInterface,
-  onClick: (blog: BlogListItemInterface) => void,
 }
 
-const BlogListItem: React.FC<PropsType> = observer(({ blog, onClick }) => {
+const BlogListItem: React.FC<PropsType> = observer(({ blog }) => {
+  const navigate = useNavigate();
+
   const handleClick = () => {
-    onClick(blog);
+    navigate(`${blog.id}`);
   };
 
   return (

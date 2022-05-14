@@ -1,11 +1,11 @@
-import React, { ReactElement } from 'react';
+import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import 'regenerator-runtime/runtime';
 import Leaflet from 'leaflet';
 import { observer } from 'mobx-react-lite';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import '@mortvola/usemodal/dist/main.css';
 import '@mortvola/forms/dist/main.css';
 import 'bootstrap/dist/css/bootstrap.css';
@@ -27,10 +27,10 @@ type PropsType = {
   tileServerUrl: string,
 }
 
-const App = ({
+const App: React.FC<PropsType> = observer(({
   username,
   tileServerUrl,
-}: PropsType): ReactElement => {
+}) => {
   usePageViews();
   const [showOffcanvas, setShowOffcanvas] = React.useState<boolean>(false);
 
@@ -45,37 +45,35 @@ const App = ({
   return (
     <DndProvider backend={HTML5Backend}>
       <Menubar username={username} onShowOffcanvas={handleShowOffcanvas} />
-      <Switch>
-        <Route path="/hike">
-          <Hike
-            tileServerUrl={tileServerUrl}
-            showOffcanvas={showOffcanvas}
-            onHideOffcanvas={handleHidecanvas}
-          />
-        </Route>
-        <Route path="/gear">
-          <div />
-        </Route>
-        <Route path="/food">
-          <div />
-        </Route>
-        <Route path="/blog">
-          <Blogs
-            tileServerUrl={tileServerUrl}
-            showOffcanvas={showOffcanvas}
-            onHideOffcanvas={handleHidecanvas}
-          />
-        </Route>
-        <Route path="/photos">
-          <Photos />
-        </Route>
-        <Route path="/">
-          <Hikes />
-        </Route>
-      </Switch>
+      <Routes>
+        <Route
+          path="/hike/:hikeId"
+          element={(
+            <Hike
+              tileServerUrl={tileServerUrl}
+              showOffcanvas={showOffcanvas}
+              onHideOffcanvas={handleHidecanvas}
+            />
+          )}
+        />
+        <Route path="/gear" element={<div />} />
+        <Route path="/food" element={<div />} />
+        <Route
+          path="/blog"
+          element={(
+            <Blogs
+              tileServerUrl={tileServerUrl}
+              showOffcanvas={showOffcanvas}
+              onHideOffcanvas={handleHidecanvas}
+            />
+          )}
+        />
+        <Route path="/photos" element={<Photos />} />
+        <Route path="/" element={<Hikes />} />
+      </Routes>
     </DndProvider>
   );
-};
+});
 
 const appElement = document.querySelector('.app');
 if (appElement === null) {
@@ -89,8 +87,6 @@ if (initialPropsString === null) {
 
 const initialProps = JSON.parse(initialPropsString) as PropsType;
 
-const ConnectedApp = observer(App);
-
 const rootElement = document.querySelector('.app');
 
 if (rootElement) {
@@ -99,9 +95,9 @@ if (rootElement) {
   root.render(
     <StoreContext.Provider value={store}>
       <HikeStoreContent.Provider value={hikeStore}>
-        <Router>
-          <ConnectedApp {...initialProps} />
-        </Router>
+        <BrowserRouter>
+          <App {...initialProps} />
+        </BrowserRouter>
       </HikeStoreContent.Provider>
     </StoreContext.Provider>,
   );

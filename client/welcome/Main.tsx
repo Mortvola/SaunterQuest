@@ -1,42 +1,17 @@
 import { observer } from 'mobx-react-lite';
-import React, { useEffect, useState } from 'react';
-import { matchPath, useHistory } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Outlet } from 'react-router-dom';
 import Login from '../login/Login';
 import Register from '../login/Register';
-import { useStores } from './state/store';
-import Blog from '../Blog/Blog';
 import styles from './Main.module.css';
-import BlogList from './BlogList';
-import { BlogListItemInterface } from '../Blog/state/Types';
 import Ukraine from './Ukraine';
 import Menu from './Menu';
-import { ItemId } from './MenuItem';
 import ScrollWrapper from '../ScrollWrapper';
 
-type PropsType = {
-  tileServerUrl: string,
-}
-
-const Main: React.FC<PropsType> = observer(({ tileServerUrl }) => {
+const Main: React.FC = observer(() => {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
-  const { blogManager } = useStores();
   const [smallTitle, setSmallTitle] = useState<boolean>(false);
-  const history = useHistory();
-
-  useEffect(() => {
-    (async () => {
-      if (blogManager.current === null) {
-        const match = matchPath<{ id: string }>(history.location.pathname, { path: '/blog/:id', exact: true });
-        if (match) {
-          blogManager.getBlog(parseInt(match.params.id, 10));
-        }
-        else {
-          blogManager.getBlog('latest');
-        }
-      }
-    })();
-  }, [blogManager, history.location.pathname]);
 
   const handleLoginClick = () => {
     setShowLogin(true);
@@ -54,39 +29,8 @@ const Main: React.FC<PropsType> = observer(({ tileServerUrl }) => {
     setShowRegister(false);
   };
 
-  const handleSelection = (blog: BlogListItemInterface) => {
-    window.location.replace(`/blog/${blog.id}`);
-  };
-
   const handleScroll = (scrollTop: number) => {
     setSmallTitle(scrollTop > 100);
-  };
-
-  const [active, setActive] = React.useState<ItemId>('home');
-
-  const handleSelect = (itemId: ItemId) => {
-    setActive(itemId);
-  };
-
-  const displayContent = () => {
-    switch (active) {
-      case 'home': {
-        return blogManager.current
-          ? (
-            <Blog
-              blog={blogManager.current}
-              tileServerUrl={tileServerUrl}
-            />
-          )
-          : null;
-      }
-
-      case 'archives':
-        return <BlogList onSelection={handleSelection} />;
-
-      default:
-        return null;
-    }
   };
 
   return (
@@ -103,12 +47,10 @@ const Main: React.FC<PropsType> = observer(({ tileServerUrl }) => {
             // <div className={styles.welcomeButton} onClick={handleRegisterClick}>Register</div>
           }
         </div>
-        <Menu active={active} onSelect={handleSelect} />
+        <Menu />
       </div>
       <ScrollWrapper onScroll={handleScroll}>
-        {
-          displayContent()
-        }
+        <Outlet />
       </ScrollWrapper>
       <Login show={showLogin} onHide={handleLoginHide} />
       <Register show={showRegister} onHide={handleRegisterHide} />
