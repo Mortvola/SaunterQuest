@@ -6,7 +6,6 @@ import Register from '../login/Register';
 import { useStores } from './state/store';
 import Blog from '../Blog/Blog';
 import styles from './Main.module.css';
-import IconButton from '../IconButton';
 import BlogList from './BlogList';
 import { BlogListItemInterface } from '../Blog/state/Types';
 import Ukraine from './Ukraine';
@@ -21,7 +20,6 @@ const Main: React.FC<PropsType> = observer(({ tileServerUrl }) => {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const { blogManager } = useStores();
-  const [slideOutOpen, setSlideOutOpen] = useState(false);
   const [smallTitle, setSmallTitle] = useState<boolean>(false);
   const history = useHistory();
 
@@ -55,16 +53,7 @@ const Main: React.FC<PropsType> = observer(({ tileServerUrl }) => {
     setShowRegister(false);
   };
 
-  const handleSlideOutOpen = () => {
-    setSlideOutOpen(true);
-  };
-
-  const handleSlideOutClose = () => {
-    setSlideOutOpen(false);
-  };
-
   const handleSelection = (blog: BlogListItemInterface) => {
-    setSlideOutOpen(false);
     window.location.replace(`/blog/${blog.id}`);
   };
 
@@ -117,7 +106,6 @@ const Main: React.FC<PropsType> = observer(({ tileServerUrl }) => {
         </div>
         <Menu active={active} onSelect={handleSelect} />
       </div>
-      <IconButton icon="angle-right" className={styles.offCanvasButton} onClick={handleSlideOutOpen} />
       {
         displayContent()
       }

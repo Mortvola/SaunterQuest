@@ -6,8 +6,10 @@
 }
 
 .title {
-  font-size: 2rem;
+  font-family: proxima-nova,Helvetica Neue,Arial,sans-serif;
+  font-size: 1rem;
   font-weight: bold;
+  color: black;
 }
 
 .date {
