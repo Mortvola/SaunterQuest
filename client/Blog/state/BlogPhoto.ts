@@ -3,7 +3,7 @@ import { BlogPhotoProps } from '../../../common/ResponseTypes';
 import { BlogPhotoInterface } from './Types';
 
 class BlogPhoto implements BlogPhotoInterface {
-  id: number | null;
+  id: number;
 
   caption: string | null;
 

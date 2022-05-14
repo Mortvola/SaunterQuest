@@ -133,7 +133,7 @@ export type DayProps = {
 export type ScheduleResponse = DayProps[];
 
 export type BlogPhotoProps = {
-  id: number | null,
+  id: number,
   caption: string | null,
   orientation?: number,
   width?: number | null,
@@ -145,12 +145,12 @@ export type BlogSectionTypes = 'markdown' | 'elevation' | 'map' | 'photo' | 'htm
 export type BlogSectionProps = {
   type: BlogSectionTypes,
   text: string | null,
-  photo: BlogPhotoProps,
+  photo: BlogPhotoProps | null,
 }
 
 export type DraftPostProps = {
   title: string | null,
-  titlePhoto: BlogPhotoProps,
+  titlePhoto: BlogPhotoProps | null,
   hikeLegId: number | null,
   content: BlogSectionProps[] | null,
 }

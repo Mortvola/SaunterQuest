@@ -2,7 +2,7 @@ import { DateTime } from 'luxon';
 import { BlogSectionTypes, PhotoProps } from '../../../common/ResponseTypes';
 
 export interface BlogPhotoInterface {
-  id: number | null,
+  id: number,
   caption: string | null,
   orientation: number,
   width?: number,
@@ -18,7 +18,7 @@ interface BlogSectionInterface {
 
   text: string | null;
 
-  photo: BlogPhotoInterface;
+  photo: BlogPhotoInterface | null;
 
   setType(type: string);
   setText(text: string | null);
@@ -37,7 +37,7 @@ interface BlogInterface {
 
   title: string | null;
 
-  titlePhoto: BlogPhotoInterface;
+  titlePhoto: BlogPhotoInterface | null;
 
   sections: BlogSectionInterface[];
 

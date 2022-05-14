@@ -17,7 +17,7 @@ class Blog implements BlogInterface {
 
   title: string | null;
 
-  titlePhoto: BlogPhoto;
+  titlePhoto: BlogPhoto | null = null;
 
   hikeLegId: number | null = null;
 
@@ -52,20 +52,13 @@ class Blog implements BlogInterface {
 
     if (!post) {
       this.title = `Unnamed (${props.id})`;
-      this.titlePhoto = new BlogPhoto(
-        {
-          id: null,
-          caption: null,
-          width: null,
-          height: null,
-        },
-        this.onModified,
-      );
     }
     else {
       this.title = post.title;
       this.hikeLegId = post.hikeLegId;
-      this.titlePhoto = new BlogPhoto(post.titlePhoto, this.onModified);
+      if (post.titlePhoto) {
+        this.titlePhoto = new BlogPhoto(post.titlePhoto, this.onModified);
+      }
 
       if (post.content) {
         this.sections = post.content.map((s) => new BlogSection(s, this.onModified));
@@ -173,7 +166,7 @@ class Blog implements BlogInterface {
             {
               type: 'markdown',
               text: null,
-              photo: new BlogPhoto({ id: null, caption: null }, this.onModified),
+              photo: null,
             },
             this.onModified,
           ),
@@ -194,7 +187,7 @@ class Blog implements BlogInterface {
               {
                 type: 'markdown',
                 text: null,
-                photo: new BlogPhoto({ id: null, caption: null }, this.onModified),
+                photo: null,
               },
               this.onModified,
             ),

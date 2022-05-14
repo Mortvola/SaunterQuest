@@ -11,7 +11,7 @@ import Image from '../../Image/Image';
 import IconButton from '../../IconButton';
 
 type PropsType = {
-  photo: BlogPhotoInterface,
+  photo: BlogPhotoInterface | null,
   blogId: number,
 }
 
@@ -38,7 +38,7 @@ const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
       if (response.ok) {
         const body = await response.json();
 
-        photo.setInfo(body.id, body.width, body.height);
+        photo?.setInfo(body.id, body.width, body.height);
       }
       else {
         setUploadFailure(true);
@@ -49,7 +49,7 @@ const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
   };
 
   const handleChange: React.ChangeEventHandler<HTMLTextAreaElement> = (event) => {
-    photo.setCaption(event.target.value);
+    photo?.setCaption(event.target.value);
   };
 
   const handleSelectPhotoClick = () => {
@@ -61,11 +61,15 @@ const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
   };
 
   const handleSelect = (id: number) => {
-    photo.setInfo(id);
+    photo?.setInfo(id);
     setShowModal(false);
   };
 
   const handleRotate = async (command: string) => {
+    if (photo === null) {
+      throw new Error('photo is null');
+    }
+
     setUploading(true);
 
     const response = await Http.post<
@@ -106,7 +110,7 @@ const Photo: React.FC<PropsType> = observer(({ photo, blogId }) => {
       }
       <div className={styles.photoWrapper}>
         {
-          photo.id
+          photo
             ? (
               <>
                 <IconButton icon="rotate-right" iconClass="fa-solid" onClick={handleRotateRightClick} />
