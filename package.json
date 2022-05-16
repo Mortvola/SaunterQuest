@@ -42,7 +42,7 @@
     "luxon": "^2.1.1",
     "mobx": "^6.3.7",
     "mobx-react-lite": "^3.2.2",
-    "node-fetch": "^2.6.6",
+    "node-fetch": "^2.6.7",
     "pg": "^8.7.1",
     "phc-argon2": "^1.1.2",
     "phc-bcrypt": "^1.0.7",
