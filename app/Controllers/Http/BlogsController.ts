@@ -10,7 +10,7 @@ import { Exception } from '@adonisjs/core/build/standalone';
 import { DateTime } from 'luxon';
 import BlogPost, { BlogContent, isPhotoSection } from 'App/Models/BlogPost';
 import BlogComment from 'App/Models/BlogComment';
-import { BlogListItemProps, CommentProps } from 'common/ResponseTypes';
+import { BlogListItemProps, BlogPhotoProps, CommentProps } from 'common/ResponseTypes';
 import Photo from 'App/Models/Photo';
 
 export default class BlogsController {
@@ -551,5 +551,43 @@ export default class BlogsController {
     xmlString += '</urlset>\n';
 
     return xmlString;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async getPhotos(): Promise<BlogPhotoProps[]> {
+    const blogs = await Blog.query()
+      .where('deleted', false)
+      .preload('publishedPost')
+      .whereNotNull('publishedPostId')
+      .orderBy('publicationTime', 'desc');
+
+    const photos: BlogPhotoProps[] = [];
+
+    // eslint-disable-next-line no-restricted-syntax
+    for (const blog of blogs) {
+      if (blog.publishedPost.titlePhotoId !== null) {
+        photos.push({ blogId: blog.id, id: blog.publishedPost.titlePhotoId, caption: null });
+
+        if (blog.publishedPost.content) {
+          // eslint-disable-next-line no-restricted-syntax
+          for (const section of blog.publishedPost.content) {
+            if (isPhotoSection(section)) {
+              photos.push({ blogId: blog.id, id: section.photo.id, caption: null });
+            }
+          }
+        }
+      }
+    }
+
+    await Promise.all(photos.map(async (p) => {
+      const photo = await Photo.find(p.id);
+
+      if (photo && photo.width && photo.height) {
+        p.width = photo.width;
+        p.height = photo.height;
+      }
+    }));
+
+    return photos;
   }
 }

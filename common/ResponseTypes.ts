@@ -133,6 +133,7 @@ export type DayProps = {
 export type ScheduleResponse = DayProps[];
 
 export type BlogPhotoProps = {
+  blogId?: number,
   id: number,
   caption: string | null,
   orientation?: number,

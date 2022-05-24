@@ -10,6 +10,7 @@ import BlogStore from './state/store';
 import Main from './Main';
 import BlogList from './BlogList';
 import BlogPost from './BlogPost';
+import Photos from './Photos';
 
 type PropsType = {
   tileServerUrl: string,
@@ -38,7 +39,7 @@ if (rootElement) {
         <Routes>
           <Route path="/" element={<Main />}>
             <Route index element={<BlogPost tileServerUrl={initialProps.tileServerUrl} />} />
-            <Route path="/photos" element={<div />} />
+            <Route path="/photos" element={<Photos />} />
             <Route path="/blog" element={<BlogList />} />
             <Route path="/blog/:postId" element={<BlogPost tileServerUrl={initialProps.tileServerUrl} />} />
           </Route>
