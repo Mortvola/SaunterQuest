@@ -15,14 +15,16 @@ const PhotoSelector: React.FC<PropsType> = ({ show, onHide, onSelect }) => {
   const [photos, setPhotos] = React.useState<BlogPhotoProps[]>([]);
 
   React.useEffect(() => {
-    (async () => {
-      const response = await Http.get<BlogPhotoProps[]>('/api/photos');
+    if (show) {
+      (async () => {
+        const response = await Http.get<BlogPhotoProps[]>('/api/photos');
 
-      if (response.ok) {
-        setPhotos(await response.body());
-      }
-    })();
-  }, []);
+        if (response.ok) {
+          setPhotos(await response.body());
+        }
+      })();
+    }
+  }, [show]);
 
   return (
     <Modal show={show} onHide={onHide} scrollable>

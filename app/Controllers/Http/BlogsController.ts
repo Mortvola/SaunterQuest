@@ -126,7 +126,7 @@ export default class BlogsController {
       const updatePhotos = async (post: BlogPost) => {
         const updateContentPhotos = async (content: BlogContent) => (
           Promise.all(content.map(async (s) => {
-            if (isPhotoSection(s) && s.photo.id !== null) {
+            if (isPhotoSection(s) && s.photo && s.photo.id !== null) {
               const photo = await Photo.find(s.photo.id);
 
               if (photo && photo.width && photo.height) {
