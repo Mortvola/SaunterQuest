@@ -45,12 +45,14 @@ const Map: React.FC<PropsType> = ({ tileServerUrl, hikeLeg, onLoaded }) => {
         <LayersControl.Overlay checked name="Terrain">
           <TileLayer
             url={`${tileServerUrl}/tile/terrain/{z}/{x}/{y}`}
+            subdomains={['tiles1', 'tiles2', 'tiles3']}
             zIndex={1}
           />
         </LayersControl.Overlay>
         <TileLayer
           attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
           url={`${tileServerUrl}/tile/detail/{z}/{x}/{y}`}
+          subdomains={['tiles1', 'tiles2', 'tiles3']}
           zIndex={2}
         />
         <LayersControl.Overlay checked name="Graticule">
