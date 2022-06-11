@@ -37,6 +37,7 @@ const FormattedBlog: React.FC<PropsType> = observer(({
         startDate: null,
         afterHikeLegId: null,
         color: '#3174ad',
+        numberOfZeros: 0,
       }, new MapData());
       h.load();
 

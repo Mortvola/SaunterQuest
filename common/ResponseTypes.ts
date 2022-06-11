@@ -177,7 +177,8 @@ export type HikeLegProps = {
   color: string,
   schedule?: {
     numberOfDays: number,
-  }
+  },
+  numberOfZeros: number,
 };
 
 export type CommentRequest = {

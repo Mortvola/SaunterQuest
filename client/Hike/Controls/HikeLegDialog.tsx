@@ -47,6 +47,7 @@ const HikeLegDialog: React.FC<PropsType & ModalProps> = ({
     startType: StartType,
     startDate: string,
     afterHikeLegId: number | null,
+    numberOfZeros: number | null,
   };
 
   const handleSubmit = (values: FormValues) => {
@@ -56,6 +57,7 @@ const HikeLegDialog: React.FC<PropsType & ModalProps> = ({
       values.startType,
       values.startDate === '' ? null : values.startDate,
       values.afterHikeLegId,
+      values.numberOfZeros ?? 0,
     );
 
     setShow(false);
@@ -99,6 +101,7 @@ const HikeLegDialog: React.FC<PropsType & ModalProps> = ({
         startType: hikeLeg.startType,
         startDate: hikeLeg.startDate?.toISODate() ?? '',
         afterHikeLegId: hikeLeg.afterHikeLegId,
+        numberOfZeros: hikeLeg.numberOfZeros,
       }}
       title="Hike Leg Settings"
       setShow={setShow}
@@ -113,6 +116,7 @@ const HikeLegDialog: React.FC<PropsType & ModalProps> = ({
         <FormRadio name="startType" value="afterLeg" label="Previous Leg" />
         <FormHikeLegSelect name="afterHikeLegId" hike={hike} />
         <FormField type="color" name="color" label="Color:" />
+        <FormField type="text" name="numberOfZeros" label="Number of Zeros:" />
       </div>
     </FormModal>
   );

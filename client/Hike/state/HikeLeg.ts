@@ -26,6 +26,8 @@ class HikeLeg implements HikeLegInterface {
 
   numberOfDays = 0;
 
+  numberOfZeros = 1;
+
   color: string;
 
   map: Map;
@@ -48,6 +50,7 @@ class HikeLeg implements HikeLegInterface {
     this.afterHikeLegId = props.afterHikeLegId;
     this.numberOfDays = props.schedule?.numberOfDays ?? 0;
     this.color = props.color;
+    this.numberOfZeros = props.numberOfZeros;
 
     this.onUpdate = onUpdate ?? null;
 
@@ -136,6 +139,7 @@ class HikeLeg implements HikeLegInterface {
     startType: StartType,
     startDate: string | null,
     afterHikeLegId: number | null,
+    numberOfZeros: number,
   ): Promise<void> {
     const response = await Http.patch(`/api/hike-leg/${this.id}`, {
       name,
@@ -143,6 +147,7 @@ class HikeLeg implements HikeLegInterface {
       startType,
       startDate,
       afterHikeLegId,
+      numberOfZeros,
     });
 
     if (response.ok) {
@@ -152,6 +157,7 @@ class HikeLeg implements HikeLegInterface {
         this.startType = startType;
         this.startDate = startDate === null ? null : DateTime.fromISO(startDate);
         this.afterHikeLegId = afterHikeLegId;
+        this.numberOfZeros = numberOfZeros;
 
         if (this.onUpdate) {
           this.onUpdate(this);
