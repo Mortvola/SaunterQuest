@@ -67,6 +67,7 @@ const HikeLegSelect: React.FC<PropsType> = observer(({ hike, value, onChange }) 
       components={{
         Option: CustomOption,
       }}
+      className={styles.select}
     />
   );
 });

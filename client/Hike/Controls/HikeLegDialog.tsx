@@ -15,7 +15,7 @@ const FormHikeLegSelect: React.FC<SelectPropsType & FieldHookConfig<number | nul
   hike,
   ...props
 }) => {
-  const [field, meta, helpers] = useField(props);
+  const [field,, helpers] = useField(props);
 
   const handleLegChange = (id: number | null) => {
     helpers.setValue(id);
@@ -109,7 +109,7 @@ const HikeLegDialog: React.FC<PropsType & ModalProps> = ({
       validate={handleValidate}
     >
       <div className={styles.form}>
-        <FormField type="text" name="name" label="Name:" />
+        <FormField type="text" name="name" label="Name:" style={{ width: '100%' }} />
         <FormRadio name="startType" value="none" label="No Start Date" />
         <FormRadio name="startType" value="date" label="Start Date" />
         <FormField type="date" name="startDate" />

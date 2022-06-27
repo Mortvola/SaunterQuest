@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { runInAction } from 'mobx';
 import { Field, Form, Formik } from 'formik';
 import IconButton from '../IconButton';
-import { useDeleteConfirmation } from '../DeleteConfirmation';
+import { useDeleteConfirmation } from '../Confirmation';
 import { useStores } from '../Planner/state/store';
 import { gramsToPoundsAndOunces } from '../utilities';
 import AutoSubmit from './AutoSubmit';

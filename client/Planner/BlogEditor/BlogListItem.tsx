@@ -3,7 +3,7 @@ import React from 'react';
 import { useMatch, useNavigate, useResolvedPath } from 'react-router-dom';
 import { BlogListItemInterface } from '../../Blog/state/Types';
 import IconButton from '../../IconButton';
-import { useDeleteConfirmation } from '../../DeleteConfirmation';
+import { useConfirmation } from '../../Confirmation';
 import styles from './BlogListItem.module.css';
 
 type PropsType = {
@@ -16,7 +16,8 @@ const BlogListItem: React.FC<PropsType> = observer(({ blog, onClick }) => {
   const match = useMatch({ path: resolved.pathname, end: true });
   const navigate = useNavigate();
 
-  const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
+  const [DeleteConfirmation, handleDeleteClick] = useConfirmation(
+    'Delete',
     'Are you sure you want to delete this blog post?',
     () => {
       blog.delete();

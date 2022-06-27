@@ -3,7 +3,7 @@ import { Card } from 'react-bootstrap';
 import { observer } from 'mobx-react-lite';
 import { HikeLegInterface, HikerProfileInterface } from '../state/Types';
 import { nvl, formatTime, metersToMiles } from '../../utilities';
-import { useDeleteConfirmation } from '../../DeleteConfirmation';
+import { useConfirmation } from '../../Confirmation';
 import { useHikerProfileDialog } from './HikerProfileDialog';
 import IconButton from '../../IconButton';
 
@@ -17,7 +17,8 @@ const HikerProfile: React.FC<PropsType> = observer(({
   profile,
 }) => {
   const [HikerProfilDialog, showHikerProfileDialog] = useHikerProfileDialog();
-  const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
+  const [DeleteConfirmation, handleDeleteClick] = useConfirmation(
+    'Delete',
     'Are you sure you want to delete this profile?',
     () => {
       if (profile.id === null) {

@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { useNavigate } from 'react-router-dom';
 import { metersToMilesRounded } from '../utilities';
 import EditableText from './EditableText';
-import { useDeleteConfirmation } from '../DeleteConfirmation';
+import { useConfirmation } from '../Confirmation';
 import HikeItem from '../Planner/state/HikeItem';
 
 type PropsType = {
@@ -17,7 +17,8 @@ const Hike: React.FC<PropsType> = observer(({
   onDelete,
 }) => {
   const navigate = useNavigate();
-  const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
+  const [DeleteConfirmation, handleDeleteClick] = useConfirmation(
+    'Delete',
     'Are you sure you want to delete this hike?',
     () => {
       onDelete(hike.id);

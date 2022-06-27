@@ -1,7 +1,7 @@
 import React from 'react';
 import Http from '@mortvola/http';
 import IconButton from '../../IconButton';
-import { useDeleteConfirmation } from '../../DeleteConfirmation';
+import { useConfirmation } from '../../Confirmation';
 import styles from './Photo.module.css';
 import PleaseWait from '../../Hikes/PleaseWait';
 import Image from '../../Image/Image';
@@ -15,7 +15,8 @@ type PropsType = {
 const Photo: React.FC<PropsType> = ({ photo, onDelete }) => {
   const [regenerating, setRegenerating] = React.useState<boolean>(false);
   const [version, setVersion] = React.useState<number>(0);
-  const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
+  const [DeleteConfirmation, handleDeleteClick] = useConfirmation(
+    'Delete',
     'Are you sure you want to delete this photo?',
     () => {
       onDelete(photo.id);
