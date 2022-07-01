@@ -162,6 +162,8 @@ export interface HikeLegInterface {
 
   schedule: Day[];
 
+  requestingSchedule: boolean;
+
   route: RouteInterface;
 
   hikerProfiles: HikerProfileInterface[];

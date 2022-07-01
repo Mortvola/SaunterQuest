@@ -36,6 +36,8 @@ class HikeLeg implements HikeLegInterface {
 
   schedule: Day[] = [];
 
+  requestingSchedule = false;
+
   hikerProfiles: HikerProfile[] = [];
 
   elevationMarkerPos: L.LatLng | null = null;
@@ -81,6 +83,8 @@ class HikeLeg implements HikeLegInterface {
   }
 
   async requestSchedule(): Promise<void> {
+    this.requestingSchedule = true;
+
     try {
       const response = await Http.get<DayProps[]>(`/api/hike-leg/${this.id}/schedule`);
 
@@ -131,6 +135,8 @@ class HikeLeg implements HikeLegInterface {
     catch (error) {
       console.log(error);
     }
+
+    this.requestingSchedule = false;
   }
 
   async update(
