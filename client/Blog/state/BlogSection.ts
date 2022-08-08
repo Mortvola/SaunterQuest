@@ -8,7 +8,7 @@ class BlogSection implements BlogSectionInterface {
 
   text: string | null;
 
-  photo: BlogPhoto;
+  photo: BlogPhoto | null = null;
 
   onModified: () => void;
 
@@ -28,9 +28,6 @@ class BlogSection implements BlogSectionInterface {
 
     if (props.photo) {
       this.photo = new BlogPhoto(props.photo, onModified);
-    }
-    else {
-      this.photo = new BlogPhoto({ id: null, caption: null }, onModified);
     }
 
     makeAutoObservable(this);

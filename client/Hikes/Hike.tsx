@@ -1,10 +1,10 @@
 import React from 'react';
 import { Spinner, Button } from 'react-bootstrap';
 import { observer } from 'mobx-react-lite';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { metersToMilesRounded } from '../utilities';
 import EditableText from './EditableText';
-import { useDeleteConfirmation } from '../DeleteConfirmation';
+import { useConfirmation } from '../Confirmation';
 import HikeItem from '../Planner/state/HikeItem';
 
 type PropsType = {
@@ -12,12 +12,13 @@ type PropsType = {
   onDelete: (id: number) => void;
 }
 
-const Hike = ({
+const Hike: React.FC<PropsType> = observer(({
   hike,
   onDelete,
-}: PropsType) => {
-  const history = useHistory();
-  const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
+}) => {
+  const navigate = useNavigate();
+  const [DeleteConfirmation, handleDeleteClick] = useConfirmation(
+    'Delete',
     'Are you sure you want to delete this hike?',
     () => {
       onDelete(hike.id);
@@ -25,7 +26,7 @@ const Hike = ({
   );
 
   const handleOpen = () => {
-    history.push(`/hike/${hike.id}`);
+    navigate(`/hike/${hike.id}`);
   };
 
   return (
@@ -73,6 +74,6 @@ const Hike = ({
       <DeleteConfirmation />
     </div>
   );
-};
+});
 
-export default observer(Hike);
+export default Hike;

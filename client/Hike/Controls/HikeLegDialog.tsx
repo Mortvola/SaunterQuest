@@ -15,7 +15,7 @@ const FormHikeLegSelect: React.FC<SelectPropsType & FieldHookConfig<number | nul
   hike,
   ...props
 }) => {
-  const [field, meta, helpers] = useField(props);
+  const [field,, helpers] = useField(props);
 
   const handleLegChange = (id: number | null) => {
     helpers.setValue(id);
@@ -47,6 +47,7 @@ const HikeLegDialog: React.FC<PropsType & ModalProps> = ({
     startType: StartType,
     startDate: string,
     afterHikeLegId: number | null,
+    numberOfZeros: number | null,
   };
 
   const handleSubmit = (values: FormValues) => {
@@ -56,6 +57,7 @@ const HikeLegDialog: React.FC<PropsType & ModalProps> = ({
       values.startType,
       values.startDate === '' ? null : values.startDate,
       values.afterHikeLegId,
+      values.numberOfZeros ?? 0,
     );
 
     setShow(false);
@@ -99,6 +101,7 @@ const HikeLegDialog: React.FC<PropsType & ModalProps> = ({
         startType: hikeLeg.startType,
         startDate: hikeLeg.startDate?.toISODate() ?? '',
         afterHikeLegId: hikeLeg.afterHikeLegId,
+        numberOfZeros: hikeLeg.numberOfZeros,
       }}
       title="Hike Leg Settings"
       setShow={setShow}
@@ -106,13 +109,14 @@ const HikeLegDialog: React.FC<PropsType & ModalProps> = ({
       validate={handleValidate}
     >
       <div className={styles.form}>
-        <FormField type="text" name="name" label="Name:" />
+        <FormField type="text" name="name" label="Name:" style={{ width: '100%' }} />
         <FormRadio name="startType" value="none" label="No Start Date" />
         <FormRadio name="startType" value="date" label="Start Date" />
         <FormField type="date" name="startDate" />
         <FormRadio name="startType" value="afterLeg" label="Previous Leg" />
         <FormHikeLegSelect name="afterHikeLegId" hike={hike} />
         <FormField type="color" name="color" label="Color:" />
+        <FormField type="text" name="numberOfZeros" label="Number of Zeros:" />
       </div>
     </FormModal>
   );

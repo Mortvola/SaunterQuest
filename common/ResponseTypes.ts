@@ -133,11 +133,12 @@ export type DayProps = {
 export type ScheduleResponse = DayProps[];
 
 export type BlogPhotoProps = {
-  id: number | null,
+  blogId?: number,
+  id: number,
   caption: string | null,
   orientation?: number,
-  width?: number,
-  height?: number,
+  width?: number | null,
+  height?: number | null,
 }
 
 export type BlogSectionTypes = 'markdown' | 'elevation' | 'map' | 'photo' | 'html' | 'youTube';
@@ -145,12 +146,12 @@ export type BlogSectionTypes = 'markdown' | 'elevation' | 'map' | 'photo' | 'htm
 export type BlogSectionProps = {
   type: BlogSectionTypes,
   text: string | null,
-  photo: BlogPhotoProps,
+  photo: BlogPhotoProps | null,
 }
 
 export type DraftPostProps = {
   title: string | null,
-  titlePhoto: BlogPhotoProps,
+  titlePhoto: BlogPhotoProps | null,
   hikeLegId: number | null,
   content: BlogSectionProps[] | null,
 }
@@ -176,7 +177,8 @@ export type HikeLegProps = {
   color: string,
   schedule?: {
     numberOfDays: number,
-  }
+  },
+  numberOfZeros: number,
 };
 
 export type CommentRequest = {
@@ -199,4 +201,5 @@ export type BlogListItemProps = {
   id: number,
   title: string | null,
   publicationTime?: string | null,
+  titlePhoto?: BlogPhotoProps,
 }

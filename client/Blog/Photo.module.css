@@ -16,7 +16,7 @@
 .frame:global(.title-photo) {
   width: 100%;
   margin-top: 0;
-  margin-bottom: 0;
+  margin-bottom: 1rem;
   border: none;
 }
 

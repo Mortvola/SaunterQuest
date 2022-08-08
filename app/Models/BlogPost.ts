@@ -51,8 +51,8 @@ export default class BlogPost extends BaseModel {
   public content: BlogContent | null;
 
   @computed({ serializeAs: 'titlePhoto' })
-  public titlePhoto: {
-    id: number | null,
+  public titlePhoto: null | {
+    id: number,
     caption: string | null,
     orientation: number,
     width: number | null,

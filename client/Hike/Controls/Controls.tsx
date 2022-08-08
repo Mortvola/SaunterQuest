@@ -10,7 +10,6 @@ import Waypoints from './Waypoints';
 import TrailConditions from '../TrailConditions';
 import styles from './Controls.module.css';
 import IconButton from '../../IconButton';
-import { useDeleteConfirmation } from '../../DeleteConfirmation';
 import HikeLegs from './HikeLegs';
 
 type PropsType = {

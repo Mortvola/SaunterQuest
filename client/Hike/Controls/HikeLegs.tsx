@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react-lite';
 import React from 'react';
 import { Button } from 'react-bootstrap';
-import { useDeleteConfirmation } from '../../DeleteConfirmation';
+import { useConfirmation } from '../../Confirmation';
 import IconButton from '../../IconButton';
 import { HikeInterface } from '../state/Types';
 import { useHikeLegDialog } from './HikeLegDialog';
@@ -14,7 +14,8 @@ type PropsType = {
 
 const HikeLegs: React.FC<PropsType> = observer(({ hike }) => {
   const [HikeLegDialog, showHikeLegDialog] = useHikeLegDialog();
-  const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
+  const [DeleteConfirmation, handleDeleteClick] = useConfirmation(
+    'Delete',
     'Are you sure you want to delete this leg?',
     () => {
       if (hike.currentLeg === null) {

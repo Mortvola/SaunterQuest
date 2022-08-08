@@ -1,5 +1,17 @@
 .list-item {
   cursor: pointer;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0,1fr);
+  grid-template-rows: repeat(3, max-content);
+}
+
+.title {
+  font-family: proxima-nova,Helvetica Neue,Arial,sans-serif;
+  font-size: 1rem;
+  font-weight: bold;
+  color: black;
+}
+
+.date {
+  font-size: 0.75rem;
 }

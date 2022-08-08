@@ -154,11 +154,15 @@ export interface HikeLegInterface {
 
   numberOfDays: number;
 
+  numberOfZeros: number,
+
   color: string;
 
   map: MapInterface;
 
   schedule: Day[];
+
+  requestingSchedule: boolean;
 
   route: RouteInterface;
 
@@ -182,6 +186,7 @@ export interface HikeLegInterface {
     starType: StartType,
     startDate: string | null,
     afterHikeLegId: number | null,
+    numberOfZeros: number,
   ): Promise<void>;
 }
 

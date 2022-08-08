@@ -4,7 +4,7 @@ import styles from './Photo.module.css';
 import Image from '../Image/Image';
 
 type PropsType = {
-  photo: BlogPhotoInterface,
+  photo: BlogPhotoInterface | null,
   blogId: number,
   className?: string,
 }
@@ -16,7 +16,7 @@ const Photo: React.FC<PropsType> = ({
 }) => (
   <div className={`${className} ${styles.frame}`}>
     {
-      photo.id
+      photo
         ? (
           <>
             <div className={styles.imageWrapper}>

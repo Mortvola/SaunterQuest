@@ -1,0 +1,9 @@
+.menu {
+  display: flex;
+  justify-self: center;
+  column-gap: 4rem;
+  border-top: 1px solid black;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  margin-bottom: 1rem;
+}

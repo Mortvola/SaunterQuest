@@ -1,26 +1,22 @@
 import { observer } from 'mobx-react-lite';
 import React from 'react';
 import { Offcanvas } from 'react-bootstrap';
+import { Outlet } from 'react-router-dom';
 import { useStores } from '../state/store';
-import { BlogListItemInterface } from '../../Blog/state/Types';
-import Blog from './Blog';
 import BlogList from './BlogList';
 import useMediaQuery from '../../MediaQuery';
 import styles from './Blogs.module.css';
-import PleaseWait from '../../Hikes/PleaseWait';
 
 type PropsType = {
-  tileServerUrl: string,
   showOffcanvas: boolean,
   onHideOffcanvas: () => void,
 }
 
-const Blogs: React.FC<PropsType> = observer(({ tileServerUrl, showOffcanvas, onHideOffcanvas }) => {
+const Blogs: React.FC<PropsType> = observer(({ showOffcanvas, onHideOffcanvas }) => {
   const { blogManager } = useStores();
   const { isMobile, addMediaClass } = useMediaQuery();
 
-  const handleSelection = (blog: BlogListItemInterface) => {
-    blogManager.setSelectedBlog(blog);
+  const handleSelection = () => {
     onHideOffcanvas();
   };
 
@@ -32,7 +28,6 @@ const Blogs: React.FC<PropsType> = observer(({ tileServerUrl, showOffcanvas, onH
             <BlogList
               blogManager={blogManager}
               onSelection={handleSelection}
-              selectedBlog={blogManager.selectedBlog}
             />
           )
           : (
@@ -42,24 +37,13 @@ const Blogs: React.FC<PropsType> = observer(({ tileServerUrl, showOffcanvas, onH
                 <BlogList
                   blogManager={blogManager}
                   onSelection={handleSelection}
-                  selectedBlog={blogManager.selectedBlog}
                 />
               </Offcanvas.Body>
             </Offcanvas>
           )
       }
       <div>
-        {
-          blogManager.loadingBlog
-            ? (
-              <PleaseWait show />
-            )
-            : (
-              blogManager.blog
-                ? <Blog blog={blogManager.blog} tileServerUrl={tileServerUrl} />
-                : null
-            )
-        }
+        <Outlet />
       </div>
     </div>
   );

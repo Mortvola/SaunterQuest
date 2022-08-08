@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Env from '@ioc:Adonis/Core/Env';
 import Blog from 'App/Models/Blog';
@@ -49,7 +50,12 @@ export default class HomeController {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  public async blogPost({ auth, view, params }: HttpContextContract) : Promise<string> {
+  public async blogPost({
+    auth,
+    view,
+    params,
+    response,
+  }: HttpContextContract) : Promise<string | void> {
     if (auth.user) {
       const props = {
         username: auth.user.username,
@@ -65,25 +71,30 @@ export default class HomeController {
       tileServerUrl: Env.get('TILE_SERVER_URL'),
     };
 
-    const blog = await Blog.query().preload('publishedPost')
+    const blog = await Blog.query()
+      .preload('publishedPost')
       .whereNotNull('publishedPostId')
       .andWhere('id', params.id)
       .first();
 
-    let og: OpenGraph = {
-      title: 'SaunterQuest: a hiking blog site',
-      titlePhotoId: null,
-      blogId: null,
-    };
-
-    if (blog) {
-      og = {
-        title: blog.publishedPost.title,
-        titlePhotoId: blog.publishedPost.titlePhotoId,
-        blogId: params.id,
+    if (blog && blog?.publishedPost) {
+      let og: OpenGraph = {
+        title: 'SaunterQuest: a hiking blog site',
+        titlePhotoId: null,
+        blogId: null,
       };
+
+      if (blog) {
+        og = {
+          title: blog.publishedPost.title,
+          titlePhotoId: blog.publishedPost.titlePhotoId,
+          blogId: params.id,
+        };
+      }
+
+      return view.render('welcome', { props, og });
     }
 
-    return view.render('welcome', { props, og });
+    response.redirect('/');
   }
 }

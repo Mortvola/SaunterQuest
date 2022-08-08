@@ -1,23 +1,25 @@
 import React from 'react';
 import Http from '@mortvola/http';
 import IconButton from '../../IconButton';
-import { useDeleteConfirmation } from '../../DeleteConfirmation';
+import { useConfirmation } from '../../Confirmation';
 import styles from './Photo.module.css';
 import PleaseWait from '../../Hikes/PleaseWait';
 import Image from '../../Image/Image';
+import { BlogPhotoProps } from '../../../common/ResponseTypes';
 
 type PropsType = {
-  id: number,
+  photo: BlogPhotoProps,
   onDelete: (id: number) => void,
 }
 
-const Photo: React.FC<PropsType> = ({ id, onDelete }) => {
+const Photo: React.FC<PropsType> = ({ photo, onDelete }) => {
   const [regenerating, setRegenerating] = React.useState<boolean>(false);
   const [version, setVersion] = React.useState<number>(0);
-  const [DeleteConfirmation, handleDeleteClick] = useDeleteConfirmation(
+  const [DeleteConfirmation, handleDeleteClick] = useConfirmation(
+    'Delete',
     'Are you sure you want to delete this photo?',
     () => {
-      onDelete(id);
+      onDelete(photo.id);
     },
   );
 
@@ -25,7 +27,7 @@ const Photo: React.FC<PropsType> = ({ id, onDelete }) => {
     setRegenerating(true);
 
     try {
-      await Http.post(`/api/photo/${id}`, { command: 'regenerate' });
+      await Http.post(`/api/photo/${photo.id}`, { command: 'regenerate' });
     }
     catch (error) {
       console.log(error);
@@ -34,22 +36,21 @@ const Photo: React.FC<PropsType> = ({ id, onDelete }) => {
     setRegenerating(false);
   };
 
-  const handleRotateRightClick = async () => {
+  const handleRotateClick = async (command: string) => {
     setRegenerating(true);
 
-    await Http.post(`/api/photo/${id}`, { command: 'rotate-right' });
+    await Http.post(`/api/photo/${photo.id}`, { command });
 
     setVersion((prev) => prev + 1);
     setRegenerating(false);
   };
 
+  const handleRotateRightClick = async () => {
+    handleRotateClick('rotate-right');
+  };
+
   const handleRotateLeftClick = async () => {
-    setRegenerating(true);
-
-    await Http.post(`/api/photo/${id}`, { command: 'rotate-left' });
-
-    setVersion((prev) => prev + 1);
-    setRegenerating(false);
+    handleRotateClick('rotate-left');
   };
 
   return (
@@ -61,7 +62,12 @@ const Photo: React.FC<PropsType> = ({ id, onDelete }) => {
         <IconButton icon="pencil" iconClass="fa-solid" invert onClick={handleUpdateClick} />
       </div>
       <div className={styles.photoWrapper}>
-        <Image photoId={id} version={version} />
+        <Image
+          photoId={photo.id}
+          version={version}
+          width={photo.width ?? undefined}
+          height={photo.height ?? undefined}
+        />
         <PleaseWait show={regenerating} />
       </div>
       <DeleteConfirmation />

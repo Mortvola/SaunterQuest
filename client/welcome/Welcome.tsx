@@ -4,18 +4,17 @@ import 'regenerator-runtime/runtime';
 import '@mortvola/usemodal/dist/main.css';
 import '@mortvola/forms/dist/main.css';
 import 'bootstrap/dist/css/bootstrap.css';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './welcome.css';
 import BlogStore from './state/store';
 import Main from './Main';
+import BlogList from './BlogList';
+import BlogPost from './BlogPost';
+import Photos from './Photos';
 
 type PropsType = {
   tileServerUrl: string,
 }
-
-const Welcome: React.FC<PropsType> = ({ tileServerUrl }) => (
-  <Main tileServerUrl={tileServerUrl} />
-);
 
 const appElement = document.querySelector('.app');
 if (appElement === null) {
@@ -36,9 +35,16 @@ if (rootElement) {
 
   root.render(
     <BlogStore>
-      <Router>
-        <Welcome tileServerUrl={initialProps.tileServerUrl} />
-      </Router>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Main />}>
+            <Route index element={<BlogPost tileServerUrl={initialProps.tileServerUrl} />} />
+            <Route path="/photos" element={<Photos />} />
+            <Route path="/blog" element={<BlogList />} />
+            <Route path="/blog/:postId" element={<BlogPost tileServerUrl={initialProps.tileServerUrl} />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
     </BlogStore>,
   );
 }

@@ -18,19 +18,17 @@ export default class PhotosController {
     auth: {
       user,
     },
-  }: HttpContextContract): Promise<number[]> {
+  }: HttpContextContract): Promise<Photo[]> {
     if (!user) {
       throw new Exception('user unauthorized');
     }
 
-    const results = await Database.query()
-      .select('id')
-      .from('photos')
-      .where('user_id', user.id)
+    const photos = Photo.query()
+      .where('userId', user.id)
       .andWhere('deleted', false)
       .orderBy('created_at', 'desc');
 
-    return results.map((r) => r.id);
+    return photos;
   }
 
   private static async saveScaledImages(photo: Photo, data: Buffer) {

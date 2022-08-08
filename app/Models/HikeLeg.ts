@@ -65,6 +65,9 @@ export default class HikeLeg extends BaseModel {
   @column()
   public color: string;
 
+  @column()
+  public numberOfZeros: number;
+
   @column({ serializeAs: null })
   public hikeId: number;
 

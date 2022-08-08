@@ -23,6 +23,7 @@ export default class HikeLegsController {
         startDate: schema.date.nullable(),
         afterHikeLegId: schema.number.nullable(),
         color: schema.string(),
+        numberOfZeros: schema.number(),
       }),
     });
 
@@ -34,6 +35,7 @@ export default class HikeLegsController {
       startDate: requestData.startDate,
       afterHikeLegId: requestData.afterHikeLegId,
       color: requestData.color,
+      numberOfZeros: requestData.numberOfZeros,
     });
 
     await leg.save();

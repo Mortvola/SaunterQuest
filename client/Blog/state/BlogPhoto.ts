@@ -3,7 +3,7 @@ import { BlogPhotoProps } from '../../../common/ResponseTypes';
 import { BlogPhotoInterface } from './Types';
 
 class BlogPhoto implements BlogPhotoInterface {
-  id: number | null;
+  id: number;
 
   caption: string | null;
 
@@ -13,14 +13,14 @@ class BlogPhoto implements BlogPhotoInterface {
 
   height?: number;
 
-  onModified: () => void;
+  onModified?: () => void;
 
-  constructor(props: BlogPhotoProps, onModified: () => void) {
+  constructor(props: BlogPhotoProps, onModified?: () => void) {
     this.id = props.id;
     this.caption = props.caption;
     this.orientation = props.orientation ?? 0;
-    this.width = props.width;
-    this.height = props.height;
+    this.width = props.width ?? undefined;
+    this.height = props.height ?? undefined;
 
     this.onModified = onModified;
 
@@ -32,21 +32,30 @@ class BlogPhoto implements BlogPhotoInterface {
       this.id = id;
       this.width = width;
       this.height = height;
-      this.onModified();
+
+      if (this.onModified) {
+        this.onModified();
+      }
     });
   }
 
   setCaption(caption: string): void {
     runInAction(() => {
       this.caption = caption;
-      this.onModified();
+
+      if (this.onModified) {
+        this.onModified();
+      }
     });
   }
 
   setOrientation(orientation: number): void {
     runInAction(() => {
       this.orientation = orientation;
-      this.onModified();
+
+      if (this.onModified) {
+        this.onModified();
+      }
     });
   }
 

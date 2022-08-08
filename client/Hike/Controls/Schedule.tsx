@@ -1,5 +1,6 @@
-import React, { ReactElement } from 'react';
+import React from 'react';
 import { observer } from 'mobx-react-lite';
+import { Spinner } from 'react-bootstrap';
 import { positionMapToBounds } from '../mapUtils';
 import {
   metersToFeet, metersToMilesRounded, formatTime,
@@ -12,9 +13,9 @@ type PropsType = {
   hikeLeg: HikeLegInterface,
 }
 
-const Schedule = observer(({
+const Schedule: React.FC<PropsType> = observer(({
   hikeLeg,
-}: PropsType): ReactElement => {
+}) => {
   const positionMapToDay = (d: number) => {
     //
     // Position the map so that the two endpoints (today's and tomorrow's) are visible.
@@ -69,9 +70,13 @@ const Schedule = observer(({
   };
 
   return (
-    <div className={styles.schedule}>
+    <div className={`${styles.schedule} ${hikeLeg.requestingSchedule ? styles.waiting : ''}`}>
       {
-        hikeLeg.schedule.map((day, index) => renderDay(day, index))
+        hikeLeg.requestingSchedule
+          ? (
+            <Spinner animation="border" size="sm" />
+          )
+          : hikeLeg.schedule.map((day, index) => renderDay(day, index))
       }
     </div>
   );

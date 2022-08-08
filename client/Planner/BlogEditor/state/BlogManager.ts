@@ -8,8 +8,6 @@ import BlogListItem from './BlogListItem';
 class BlogManager implements BlogManagerInterface {
   blogs: BlogListItemInterface[] = [];
 
-  selectedBlog: BlogListItemInterface | null = null;
-
   blog: Blog | null = null;
 
   loadingBlog = false;
@@ -32,12 +30,12 @@ class BlogManager implements BlogManagerInterface {
     }
   }
 
-  async loadBlog(blog: BlogListItemInterface): Promise<void> {
+  async loadBlog(blogId: number): Promise<void> {
     runInAction(() => {
       this.loadingBlog = true;
     });
 
-    const response = await Http.get<BlogProps>(`/api/blog/${blog.id}?o=draft`);
+    const response = await Http.get<BlogProps>(`/api/blog/${blogId}?o=draft`);
 
     if (response.ok) {
       const body = await response.body();
@@ -54,17 +52,7 @@ class BlogManager implements BlogManagerInterface {
     }
   }
 
-  setSelectedBlog(blog: BlogListItemInterface | null): void {
-    runInAction(() => {
-      if (this.selectedBlog !== blog && blog !== null) {
-        this.loadBlog(blog);
-      }
-
-      this.selectedBlog = blog;
-    });
-  }
-
-  async addBlog(): Promise<void> {
+  async addBlog(): Promise<number | null> {
     const response = await Http.post<void, BlogProps>('/api/blog');
 
     if (response.ok) {
@@ -72,11 +60,15 @@ class BlogManager implements BlogManagerInterface {
 
       runInAction(() => {
         this.blogs = [
-          ...this.blogs,
           new BlogListItem({ id: body.id, title: `Unknown (${body.id})` }, this),
+          ...this.blogs,
         ];
       });
+
+      return body.id;
     }
+
+    return null;
   }
 
   async deleteBlog(blog: BlogListItemInterface): Promise<void> {

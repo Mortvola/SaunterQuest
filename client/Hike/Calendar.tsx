@@ -54,9 +54,11 @@ const Calendar: React.FC<PropsType> = observer(({
 
         const getLegs = (startDate: DateTime, l: HikeLegInterface) => (
           l.nextLegs.map((nl) => {
-            let newStartDate = startDate.plus({ days: l.numberOfDays + 1 });
+            let newStartDate = startDate.plus({ days: l.numberOfDays + l.numberOfZeros });
             let newEndDate = newStartDate.plus({ days: nl.numberOfDays - 1 });
 
+            // See if the new start and end dates need to move because of a blackout
+            // date
             blackoutDatesManager.blackoutDates.forEach((bld) => {
               if (newStartDate <= bld.end && newEndDate >= bld.start) {
                 newStartDate = bld.end.plus({ days: 1 });

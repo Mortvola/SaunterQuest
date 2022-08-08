@@ -3,14 +3,15 @@ import Http from '@mortvola/http';
 import { Alert, Modal, ModalHeader } from 'react-bootstrap';
 import styles from './Photos.module.css';
 import Photo from './Photo';
+import { BlogPhotoProps } from '../../../common/ResponseTypes';
 
 const Photos: React.FC = () => {
-  const [photos, setPhotos] = React.useState<number[]>([]);
+  const [photos, setPhotos] = React.useState<BlogPhotoProps[]>([]);
   const [showError, setShowError] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     (async () => {
-      const response = await Http.get<number[]>('/api/photos');
+      const response = await Http.get<BlogPhotoProps[]>('/api/photos');
 
       if (response.ok) {
         setPhotos(await response.body());
@@ -19,7 +20,7 @@ const Photos: React.FC = () => {
   }, []);
 
   const handleDelete = async (id: number) => {
-    const index = photos.findIndex((p) => p === id);
+    const index = photos.findIndex((p) => p.id === id);
 
     if (index !== -1) {
       const response = await Http.delete(`/api/photo/${id}`);
@@ -40,7 +41,7 @@ const Photos: React.FC = () => {
     <div className={styles.list}>
       {
         photos.map((p) => (
-          <Photo key={p} id={p} onDelete={handleDelete} />
+          <Photo key={p.id} photo={p} onDelete={handleDelete} />
         ))
       }
       <Modal show={showError} onHide={() => setShowError(false)} backdrop="static">

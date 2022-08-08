@@ -161,14 +161,14 @@ Route.group(() => {
       Route.post('/publish', 'BlogsController.publish');
       Route.post('/unpublish/:id', 'BlogsController.unpublish');
       Route.put('', 'BlogsController.update');
-      Route.post('/:blogId/photo', 'BlogsController.addPhoto');
+
+      Route.group(() => {
+        Route.delete('', 'BlogsController.deleteBlog');
+        Route.post('/photo', 'BlogsController.addPhoto');
+      })
+        .prefix('/:blogId');
     })
       .prefix('/blog');
-
-    Route.group(() => {
-      Route.delete('', 'BlogsController.deleteBlog');
-    })
-      .prefix('/blog/:blogId');
   })
     .prefix('/api');
 })
@@ -180,13 +180,18 @@ Route.group(() => {
   Route.get('/blogs', 'BlogsController.get');
 
   Route.group(() => {
-    Route.get('', 'BlogsController.getBlog');
-    // Route.get('/blog/:blogId/photos', 'BlogsController.getPhotos');
-    Route.get('/photo/:photoId', 'BlogsController.getPhoto');
-    Route.post('/comment', 'BlogsController.comment');
-    Route.get('/comments', 'BlogsController.getComments');
+    Route.get('/photos', 'BlogsController.getPhotos');
+
+    Route.group(() => {
+      Route.get('', 'BlogsController.getBlog');
+      // Route.get('/blog/:blogId/photos', 'BlogsController.getPhotos');
+      Route.get('/photo/:photoId', 'BlogsController.getPhoto');
+      Route.post('/comment', 'BlogsController.comment');
+      Route.get('/comments', 'BlogsController.getComments');
+    })
+      .prefix('/:blogId');
   })
-    .prefix('/blog/:blogId');
+    .prefix('/blog');
 
   Route.group(() => {
     Route.group(() => {
