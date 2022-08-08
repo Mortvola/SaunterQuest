@@ -13,7 +13,90 @@ import BlogComment from 'App/Models/BlogComment';
 import { BlogListItemProps, BlogPhotoProps, CommentProps } from 'common/ResponseTypes';
 import Photo from 'App/Models/Photo';
 
+type OpenGraph = {
+  title: string,
+  titlePhotoId: number | null,
+  blogId: number | null,
+};
+
 export default class BlogsController {
+  // eslint-disable-next-line class-methods-use-this
+  public async index({ view }: HttpContextContract) : Promise<string> {
+    const props = {
+      tileServerUrl: Env.get('TILE_SERVER_URL'),
+    };
+
+    const blog = await Blog.query().preload('publishedPost')
+      .whereNotNull('publishedPostId')
+      .orderBy('publicationTime', 'desc')
+      .first();
+
+    let og: OpenGraph = {
+      title: 'SaunterQuest: a hiking blog site',
+      titlePhotoId: null,
+      blogId: null,
+    };
+
+    if (blog) {
+      og = {
+        title: blog.publishedPost.title ?? '',
+        titlePhotoId: blog.publishedPost.titlePhotoId,
+        blogId: blog.id,
+      };
+    }
+
+    return view.render('welcome', { props, og });
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async blogPost({
+    auth,
+    view,
+    params,
+    response,
+  }: HttpContextContract) : Promise<string | void> {
+    if (auth.user) {
+      const props = {
+        username: auth.user.username,
+        tileServerUrl: Env.get('TILE_SERVER_URL'),
+        pathFinderUrl: Env.get('PATHFINDER_URL'),
+        extendedMenu: auth.user.admin,
+      };
+
+      return view.render('home', { props });
+    }
+
+    const props = {
+      tileServerUrl: Env.get('TILE_SERVER_URL'),
+    };
+
+    const blog = await Blog.query()
+      .preload('publishedPost')
+      .whereNotNull('publishedPostId')
+      .andWhere('id', params.id)
+      .first();
+
+    if (blog && blog?.publishedPost) {
+      let og: OpenGraph = {
+        title: 'SaunterQuest: a hiking blog site',
+        titlePhotoId: null,
+        blogId: null,
+      };
+
+      if (blog) {
+        og = {
+          title: blog.publishedPost.title,
+          titlePhotoId: blog.publishedPost.titlePhotoId,
+          blogId: params.id,
+        };
+      }
+
+      return view.render('welcome', { props, og });
+    }
+
+    return response.redirect('/');
+  }
+
   // eslint-disable-next-line class-methods-use-this
   async get({ request }) : Promise<BlogListItemProps[]> {
     const { o } = request.qs();

@@ -11,8 +11,25 @@ import { BlackoutDatesProps, HikeLegProps } from 'common/ResponseTypes';
 import HikeLeg from 'App/Models/HikeLeg';
 import HikerProfile from 'App/Models/HikerProfile';
 import HikeBlackoutDate from 'App/Models/HikeBlackoutDate';
+import Env from '@ioc:Adonis/Core/Env';
 
 export default class HikesController {
+  // eslint-disable-next-line class-methods-use-this
+  public async index({ auth, view, response }: HttpContextContract) : Promise<string | void> {
+    if (auth.user) {
+      const props = {
+        username: auth.user.username,
+        tileServerUrl: Env.get('TILE_SERVER_URL'),
+        pathFinderUrl: Env.get('PATHFINDER_URL'),
+        extendedMenu: auth.user.admin,
+      };
+
+      return view.render('home', { props });
+    }
+
+    return response.redirect('/');
+  }
+
   // eslint-disable-next-line class-methods-use-this
   public async get({ auth: { user }, request }: HttpContextContract) : Promise<Hike[]> {
     if (!user) {

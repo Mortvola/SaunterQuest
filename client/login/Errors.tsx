@@ -1,10 +1,10 @@
 import React from 'react';
-import { Error } from '../../common/ResponseTypes';
+import { FieldError } from '../../common/ResponseTypes';
 
 let key = 0;
 
 type PropsType = {
-  errors: Error[],
+  errors: FieldError[],
 }
 
 const Errors: React.FC<PropsType> = ({

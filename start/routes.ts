@@ -24,9 +24,9 @@ import Route from '@ioc:Adonis/Core/Route';
 Route.get('/', 'HomeController.index');
 Route.get('/gear', 'HomeController.index');
 Route.get('/food', 'HomeController.index');
-Route.get('/blog', 'HomeController.index');
-Route.get('/hike/:id', 'HomeController.index');
-Route.get('/blog/:id', 'HomeController.blogPost');
+Route.get('/blog', 'BlogsController.index');
+Route.get('/hike/:id', 'HikesController.index');
+Route.get('/blog/:id', 'BlogsController.blogPost');
 Route.get('/photos', 'HomeController.index');
 
 Route.get('/health', async ({ response }) => {

@@ -11,7 +11,7 @@ type OpenGraph = {
 
 export default class HomeController {
   // eslint-disable-next-line class-methods-use-this
-  public async index({ auth, view }: HttpContextContract) : Promise<string> {
+  public async index({ auth, view }: HttpContextContract) : Promise<string | void> {
     if (auth.user) {
       const props = {
         username: auth.user.username,
@@ -47,54 +47,5 @@ export default class HomeController {
     }
 
     return view.render('welcome', { props, og });
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  public async blogPost({
-    auth,
-    view,
-    params,
-    response,
-  }: HttpContextContract) : Promise<string | void> {
-    if (auth.user) {
-      const props = {
-        username: auth.user.username,
-        tileServerUrl: Env.get('TILE_SERVER_URL'),
-        pathFinderUrl: Env.get('PATHFINDER_URL'),
-        extendedMenu: auth.user.admin,
-      };
-
-      return view.render('home', { props });
-    }
-
-    const props = {
-      tileServerUrl: Env.get('TILE_SERVER_URL'),
-    };
-
-    const blog = await Blog.query()
-      .preload('publishedPost')
-      .whereNotNull('publishedPostId')
-      .andWhere('id', params.id)
-      .first();
-
-    if (blog && blog?.publishedPost) {
-      let og: OpenGraph = {
-        title: 'SaunterQuest: a hiking blog site',
-        titlePhotoId: null,
-        blogId: null,
-      };
-
-      if (blog) {
-        og = {
-          title: blog.publishedPost.title,
-          titlePhotoId: blog.publishedPost.titlePhotoId,
-          blogId: params.id,
-        };
-      }
-
-      return view.render('welcome', { props, og });
-    }
-
-    response.redirect('/');
   }
 }

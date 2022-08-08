@@ -50,8 +50,8 @@ const HikeLegDialog: React.FC<PropsType & ModalProps> = ({
     numberOfZeros: number | null,
   };
 
-  const handleSubmit = (values: FormValues) => {
-    hikeLeg.update(
+  const handleSubmit = async (values: FormValues) => {
+    const result = await hikeLeg.update(
       values.name,
       values.color,
       values.startType,

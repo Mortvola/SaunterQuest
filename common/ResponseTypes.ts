@@ -51,14 +51,14 @@ export type TerrainTileProps = {
   objects: ObjectProps[],
 };
 
-export interface Error {
+export interface FieldError {
   field: string;
   message: string;
   rule: string;
 }
 
 export interface ErrorResponse {
-  errors: Error[];
+  errors: FieldError[];
 }
 
 export const isErrorResponse = (r: unknown): r is ErrorResponse => (
