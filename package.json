@@ -39,7 +39,7 @@
     "jsonwebtoken": "^8.5.1",
     "leaflet": "git+https://github.com/Mortvola/Leaflet.git#6a6e49c9",
     "leaflet.markercluster": "^1.5.3",
-    "luxon": "^2.1.1",
+    "luxon": "^2.5.2",
     "mobx": "^6.3.7",
     "mobx-react-lite": "^3.2.2",
     "node-fetch": "^2.6.6",
